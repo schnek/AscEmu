@@ -19,7 +19,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+//start MIT
 #include "Setup.h"
+#include "Quest_The_Barrens.h"
+
+using namespace AscEmu::Scripts::Quests::TheBarrens;
+//end MIT
 
 class BeatenCorpse : public Arcemu::Gossip::Script
 {
@@ -52,10 +57,10 @@ public:
     }
 };
 
-class Wizzlecranks_Shredder : public CreatureAIScript
+class TheEscapeQuest : public CreatureAIScript
 {
-    ADD_CREATURE_FACTORY_FUNCTION(Wizzlecranks_Shredder);
-    explicit Wizzlecranks_Shredder(Creature* pCreature) : CreatureAIScript(pCreature) {}
+    ADD_CREATURE_FACTORY_FUNCTION(TheEscapeQuest)
+    explicit TheEscapeQuest(Creature* pCreature) : CreatureAIScript(pCreature) {}
 
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
@@ -77,10 +82,10 @@ class Wizzlecranks_Shredder : public CreatureAIScript
     }
 };
 
-class Gilthares_Firebough : public CreatureAIScript
+class FreeFromTheHoldQuest : public CreatureAIScript
 {
-    ADD_CREATURE_FACTORY_FUNCTION(Gilthares_Firebough);
-    explicit Gilthares_Firebough(Creature* pCreature) : CreatureAIScript(pCreature) {}
+    ADD_CREATURE_FACTORY_FUNCTION(FreeFromTheHoldQuest)
+    explicit FreeFromTheHoldQuest(Creature* pCreature) : CreatureAIScript(pCreature) {}
 
     void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
     {
@@ -103,10 +108,10 @@ class Gilthares_Firebough : public CreatureAIScript
 };
 
 int kolkarskilled = 0;
-class VerogtheDervish : public CreatureAIScript
+class VerogtheDervishQuest : public CreatureAIScript
 {
-    ADD_CREATURE_FACTORY_FUNCTION(VerogtheDervish);
-    explicit VerogtheDervish(Creature* pCreature) : CreatureAIScript(pCreature) {}
+    ADD_CREATURE_FACTORY_FUNCTION(VerogtheDervishQuest)
+    explicit VerogtheDervishQuest(Creature* pCreature) : CreatureAIScript(pCreature) {}
     void OnDied(Unit* mKiller) override
     {
         kolkarskilled++;
@@ -122,17 +127,17 @@ class VerogtheDervish : public CreatureAIScript
             }
         }
     }
-
 };
 
 void SetupBarrens(ScriptMgr* mgr)
 {
-    mgr->register_creature_gossip(10668, new BeatenCorpse());
+    mgr->register_creature_gossip(10668, new BeatenCorpse);
+//start MIT
+    // CreatureScripts
+    mgr->register_creature_script(TheEscapeQuestIds, &TheEscapeQuest::Create); // https://www.wowhead.com/quest=863/the-escape
 
-    mgr->register_creature_script(3439, &Wizzlecranks_Shredder::Create);
-    mgr->register_creature_script(3465, &Gilthares_Firebough::Create);
-    mgr->register_creature_script(3275, &VerogtheDervish::Create);
-    mgr->register_creature_script(3274, &VerogtheDervish::Create);
-    mgr->register_creature_script(3397, &VerogtheDervish::Create);
-    mgr->register_creature_script(4316, &VerogtheDervish::Create);
+    mgr->register_creature_script(FreeFromTheHoldQuestIds, &FreeFromTheHoldQuest::Create); // https://www.wowhead.com/quest=898/free-from-the-hold
+
+    mgr->register_creature_script(VerogtheDervishQuestIds, &VerogtheDervishQuest::Create); // https://www.wowhead.com/quest=851/verog-the-dervish
 }
+//end MIT
