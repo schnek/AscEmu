@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -195,7 +195,7 @@ void LogonCommClientSocket::SendPing()
 {
     pingtime = Util::getMSTime();
     WorldPacket data(LRCMSG_LOGON_PING_STATUS, 4);
-    data << uint8_t(Config.MainConfig.getIntDefault("Realms1", "Id", 1));
+    data << uint8_t(Config.MainConfig.getIntDefault("Realm1", "Id", 1));
     SendPacket(&data, false);
 
     last_ping = (uint32)UNIXTIME;
@@ -263,7 +263,7 @@ void LogonCommClientSocket::SendChallenge()
 
     WorldPacket data(LRCMSG_AUTH_REQUEST, 21);
     data.append(key, 20);
-    data << uint8_t(Config.MainConfig.getIntDefault("Realms1", "Id", 1));
+    data << uint8_t(Config.MainConfig.getIntDefault("Realm1", "Id", 1));
     SendPacket(&data, true);
 }
 

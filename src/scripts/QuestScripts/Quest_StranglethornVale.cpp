@@ -1,7 +1,7 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2008 WEmu Team
  *
  * This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ public:
     void OnHello(Object* pObject, Player* plr) override
     {
         Arcemu::Gossip::Menu menu(pObject->getGuid(), 1, plr->GetSession()->language);
-        if (plr->HasQuest(348) && plr->GetItemInterface()->GetItemCount(2799, 0) && !plr->GetItemInterface()->GetItemCount(2797, 0))
+        if (plr->HasQuest(348) && plr->getItemInterface()->GetItemCount(2799, 0) && !plr->getItemInterface()->GetItemCount(2797, 0))
             menu.AddItem(GOSSIP_ICON_CHAT, plr->GetSession()->LocalizedGossipOption(494), 1);     // I'm ready, Summon Him!
 
         menu.Send(plr);
@@ -44,8 +44,8 @@ public:
     {
         Creature* doctor = static_cast<Creature*>(pObject);
 
-        plr->GetItemInterface()->RemoveItemAmt(2799, 1);
-        doctor->CastSpell(doctor, sSpellCustomizations.GetSpellInfo(12380), true);
+        plr->getItemInterface()->RemoveItemAmt(2799, 1);
+        doctor->castSpell(doctor, sSpellMgr.getSpellInfo(12380), true);
         if (!plr->GetMapMgr() || !plr->GetMapMgr()->GetInterface())
             return;
 
@@ -167,7 +167,7 @@ public:
         msg1 += mTarget->getName().c_str();
         msg1 += ". Now let us see what tale these heads tell...";
         Kin_weelay->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, msg1.c_str());
-        Kin_weelay->CastSpell(Kin_weelay, sSpellCustomizations.GetSpellInfo(3644), false);
+        Kin_weelay->castSpell(Kin_weelay, sSpellMgr.getSpellInfo(3644), false);
         skull1->Despawn(5000, 0);
         GameObject* skull2 = mTarget->GetMapMgr()->GetInterface()->GetGameObjectNearestCoords(SSX, SSY, SSZ, 2551);
         if (skull2)

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -586,8 +586,8 @@ void Creature::SaveToDB()
         ss << 0 << ",";
 
     ss << m_phase << ","
-        << "0,"             // event_entry
-        << "0,"             // waypoint_group
+        << "0"  // event_entry
+        << ",0" // waypoint_group
         << ")";
 
     WorldDatabase.Execute(ss.str().c_str());
@@ -818,7 +818,7 @@ void Creature::EnslaveExpire()
 
     uint64 charmer = getCharmedByGuid();
 
-    Player* caster = objmgr.GetPlayer(Arcemu::Util::GUID_LOPART(charmer));
+    Player* caster = objmgr.GetPlayer(WoWGuid::getGuidLowPartFromUInt64(charmer));
     if (caster)
     {
         caster->setCharmGuid(0);
@@ -1134,7 +1134,7 @@ Trainer* Creature::GetTrainer()
     return mTrainer;
 }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void Creature::AddVendorItem(uint32 itemid, uint32 amount, DBC::Structures::ItemExtendedCostEntry const* ec)
 #else
 void Creature::AddVendorItem(uint32 itemid, uint32 amount, DB2::Structures::ItemExtendedCostEntry const* ec)
@@ -1372,8 +1372,8 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     original_emotestate = spawn->emote_state;
 
     // set position
-    m_position.ChangeCoords(spawn->x, spawn->y, spawn->z, spawn->o);
-    m_spawnLocation.ChangeCoords(spawn->x, spawn->y, spawn->z, spawn->o);
+    m_position.ChangeCoords({ spawn->x, spawn->y, spawn->z, spawn->o });
+    m_spawnLocation.ChangeCoords({ spawn->x, spawn->y, spawn->z, spawn->o });
     m_aiInterface->setWaypointScriptType((Movement::WaypointMovementScript)spawn->movetype);
     m_aiInterface->LoadWaypointMapFromDB(spawn->id);
 
@@ -1613,8 +1613,8 @@ void Creature::Load(CreatureProperties const* properties_, float x, float y, flo
     original_emotestate = 0;
 
     // set position
-    m_position.ChangeCoords(x, y, z, o);
-    m_spawnLocation.ChangeCoords(x, y, z, o);
+    m_position.ChangeCoords({ x, y, z, o });
+    m_spawnLocation.ChangeCoords({ x, y, z, o });
 
     // not a neutral creature
     if (m_factionEntry && !(m_factionEntry->RepListId == -1 && m_factionTemplate->HostileMask == 0 && m_factionTemplate->FriendlyMask == 0))
@@ -1737,11 +1737,11 @@ void Creature::OnPushToWorld()
     std::set<uint32>::iterator itr = creature_properties->start_auras.begin();
     for (; itr != creature_properties->start_auras.end(); ++itr)
     {
-        SpellInfo* sp = sSpellCustomizations.GetSpellInfo((*itr));
+        SpellInfo const* sp = sSpellMgr.getSpellInfo((*itr));
         if (sp == nullptr)
             continue;
 
-        CastSpell(this, sp, 0);
+        castSpell(this, sp, 0);
     }
 
     if (GetScript() == NULL)
@@ -2124,7 +2124,7 @@ void Creature::GetSellItemByItemId(uint32 itemid, CreatureItem& ci)
     ci.itemid = 0;
 }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 DBC::Structures::ItemExtendedCostEntry const* Creature::GetItemExtendedCostByItemId(uint32 itemid)
 #else
 DB2::Structures::ItemExtendedCostEntry const* Creature::GetItemExtendedCostByItemId(uint32 itemid)
@@ -2322,9 +2322,9 @@ void Creature::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 
     // on die and an target die proc
     {
-        SpellInfo* killerspell;
+        SpellInfo const* killerspell;
         if (spellid)
-            killerspell = sSpellCustomizations.GetSpellInfo(spellid);
+            killerspell = sSpellMgr.getSpellInfo(spellid);
         else killerspell = NULL;
 
         HandleProc(PROC_ON_DIE, this, killerspell);
@@ -2347,10 +2347,10 @@ void Creature::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 
             for (uint8 i = 0; i < 3; i++)
             {
-                if (spl->GetSpellInfo()->getEffect(i) == SPELL_EFFECT_PERSISTENT_AREA_AURA)
+                if (spl->getSpellInfo()->getEffect(i) == SPELL_EFFECT_PERSISTENT_AREA_AURA)
                 {
                     uint64 guid = getChannelObjectGuid();
-                    DynamicObject* dObj = GetMapMgr()->GetDynamicObject(Arcemu::Util::GUID_LOPART(guid));
+                    DynamicObject* dObj = GetMapMgr()->GetDynamicObject(WoWGuid::getGuidLowPartFromUInt64(guid));
                     if (!dObj)
                         return;
 
@@ -2358,8 +2358,8 @@ void Creature::Die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
                 }
             }
 
-            if (spl->GetSpellInfo()->getChannelInterruptFlags() == 48140)
-                interruptSpell(spl->GetSpellInfo()->getId());
+            if (spl->getSpellInfo()->getChannelInterruptFlags() == 48140)
+                interruptSpell(spl->getSpellInfo()->getId());
         }
     }
 
@@ -2558,37 +2558,38 @@ void Creature::SetType(uint32 t)
 
 void Creature::BuildPetSpellList(WorldPacket& data)
 {
-    data << uint64(getGuid());
-    data << uint16(creature_properties->Family);
-    data << uint32(0);
+    data << uint64_t(getGuid());
+    data << uint16_t(creature_properties->Family);
+    data << uint32_t(0);
 
     if (!isVehicle())
-        data << uint32(0);
+        data << uint32_t(0);
     else
-        data << uint32(0x8000101);
+        data << uint32_t(0x8000101);
 
-    std::vector< uint32 >::const_iterator itr = creature_properties->castable_spells.begin();
+    std::vector<uint32_t>::const_iterator itr = creature_properties->castable_spells.begin();
 
     // Send the actionbar
-    for (uint8 i = 0; i < 10; ++i)
+    for (uint8_t i = 0; i < 10; ++i)
     {
         if (itr != creature_properties->castable_spells.end())
         {
-            uint32 spell = *itr;
-            data << uint32(Arcemu::Util::MAKE_UNIT_ACTION_BUTTON(spell, i + 8));
+            const auto spell = *itr;
+            const uint32_t actionButton = uint32_t(spell) | uint32_t(i + 8) << 24;
+            data << uint32_t(actionButton);
             ++itr;
         }
         else
         {
-            data << uint16(0);
-            data << uint8(0);
-            data << uint8(i + 8);
+            data << uint16_t(0);
+            data << uint8_t(0);
+            data << uint8_t(i + 8);
         }
     }
 
-    data << uint8(0);
+    data << uint8_t(0);
     // cooldowns
-    data << uint8(0);
+    data << uint8_t(0);
 }
 
 void Creature::addVehicleComponent(uint32 creature_entry, uint32 vehicleid)

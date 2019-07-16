@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -27,7 +26,6 @@
 #include "Server/MainServerDefines.h"
 #include "Map/MapMgr.h"
 #include "Spell/SpellMgr.h"
-#include <Spell/Customization/SpellCustomizations.hpp>
 
 uint32 buffentries[3] = { 180380, 180362, 180146 };
 
@@ -552,7 +550,7 @@ void ArathiBasin::OnAddPlayer(Player* plr)
 {
     if (!m_started && plr->IsInWorld())
     {
-        plr->CastSpell(plr, BG_PREPARATION, true);
+        plr->castSpell(plr, BG_PREPARATION, true);
         plr->m_bgScore.MiscData[BG_SCORE_AB_BASES_ASSAULTED] = 0;
         plr->m_bgScore.MiscData[BG_SCORE_AB_BASES_CAPTURED] = 0;
     }
@@ -644,10 +642,10 @@ void ArathiBasin::HookOnAreaTrigger(Player* plr, uint32 trigger)
             sEventMgr.AddEvent(this, &ArathiBasin::SpawnBuff, static_cast<uint32>(buffslot), EVENT_AB_RESPAWN_BUFF, AB_BUFF_RESPAWN_TIME, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
             // cast the spell on the player
-            SpellInfo* sp = sSpellCustomizations.GetSpellInfo(spellid);
+            const auto sp = sSpellMgr.getSpellInfo(spellid);
             if (sp)
             {
-                Spell* pSpell = sSpellFactoryMgr.NewSpell(plr, sp, true, nullptr);
+                Spell* pSpell = sSpellMgr.newSpell(plr, sp, true, nullptr);
                 SpellCastTargets targets(plr->getGuid());
                 pSpell->prepare(&targets);
             }
@@ -666,15 +664,15 @@ bool ArathiBasin::HookHandleRepop(Player* plr)
     {
         if (m_basesOwnedBy[2] == static_cast<int32>(plr->getBgTeam()))
         {
-            dest.ChangeCoords(GraveyardLocations[2][0], GraveyardLocations[2][1], GraveyardLocations[2][2]);
+            dest.ChangeCoords({ GraveyardLocations[2][0], GraveyardLocations[2][1], GraveyardLocations[2][2] });
         }
         else if (m_basesOwnedBy[i] == static_cast<int32>(plr->getBgTeam()))
         {
-            dist = plr->GetPositionV()->Distance2DSq(GraveyardLocations[i][0], GraveyardLocations[i][1]);
+            dist = plr->GetPositionV()->Distance2DSq({ GraveyardLocations[i][0], GraveyardLocations[i][1] });
             if (dist < current_distance)
             {
                 current_distance = dist;
-                dest.ChangeCoords(GraveyardLocations[i][0], GraveyardLocations[i][1], GraveyardLocations[i][2]);
+                dest.ChangeCoords({ GraveyardLocations[i][0], GraveyardLocations[i][1], GraveyardLocations[i][2] });
             }
         }
     }
@@ -923,7 +921,7 @@ void ArathiBasin::AssaultControlPoint(Player* pPlayer, uint32 Id)
                 }
             }
         }
-        sEventMgr.AddEvent(this, &ArathiBasin::CaptureControlPoint, Id, Team, EVENT_AB_CAPTURE_CP_1 + Id, MSTIME_MINUTE, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+        sEventMgr.AddEvent(this, &ArathiBasin::CaptureControlPoint, Id, Team, EVENT_AB_CAPTURE_CP_1 + Id, TimeVarsMs::Minute, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
         pPlayer->m_bgScore.MiscData[BG_SCORE_AB_BASES_ASSAULTED]++;
         UpdatePvPData();
     }
@@ -933,7 +931,7 @@ void ArathiBasin::AssaultControlPoint(Player* pPlayer, uint32 Id)
         SendChatMessage(Team ? CHAT_MSG_BG_EVENT_HORDE : CHAT_MSG_BG_EVENT_ALLIANCE, pPlayer->getGuid(), "$N claims the %s! If left unchallenged, the %s will control it in 1 minute!", ControlPointNames[Id],
             Team ? "Horde" : "Alliance");
         PlaySoundToAll(8192);
-        sEventMgr.AddEvent(this, &ArathiBasin::CaptureControlPoint, Id, Team, EVENT_AB_CAPTURE_CP_1 + Id, MSTIME_MINUTE, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+        sEventMgr.AddEvent(this, &ArathiBasin::CaptureControlPoint, Id, Team, EVENT_AB_CAPTURE_CP_1 + Id, TimeVarsMs::Minute, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
     }
 }
 

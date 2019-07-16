@@ -1,5 +1,5 @@
 /*
- * Why Scripts for Arcemu MMORPG Server <http://www.arcemu.org/>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2009 WhyScripts Team <http://www.whydb.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -27,8 +27,8 @@ public:
         if (mTarget == nullptr || qLogEntry == nullptr || entry != 169294)
             return;
 
-        if (mTarget->GetItemInterface()->GetItemCount(11470) < qLogEntry->GetQuest()->required_itemcount[0])
-            mTarget->CastSpell(mTarget, 15065, false);
+        if (mTarget->getItemInterface()->GetItemCount(11470) < qLogEntry->GetQuest()->required_itemcount[0])
+            mTarget->castSpell(mTarget, 15065, false);
     }
 };
 

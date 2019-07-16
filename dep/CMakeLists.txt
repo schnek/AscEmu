@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
 #ignore the warnings for dependencies (external code)
 if(MSVC)
@@ -16,11 +16,12 @@ endif()
 # add our dependecies
 add_subdirectory(recastnavigation)
 add_subdirectory(g3dlite)
+add_subdirectory(utf8cpp)
 
 add_subdirectory(lualib/src)
 
 if(BUILD_TOOLS)
-    if("${ASCEMU_VERSION}" STREQUAL "Cata")
+    if("${ASCEMU_VERSION}" STREQUAL "Cata" OR "${ASCEMU_VERSION}" STREQUAL "Mop")
         add_subdirectory(StormLib)
     else()
         add_subdirectory(libmpq)

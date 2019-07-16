@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,30 +20,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-/* Define these if you are creating a repack */
-/*
-#define REPACK "Moocow's Repack"
-#define REPACK_AUTHOR "Trelorn"
-#define REPACK_WEBSITE "www.google.com"*/
-
-enum TimeVariables
-{
-    TIME_SECOND = 1,
-    TIME_MINUTE = TIME_SECOND * 60,
-    TIME_HOUR   = TIME_MINUTE * 60,
-    TIME_DAY    = TIME_HOUR * 24,
-    TIME_MONTH  = TIME_DAY * 30,
-    TIME_YEAR   = TIME_MONTH * 12
-};
-
-enum MsTimeVariables
-{
-    MSTIME_SECOND   = 1000,
-    MSTIME_6SECONDS = MSTIME_SECOND * 6,
-    MSTIME_MINUTE   = MSTIME_SECOND * 60,
-    MSTIME_HOUR     = MSTIME_MINUTE * 60,
-    MSTIME_DAY      = MSTIME_HOUR * 24
-};
 
 #include "AscemuServerDefines.hpp"
 
@@ -99,7 +75,7 @@ enum MsTimeVariables
 #endif
 
 #if _WIN32
-#define PLATFORM_TEXT "Win32"
+    #define PLATFORM_TEXT "Win32"
 #elif __APPLE__
     #define PLATFORM_TEXT "OSX"
 #elif defined(BSD)
@@ -161,7 +137,6 @@ enum MsTimeVariables
     #define I64FMT "%016I64X"
     #define I64FMTD "%I64u"
     #define SI64FMTD "%I64d"
-    #define snprintf _snprintf
     #define atoll __atoi64
 #else
     #define stricmp strcasecmp
@@ -191,7 +166,7 @@ static inline uint32 int32abs2uint32(const int value)
     return (uint32)(value ^ (value >> 31)) - (value >> 31);
 }
 
-/// Fastest Method of float2int32
+// Fastest Method of float2int32
 static inline int float2int32(const float value)
 {
 #if !defined(_WIN64) && COMPILER == COMPILER_MICROSOFT && !defined(USING_BIG_ENDIAN)
@@ -211,7 +186,7 @@ static inline int float2int32(const float value)
 #endif
 }
 
-/// Fastest Method of long2int32
+// Fastest Method of long2int32
 static inline int long2int32(const double value)
 {
 #if !defined(_WIN64) && COMPILER == COMPILER_MICROSOFT && !defined(USING_BIG_ENDIAN)
@@ -243,16 +218,6 @@ static inline int long2int32(const double value)
     #define FALSE 0
     #define TRUE  1
 #endif
-
-inline void reverse_array(uint8* pointer, size_t count)
-{
-    size_t x;
-    uint8* temp = (uint8*)malloc(count);
-    memcpy(temp, pointer, count);
-    for(x = 0; x < count; ++x)
-        pointer[x] = temp[count - x - 1];
-    free(temp);
-}
 
 // returns true if the ip hits the mask, otherwise false
 inline static bool ParseCIDRBan(unsigned int IP, unsigned int Mask, unsigned int MaskBits)
@@ -318,24 +283,8 @@ inline static unsigned int MakeIP(const char* str)
 }
 
 #include "DynLib.hpp"
-#include "FindFiles.hpp"
 #include "SysInfo.hpp"
 #include "PerformanceCounter.hpp"
 
-#ifndef EOL
-#ifdef WIN32
-#define EOL "\r\n"
-#else
-#define EOL "\n"
-#endif
-#endif
-
-#ifndef EOL_SIZE
-#ifdef WIN32
-#define EOL_SIZE 2
-#else
-#define EOL_SIZE 1
-#endif
-#endif
 
 #endif      //_COMMON_H

@@ -1,7 +1,8 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (C) 2008-2011 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2008-2011 <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +28,7 @@ CompanionSummon::CompanionSummon(uint64 GUID) : Summon(GUID)
 CompanionSummon::~CompanionSummon()
 { }
 
-void CompanionSummon::Load(CreatureProperties const* properties_, Unit* companionOwner, LocationVector & position, uint32 spellid, int32 summonSlot)
+void CompanionSummon::Load(CreatureProperties const* properties_, Unit* companionOwner, LocationVector & position, uint32_t spellid, int32_t summonSlot)
 {
     Summon::Load(properties_, companionOwner, position, spellid, summonSlot);
 

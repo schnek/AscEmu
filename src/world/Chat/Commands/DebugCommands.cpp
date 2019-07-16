@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -413,15 +413,15 @@ bool ChatHandler::HandleDebugSetUnitByteCommand(const char* args, WorldSession* 
     {
         case 0:
         {
-            unit_target->setByteValue(UNIT_FIELD_BYTES_0, offset, value);
+            unit_target->setByteValue(UNIT_FIELD_BYTES_0, static_cast<uint8_t>(offset), static_cast<uint8_t>(value));
         } break;
         case 1:
         {
-            unit_target->setByteValue(UNIT_FIELD_BYTES_1, offset, value);
+            unit_target->setByteValue(UNIT_FIELD_BYTES_1, static_cast<uint8_t>(offset), static_cast<uint8_t>(value));
         } break;
         case 2:
         {
-            unit_target->setByteValue(UNIT_FIELD_BYTES_2, offset, value);
+            unit_target->setByteValue(UNIT_FIELD_BYTES_2, static_cast<uint8_t>(offset), static_cast<uint8_t>(value));
         } break;
         default:
         {
@@ -497,7 +497,7 @@ bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session
         return true;
 
     uint32 fail = atol(args);
-    if (SPELL_CANCAST_OK < fail)
+    if (fail < SPELL_CANCAST_OK || fail > SPELL_FAILED_UNKNOWN)
     {
         RedSystemMessage(m_session, "Argument %u is out of range!", fail);
         return false;
@@ -507,7 +507,7 @@ bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session
     return true;
 }
 
-bool ChatHandler::HandleDebugSendCreatureMove(const char * args, WorldSession * m_session)
+bool ChatHandler::HandleDebugSendCreatureMove(const char* /*args*/, WorldSession * m_session)
 {
     const auto target = GetSelectedUnit(m_session);
     if (!target)

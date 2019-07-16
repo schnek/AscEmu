@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -351,11 +351,12 @@ enum ITEM_STAT_TYPE
 
 enum ITEM_SPELLTRIGGER_TYPE
 {
-    USE                 = 0,
-    ON_EQUIP            = 1,
-    CHANCE_ON_HIT       = 2,
-    SOULSTONE           = 4,
-    LEARNING            = 6
+    USE                     = 0,
+    ON_EQUIP                = 1,
+    CHANCE_ON_HIT           = 2,
+    SOULSTONE               = 4,
+    APPLY_AURA_ON_PICKUP    = 5, // Applies aura to player on item pickup and removes the aura on item loss
+    LEARNING                = 6
 };
 
 enum ITEM_BONDING_TYPE
@@ -461,6 +462,8 @@ enum Item_Subclass
     ITEM_SUBCLASS_PROJECTILE_PARTS          = 1,
     ITEM_SUBCLASS_PROJECTILE_EXPLOSIVES     = 2,
     ITEM_SUBCLASS_PROJECTILE_DEVICES        = 3,
+    ITEM_SUBCLASS_ARMOR_ENCHANTMENT         = 14,
+    ITEM_SUBCLASS_WEAPON_ENCHANTMENT        = 15,
 
     // Recipe
     ITEM_SUBCLASS_RECIPE_BOOK               = 0,
@@ -525,7 +528,7 @@ enum ITEM_FLAG
     ITEM_FLAG_UNKNOWN_26            = 0x02000000,
     ITEM_FLAG_NOT_USEABLE_IN_ARENA  = 0x04000000,
     ITEM_FLAG_ACCOUNTBOUND          = 0x08000000,
-    ITEM_FLAG_UNKNOWN_29            = 0x10000000,
+    ITEM_FLAG_ENCHANT_SCROLL        = 0x10000000, // enchant scrolls
     ITEM_FLAG_MILLABLE              = 0x20000000,
     ITEM_FLAG_UNKNOWN_31            = 0x40000000,
     ITEM_FLAG_UNKNOWN_32            = 0x80000000

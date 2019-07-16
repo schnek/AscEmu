@@ -1,9 +1,9 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2007-2015 Moon++ Team <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,13 +60,13 @@ public:
                 plr->AddQuestKill(9785, 0, 0);
 
                 if (plr->GetStandingRank(942) == 4)
-                    casta->CastSpell(plr, 31808, true);
+                    casta->castSpell(plr, 31808, true);
                 else if (plr->GetStandingRank(942) == 5)
-                    casta->CastSpell(plr, 31810, true);
+                    casta->castSpell(plr, 31810, true);
                 else if (plr->GetStandingRank(942) == 6)
-                    casta->CastSpell(plr, 31811, true);
+                    casta->castSpell(plr, 31811, true);
                 else if (plr->GetStandingRank(942) == 7)
-                    casta->CastSpell(plr, 31815, true);
+                    casta->castSpell(plr, 31815, true);
 
             } break;
             case 17901:
@@ -74,13 +74,13 @@ public:
                 plr->AddQuestKill(9785, 1, 0);
 
                 if (plr->GetStandingRank(942) == 4)
-                    casta->CastSpell(plr, 31807, true);
+                    casta->castSpell(plr, 31807, true);
                 else if (plr->GetStandingRank(942) == 5)
-                    casta->CastSpell(plr, 31814, true);
+                    casta->castSpell(plr, 31814, true);
                 else if (plr->GetStandingRank(942) == 6)
-                    casta->CastSpell(plr, 31813, true);
+                    casta->castSpell(plr, 31813, true);
                 else if (plr->GetStandingRank(942) == 7)
-                    casta->CastSpell(plr, 31812, true);
+                    casta->castSpell(plr, 31812, true);
 
             } break;
         }
@@ -93,7 +93,7 @@ public:
 
     void OnHello(Object* pObject, Player* plr) override
     {
-        if (!plr->GetItemInterface()->GetItemCount(24573, true))
+        if (!plr->getItemInterface()->GetItemCount(24573, true))
         {
             Arcemu::Gossip::Menu menu(pObject->getGuid(), 9226, plr->GetSession()->language);
             menu.AddItem(GOSSIP_ICON_CHAT, plr->GetSession()->LocalizedGossipOption(502), 1);     // Offer treat
@@ -121,8 +121,8 @@ public:
             {
                 Arcemu::Gossip::Menu::SendSimpleMenu(pObject->getGuid(), 9231, plr);
 
-                if (!plr->GetItemInterface()->GetItemCount(24573, true))
-                    plr->GetItemInterface()->AddItemById(24573, 1, 0);
+                if (!plr->getItemInterface()->GetItemCount(24573, true))
+                    plr->getItemInterface()->AddItemById(24573, 1, 0);
 
             }break;
         }

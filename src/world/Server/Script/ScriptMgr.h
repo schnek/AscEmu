@@ -1,6 +1,6 @@
 /*
 * AscEmu Framework based on ArcEmu MMORPG Server
-* Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+* Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
 * Copyright (C) 2005-2007 Ascent Team
 *
@@ -39,38 +39,42 @@ struct QuestProperties;
 
 enum ServerHookEvents
 {
-    SERVER_HOOK_EVENT_ON_NEW_CHARACTER      = 1,
-    SERVER_HOOK_EVENT_ON_KILL_PLAYER        = 2,
-    SERVER_HOOK_EVENT_ON_FIRST_ENTER_WORLD  = 3,
-    SERVER_HOOK_EVENT_ON_ENTER_WORLD        = 4,
-    SERVER_HOOK_EVENT_ON_GUILD_JOIN         = 5,
-    SERVER_HOOK_EVENT_ON_DEATH              = 6,
-    SERVER_HOOK_EVENT_ON_REPOP              = 7,
-    SERVER_HOOK_EVENT_ON_EMOTE              = 8,
-    SERVER_HOOK_EVENT_ON_ENTER_COMBAT       = 9,
-    SERVER_HOOK_EVENT_ON_CAST_SPELL         = 10,
-    SERVER_HOOK_EVENT_ON_TICK               = 11,
-    SERVER_HOOK_EVENT_ON_LOGOUT_REQUEST     = 12,
-    SERVER_HOOK_EVENT_ON_LOGOUT             = 13,
-    SERVER_HOOK_EVENT_ON_QUEST_ACCEPT       = 14,
-    SERVER_HOOK_EVENT_ON_ZONE               = 15,
-    SERVER_HOOK_EVENT_ON_CHAT               = 16,
-    SERVER_HOOK_EVENT_ON_LOOT               = 17,
-    SERVER_HOOK_EVENT_ON_GUILD_CREATE       = 18,
-    SERVER_HOOK_EVENT_ON_FULL_LOGIN         = 19,
-    SERVER_HOOK_EVENT_ON_CHARACTER_CREATE   = 20,
-    SERVER_HOOK_EVENT_ON_QUEST_CANCELLED    = 21,
-    SERVER_HOOK_EVENT_ON_QUEST_FINISHED     = 22,
-    SERVER_HOOK_EVENT_ON_HONORABLE_KILL     = 23,
-    SERVER_HOOK_EVENT_ON_ARENA_FINISH       = 24,
-    SERVER_HOOK_EVENT_ON_OBJECTLOOT         = 25,
-    SERVER_HOOK_EVENT_ON_AREATRIGGER        = 26,
-    SERVER_HOOK_EVENT_ON_POST_LEVELUP       = 27,
-    SERVER_HOOK_EVENT_ON_PRE_DIE            = 28, // general unit die, not only based on players
-    SERVER_HOOK_EVENT_ON_ADVANCE_SKILLLINE  = 29,
-    SERVER_HOOK_EVENT_ON_DUEL_FINISHED      = 30,
-    SERVER_HOOK_EVENT_ON_AURA_REMOVE        = 31,
-    SERVER_HOOK_EVENT_ON_RESURRECT          = 32,
+    //////////////////////////////////////////////////////////////////////////////////////////   
+    //Register Server Hooks
+    // Server Hook callbacks can be made by using the function RegisterServerHook(EventId, function)
+
+    SERVER_HOOK_EVENT_ON_NEW_CHARACTER                   = 1,  // -- (event, pName, int Race, int Class)
+    SERVER_HOOK_EVENT_ON_KILL_PLAYER                     = 2,  // -- (event, pKiller, pVictim)
+    SERVER_HOOK_EVENT_ON_FIRST_ENTER_WORLD               = 3,  // -- (event, pPlayer)                 / a new created character enters for first time the world
+    SERVER_HOOK_EVENT_ON_ENTER_WORLD                     = 4,  // -- (event, pPlayer)                 / a character enters the world (login) or moves to another map
+    SERVER_HOOK_EVENT_ON_GUILD_JOIN                      = 5,  // -- (event, pPlayer, str GuildName)
+    SERVER_HOOK_EVENT_ON_DEATH                           = 6,  // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_REPOP                           = 7,  // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_EMOTE                           = 8,  // -- (event, pPlayer, pUnit, EmoteId)
+    SERVER_HOOK_EVENT_ON_ENTER_COMBAT                    = 9,  // -- (event, pPlayer, pTarget)
+    SERVER_HOOK_EVENT_ON_CAST_SPELL                      = 10, // -- (event, pPlayer, SpellId, pSpellObject)
+    SERVER_HOOK_EVENT_ON_TICK                            = 11, // -- No arguments passed.
+    SERVER_HOOK_EVENT_ON_LOGOUT_REQUEST                  = 12, // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_LOGOUT                          = 13, // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_QUEST_ACCEPT                    = 14, // -- (event, pPlayer, QuestId, pQuestGiver)
+    SERVER_HOOK_EVENT_ON_ZONE                            = 15, // -- (event, pPlayer, ZoneId, OldZoneId)
+    SERVER_HOOK_EVENT_ON_CHAT                            = 16, // -- (event, pPlayer, str Message, Type, Language, Misc)
+    SERVER_HOOK_EVENT_ON_LOOT                            = 17, // -- (event, pPlayer, pTarget, Money, ItemId)
+    SERVER_HOOK_EVENT_ON_GUILD_CREATE                    = 18, // -- (event, pPlayer, pGuildName)
+    SERVER_HOOK_EVENT_ON_FULL_LOGIN                      = 19, // -- (event, pPlayer)                 / a character enters the world (login)
+    SERVER_HOOK_EVENT_ON_CHARACTER_CREATE                = 20, // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_QUEST_CANCELLED                 = 21, // -- (event, pPlayer, QuestId)
+    SERVER_HOOK_EVENT_ON_QUEST_FINISHED                  = 22, // -- (event, pPlayer, QuestId, pQuestGiver)
+    SERVER_HOOK_EVENT_ON_HONORABLE_KILL                  = 23, // -- (event, pPlayer, pKilled)
+    SERVER_HOOK_EVENT_ON_ARENA_FINISH                    = 24, // -- (event, pPlayer, str TeamName, bWinner, bRated)
+    SERVER_HOOK_EVENT_ON_OBJECTLOOT                      = 25, // -- (event, pPlayer, pTarget, Money, ItemId)
+    SERVER_HOOK_EVENT_ON_AREATRIGGER                     = 26, // -- (event, pPlayer, AreaTriggerId)
+    SERVER_HOOK_EVENT_ON_POST_LEVELUP                    = 27, // -- (event, pPlayer)
+    SERVER_HOOK_EVENT_ON_PRE_DIE                         = 28, // -- (event, pKiller, pDied)          / general unit die, not only based on players
+    SERVER_HOOK_EVENT_ON_ADVANCE_SKILLLINE               = 29, // -- (event, pPlayer, SkillId, SkillLevel)
+    SERVER_HOOK_EVENT_ON_DUEL_FINISHED                   = 30, // -- (event, pWinner, pLoser)
+    SERVER_HOOK_EVENT_ON_AURA_REMOVE                     = 31, // -- (event, pAuraObject)
+    SERVER_HOOK_EVENT_ON_RESURRECT                       = 32, // -- (event, pPlayer)
     NUM_SERVER_HOOKS
 };
 
@@ -92,7 +96,7 @@ typedef void(*tOnDeath)(Player* pPlayer);
 typedef bool(*tOnRepop)(Player* pPlayer);
 typedef void(*tOnEmote)(Player* pPlayer, uint32 Emote, Unit* pUnit);
 typedef void(*tOnEnterCombat)(Player* pPlayer, Unit* pTarget);
-typedef bool(*tOnCastSpell)(Player* pPlayer, SpellInfo* pSpell, Spell* spell);
+typedef bool(*tOnCastSpell)(Player* pPlayer, SpellInfo const* pSpell, Spell* spell);
 typedef void(*tOnTick)();
 typedef bool(*tOnLogoutRequest)(Player* pPlayer);
 typedef void(*tOnLogout)(Player* pPlayer);
@@ -452,6 +456,12 @@ class SERVER_DECL EventScript
         virtual void UpdateEvent() {}
         virtual void Destroy() {}
 
+        // Data sharing between scripts
+        virtual void setInstanceData(uint32 /*dataType*/, uint32 /*value*/) {}
+        virtual uint32 getInstanceData(uint32 /*data*/) const { return 0;  }
+        virtual void setGuidData(uint32 /*guidType*/, uint64 /*guidData*/) {}
+        virtual uint64 getGuidData(uint32 /*guidType*/) const { return 0; }
+
         // UpdateEvent
         void RegisterUpdateEvent(uint32 pFrequency);
         void ModifyUpdateEvent(uint32 pNewFrequency);
@@ -474,6 +484,12 @@ class SERVER_DECL GameObjectAIScript
         virtual void OnDestroyed(){}
         virtual void AIUpdate() {}
         virtual void Destroy() { delete this; }
+
+        // Data sharing between scripts
+        virtual void setGameObjectData(uint32 /*type*/) {}
+        virtual uint32 getGameObjectData(uint32 /*type*/) const { return 0; }
+        virtual void setGuidData(uint32 /*guidType*/, uint64 /*guidData*/) {}
+        virtual uint64 getGuidData(uint32 /*guidType*/) const { return 0; }
 
         void RegisterAIUpdateEvent(uint32 frequency);
         void ModifyAIUpdateEvent(uint32 newfrequency);
@@ -501,8 +517,7 @@ class SERVER_DECL QuestScript
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
-/// Instanced class created for each instance of the map, holds all scriptable exports
-//////////////////////////////////////////////////////////////////////////////////////////
+// Instanced class created for each instance of the map, holds all scriptable exports
 #include "Map/WorldCreator.h"
 
 //#define UseNewMapScriptsProject
@@ -538,7 +553,7 @@ class SERVER_DECL InstanceScript
         virtual ~InstanceScript() {}
 
         // Procedures that had been here before
-        virtual GameObject* GetObjectForOpenLock(Player* /*pCaster*/, Spell* /*pSpell*/, SpellInfo* /*pSpellEntry*/) { return NULL; }
+        virtual GameObject* GetObjectForOpenLock(Player* /*pCaster*/, Spell* /*pSpell*/, SpellInfo const* /*pSpellEntry*/) { return NULL; }
         virtual void SetLockOptions(uint32 /*pEntryId*/, GameObject* /*pGameObject*/) {}
         virtual uint32 GetRespawnTimeForCreature(uint32 /*pEntryId*/, Creature* /*pCreature*/) { return 240000; }
 
@@ -575,6 +590,12 @@ class SERVER_DECL InstanceScript
         uint32_t getData(uint32_t data);
         bool isDataStateFinished(uint32_t data);
 
+        // used for local instance data (not saved to database, only for scripting)
+        virtual void SetInstanceData(uint32_t /*type*/, uint32_t /*data*/) {}
+        virtual void SetInstanceData64(uint32_t /*type*/, uint64_t /*data*/) {}
+        virtual uint32_t GetInstanceData(uint32_t /*type*/) const { return 0; }
+        virtual uint64_t GetInstanceData64(uint32_t /*type*/) const { return 0; }
+        
         //used for debug
         std::string getDataStateString(uint32_t bossEntry);
 
@@ -686,7 +707,7 @@ class SERVER_DECL HookInterface : public Singleton<HookInterface>
         bool OnRepop(Player* pPlayer);
         void OnEmote(Player* pPlayer, uint32 Emote, Unit* pUnit);
         void OnEnterCombat(Player* pPlayer, Unit* pTarget);
-        bool OnCastSpell(Player* pPlayer, SpellInfo* pSpell, Spell* spell);
+        bool OnCastSpell(Player* pPlayer, SpellInfo const* pSpell, Spell* spell);
         bool OnLogoutRequest(Player* pPlayer);
         void OnLogout(Player* pPlayer);
         void OnQuestAccept(Player* pPlayer, QuestProperties const* pQuest, Object* pQuestGiver);

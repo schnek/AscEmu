@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -39,14 +39,14 @@ namespace AscEmu { namespace Packets
         }
 
     protected:
-        bool internalSerialise(WorldPacket& packet) override
+        bool internalSerialise(WorldPacket& /*packet*/) override
         {
             return false;
         }
 
         bool internalDeserialise(WorldPacket& packet) override
         {
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
             packet >> newRankId >> newRights >> rankName >> moneyPerDay;
 #else
             packet >> oldRankId >> oldRights >> newRights;
@@ -55,7 +55,7 @@ namespace AscEmu { namespace Packets
             GuildBankRightsAndSlotsVec rightsAndSlots(MAX_GUILD_BANK_TABS);
             for (uint8_t tabId = 0; tabId < MAX_GUILD_BANK_TABS; ++tabId)
             {
-                uint32_t bankRights;
+                uint8_t bankRights;
                 uint32_t slots;
 
                 packet >> bankRights;
@@ -64,7 +64,7 @@ namespace AscEmu { namespace Packets
 
                 _rightsAndSlots.push_back(rightsAndSlots[tabId]);
             }
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
             packet >> moneyPerDay >> newRankId;
 
             const uint32_t nameLength = packet.readBits(7);

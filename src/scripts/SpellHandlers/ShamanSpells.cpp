@@ -1,7 +1,7 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2007 Moon++ <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 #include "Server/Script/ScriptMgr.h"
 #include "Spell/Definitions/ProcFlags.h"
 #include <Spell/Definitions/PowerType.h>
-#include <Spell/Customization/SpellCustomizations.hpp>
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Spell Defs
@@ -35,7 +34,7 @@ bool FlametongueWeaponPassive(uint8_t /*effectIndex*/, Aura* pAura, bool apply)
     if (apply)
     {
         // target is always a player
-        Item* item = static_cast<Player*>(target)->GetItemInterface()->GetItemByGUID(pAura->itemCasterGUID);
+        Item* item = static_cast<Player*>(target)->getItemInterface()->GetItemByGUID(pAura->itemCasterGUID);
         target->AddProcTriggerSpell(10444, pAura->GetSpellInfo()->getId(), pAura->m_casterGuid, pAura->GetSpellInfo()->getProcChance(), PROC_ON_MELEE_ATTACK, 0, NULL, NULL, item);
     }
     else
@@ -57,7 +56,7 @@ bool SkyShatterRegalia(uint8_t /*effectIndex*/, Spell* s)
         s->p_caster->summonhandler.HasSummonInSlot(2) &&
         s->p_caster->summonhandler.HasSummonInSlot(3))
     {
-        Aura* aur = sSpellFactoryMgr.NewAura(sSpellCustomizations.GetSpellInfo(38437), 5000, s->p_caster, s->p_caster, true);
+        Aura* aur = sSpellMgr.newAura(sSpellMgr.getSpellInfo(38437), 5000, s->p_caster, s->p_caster, true);
 
         for (uint8 j = 0; j < 3; j++)
             aur->AddMod(aur->GetSpellInfo()->getEffectRadiusIndex(j), aur->GetSpellInfo()->getEffectBasePoints(j) + 1, aur->GetSpellInfo()->getEffectMiscValue(j), j);

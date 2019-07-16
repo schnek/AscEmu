@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
 if(NOT BUILD_LUAENGINE)
   message("\tLuaEngine was skipped because BUILD_LUAENGINE is unchecked.")
@@ -15,7 +15,6 @@ set(SRCS
     LuaGlobal.cpp
     LuaHelpers.cpp
     # Required for linker
-    ../../world/Server/LazyTimer.cpp
     ../../world/Server/ServerState.cpp
     ../../world/Spell/SpellCastTargets.cpp
     ../../shared/Util.cpp
@@ -53,6 +52,7 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/dep/lualib/src
    ${CMAKE_CURRENT_SOURCE_DIR}
    ${ZLIB_INCLUDE_DIRS}
+   ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${SRCS} ${HEADERS})

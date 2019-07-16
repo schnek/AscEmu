@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -387,7 +387,7 @@ GameObject* CBattleground::SpawnGameObject(uint32 entry, uint32 MapId, float x, 
 {
     GameObject* go = m_mapMgr->CreateGameObject(entry);
 
-    Arcemu::Util::ArcemuAssert(go != nullptr);
+    ARCEMU_ASSERT(go != nullptr);
 
     //Zyres: CID 104108 coverity ignores the assert so double check this
     if (go != nullptr)
@@ -420,7 +420,7 @@ Creature* CBattleground::SpawnCreature(uint32 entry, float x, float y, float z, 
 
     Creature* c = m_mapMgr->CreateCreature(entry);
 
-    Arcemu::Util::ArcemuAssert(c != nullptr);
+    ARCEMU_ASSERT(c != nullptr);
 
     c->Load(cp, x, y, z, o);
 
@@ -538,7 +538,7 @@ void CBattleground::CastSpellOnTeam(uint32 team, uint32 spell)
     for (std::set< Player* >::iterator itr = m_players[team].begin(); itr != m_players[team].end(); ++itr)
     {
         Player* p = *itr;
-        p->CastSpell(p, spell, false);
+        p->castSpell(p, spell, false);
     }
 }
 
@@ -666,7 +666,7 @@ void CBattleground::RemovePlayer(Player* plr, bool logout)
         if (!m_ended)
         {
             if(!plr->GetSession()->HasGMPermissions())
-                plr->CastSpell(plr, BG_DESERTER, true);
+                plr->castSpell(plr, BG_DESERTER, true);
         }
 
         if (!IS_INSTANCE(plr->m_bgEntryPointMap))
@@ -884,7 +884,7 @@ Creature* CBattleground::SpawnSpiritGuide(float x, float y, float z, float o, ui
 
     pCreature->setVirtualItemSlotId(MELEE, 22802);
 
-    pCreature->setUnitFlags(UNIT_FLAG_PLUS_MOB | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_UNKNOWN_10 | UNIT_FLAG_PVP); // 4928
+    pCreature->setUnitFlags(UNIT_FLAG_PLUS_MOB | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_IGNORE_PLAYER_NPC | UNIT_FLAG_PVP); // 4928
 
     pCreature->setBaseAttackTime(MELEE, 2000);
     pCreature->setBaseAttackTime(OFFHAND, 2000);
@@ -1001,7 +1001,7 @@ void CBattleground::EventResurrectPlayers()
                 plr->setHealth(plr->getMaxHealth());
                 plr->setPower(POWER_TYPE_MANA, plr->getMaxPower(POWER_TYPE_MANA));
                 plr->setPower(POWER_TYPE_ENERGY, plr->getMaxPower(POWER_TYPE_ENERGY));
-                plr->CastSpell(plr, BG_REVIVE_PREPARATION, true);
+                plr->castSpell(plr, BG_REVIVE_PREPARATION, true);
             }
         }
         i->second.clear();
@@ -1055,7 +1055,7 @@ void CBattleground::QueueAtNearestSpiritGuide(Player* plr, Creature* old)
     {
         closest->insert(plr->getGuidLow());
         plr->m_areaSpiritHealer_guid = cl->getGuid();
-        plr->CastSpell(plr, 2584, true);
+        plr->castSpell(plr, 2584, true);
     }
 
     m_lock.Release();

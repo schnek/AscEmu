@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -148,7 +148,7 @@ void WorldSession::handleGMTicketDeleteOpcode(WorldPacket& /*recvPacket*/)
     }
 }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void WorldSession::handleGMTicketCreateOpcode(WorldPacket& recvPacket)
 {
     CmsgGmTicketCreate srlPacket;
@@ -294,14 +294,14 @@ void WorldSession::handleGMTicketCreateOpcode(WorldPacket& recvPacket)
 }
 #endif
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void WorldSession::handleGMTicketGetTicketOpcode(WorldPacket& /*recvPacket*/)
 {
     GM_Ticket* ticket = objmgr.GetGMTicketByPlayer(_player->getGuid());
     if (ticket == nullptr)
         SendPacket(SmsgGmTicketGetTicket(GMTNoCurrentTicket, "", 0).serialise().get());
     else
-        SendPacket(SmsgGmTicketGetTicket(GMTCurrentTicketFound, ticket->message, ticket->map).serialise().get());
+        SendPacket(SmsgGmTicketGetTicket(GMTCurrentTicketFound, ticket->message, static_cast<uint8_t>(ticket->map)).serialise().get());
 }
 #else
 void WorldSession::handleGMTicketGetTicketOpcode(WorldPacket& /*recvPacket*/)

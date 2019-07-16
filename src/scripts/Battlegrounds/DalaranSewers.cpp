@@ -1,7 +1,7 @@
 /*
- Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
- This file is released under the MIT license. See README-MIT for more information.
- */
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
 #include "DalaranSewers.h"
 #include "Map/MapMgr.h"
@@ -61,7 +61,7 @@ void DalaranSewers::HookOnAreaTrigger(Player* plr, uint32 trigger)
 bool DalaranSewers::HookHandleRepop(Player* plr)
 {
     LocationVector dest;
-    dest.ChangeCoords(1292.51f, 792.05f, 9.34f);
+    dest.ChangeCoords({ 1292.51f, 792.05f, 9.34f });
     plr->SafeTeleport(m_mapMgr->GetMapId(), m_mapMgr->GetInstanceID(), dest);
     return true;
 }

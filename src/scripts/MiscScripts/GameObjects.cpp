@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -149,7 +149,7 @@ public:
 
     void OnActivate(Player* player)
     {
-        if (player->HasQuest(11073) && player->GetItemInterface()->GetItemCount(32720, 1))
+        if (player->HasQuest(11073) && player->getItemInterface()->GetItemCount(32720, 1))
         {
             LocationVector pos = player->GetPosition();
             Creature* NewCreature = player->GetMapMgr()->GetInterface()->SpawnCreature(21838, pos.x, pos.y, pos.z, pos.o, true, false, 0, 0);
@@ -196,7 +196,7 @@ public:
 
     void OnActivate(Player* player)
     {
-        if (player->GetItemInterface()->GetItemCount(9240, 1))
+        if (player->getItemInterface()->GetItemCount(9240, 1))
         {
             LocationVector pos = player->GetPosition();
             Creature* NewCreature = player->GetMapMgr()->GetInterface()->SpawnCreature(7273, pos.x, pos.y + 1, pos.z, pos.o, true, false, 0, 0);
@@ -455,7 +455,7 @@ public:
             return;
 
         if (!player->HasAura(33382))
-            player->CastSpell(player, 33382, true);
+            player->castSpell(player, 33382, true);
     }
 };
 
@@ -700,8 +700,8 @@ public:
         if (qle == nullptr)
             return;
 
-        if (player->GetItemInterface()->GetItemCount(11470, 0) < 1)
-            player->GetItemInterface()->AddItemById(11470, 1, 0);
+        if (player->getItemInterface()->GetItemCount(11470, 0) < 1)
+            player->getItemInterface()->AddItemById(11470, 1, 0);
     }
 };
 
@@ -889,9 +889,9 @@ public:
             return;
 
         if (_gameobject->CalcDistance(_gameobject, player) <= 1.5f && player->GetMapId() == 609)
-            player->CastSpell(player, 54699, true);
+            player->castSpell(player, 54699, true);
         else if (_gameobject->CalcDistance(_gameobject, player) <= 1.5f && player->GetMapId() == 0)
-            player->CastSpell(player, 54744, true);
+            player->castSpell(player, 54744, true);
     }
 };
 
@@ -915,9 +915,9 @@ public:
             return;
 
         if (_gameobject->CalcDistance(_gameobject, player) <= 1.5f && player->GetMapId() == 609)
-            player->CastSpell(player, 54725, true);
+            player->castSpell(player, 54725, true);
         else if (_gameobject->CalcDistance(_gameobject, player) <= 1.5f && player->GetMapId() == 0)
-            player->CastSpell(player, 54746, true);
+            player->castSpell(player, 54746, true);
     }
 };
 
@@ -933,9 +933,9 @@ public:
         if (player->getClass() == 6)
         {
             if (player->GetMapId() == 609)
-                player->CastSpell(player, 53098, true);
+                player->castSpell(player, 53098, true);
             else
-                player->CastSpell(player, 53822, true);
+                player->castSpell(player, 53822, true);
         }
     }
 };

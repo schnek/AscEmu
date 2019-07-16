@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -25,7 +25,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 using namespace AscEmu::Packets;
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void WorldSession::handleSetActiveMoverOpcode(WorldPacket& recvPacket)
 {
     CHECK_INWORLD_RETURN
@@ -269,7 +269,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
                 {
                     if (_player->getSpeedForType(TYPE_RUN) < 50.f && !_player->obj_movement_info.isOnTransport())
                     {
-                        sCheatLog.writefromsession(this, "Disconnected for teleport hacking. Player speed: %f, Distance traveled: %f", _player->getSpeedForType(TYPE_RUN), sqrt(_player->m_position.Distance2DSq(movement_info.position.x, movement_info.position.y)));
+                        sCheatLog.writefromsession(this, "Disconnected for teleport hacking. Player speed: %f, Distance traveled: %f", _player->getSpeedForType(TYPE_RUN), sqrt(_player->m_position.Distance2DSq({ movement_info.position.x, movement_info.position.y })));
                         Disconnect();
                         return;
                     }
@@ -392,7 +392,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
     if (mover->obj_movement_info.transport_data.transportGuid != 0 && movement_info.transport_data.transportGuid == 0)
     {
         // Leaving transport we were on
-        if (auto transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(mover->obj_movement_info.transport_data.transportGuid)))
+        if (auto transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(mover->obj_movement_info.transport_data.transportGuid)))
             transporter->RemovePassenger(static_cast<Player*>(mover));
 
         mover->obj_movement_info.transport_data.transportGuid = 0;
@@ -405,7 +405,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
 
             if (mover->obj_movement_info.transport_data.transportGuid == 0)
             {
-                Transporter *transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(movement_info.transport_data.transportGuid));
+                Transporter *transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(movement_info.transport_data.transportGuid));
                 if (transporter != NULL)
                     transporter->AddPassenger(static_cast<Player*>(mover));
 
@@ -705,10 +705,10 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
         /************************************************************************/
         /* Anti-Teleport                                                        */
         /************************************************************************/
-        if (worldConfig.antiHack.isTeleportHackCheckEnabled && _player->m_position.Distance2DSq(movement_info.position.x, movement_info.position.y) > 3025.0f
+        if (worldConfig.antiHack.isTeleportHackCheckEnabled && _player->m_position.Distance2DSq({ movement_info.position.x, movement_info.position.y }) > 3025.0f
             && _player->getSpeedForType(TYPE_RUN) < 50.0f && !_player->obj_movement_info.transport_data.transportGuid)
         {
-            sCheatLog.writefromsession(this, "Disconnected for teleport hacking. Player speed: %f, Distance traveled: %f", _player->getSpeedForType(TYPE_RUN), sqrt(_player->m_position.Distance2DSq(movement_info.position.x, movement_info.position.y)));
+            sCheatLog.writefromsession(this, "Disconnected for teleport hacking. Player speed: %f, Distance traveled: %f", _player->getSpeedForType(TYPE_RUN), sqrt(_player->m_position.Distance2DSq({ movement_info.position.x, movement_info.position.y })));
             Disconnect();
             return;
         }
@@ -887,7 +887,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
     {
         /* we left the transporter we were on */
 
-        Transporter *transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(mover->obj_movement_info.transport_data.transportGuid));
+        Transporter *transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(mover->obj_movement_info.transport_data.transportGuid));
         if (transporter != NULL)
             transporter->RemovePassenger(static_cast<Player*>(mover));
 
@@ -902,7 +902,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
 
             if (mover->obj_movement_info.transport_data.transportGuid == 0)
             {
-                Transporter *transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(movement_info.transport_data.transportGuid));
+                Transporter *transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(movement_info.transport_data.transportGuid));
                 if (transporter != NULL)
                     transporter->AddPassenger(static_cast<Player*>(mover));
 
@@ -1006,7 +1006,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
 }
 #endif
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
 void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
 {
     uint16_t opcode = recvPacket.GetOpcode();
@@ -1271,7 +1271,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
         //{
         //    /* we left the transporter we were on */
 
-        //    Transporter *transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(mover->obj_movement_info.transporter_info.guid));
+        //    Transporter *transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(mover->obj_movement_info.transporter_info.guid));
         //    if (transporter != NULL)
         //        transporter->RemovePassenger(static_cast<Player*>(mover));
 
@@ -1286,7 +1286,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvPacket)
 
         //        if (mover->obj_movement_info.transporter_info.guid == 0)
         //        {
-        //            Transporter *transporter = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(movement_info.transporter_info.transGuid));
+        //            Transporter *transporter = objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(movement_info.transporter_info.transGuid));
         //            if (transporter != NULL)
         //                transporter->AddPassenger(static_cast<Player*>(mover));
 
@@ -1488,7 +1488,7 @@ void WorldSession::handleMoveTeleportAckOpcode(WorldPacket& recvPacket)
         if (_player->m_sentTeleportPosition.x != 999999.0f)
         {
             _player->m_position = _player->m_sentTeleportPosition;
-            _player->m_sentTeleportPosition.ChangeCoords(999999.0f, 999999.0f, 999999.0f);
+            _player->m_sentTeleportPosition.ChangeCoords({ 999999.0f, 999999.0f, 999999.0f });
         }
     }
 }

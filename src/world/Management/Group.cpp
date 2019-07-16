@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -38,7 +38,7 @@ Group::Group(bool Assign)
     memset(m_SubGroups, 0, sizeof(SubGroup*) * 8);
     m_SubGroups[0] = new SubGroup(this, 0);
 
-    memset(m_instanceIds, 0, sizeof(uint32) * NUM_MAPS * NUM_INSTANCE_MODES);
+    memset(m_instanceIds, 0, sizeof(uint32) * MAX_NUM_MAPS * NUM_INSTANCE_MODES);
 
     m_Leader = NULL;
     m_Looter = NULL;
@@ -271,7 +271,7 @@ void Group::Update()
                 {
                     data << uint8(sLfgMgr.GetState(GetID()) == LFG_STATE_FINISHED_DUNGEON ? 2 : 0);
 					data << uint32(sLfgMgr.GetDungeon(GetID()));
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
                     data << uint8(0);   //unk
 #endif
                 }
@@ -405,7 +405,7 @@ void SubGroup::Disband()
                     data2.put(5, uint32((*itr)->m_loggedInPlayer->iInstanceType));
                     (*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data2);
                     (*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data);
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
                     (*itr)->m_loggedInPlayer->GetSession()->sendEmptyGroupList((*itr)->m_loggedInPlayer);
 #else
                     (*itr)->m_Group->SendNullUpdate((*itr)->m_loggedInPlayer);   // cebernic: panel refresh.
@@ -509,14 +509,14 @@ void Group::RemovePlayer(PlayerInfo* info)
     {
         if (pPlayer->GetSession() != NULL)
         {
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
             SendNullUpdate(pPlayer);
 #endif
 
             data.SetOpcode(SMSG_GROUP_DESTROYED);
             pPlayer->GetSession()->SendPacket(&data);
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
             pPlayer->GetSession()->SendPacket(SmsgPartyCommandResult(2, pPlayer->getName().c_str(), ERR_PARTY_NO_ERROR).serialise().get());
             pPlayer->GetSession()->sendEmptyGroupList(pPlayer);
 #else
@@ -814,7 +814,7 @@ void Group::LoadFromDB(Field* fields)
         uint32 mode = atoi(r + 1);
         uint32 instanceId = atoi(s + 1);
 
-        if (mapId >= NUM_MAPS)
+        if (mapId >= MAX_NUM_MAPS)
             continue;
 
         m_instanceIds[mapId][mode] = instanceId;
@@ -914,7 +914,7 @@ void Group::SaveToDB()
     ss << (uint32)UNIXTIME << ",'";
 
     // instanceids (52/52)
-    for (uint32 i = 0; i < NUM_MAPS; i++)
+    for (uint32 i = 0; i < MAX_NUM_MAPS; i++)
     {
         for (uint32 j = 0; j < NUM_INSTANCE_MODES; j++)
         {
@@ -1071,7 +1071,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 
     if (mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT)
     {
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 #ifdef FT_VEHICLES
         if (Vehicle* veh = pPlayer->getCurrentVehicle())
             *data << uint32(veh->GetVehicleInfo()->seatID[pPlayer->getMovementInfo()->transport_seat]);

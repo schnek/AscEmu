@@ -1,13 +1,12 @@
 /*
- Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
- This file is released under the MIT license. See README-MIT for more information.
- */
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
 // \todo move most defines to enum, text to db (use SendScriptTextChatMessage(ID))
 #include "Setup.h"
 #include "Raid_BlackTemple.h"
 #include "Objects/Faction.h"
-#include "Spell/SpellMgr.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Illidan Encounter Event Options
@@ -350,7 +349,7 @@ class MutantWarHoundAI : public CreatureAIScript
 
     void OnDied(Unit* /*pKiller*/) override
     {
-        Aura* pAura = sSpellFactoryMgr.NewAura(sSpellCustomizations.GetSpellInfo(MUTANT_WAR_HOUND_CLOUD_OF_DISEASE), (uint32)20000, getCreature(), getCreature());
+        Aura* pAura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(MUTANT_WAR_HOUND_CLOUD_OF_DISEASE), (uint32)20000, getCreature(), getCreature());
         getCreature()->AddAura(pAura);
     }
 };
@@ -1487,10 +1486,10 @@ class SupremusAI : public CreatureAIScript
     {
         m_MoltenFlame = m_HurtfulStrike = m_MoltenPunch = m_VolcanicGazer = true;
 
-        infoMoltenFlame = sSpellCustomizations.GetSpellInfo(MOLTEN_FLAME);
-        infoHurtfulStrike = sSpellCustomizations.GetSpellInfo(HURTFUL_STRIKE);
-        infoMoltenPunch =  sSpellCustomizations.GetSpellInfo(MOLTEN_PUNCH);
-        infoVolcanicGazer =  sSpellCustomizations.GetSpellInfo(VOLCANIC_GAZER);
+        infoMoltenFlame = sSpellMgr.getSpellInfo(MOLTEN_FLAME);
+        infoHurtfulStrike = sSpellMgr.getSpellInfo(HURTFUL_STRIKE);
+        infoMoltenPunch =  sSpellMgr.getSpellInfo(MOLTEN_PUNCH);
+        infoVolcanicGazer =  sSpellMgr.getSpellInfo(VOLCANIC_GAZER);
 
         timer = 0;
         m_phase = 0;
@@ -1538,14 +1537,14 @@ class SupremusAI : public CreatureAIScript
         {
             if (m_MoltenFlame)
             {
-                getCreature()->CastSpell(getCreature(), infoMoltenFlame, false);
+                getCreature()->castSpell(getCreature(), infoMoltenFlame, false);
                 m_MoltenFlame = false;
                 return;
             }
 
             else if (m_HurtfulStrike)
             {
-                getCreature()->CastSpell(getCreature(), infoHurtfulStrike, false);
+                getCreature()->castSpell(getCreature(), infoHurtfulStrike, false);
                 m_HurtfulStrike = false;
                 return;
             }
@@ -1581,7 +1580,7 @@ class SupremusAI : public CreatureAIScript
         {
             if (m_MoltenPunch)
             {
-                getCreature()->CastSpell(getCreature(), infoMoltenPunch, false);
+                getCreature()->castSpell(getCreature(), infoMoltenPunch, false);
                 m_MoltenPunch = false;
                 return;
             }
@@ -1589,7 +1588,7 @@ class SupremusAI : public CreatureAIScript
             else if (m_VolcanicGazer)
             {
                 sendDBChatMessage(4690);     // The ground begins to crack open"
-                getCreature()->CastSpell(getCreature(), infoVolcanicGazer, false);
+                getCreature()->castSpell(getCreature(), infoVolcanicGazer, false);
                 m_VolcanicGazer = false;
                 return;
 
@@ -1621,7 +1620,7 @@ protected:
     uint32 timer;
     uint32 m_phase;
     bool m_MoltenFlame, m_HurtfulStrike, m_MoltenPunch, m_VolcanicGazer;
-    SpellInfo* infoMoltenFlame, *infoHurtfulStrike, *infoMoltenPunch, *infoVolcanicGazer;
+    SpellInfo const* infoMoltenFlame, *infoHurtfulStrike, *infoMoltenPunch, *infoVolcanicGazer;
 };
 
 class GurtoggAI : public CreatureAIScript
@@ -1882,7 +1881,7 @@ class ReliquaryOfSoulsAI : public CreatureAIScript
                     if (mEoS && mEoS->getCreature() && mEoS->isAlive())
                     {
                         Creature* pEoS = mEoS->getCreature();
-                        if (pEoS->GetHealthPct() <= 1 && pEoS->CalcDistance(getCreature()) <= 3)
+                        if (pEoS->getHealthPct() <= 1 && pEoS->CalcDistance(getCreature()) <= 3)
                         {
                             getCreature()->Emote(EMOTE_STATE_STAND);
                             mEoS->sendChatMessage(CHAT_MSG_MONSTER_YELL, 11414, "Now what do I do?!");
@@ -1911,7 +1910,7 @@ class ReliquaryOfSoulsAI : public CreatureAIScript
                     if (mEoD && mEoD->getCreature() && mEoD->isAlive())
                     {
                         Creature* pEoD = mEoD->getCreature();
-                        if (pEoD->GetHealthPct() <= 1 && pEoD->CalcDistance(getCreature()) <= 3)
+                        if (pEoD->getHealthPct() <= 1 && pEoD->CalcDistance(getCreature()) <= 3)
                         {
                             getCreature()->Emote(EMOTE_STATE_STAND);
                             mEoD->sendChatMessage(CHAT_MSG_MONSTER_YELL, 11413, "I'll be waiting.");
@@ -2061,10 +2060,10 @@ class ShahrazAI : public CreatureAIScript
             SoundTimer = 0;
         }
 
-        if (!Enraged && getCreature()->GetHealthPct() <= 20)
+        if (!Enraged && getCreature()->getHealthPct() <= 20)
         {
             sendDBChatMessage(4659);     // Stop toying with my emotions!
-            getCreature()->CastSpell(getCreature(), MS_ENRAGE, true);
+            getCreature()->castSpell(getCreature(), MS_ENRAGE, true);
 
             Enraged = true;
         }
@@ -2100,8 +2099,8 @@ class ShahrazAI : public CreatureAIScript
                     break;
             }
 
-            //_unit->CastSpell(_unit, SpellId, true);
-            Aura* aura = sSpellFactoryMgr.NewAura(sSpellCustomizations.GetSpellInfo(SpellId), (uint32)15000, getCreature(), getCreature());
+            //_unit->castSpell(_unit, SpellId, true);
+            Aura* aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(SpellId), (uint32)15000, getCreature(), getCreature());
             getCreature()->AddAura(aura);
 
             AuraChange = t + 15;
@@ -2296,7 +2295,7 @@ class ShadeofakamaAI : public CreatureAIScript
 
     void OnTargetDied(Unit* /*mTarget*/) override
     {
-        if (getCreature()->GetHealthPct() > 0)
+        if (getCreature()->getHealthPct() > 0)
         {
             switch (Util::getRandomUInt(2))
             {
@@ -2330,7 +2329,7 @@ class ShadeofakamaAI : public CreatureAIScript
 
     void AIUpdate() override
     {
-        if (getCreature()->GetHealthPct() <= 85 && hm == 100)
+        if (getCreature()->getHealthPct() <= 85 && hm == 100)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 2; i++)
@@ -2343,7 +2342,7 @@ class ShadeofakamaAI : public CreatureAIScript
             getCreature()->PlaySoundToSet(10999);
             hm = 85;
         }
-        else if (getCreature()->GetHealthPct() <= 70 && hm == 85)
+        else if (getCreature()->getHealthPct() <= 70 && hm == 85)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 2; i++)
@@ -2356,7 +2355,7 @@ class ShadeofakamaAI : public CreatureAIScript
             getCreature()->PlaySoundToSet(10999);
             hm = 70;
         }
-        else if (getCreature()->GetHealthPct() <= 55 && hm == 70)
+        else if (getCreature()->getHealthPct() <= 55 && hm == 70)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 2; i++)
@@ -2369,7 +2368,7 @@ class ShadeofakamaAI : public CreatureAIScript
             getCreature()->PlaySoundToSet(10999);
             hm = 55;
         }
-        else if (getCreature()->GetHealthPct() <= 40 && hm == 55)
+        else if (getCreature()->getHealthPct() <= 40 && hm == 55)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 2; i++)
@@ -2382,7 +2381,7 @@ class ShadeofakamaAI : public CreatureAIScript
             getCreature()->PlaySoundToSet(10999);
             hm = 40;
         }
-        else if (getCreature()->GetHealthPct() <= 25 && hm == 40)
+        else if (getCreature()->getHealthPct() <= 25 && hm == 40)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 5; i++)
@@ -2395,7 +2394,7 @@ class ShadeofakamaAI : public CreatureAIScript
             getCreature()->PlaySoundToSet(10999);
             hm = 25;
         }
-        else if (getCreature()->GetHealthPct() <= 10 && hm == 25)
+        else if (getCreature()->getHealthPct() <= 10 && hm == 25)
         {
             Creature* cre = NULL;
             for (uint8 i = 0; i < 5; i++)
@@ -2703,7 +2702,7 @@ class GenericTriggerAI : public CreatureAIScript
 
         if (OnSpawn)
         {
-            getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+            getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
             _applyAura(mSpellId);
             _setMeleeDisabled(false);
             despawn(mDespawnTimer, 0);
@@ -2717,7 +2716,7 @@ class GenericTriggerAI : public CreatureAIScript
 
     void AIUpdate() override
     {
-        getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+        getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
         _applyAura(mSpellId);
         _setMeleeDisabled(false);
         despawn(mDespawnTimer, 0);
@@ -2738,7 +2737,7 @@ class EyeBeamTriggerAI : public CreatureAIScript
     ADD_CREATURE_FACTORY_FUNCTION(EyeBeamTriggerAI);
     explicit EyeBeamTriggerAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+        getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
         getCreature()->GetAIInterface()->setAiState(AI_STATE_SCRIPTMOVE);
         getCreature()->m_noRespawn = true;
 
@@ -3062,7 +3061,7 @@ class AkamaAI : public CreatureAIScript
                 pGate->setState(GO_STATE_OPEN);
                 if (pDoorTrigger != NULL)
                 {
-                    pDoorTrigger->CastSpell(pDoorTrigger, sSpellCustomizations.GetSpellInfo(GATE_FAILURE), true);
+                    pDoorTrigger->castSpell(pDoorTrigger, sSpellMgr.getSpellInfo(GATE_FAILURE), true);
                 }
                 break;
             case 12:
@@ -3478,7 +3477,7 @@ class MaievAI : public CreatureAIScript
 
         // HACK!
         //\todo to set flags will override all values from db. To add/remove flags use SetFlag(/RemoveFlag(
-        getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+        getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
         getCreature()->setMaxHealth(1000000);
         getCreature()->setHealth(1000000);
         getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
@@ -4038,7 +4037,7 @@ class IllidanStormrageAI : public CreatureAIScript
 
         /*if (_isTimerFinished(mLocaleEnrageTimerId))
         {
-            CastSpell(mLocaleEnrageSpell);
+            castSpell(mLocaleEnrageSpell);
             _removeTimer(mLocaleEnrageTimerId);
         }*/
 
@@ -4165,7 +4164,7 @@ class IllidanStormrageAI : public CreatureAIScript
                 case 1:
                     for (uint8 i = 0; i < 2; ++i)
                     {
-                        getCreature()->CastSpellAoF(LocationVector(UnitPos[i].x, UnitPos[i].y, UnitPos[i].z), sSpellCustomizations.GetSpellInfo(ILLIDAN_THROW_GLAIVE1), false);
+                        getCreature()->castSpellLoc(LocationVector(UnitPos[i].x, UnitPos[i].y, UnitPos[i].z), sSpellMgr.getSpellInfo(ILLIDAN_THROW_GLAIVE1), false);
                     }
                     _setWieldWeapon(false);
                     break;
@@ -4201,7 +4200,7 @@ class IllidanStormrageAI : public CreatureAIScript
                             pBlade->setChannelSpellId(TEAR_OF_AZZINOTH_CHANNEL);
                         }
                     }
-                    getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+                    getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
                     break;
                 case 4:
                     {
@@ -4252,7 +4251,7 @@ class IllidanStormrageAI : public CreatureAIScript
                         setRooted(false);
                         _clearHateList();
                         setScriptPhase(3);
-                        getCreature()->removeUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+                        getCreature()->removeUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
 
                         SetAIUpdateFreq(1000);
 
@@ -4359,7 +4358,7 @@ class IllidanStormrageAI : public CreatureAIScript
                     {
                         sendChatMessage(CHAT_MSG_MONSTER_YELL, 11481, "Stare into the eyes of the Betrayer!");
                         _setTargetToChannel(pTrigger, ILLIDAN_EYE_BLAST1);
-                        getCreature()->CastSpell(pTrigger, ILLIDAN_EYE_BLAST1, true);
+                        getCreature()->castSpell(pTrigger, ILLIDAN_EYE_BLAST1, true);
                         getCreature()->GetAIInterface()->setNextTarget(pTrigger);
 
                         float Distance = pTrigger->CalcDistance(EyeBeamPaths[7 - FireWall].x, EyeBeamPaths[7 - FireWall].y, EyeBeamPaths[7 - FireWall].z);
@@ -4542,7 +4541,7 @@ class IllidanStormrageAI : public CreatureAIScript
         _setMeleeDisabled(true);
         setRooted(false);
 
-        getCreature()->removeUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+        getCreature()->removeUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
 
         mScenePart = 0;
     }
@@ -4625,7 +4624,7 @@ class IllidanStormrageAI : public CreatureAIScript
                 setRooted(false);
                 setScriptPhase(5);
 
-                getCreature()->removeUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+                getCreature()->removeUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
 
                 pMaievAI->RegisterAIUpdateEvent(1000);
                 pMaievAI->mYellTimer = pMaievAI->_addTimer((Util::getRandomUInt(20) + 20) * 1000);
@@ -4673,7 +4672,7 @@ class IllidanStormrageAI : public CreatureAIScript
             MaievScene();
             return;
         }
-        else if (getCreature()->GetHealthPct() <= 30 && !_isCasting())
+        else if (getCreature()->getHealthPct() <= 30 && !_isCasting())
         {
 #ifdef USE_SHADOW_PRISON
             stopMovement();
@@ -4791,7 +4790,7 @@ class IllidanStormrageAI : public CreatureAIScript
                         if (pUnit)
                         {
                             CreatureAIScript* pAI = spawnCreatureAndGetAIScript(CN_FLAME_BURST, itr->GetPositionX(), itr->GetPositionY(), itr->GetPositionZ(), 0, getCreature()->getFactionTemplate());
-                            getCreature()->CastSpell(pUnit, ILLIDAN_FLAME_BURST2, true);
+                            getCreature()->castSpell(pUnit, ILLIDAN_FLAME_BURST2, true);
                             if (pAI != nullptr)
                             {
                                 float Distance = getRangeToObject(pUnit);
@@ -4992,7 +4991,7 @@ class IllidanStormrageAI : public CreatureAIScript
 //    IllidanStormrageAI* Illidan = (pCreatureAI != NULL) ? static_cast< IllidanStormrageAI* >(pCreatureAI) : NULL;
 //    if (Illidan != NULL)
 //    {
-//        Illidan->CastSpell(Illidan->mParasiticDmg);
+//        Illidan->castSpell(Illidan->mParasiticDmg);
 //        if (pTarget != NULL)                        // not sure if target is really added here
 //        {
 //            // Workaround - we will spawn 2 Parasitic Shadowfiends on that player place

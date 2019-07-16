@@ -1,9 +1,9 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2007-2015 Moon++ Team <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -176,7 +176,7 @@ public:
         QuestLogEntry* pQuest = pPlayer->GetQuestLogForEntry(10368);
         if (pQuest != nullptr && pQuest->GetMobCount(i) < pQuest->GetQuest()->required_mob_or_go_count[i])
         {
-            if (pPlayer->GetItemInterface()->GetItemCount(29501) > 0)
+            if (pPlayer->getItemInterface()->GetItemCount(29501) > 0)
             {
                 Arcemu::Gossip::Menu menu(pObject->getGuid(), 10104, pPlayer->GetSession()->language);
                 menu.AddItem(GOSSIP_ICON_CHAT, pPlayer->GetSession()->LocalizedGossipOption(463), 1);     // Walk free, Elder. Bring the spirits back to your tribe.
@@ -235,7 +235,7 @@ class AncestralSpiritWolf : public CreatureAIScript
     explicit AncestralSpiritWolf(Creature* pCreature) : CreatureAIScript(pCreature) {}
     void OnLoad() override
     {
-        getCreature()->CastSpell(getCreature(), 29938, false);
+        getCreature()->castSpell(getCreature(), 29938, false);
     }
 };
 

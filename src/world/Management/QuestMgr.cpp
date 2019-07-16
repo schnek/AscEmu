@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -28,7 +28,7 @@
 #include "Server/MainServerDefines.h"
 #include "Map/MapMgr.h"
 #include "Spell/SpellAuras.h"
-#include "Spell/Customization/SpellCustomizations.hpp"
+#include "Spell/SpellMgr.h"
 #include "Server/Packets/MsgQuestPushResult.h"
 
 using namespace AscEmu::Packets;
@@ -46,7 +46,7 @@ bool QuestMgr::isRepeatableQuestFinished(Player* plr, QuestProperties const* qst
     {
         if (qst->required_item[i])
         {
-            if (plr->GetItemInterface()->GetItemCount(qst->required_item[i]) < qst->required_itemcount[i])
+            if (plr->getItemInterface()->GetItemCount(qst->required_item[i]) < qst->required_itemcount[i])
             {
                 return false;
             }
@@ -330,7 +330,7 @@ uint32 QuestMgr::ActiveQuestsCount(Object* quest_giver, Player* plr)
     return questCount;
 }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void QuestMgr::BuildOfferReward(WorldPacket* data, QuestProperties const* qst, Object* qst_giver, uint32 /*menutype*/, uint32 language, Player* plr)
 {
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
@@ -429,7 +429,7 @@ void QuestMgr::BuildOfferReward(WorldPacket* data, QuestProperties const* qst, O
 }
 #endif
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void QuestMgr::BuildQuestDetails(WorldPacket* data, QuestProperties const* qst, Object* qst_giver, uint32 /*menutype*/, uint32 language, Player* plr)
 {
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
@@ -541,7 +541,7 @@ void QuestMgr::BuildQuestDetails(WorldPacket* data, QuestProperties const* qst, 
 }
 #endif
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void QuestMgr::BuildRequestItems(WorldPacket* data, QuestProperties const* qst, Object* qst_giver, uint32 status, uint32 language)
 {
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
@@ -616,7 +616,7 @@ void QuestMgr::BuildRequestItems(WorldPacket* data, QuestProperties const* qst, 
 }
 #endif
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 void QuestMgr::BuildQuestComplete(Player* plr, QuestProperties const* qst)
 {
     uint32 xp;
@@ -645,14 +645,14 @@ void QuestMgr::BuildQuestComplete(Player* plr, QuestProperties const* qst)
         plr->SetKnownTitle(static_cast<RankTitles>(qst->rewardtitleid), true);
 
 	// Some spells applied at quest reward
-	SpellAreaForQuestMapBounds saBounds = sSpellFactoryMgr.GetSpellAreaForQuestMapBounds(qst->id, false);
+	SpellAreaForQuestMapBounds saBounds = sSpellMgr.getSpellAreaForQuestMapBounds(qst->id, false);
 	if (saBounds.first != saBounds.second)
 	{
 		for (SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
 		{
-			if (itr->second->autocast && itr->second->IsFitToRequirements(plr, plr->GetZoneId(), plr->GetAreaID()))
+			if (itr->second->autoCast && itr->second->fitsToRequirements(plr, plr->GetZoneId(), plr->GetAreaID()))
 				if (!plr->HasAura(itr->second->spellId))
-					plr->CastSpell(plr, itr->second->spellId, true);
+					plr->castSpell(plr, itr->second->spellId, true);
 		}
 	}
 
@@ -1022,7 +1022,7 @@ void QuestMgr::OnPlayerItemPickup(Player* plr, Item* item)
             {
                 if (quest_log_entry->GetQuest()->required_item[j] == entry)
                 {
-                    pcount = plr->GetItemInterface()->GetItemCount(entry, true);
+                    pcount = plr->getItemInterface()->GetItemCount(entry, true);
                     CALL_QUESTSCRIPT_EVENT(quest_log_entry, OnPlayerItemPickup)(entry, pcount, plr, quest_log_entry);
                     if (pcount < quest_log_entry->GetQuest()->required_itemcount[j])
                     {
@@ -1146,7 +1146,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
     // Check they don't have more than the max gold
     if (worldConfig.player.isGoldCapEnabled && (plr->getCoinage() + qst->reward_money) > worldConfig.player.limitGoldAmount)
     {
-        plr->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_TOO_MUCH_GOLD);
+        plr->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_TOO_MUCH_GOLD);
         return;
     }
 
@@ -1201,13 +1201,13 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                 }
                 else
                 {
-                    auto item_add = plr->GetItemInterface()->FindItemLessMax(qst->reward_item[i], qst->reward_itemcount[i], false);
+                    auto item_add = plr->getItemInterface()->FindItemLessMax(qst->reward_item[i], qst->reward_itemcount[i], false);
                     if (!item_add)
                     {
-                        auto slotresult = plr->GetItemInterface()->FindFreeInventorySlot(proto);
+                        auto slotresult = plr->getItemInterface()->FindFreeInventorySlot(proto);
                         if (!slotresult.Result)
                         {
-                            plr->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+                            plr->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
                         }
                         else
                         {
@@ -1216,7 +1216,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                                 return;
 
                             item->setStackCount(uint32(qst->reward_itemcount[i]));
-                            if (!plr->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
+                            if (!plr->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
                                 item->DeleteMe();
                         }
                     }
@@ -1239,13 +1239,13 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
             }
             else
             {
-                auto item_add = plr->GetItemInterface()->FindItemLessMax(qst->reward_choiceitem[reward_slot], qst->reward_choiceitemcount[reward_slot], false);
+                auto item_add = plr->getItemInterface()->FindItemLessMax(qst->reward_choiceitem[reward_slot], qst->reward_choiceitemcount[reward_slot], false);
                 if (!item_add)
                 {
-                    auto slotresult = plr->GetItemInterface()->FindFreeInventorySlot(proto);
+                    auto slotresult = plr->getItemInterface()->FindFreeInventorySlot(proto);
                     if (!slotresult.Result)
                     {
-                        plr->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+                        plr->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
                     }
                     else
                     {
@@ -1254,7 +1254,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                             return;
 
                         item->setStackCount(uint32(qst->reward_choiceitemcount[reward_slot]));
-                        if (!plr->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
+                        if (!plr->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
                             item->DeleteMe();
 
                     }
@@ -1270,20 +1270,20 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
         // Remove items
         for (uint8 i = 0; i < MAX_REQUIRED_QUEST_ITEM; ++i)
         {
-            if (qst->required_item[i]) plr->GetItemInterface()->RemoveItemAmt(qst->required_item[i], qst->required_itemcount[i]);
+            if (qst->required_item[i]) plr->getItemInterface()->RemoveItemAmt(qst->required_item[i], qst->required_itemcount[i]);
         }
 
         // Remove srcitem
         if (qst->srcitem && qst->srcitem != qst->receive_items[0])
-            plr->GetItemInterface()->RemoveItemAmt(qst->srcitem, qst->srcitemcount ? qst->srcitemcount : 1);
+            plr->getItemInterface()->RemoveItemAmt(qst->srcitem, qst->srcitemcount ? qst->srcitemcount : 1);
 
         // cast Effect Spell
         if (qst->effect_on_player)
         {
-            SpellInfo* spell_entry = sSpellCustomizations.GetSpellInfo(qst->effect_on_player);
+            SpellInfo const* spell_entry = sSpellMgr.getSpellInfo(qst->effect_on_player);
             if (spell_entry)
             {
-                Spell* spe = sSpellFactoryMgr.NewSpell(plr, spell_entry, true, NULL);
+                Spell* spe = sSpellMgr.newSpell(plr, spell_entry, true, NULL);
                 SpellCastTargets tgt;
                 tgt.m_unitTarget = plr->getGuid();
                 spe->prepare(&tgt);
@@ -1314,13 +1314,13 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                 }
                 else
                 {
-                    auto item_add = plr->GetItemInterface()->FindItemLessMax(qst->reward_item[i], qst->reward_itemcount[i], false);
+                    auto item_add = plr->getItemInterface()->FindItemLessMax(qst->reward_item[i], qst->reward_itemcount[i], false);
                     if (!item_add)
                     {
-                        auto slotresult = plr->GetItemInterface()->FindFreeInventorySlot(proto);
+                        auto slotresult = plr->getItemInterface()->FindFreeInventorySlot(proto);
                         if (!slotresult.Result)
                         {
-                            plr->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+                            plr->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
                         }
                         else
                         {
@@ -1329,7 +1329,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                                 return;
 
                             item->setStackCount(uint32(qst->reward_itemcount[i]));
-                            if (!plr->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
+                            if (!plr->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
                                 item->DeleteMe();
                         }
                     }
@@ -1352,13 +1352,13 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
             }
             else
             {
-                auto item_add = plr->GetItemInterface()->FindItemLessMax(qst->reward_choiceitem[reward_slot], qst->reward_choiceitemcount[reward_slot], false);
+                auto item_add = plr->getItemInterface()->FindItemLessMax(qst->reward_choiceitem[reward_slot], qst->reward_choiceitemcount[reward_slot], false);
                 if (!item_add)
                 {
-                    auto slotresult = plr->GetItemInterface()->FindFreeInventorySlot(proto);
+                    auto slotresult = plr->getItemInterface()->FindFreeInventorySlot(proto);
                     if (!slotresult.Result)
                     {
-                        plr->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+                        plr->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
                     }
                     else
                     {
@@ -1367,7 +1367,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                             return;
 
                         item->setStackCount(uint32(qst->reward_choiceitemcount[reward_slot]));
-                        if (!plr->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
+                        if (!plr->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
                             item->DeleteMe();
                     }
                 }
@@ -1382,12 +1382,12 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
         // Remove items
         for (uint8 i = 0; i < MAX_REQUIRED_QUEST_ITEM; ++i)
         {
-            if (qst->required_item[i]) plr->GetItemInterface()->RemoveItemAmt(qst->required_item[i], qst->required_itemcount[i]);
+            if (qst->required_item[i]) plr->getItemInterface()->RemoveItemAmt(qst->required_item[i], qst->required_itemcount[i]);
         }
 
         // Remove srcitem
         if (qst->srcitem && qst->srcitem != qst->receive_items[0])
-            plr->GetItemInterface()->RemoveItemAmt(qst->srcitem, qst->srcitemcount ? qst->srcitemcount : 1);
+            plr->getItemInterface()->RemoveItemAmt(qst->srcitem, qst->srcitemcount ? qst->srcitemcount : 1);
 
         // cast learning spell
         if (qst->reward_spell && !qst->effect_on_player) // qst->reward_spell is the spell the quest finisher teaches you, OR the icon of the spell if effect_on_player is not 0
@@ -1427,10 +1427,10 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
         // cast Effect Spell
         if (qst->effect_on_player)
         {
-            SpellInfo* spell_entry = sSpellCustomizations.GetSpellInfo(qst->effect_on_player);
+            SpellInfo const* spell_entry = sSpellMgr.getSpellInfo(qst->effect_on_player);
             if (spell_entry)
             {
-                Spell* spe = sSpellFactoryMgr.NewSpell(plr, spell_entry, true, NULL);
+                Spell* spe = sSpellMgr.newSpell(plr, spell_entry, true, NULL);
                 SpellCastTargets tgt;
                 tgt.m_unitTarget = plr->getGuid();
                 spe->prepare(&tgt);
@@ -1974,7 +1974,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32 r
 {
     uint32 available_slots = 0;
     uint32 slotsrequired = 0;
-    available_slots = plyr->GetItemInterface()->CalculateFreeSlots(NULL);
+    available_slots = plyr->getItemInterface()->CalculateFreeSlots(NULL);
     // Static Item reward
     for (uint8 i = 0; i < 4; ++i)
     {
@@ -1984,7 +1984,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32 r
             ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_item[i]);
             if (!proto)
                 LOG_ERROR("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_item[i], qst->id);
-            else if (plyr->GetItemInterface()->CanReceiveItem(proto, qst->reward_itemcount[i]))
+            else if (plyr->getItemInterface()->CanReceiveItem(proto, qst->reward_itemcount[i]))
                 return false;
         }
     }
@@ -1996,7 +1996,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32 r
         ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_choiceitem[reward_slot]);
         if (!proto)
             LOG_ERROR("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_choiceitem[reward_slot], qst->id);
-        else if (plyr->GetItemInterface()->CanReceiveItem(proto, qst->reward_choiceitemcount[reward_slot]))
+        else if (plyr->getItemInterface()->CanReceiveItem(proto, qst->reward_choiceitemcount[reward_slot]))
             return false;
     }
     if (available_slots < slotsrequired)

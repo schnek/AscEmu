@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Map/MapMgr.h"
 #include "Map/MapScriptInterface.h"
 #include "Objects/Faction.h"
+#include "Spell/Definitions/PowerType.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -563,12 +564,12 @@ void CreatureAIScript::_wipeHateList()
 
 int32_t CreatureAIScript::_getHealthPercent()
 {
-    return _creature->GetHealthPct();
+    return _creature->getHealthPct();
 }
 
 int32_t CreatureAIScript::_getManaPercent()
 {
-    return _creature->GetManaPct();
+    return _creature->getPowerPct(POWER_TYPE_MANA);
 }
 
 void CreatureAIScript::_regenerateHealth()
@@ -872,7 +873,7 @@ void CreatureAIScript::_setDisplayWeaponIds(uint32_t itemId1, uint32_t itemId2)
 
 CreatureAISpells* CreatureAIScript::addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t duration /*= 0*/, uint32_t cooldown /*= 0*/, bool forceRemove /*= false*/, bool isTriggered /*= false*/)
 {
-    SpellInfo* spellInfo = sSpellCustomizations.GetSpellInfo(spellId);
+    const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
     if (spellInfo != nullptr)
     {
         uint32_t spellDuration = duration * 1000;
@@ -902,7 +903,7 @@ CreatureAISpells* CreatureAIScript::addAISpell(uint32_t spellId, float castChanc
 
 void CreatureAIScript::_applyAura(uint32_t spellId)
 {
-    _creature->CastSpell(_creature, sSpellCustomizations.GetSpellInfo(spellId), true);
+    _creature->castSpell(_creature, sSpellMgr.getSpellInfo(spellId), true);
 }
 
 void CreatureAIScript::_removeAura(uint32_t spellId)
@@ -929,7 +930,7 @@ void CreatureAIScript::_castOnInrangePlayers(uint32_t spellId, bool triggered)
     for (auto object : _creature->getInRangePlayersSet())
     {
         if (object != nullptr)
-            _creature->CastSpell(static_cast<Player*>(object), spellId, triggered);
+            _creature->castSpell(static_cast<Player*>(object), spellId, triggered);
     }
 }
 
@@ -941,7 +942,7 @@ void CreatureAIScript::_castOnInrangePlayersWithinDist(float minDistance, float 
         {
             float distanceToPlayer = object->GetDistance2dSq(this->getCreature());
             if (distanceToPlayer >= minDistance && distanceToPlayer <= maxDistance)
-                _creature->CastSpell(static_cast<Player*>(object), spellId, triggered);
+                _creature->castSpell(static_cast<Player*>(object), spellId, triggered);
         }
     }
 }
@@ -954,18 +955,18 @@ void CreatureAIScript::_castAISpell(CreatureAISpells* aiSpell)
         case TARGET_SELF:
         case TARGET_VARIOUS:
         {
-            getCreature()->CastSpell(getCreature(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
+            getCreature()->castSpell(getCreature(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
             mLastCastedSpell = aiSpell;
         } break;
         case TARGET_ATTACKING:
         {
-            getCreature()->CastSpell(target, aiSpell->mSpellInfo, aiSpell->mIsTriggered);
+            getCreature()->castSpell(target, aiSpell->mSpellInfo, aiSpell->mIsTriggered);
             mCurrentSpellTarget = target;
             mLastCastedSpell = aiSpell;
         } break;
         case TARGET_DESTINATION:
         {
-            getCreature()->CastSpellAoF(target->GetPosition(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
+            getCreature()->castSpellLoc(target->GetPosition(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
             mCurrentSpellTarget = target;
             mLastCastedSpell = aiSpell;
         } break;
@@ -979,7 +980,7 @@ void CreatureAIScript::_castAISpell(CreatureAISpells* aiSpell)
         case TARGET_CUSTOM:
         {
             if (aiSpell->getCustomTarget() != nullptr)
-                getCreature()->CastSpell(aiSpell->getCustomTarget(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
+                getCreature()->castSpell(aiSpell->getCustomTarget(), aiSpell->mSpellInfo, aiSpell->mIsTriggered);
         } break;
     }
 }
@@ -1021,7 +1022,7 @@ void CreatureAIScript::newAIUpdateSpellSystem()
                 if (mCurrentSpellTarget != nullptr && !mLastCastedSpell->mIsTriggered)
                 {
                     // interrupt spell if we are not in  required range
-                    const float targetDistance = getCreature()->GetPosition().Distance2DSq(mCurrentSpellTarget->GetPositionX(), mCurrentSpellTarget->GetPositionY());
+                    const float targetDistance = getCreature()->GetPosition().Distance2DSq({ mCurrentSpellTarget->GetPositionX(), mCurrentSpellTarget->GetPositionY() });
                     if (!mLastCastedSpell->isDistanceInRange(targetDistance))
                     {
                         LogDebugFlag(LF_SCRIPT_MGR, "Target outside of spell range (%u)! Min: %f Max: %f, distance to Target: %f", mLastCastedSpell->mSpellInfo->getId(), mLastCastedSpell->mMinPositionRangeToCast, mLastCastedSpell->mMaxPositionRangeToCast, targetDistance);
@@ -1064,7 +1065,8 @@ void CreatureAIScript::newAIUpdateSpellSystem()
         CreatureAISpells* usedSpell = nullptr;
 
         float randomChance = Util::getRandomFloat(100.0f);
-        std::random_shuffle(mCreatureAISpells.begin(), mCreatureAISpells.end());
+        //\todo deprecated since c++14
+        //std::random_shuffle(mCreatureAISpells.begin(), mCreatureAISpells.end());
         for (const auto& AISpell : mCreatureAISpells)
         {
             if (AISpell != nullptr)
@@ -1082,7 +1084,7 @@ void CreatureAIScript::newAIUpdateSpellSystem()
                     continue;
 
                 // hp range
-                if (!AISpell->isHpInPercentRange(getCreature()->GetHealthPct()))
+                if (!AISpell->isHpInPercentRange(getCreature()->getHealthPct()))
                     continue;
 
                 // no random chance (cast in script)
@@ -1110,18 +1112,18 @@ void CreatureAIScript::newAIUpdateSpellSystem()
                 case TARGET_SELF:
                 case TARGET_VARIOUS:
                 {
-                    getCreature()->CastSpell(getCreature(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
+                    getCreature()->castSpell(getCreature(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
                     mLastCastedSpell = usedSpell;
                 } break;
                 case TARGET_ATTACKING:
                 {
-                    getCreature()->CastSpell(target, usedSpell->mSpellInfo, usedSpell->mIsTriggered);
+                    getCreature()->castSpell(target, usedSpell->mSpellInfo, usedSpell->mIsTriggered);
                     mCurrentSpellTarget = target;
                     mLastCastedSpell = usedSpell;
                 } break;
                 case TARGET_DESTINATION:
                 {
-                    getCreature()->CastSpellAoF(target->GetPosition(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
+                    getCreature()->castSpellLoc(target->GetPosition(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
                     mCurrentSpellTarget = target;
                     mLastCastedSpell = usedSpell;
                 } break;
@@ -1136,7 +1138,7 @@ void CreatureAIScript::newAIUpdateSpellSystem()
                 {
                     // nos custom target set, no spell cast.
                     if (usedSpell->getCustomTarget() != nullptr)
-                        getCreature()->CastSpell(usedSpell->getCustomTarget(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
+                        getCreature()->castSpell(usedSpell->getCustomTarget(), usedSpell->mSpellInfo, usedSpell->mIsTriggered);
                 } break;
             }
 
@@ -1178,7 +1180,7 @@ void CreatureAIScript::castSpellOnRandomTarget(CreatureAISpells* AiSpell)
 
                 if (
                     inRangeTarget->isAlive() && AiSpell->isDistanceInRange(getCreature()->GetDistance2dSq(inRangeTarget))
-                    && ((AiSpell->isHpInPercentRange(inRangeTarget->GetHealthPct()) && isTargetRandFriend)
+                    && ((AiSpell->isHpInPercentRange(inRangeTarget->getHealthPct()) && isTargetRandFriend)
                     || (getCreature()->GetAIInterface()->getThreatByPtr(inRangeTarget) > 0 && isHostile(getCreature(), inRangeTarget))))
                 {
                     possibleUnitTargets.push_back(inRangeTarget);
@@ -1187,7 +1189,7 @@ void CreatureAIScript::castSpellOnRandomTarget(CreatureAISpells* AiSpell)
         }
 
         // add us as a friendly target.
-        if (AiSpell->isHpInPercentRange(getCreature()->GetHealthPct()) && isTargetRandFriend)
+        if (AiSpell->isHpInPercentRange(getCreature()->getHealthPct()) && isTargetRandFriend)
             possibleUnitTargets.push_back(getCreature());
 
         // no targets in our range for hp range and firendly targets
@@ -1206,11 +1208,11 @@ void CreatureAIScript::castSpellOnRandomTarget(CreatureAISpells* AiSpell)
             case TARGET_RANDOM_FRIEND:
             case TARGET_RANDOM_SINGLE:
             {
-                getCreature()->CastSpell(randomTarget, AiSpell->mSpellInfo, AiSpell->mIsTriggered);
+                getCreature()->castSpell(randomTarget, AiSpell->mSpellInfo, AiSpell->mIsTriggered);
                 mCurrentSpellTarget = randomTarget;
             } break;
             case TARGET_RANDOM_DESTINATION:
-                getCreature()->CastSpellAoF(randomTarget->GetPosition(), AiSpell->mSpellInfo, AiSpell->mIsTriggered);
+                getCreature()->castSpellLoc(randomTarget->GetPosition(), AiSpell->mSpellInfo, AiSpell->mIsTriggered);
                 break;
         }
 
@@ -1530,7 +1532,7 @@ bool CreatureAIScript::isValidUnitTarget(Object* pObject, TargetFilter pFilter, 
             return false;
 
         // only wounded targets if requested
-        if ((pFilter & TargetFilter_Wounded) && UnitTarget->GetHealthPct() >= 99)
+        if ((pFilter & TargetFilter_Wounded) && UnitTarget->getHealthPct() >= 99)
             return false;
 
         // targets not in melee range if requested

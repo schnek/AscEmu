@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -57,7 +57,7 @@ SERVER_DECL bool isHostile(Object* objA, Object* objB)
     if (objB->isPlayer() && static_cast<Player*>(objB)->hasPlayerFlags(PLAYER_FLAG_PVP_GUARD_ATTACKABLE) && objA->isCreature() && reinterpret_cast<Unit*>(objA)->GetAIInterface()->m_isNeutralGuard)
         return true;
 
-    if (objB->isCreatureOrPlayer() && static_cast<Unit*>(objB)->hasUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2 | UNIT_FLAG_IGNORE_CREATURE_COMBAT | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_ALIVE))
+    if (objB->isCreatureOrPlayer() && static_cast<Unit*>(objB)->hasUnitFlags(UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_IGNORE_CREATURE_COMBAT | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_ALIVE))
         return false;
 
     if (!objB->m_factionTemplate || !objA->m_factionTemplate)

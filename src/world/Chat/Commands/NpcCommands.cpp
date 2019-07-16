@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/MySQLDataStore.hpp"
 #include "Server/MainServerDefines.h"
 #include "Map/MapMgr.h"
-#include "Spell/Customization/SpellCustomizations.hpp"
+#include "Spell/SpellMgr.h"
 #include "Spell/Definitions/SpellEffects.h"
 
 //.npc addagent
@@ -38,7 +38,7 @@ bool ChatHandler::HandleNpcAddAgentCommand(const char* args, WorldSession* m_ses
         return true;
     }
 
-    auto spell_entry = sSpellCustomizations.GetSpellInfo(spellId);
+    auto spell_entry = sSpellMgr.getSpellInfo(spellId);
     if (spell_entry == nullptr)
     {
         RedSystemMessage(m_session, "Spell %u is not invalid!", spellId);
@@ -96,7 +96,7 @@ bool ChatHandler::HandleNpcAddAgentCommand(const char* args, WorldSession* m_ses
     return true;
 }
 
-bool ChatHandler::HandleNpcAppearCommand(const char* _, WorldSession* session)
+bool ChatHandler::HandleNpcAppearCommand(const char* /*_*/, WorldSession* session)
 {
     const auto target = GetSelectedCreature(session);
     if (!target) {
@@ -117,7 +117,7 @@ bool ChatHandler::HandleNpcAddTrainerSpellCommand(const char* args, WorldSession
     uint32_t spellid;
     uint32_t cost;
     uint32_t reqlevel;
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     uint32_t reqspell;
     uint32_t delspell;
 
@@ -142,7 +142,7 @@ bool ChatHandler::HandleNpcAddTrainerSpellCommand(const char* args, WorldSession
         return true;
     }
 
-    auto learn_spell = sSpellCustomizations.GetSpellInfo(spellid);
+    auto learn_spell = sSpellMgr.getSpellInfo(spellid);
     if (learn_spell == nullptr)
     {
         RedSystemMessage(m_session, "Invalid spell %u.", spellid);
@@ -156,7 +156,7 @@ bool ChatHandler::HandleNpcAddTrainerSpellCommand(const char* args, WorldSession
     }
 
     TrainerSpell sp;
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     sp.Cost = cost;
     sp.IsProfession = false;
     sp.pLearnSpell = learn_spell;
@@ -204,7 +204,7 @@ bool ChatHandler::HandleNpcCastCommand(const char* args, WorldSession* m_session
         return true;
     }
 
-    auto spell_entry = sSpellCustomizations.GetSpellInfo(spell_id);
+    auto spell_entry = sSpellMgr.getSpellInfo(spell_id);
     if (spell_entry == nullptr)
     {
         RedSystemMessage(m_session, "Invalid Spell ID: %u !", spell_id);
@@ -212,7 +212,7 @@ bool ChatHandler::HandleNpcCastCommand(const char* args, WorldSession* m_session
     }
 
     auto unit_target = static_cast<Unit*>(creature_target);
-    unit_target->CastSpell(unit_target, spell_entry, false);
+    unit_target->castSpell(unit_target, spell_id, false);
 
     return true;
 }
@@ -317,7 +317,7 @@ bool ChatHandler::HandleNpcInfoCommand(const char* /*args*/, WorldSession* m_ses
     if (creature_target == nullptr)
         return true;
 
-    uint32 guid = Arcemu::Util::GUID_LOPART(m_session->GetPlayer()->GetSelection());
+    uint32 guid = WoWGuid::getGuidLowPartFromUInt64(m_session->GetPlayer()->GetSelection());
 
     SystemMessage(m_session, "Showing Creature info of %s =============", creature_target->GetCreatureProperties()->Name.c_str());
     RedSystemMessage(m_session, "EntryID: %d", creature_target->getEntry());
@@ -494,13 +494,13 @@ bool ChatHandler::HandleNpcInfoCommand(const char* /*args*/, WorldSession* m_ses
         }
 
         if (creature_target->getCreatedByGuid())
-            SystemMessage(m_session, "Creator GUID: %u", Arcemu::Util::GUID_LOPART(creature_target->getCreatedByGuid()));
+            SystemMessage(m_session, "Creator GUID: %u", WoWGuid::getGuidLowPartFromUInt64(creature_target->getCreatedByGuid()));
         if (creature_target->getSummonedByGuid())
-            SystemMessage(m_session, "Summoner GUID: %u", Arcemu::Util::GUID_LOPART(creature_target->getSummonedByGuid()));
+            SystemMessage(m_session, "Summoner GUID: %u", WoWGuid::getGuidLowPartFromUInt64(creature_target->getSummonedByGuid()));
         if (creature_target->getCharmedByGuid())
-            SystemMessage(m_session, "Charmer GUID: %u", Arcemu::Util::GUID_LOPART(creature_target->getCharmedByGuid()));
+            SystemMessage(m_session, "Charmer GUID: %u", WoWGuid::getGuidLowPartFromUInt64(creature_target->getCharmedByGuid()));
         if (creature_target->getCreatedBySpellId())
-            SystemMessage(m_session, "Creator Spell: %u", Arcemu::Util::GUID_LOPART(creature_target->getCreatedBySpellId()));
+            SystemMessage(m_session, "Creator Spell: %u", WoWGuid::getGuidLowPartFromUInt64(creature_target->getCreatedBySpellId()));
     }
 
     if (owner_header_set)
@@ -518,6 +518,15 @@ bool ChatHandler::HandleNpcInfoCommand(const char* /*args*/, WorldSession* m_ses
     GreenSystemMessage(m_session, "-- Offhand: %u (displayid)", creature_target->getVirtualItemSlotId(OFFHAND));
     GreenSystemMessage(m_session, "-- Ranged: %u (displayid)", creature_target->getVirtualItemSlotId(RANGED));
 
+    if (sScriptMgr.has_creature_script(creature_target->getEntry()))
+        SystemMessage(m_session, "Creature has C++/LUA script");
+    else
+        SystemMessage(m_session, "Creature doesn't have C++/LUA script");
+
+    if (sScriptMgr.has_creature_gossip(creature_target->getEntry()))
+        SystemMessage(m_session, "Creature has C++/LUA gossip script");
+    else
+        SystemMessage(m_session, "Creature doesn't have C++/LUA gossip script");
 
     return true;
 }
@@ -837,7 +846,7 @@ bool ChatHandler::HandlePossessCommand(const char* /*args*/, WorldSession* m_ses
 //.npc vendoradditem
 bool ChatHandler::HandleNpcVendorAddItemCommand(const char* args, WorldSession* m_session)
 {
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     char* pitem = strtok(const_cast<char*>(args), " ");
     if (!pitem)
         return false;

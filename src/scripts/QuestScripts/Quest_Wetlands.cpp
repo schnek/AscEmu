@@ -1,7 +1,7 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2008 WEmu Team
  *
  * This program is free software: you can redistribute it and/or modify
@@ -32,9 +32,9 @@ bool BendingShinbone(uint8_t /*effectIndex*/, Spell* pSpell)
     if (pSpell->p_caster)
     {
         if (Util::getRandomUInt(100) < 17) // 17% chance
-            pSpell->p_caster->GetItemInterface()->AddItemById(ITEM_STURDYSHINBONE, 1, 0); // Sturdy Dragon
+            pSpell->p_caster->getItemInterface()->AddItemById(ITEM_STURDYSHINBONE, 1, 0); // Sturdy Dragon
         else
-            pSpell->p_caster->GetItemInterface()->AddItemById(ITEM_BROKENSHINBONE, 1, 0);
+            pSpell->p_caster->getItemInterface()->AddItemById(ITEM_BROKENSHINBONE, 1, 0);
     }
     return true;
 }

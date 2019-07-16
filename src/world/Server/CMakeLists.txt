@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
 set(PATH_PREFIX Server)
 
@@ -14,8 +14,6 @@ set(SRC_SERVER_FILES
    ${PATH_PREFIX}/IUpdatable.h
    ${PATH_PREFIX}/UpdateFieldInclude.h
    ${PATH_PREFIX}/UpdateMask.h
-   ${PATH_PREFIX}/LazyTimer.cpp
-   ${PATH_PREFIX}/LazyTimer.h
    ${PATH_PREFIX}/Main.cpp
    ${PATH_PREFIX}/MainServerDefines.h
    ${PATH_PREFIX}/Master.cpp
@@ -34,8 +32,6 @@ set(SRC_SERVER_FILES
    ${PATH_PREFIX}/WorldSession.h
    ${PATH_PREFIX}/WorldSocket.cpp
    ${PATH_PREFIX}/WorldSocket.h
-   ${PATH_PREFIX}/WUtil.cpp
-   ${PATH_PREFIX}/WUtil.h
 )
 
 source_group(Server FILES ${SRC_SERVER_FILES})

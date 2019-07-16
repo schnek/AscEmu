@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -74,7 +74,7 @@ uint32 getConColor(uint16 AttackerLvl, uint16 VictimLvl)
     };
 #endif
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
     const uint32 grayLevel[DBC_PLAYER_LEVEL_CAP + 1] =
     {
         0,                                          //0
@@ -535,7 +535,7 @@ uint32 GainStat(uint16 level, uint8 playerclass, uint8 Stat)
     return gain;
 }
 
-uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type, uint32* /*spellgroup*/, SpellInfo* ability)   // spellid is used only for 2-3 spells, that have AP bonus
+uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type, const uint32* /*spellgroup*/, SpellInfo const* ability)   // spellid is used only for 2-3 spells, that have AP bonus
 {
     ///\todo Some awesome formula to determine how much damage to deal consider this is melee damage weapon_damage_type: 0 = melee, 1 = offhand(dualwield), 2 = ranged
 
@@ -572,7 +572,7 @@ uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type
     if (pAttacker->disarmed && pAttacker->isPlayer())
     {
         offset = UNIT_FIELD_MINDAMAGE;
-        it = static_cast< Player* >(pAttacker)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
+        it = static_cast< Player* >(pAttacker)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
     }
     else if (weapon_damage_type == MELEE)
         offset = UNIT_FIELD_MINDAMAGE;
@@ -615,7 +615,7 @@ uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type
         {
             if (!pAttacker->disarmed)
             {
-                it = static_cast< Player* >(pAttacker)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
+                it = static_cast< Player* >(pAttacker)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
                 if (it)
                     wspeed = (float)it->getItemProperties()->Delay;
                 else
@@ -679,7 +679,7 @@ uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type
         {
             if (!pAttacker->disarmed)
             {
-                it = static_cast< Player* >(pAttacker)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
+                it = static_cast< Player* >(pAttacker)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
 
                 if (it)
                     wspeed = (float)it->getItemProperties()->Delay;
@@ -699,7 +699,7 @@ uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type
         {
             if (ability->getEffect(0) == SPELL_EFFECT_DUMMYMELEE || ability->getEffect(1) == SPELL_EFFECT_DUMMYMELEE || ability->getEffect(2) == SPELL_EFFECT_DUMMYMELEE)
             {
-                it = static_cast< Player* >(pAttacker)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
+                it = static_cast< Player* >(pAttacker)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
 
                 if (it)
                 {

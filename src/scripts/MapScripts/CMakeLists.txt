@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
 if(NOT BUILD_MAPSCRIPTS )
   message("\tMapScripts was skipped because BUILD_MAPSCRIPTS is unchecked.")
@@ -91,9 +91,6 @@ include(Outland/TempestKeep/TheMechanar/CMakeLists.txt)
 set(SRC_BASIC
    Setup.cpp
    Setup.h
-   ../Common/AITimerCollection.cpp
-   ../Common/AITimerCollection.h
-   ../../world/Server/LazyTimer.cpp
    ../../world/Server/ServerState.cpp
 )
 
@@ -201,8 +198,8 @@ add_library(${PROJECT_NAME} SHARED ${sources})
 
 target_link_libraries(${PROJECT_NAME} world)
 
-if(USE_PCH AND PCHSupport_FOUND)
-    ADD_NATIVE_PRECOMPILED_HEADER(${PROJECT_NAME} Setup.h ${CMAKE_CURRENT_SOURCE_DIR}/Setup.cpp)
+if(USE_PCH)
+    gen_cxx_pch(${PROJECT_NAME} Setup.h ${CMAKE_CURRENT_SOURCE_DIR}/Setup.cpp)
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})

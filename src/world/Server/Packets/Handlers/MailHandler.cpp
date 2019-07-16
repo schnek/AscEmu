@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -38,7 +38,7 @@ void WorldSession::handleMarkAsReadOpcode(WorldPacket& recvPacket)
     mailMessage->checked_flag |= MAIL_CHECK_MASK_READ;
 
     if (!sMailSystem.MailOption(MAIL_FLAG_NO_EXPIRY))
-        mailMessage->expire_time = static_cast<uint32_t>(UNIXTIME) + (TIME_DAY * 30);
+        mailMessage->expire_time = static_cast<uint32_t>(UNIXTIME) + (TimeVars::Day * 30);
 
     CharacterDatabase.WaitExecute("UPDATE mailbox SET checked_flag = %u, expiry_time = %u WHERE message_id = %u",
         mailMessage->checked_flag, mailMessage->expire_time, mailMessage->message_id);
@@ -83,7 +83,7 @@ void WorldSession::handleTakeMoneyOpcode(WorldPacket& recvPacket)
     {
         if (_player->getCoinage() + mailMessage->money > worldConfig.player.limitGoldAmount)
         {
-            _player->GetItemInterface()->BuildInventoryChangeError(nullptr, nullptr, INV_ERR_TOO_MUCH_GOLD);
+            _player->getItemInterface()->BuildInventoryChangeError(nullptr, nullptr, INV_ERR_TOO_MUCH_GOLD);
             return;
         }
     }
@@ -146,7 +146,7 @@ void WorldSession::handleMailCreateTextItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    const auto slotResult = _player->GetItemInterface()->FindFreeInventorySlot(itemProperties);
+    const auto slotResult = _player->getItemInterface()->FindFreeInventorySlot(itemProperties);
     if (slotResult.Result == 0)
     {
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_MADE_PERMANENT, MAIL_ERR_INTERNAL_ERROR).serialise().get());
@@ -160,7 +160,7 @@ void WorldSession::handleMailCreateTextItemOpcode(WorldPacket& recvPacket)
     item->setFlags(ITEM_FLAG_WRAP_GIFT);
     item->SetText(message->body);
 
-    if (_player->GetItemInterface()->AddItemToFreeSlot(item))
+    if (_player->getItemInterface()->AddItemToFreeSlot(item))
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_MADE_PERMANENT, MAIL_OK).serialise().get());
     else
         item->DeleteMe();
@@ -174,7 +174,7 @@ void WorldSession::handleItemTextQueryOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
   
-    if (const auto item = _player->GetItemInterface()->GetItemByGUID(srlPacket.itemGuid))
+    if (const auto item = _player->getItemInterface()->GetItemByGUID(srlPacket.itemGuid))
         SendPacket(SmsgItemTextQueryResponse(0, srlPacket.itemGuid, item->GetText()).serialise().get());
     else
         SendPacket(SmsgItemTextQueryResponse(1, 0, "").serialise().get());
@@ -246,7 +246,7 @@ void WorldSession::handleGetMailOpcode(WorldPacket& /*recvPacket*/)
         else
             guidSize = 4;
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
         const size_t messageSize = 2 + 4 + 1 + guidSize + 4 * 8 + (message.second.subject.size() + 1) + (message.second.body.size() + 1) + 1 + (
             message.second.items.size() * (1 + 4 + 4 + MAX_INSPECTED_ENCHANTMENT_SLOT * 3 * 4 + 4 + 4 + 4 + 4 + 4 + 4 + 1));
 #else
@@ -266,7 +266,7 @@ void WorldSession::handleGetMailOpcode(WorldPacket& /*recvPacket*/)
             case MAIL_TYPE_COD:
             case MAIL_TYPE_AUCTION:
             case MAIL_TYPE_ITEM:
-                data << uint32_t(Arcemu::Util::GUID_LOPART(message.second.sender_guid));
+                data << uint32_t(WoWGuid::getGuidLowPartFromUInt64(message.second.sender_guid));
                 break;
             case MAIL_TYPE_GAMEOBJECT:
             case MAIL_TYPE_CREATURE:
@@ -274,14 +274,14 @@ void WorldSession::handleGetMailOpcode(WorldPacket& /*recvPacket*/)
                 break;
         }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
         data << uint32_t(message.second.cod);
 #else
         data << uint64_t(message.second.cod);
 #endif
         data << uint32_t(0);
         data << uint32_t(message.second.stationery);
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
         data << uint32_t(message.second.money);
 #else
         data << uint64_t(message.second.money);
@@ -376,7 +376,7 @@ void WorldSession::handleTakeItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    const auto slotResult = _player->GetItemInterface()->FindFreeInventorySlot(item->getItemProperties());
+    const auto slotResult = _player->getItemInterface()->FindFreeInventorySlot(item->getItemProperties());
     if (slotResult.Result == 0)
     {
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_ITEM_TAKEN, MAIL_ERR_BAG_FULL, INV_ERR_INVENTORY_FULL).serialise().get());
@@ -386,9 +386,9 @@ void WorldSession::handleTakeItemOpcode(WorldPacket& recvPacket)
     }
     item->m_isDirty = true;
 
-    if (!_player->GetItemInterface()->SafeAddItem(item, slotResult.ContainerSlot, slotResult.Slot))
+    if (!_player->getItemInterface()->SafeAddItem(item, slotResult.ContainerSlot, slotResult.Slot))
     {
-        if (!_player->GetItemInterface()->AddItemToFreeSlot(item))
+        if (!_player->getItemInterface()->AddItemToFreeSlot(item))
         {
             SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_ITEM_TAKEN, MAIL_ERR_BAG_FULL, INV_ERR_INVENTORY_FULL).serialise().get());
             item->DeleteMe();
@@ -450,7 +450,7 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
     std::vector<Item*> attachedItems;
     for (uint8_t i = 0; i < srlPacket.itemCount; ++i)
     {
-        Item* pItem = _player->GetItemInterface()->GetItemByGUID(srlPacket.itemGuid[i]);
+        Item* pItem = _player->getItemInterface()->GetItemByGUID(srlPacket.itemGuid[i]);
         if (pItem == nullptr || pItem->isSoulbound() || pItem->hasFlags(ITEM_FLAG_CONJURED))
         {
             SendPacket(SmsgSendMailResult(0, MAIL_RES_MAIL_SENT, MAIL_ERR_INTERNAL_ERROR).serialise().get());
@@ -511,7 +511,7 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
         for (auto& item : attachedItems)
         {
             Item* pItem = item;
-            if (_player->GetItemInterface()->SafeRemoveAndRetreiveItemByGuid(item->getGuid(), false) != pItem)
+            if (_player->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(item->getGuid(), false) != pItem)
                 continue;
 
             pItem->RemoveFromWorld();
@@ -542,7 +542,7 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
     msg.body = srlPacket.body;
 
     if (!sMailSystem.MailOption(MAIL_FLAG_NO_EXPIRY))
-        msg.expire_time = static_cast<uint32_t>(UNIXTIME) + (TIME_DAY * MAIL_DEFAULT_EXPIRATION_TIME);
+        msg.expire_time = static_cast<uint32_t>(UNIXTIME) + (TimeVars::Day * MAIL_DEFAULT_EXPIRATION_TIME);
     else
         msg.expire_time = 0;
 

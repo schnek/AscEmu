@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -123,7 +123,6 @@ void MovementAI::sendMovePacket()
     const auto start = m_owner->GetPosition();
 
     auto spline = m_owner->m_movementManager.m_spline;
-    auto splineFlags = spline.GetSplineFlags();
     auto midpoints = m_owner->m_movementManager.m_spline.GetMidPoints();
 
     WorldPacket data(SMSG_MONSTER_MOVE, 60);
@@ -145,7 +144,7 @@ void MovementAI::sendMovePacket()
     m_owner->SendMessageToSet(&data, true);
 }
 
-void MovementAI::stopMoving(bool interrupt)
+void MovementAI::stopMoving(bool /*interrupt*/)
 {
     m_moving = false;
     m_origin_time = 0;

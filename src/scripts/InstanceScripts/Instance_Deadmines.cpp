@@ -1,9 +1,9 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2007-2015 Moon++ Team <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
 
 #include "Setup.h"
 #include "Instance_Deadmines.h"
-#include "Server/LazyTimer.h"
 #include <Units/Creatures/Pet.h>
 
 
@@ -150,16 +149,13 @@ static Movement::Location Guards[] =
 class RhahkZorAI : public CreatureAIScript
 {
     ADD_CREATURE_FACTORY_FUNCTION(RhahkZorAI);
-
-    // Just for testing
-    LazyTimer debugTimer;
-
-    explicit RhahkZorAI(Creature* pCreature) : CreatureAIScript(pCreature), debugTimer(1500)
+    explicit RhahkZorAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        addAISpell(6304, 8.0f, TARGET_ATTACKING, 0, 3);    // Rhahk'Zor Slam
+        addAISpell(6304, 8.0f, TARGET_ATTACKING, 1500, 3);    // Rhahk'Zor Slam
 
         addEmoteForEvent(Event_OnCombatStart, 5495);     // VanCleef pay big for you heads!
     }
+
 };
 
 
@@ -351,7 +347,7 @@ class VanCleefAI : public CreatureAIScript
 
 void SetupDeadmines(ScriptMgr* mgr)
 {
-    mgr->register_creature_script(NPC_RHAHK_ZOR, &RhahkZorAI::Create);
+    //mgr->register_creature_script(NPC_RHAHK_ZOR, &RhahkZorAI::Create);
     mgr->register_creature_script(NPC_MR_SMITE, &MrSmiteAI::Create);
     mgr->register_creature_script(NPC_EDWIN_VANCLEEF, &VanCleefAI::Create);
 }

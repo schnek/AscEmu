@@ -1,7 +1,7 @@
 /*
- Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
- This file is released under the MIT license. See README-MIT for more information.
- */
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
 #include "Setup.h"
 
@@ -28,7 +28,7 @@ class BlackCat : public CreatureAIScript
 
     void OnDied(Unit* pKiller) override
     {
-        pKiller->CastSpell(pKiller, 39477, true);
+        pKiller->castSpell(pKiller, 39477, true);
     }
 };
 
@@ -83,7 +83,7 @@ class HeadlessHorsemanFireAI : public CreatureAIScript
     ADD_CREATURE_FACTORY_FUNCTION(HeadlessHorsemanFireAI);
     explicit HeadlessHorsemanFireAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        getCreature()->CastSpell(getCreature(), 42971, true);
+        getCreature()->castSpell(getCreature(), 42971, true);
     }
 };
 
@@ -157,7 +157,7 @@ class ShadeOfTheHorsemanAI : public CreatureAIScript
                 {
                     if (iWaypointId == 6)
                     {
-                        getCreature()->CastSpell(getCreature(), 42118, true);
+                        getCreature()->castSpell(getCreature(), 42118, true);
                     }
                 } break;
                 default:
@@ -170,7 +170,7 @@ class ShadeOfTheHorsemanAI : public CreatureAIScript
     {
         GameObject* Pumpkin = pKiller->GetMapMgr()->CreateAndSpawnGameObject(2883, getCreature()->GetPositionX() + Util::getRandomFloat(5.0f), getCreature()->GetPositionY() + Util::getRandomFloat(5.0f), getCreature()->GetPositionZ(), 0, 1);
         if (Pumpkin != nullptr)
-            getCreature()->CastSpell(Pumpkin->getGuid(), 42277, true);
+            getCreature()->castSpell(Pumpkin->getGuid(), 42277, true);
     }
 
     int8 WPCount;
@@ -217,22 +217,22 @@ public:
         if (!proto)
             return;
 
-        slotresult = pPlayer->GetItemInterface()->FindFreeInventorySlot(proto);
+        slotresult = pPlayer->getItemInterface()->FindFreeInventorySlot(proto);
 
         if (!slotresult.Result)
         {
-            pPlayer->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+            pPlayer->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
             return;
         }
         else
         {
-            if (pPlayer->GetItemInterface()->GetItemCount(32971, false) == 0)
+            if (pPlayer->getItemInterface()->GetItemCount(32971, false) == 0)
             {
                 auto itm = objmgr.CreateItem(32971, pPlayer);
                 if (itm == nullptr)
                     return;
 
-                auto result = pPlayer->GetItemInterface()->SafeAddItem(itm, slotresult.ContainerSlot, slotresult.Slot);
+                auto result = pPlayer->getItemInterface()->SafeAddItem(itm, slotresult.ContainerSlot, slotresult.Slot);
                 if (!result)
                 {
                     DLLLogDetail("Error while adding item %u to player %s", itm->getEntry(), pPlayer->getName().c_str());
@@ -241,7 +241,7 @@ public:
             }
             else
             {
-                pPlayer->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+                pPlayer->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
                 return;
             }
         }

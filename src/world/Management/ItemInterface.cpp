@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -30,6 +30,82 @@
 #include "Server/Packets/SmsgInventoryChangeFailure.h"
 
 using namespace AscEmu::Packets;
+
+// APGL End
+// MIT Start
+
+bool ItemInterface::hasItemForTotemCategory(uint32_t totemCategory)
+{
+    // If totem category is 0, the spell does not require any totems or tools
+    if (totemCategory == 0)
+        return true;
+
+#if VERSION_STRING == Classic
+    return false;
+#else
+    const auto spellTotemCategory = sTotemCategoryStore.LookupEntry(totemCategory);
+    if (spellTotemCategory == nullptr)
+        return false;
+
+    // Helper lambda
+    auto checkItem = [&](Item const* item) -> bool
+    {
+        if (item == nullptr)
+            return false;
+        // Item has no totem category
+        if (item->getItemProperties()->TotemCategory == 0)
+            return false;
+        const auto itemTotemCategory = sTotemCategoryStore.LookupEntry(item->getItemProperties()->TotemCategory);
+        // Item has invalid totem category
+        if (itemTotemCategory == nullptr)
+            return false;
+        // Totem category types do not match
+        if (spellTotemCategory->categoryType != itemTotemCategory->categoryType)
+            return false;
+        // Check if totem category masks match
+        if (itemTotemCategory->categoryMask & spellTotemCategory->categoryMask)
+            return true;
+        return false;
+    };
+
+    for (int16_t i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; ++i)
+    {
+        if (checkItem(GetInventoryItem(i)))
+            return true;
+    }
+
+    for (int8_t i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; ++i)
+    {
+        // Get bag from bag slot
+        const auto container = GetContainer(i);
+        if (container == nullptr)
+            continue;
+        // Loop through bag's content
+        for (uint16_t j = 0; j < container->getSlotCount(); ++j)
+        {
+            if (checkItem(container->GetItem(static_cast<int16_t>(j))))
+                return true;
+        }
+    }
+
+    for (int16_t i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; ++i)
+    {
+        if (checkItem(GetInventoryItem(i)))
+            return true;
+    }
+
+    for (int16_t i = INVENTORY_KEYRING_START; i < CURRENCYTOKEN_SLOT_END; ++i)
+    {
+        if (checkItem(GetInventoryItem(i)))
+            return true;
+    }
+
+    return false;
+#endif
+}
+
+// MIT End
+// APGL Start
 
 ItemInterface::ItemInterface(Player* pPlayer) : m_EquipmentSets(pPlayer->getGuidLow())
 {
@@ -324,7 +400,7 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
         uint32 subclass = item->getItemProperties()->SubClass;
         if (subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_AXE || subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_MACE || subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_SWORD)
         {
-            m_pOwner->CastSpell(m_pOwner, 49152, true);
+            m_pOwner->castSpell(m_pOwner, 49152, true);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }
@@ -2471,7 +2547,7 @@ void ItemInterface::BuyItem(ItemProperties const* item, uint32 total_amount, Cre
         for (uint8 i = 0; i < 5; ++i)
         {
             if (item_extended_cost->item[i])
-                m_pOwner->GetItemInterface()->RemoveItemAmt(item_extended_cost->item[i], total_amount * item_extended_cost->count[i]);
+                m_pOwner->getItemInterface()->RemoveItemAmt(item_extended_cost->item[i], total_amount * item_extended_cost->count[i]);
         }
 
         if (m_pOwner->GetHonorCurrency() >= (item_extended_cost->honor_points * total_amount))
@@ -2501,7 +2577,7 @@ int8 ItemInterface::CanAffordItem(ItemProperties const* item, uint32 amount, Cre
         {
             if (item_extended_cost->item[i])
             {
-                if (m_pOwner->GetItemInterface()->GetItemCount(item_extended_cost->item[i], false) < (item_extended_cost->count[i] * amount))
+                if (m_pOwner->getItemInterface()->GetItemCount(item_extended_cost->item[i], false) < (item_extended_cost->count[i] * amount))
                     return INV_ERR_VENDOR_MISSING_TURNINS;
             }
         }
@@ -3001,11 +3077,11 @@ void ItemInterface::SwapItemSlots(int8 srcslot, int8 dstslot)
         {
             tSrcItem = (static_cast<Container*>((m_pItems[(int)srcslot])))->GetItem(static_cast<int16>(Slot));
 
-            m_pOwner->GetItemInterface()->SafeRemoveAndRetreiveItemFromSlot(srcslot, static_cast<int16>(Slot), false);
+            m_pOwner->getItemInterface()->SafeRemoveAndRetreiveItemFromSlot(srcslot, static_cast<int16>(Slot), false);
 
             if (tSrcItem != nullptr)
             {
-                auto result = m_pOwner->GetItemInterface()->SafeAddItem(tSrcItem, dstslot, static_cast<int16>(Slot));
+                auto result = m_pOwner->getItemInterface()->SafeAddItem(tSrcItem, dstslot, static_cast<int16>(Slot));
                 if (!result)
                 {
                     LOG_ERROR("Error while adding item %u to player %s", tSrcItem->getEntry(), m_pOwner->getName().c_str());
@@ -3037,9 +3113,9 @@ void ItemInterface::SwapItemSlots(int8 srcslot, int8 dstslot)
             tDstItem = (static_cast<Container*>((m_pItems[(int)dstslot])))->GetItem(static_cast<int16>(Slot));
 
             if (tSrcItem != nullptr)
-                m_pOwner->GetItemInterface()->SafeRemoveAndRetreiveItemFromSlot(srcslot, static_cast<int16>(Slot), false);
+                m_pOwner->getItemInterface()->SafeRemoveAndRetreiveItemFromSlot(srcslot, static_cast<int16>(Slot), false);
             if (tDstItem != nullptr)
-                m_pOwner->GetItemInterface()->SafeRemoveAndRetreiveItemFromSlot(dstslot, static_cast<int16>(Slot), false);
+                m_pOwner->getItemInterface()->SafeRemoveAndRetreiveItemFromSlot(dstslot, static_cast<int16>(Slot), false);
 
             if (tSrcItem != nullptr)
                 (static_cast<Container*>(DstItem))->AddItem(static_cast<int16>(Slot), tSrcItem);
@@ -3245,7 +3321,7 @@ void ItemInterface::SwapItemSlots(int8 srcslot, int8 dstslot)
             uint32 subclass = m_pItems[EQUIPMENT_SLOT_OFFHAND]->getItemProperties()->SubClass;
             if (subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_AXE || subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_MACE || subclass == ITEM_SUBCLASS_WEAPON_TWOHAND_SWORD)
             {
-                m_pOwner->CastSpell(m_pOwner, 49152, true);
+                m_pOwner->castSpell(m_pOwner, 49152, true);
             }
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         }

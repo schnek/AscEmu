@@ -1,9 +1,9 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2007-2015 Moon++ Team <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -333,7 +333,7 @@ class DarkweaverSythAI : public CreatureAIScript
 
     void AIUpdate() override
     {
-        if (((getCreature()->GetHealthPct() <= 75 && getScriptPhase() == 1) || (getCreature()->GetHealthPct() <= 50 && getScriptPhase() == 2) || (getCreature()->GetHealthPct() <= 25 && getScriptPhase() == 3)))
+        if (((getCreature()->getHealthPct() <= 75 && getScriptPhase() == 1) || (getCreature()->getHealthPct() <= 50 && getScriptPhase() == 2) || (getCreature()->getHealthPct() <= 25 && getScriptPhase() == 3)))
         {
             getCreature()->setAttackTimer(MELEE, 1500);
             getCreature()->GetAIInterface()->StopMovement(1000);    // really?
@@ -348,10 +348,10 @@ class DarkweaverSythAI : public CreatureAIScript
     {
         sendDBChatMessage(SAY_DARKW_SYNTH_01);
 
-        getCreature()->CastSpell(getCreature(), summonFireEle->mSpellInfo, true);
-        getCreature()->CastSpell(getCreature(), summonFrostEle->mSpellInfo, true);
-        getCreature()->CastSpell(getCreature(), summonArcaneEle->mSpellInfo, true);
-        getCreature()->CastSpell(getCreature(), summonShadowEle->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), summonFireEle->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), summonFrostEle->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), summonArcaneEle->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), summonShadowEle->mSpellInfo, true);
     }
 
 protected:
@@ -397,7 +397,7 @@ class TalonKingIkissAI : public CreatureAIScript
         {
             getCreature()->GetAIInterface()->StopMovement(1);
             getCreature()->setAttackTimer(MELEE, 3000);
-            getCreature()->CastSpell(getCreature(), arcaneVolley->mSpellInfo, true);
+            getCreature()->castSpell(getCreature(), arcaneVolley->mSpellInfo, true);
         }
 
         Blink = false;
@@ -419,7 +419,7 @@ class TalonKingIkissAI : public CreatureAIScript
 
             getCreature()->interruptSpell();
 
-            getCreature()->CastSpell(getCreature(), arcaneExplosion->mSpellInfo, true);
+            getCreature()->castSpell(getCreature(), arcaneExplosion->mSpellInfo, true);
 
             Blink = false;
         }
@@ -463,7 +463,7 @@ class ANZUAI : public CreatureAIScript
 
     void OnCombatStart(Unit* /*mTarget*/) override
     {
-        getCreature()->CastSpell(getCreature(), ravenGod->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), ravenGod->mSpellInfo, true);
 
         Banished = false;
     }
@@ -477,7 +477,7 @@ class ANZUAI : public CreatureAIScript
 
     void AIUpdate() override
     {
-        if ((getCreature()->GetHealthPct() <= 66 && getScriptPhase() == 1) || (getCreature()->GetHealthPct() <= 33 && getScriptPhase() == 1))
+        if ((getCreature()->getHealthPct() <= 66 && getScriptPhase() == 1) || (getCreature()->getHealthPct() <= 33 && getScriptPhase() == 1))
         {
             SummonPhase();
             setScriptPhase(getScriptPhase() + 1);
@@ -492,7 +492,7 @@ class ANZUAI : public CreatureAIScript
 
     void SummonPhase()
     {
-        getCreature()->CastSpell(getCreature(), banish->mSpellInfo, true);
+        getCreature()->castSpell(getCreature(), banish->mSpellInfo, true);
     }
 
     void OnCastSpell(uint32 spellId) override

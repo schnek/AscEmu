@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -47,7 +47,7 @@ public:
     void LoadRealms();
     std::vector<std::shared_ptr<Realms>> _realmStore;
 
-    std::shared_ptr<Realms> getRealmById(uint32_t id);
+    std::shared_ptr<Realms> getRealmById(uint32_t id) const;
 
     void setStatusForRealm(uint8_t realm_id, uint32_t status);
 

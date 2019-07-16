@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -31,11 +31,12 @@
 #include <mutex>
 #include "Map/MapMgr.h"
 #include "Spell/SpellAuras.h"
-#include "Spell/Customization/SpellCustomizations.hpp"
+#include "Spell/SpellMgr.h"
 #include "Objects/ObjectMgr.h"
 #include "ScriptMgr.h"
 #include "Map/MapScriptInterface.h"
 #include "Objects/Faction.h"
+#include "Common.hpp"
 
 initialiseSingleton(ScriptMgr);
 initialiseSingleton(HookInterface);
@@ -62,129 +63,108 @@ struct ScriptingEngine_dl
 
 void ScriptMgr::LoadScripts()
 {
-    if (HookInterface::getSingletonPtr() == NULL)
+    if (HookInterface::getSingletonPtr() == nullptr)
         new HookInterface;
 
     LogNotice("ScriptMgr : Loading External Script Libraries...");
 
-    std::string Path;
-    std::string FileMask;
-    Path = PREFIX;
-    Path += '/';
-#ifdef WIN32
-    FileMask = ".dll";
-#else
-#ifndef __APPLE__
-    FileMask = ".so";
-#else
-    FileMask = ".dylib";
-#endif
-#endif
+    std::string modulePath = PREFIX;
+    modulePath += '/';
 
-    Arcemu::FindFilesResult findres;
-    std::vector< ScriptingEngine_dl > Engines;
+    std::string libMask = LIBMASK;
 
-    Arcemu::FindFiles(Path.c_str(), FileMask.c_str(), findres);
-    uint32 count = 0;
+    std::vector<ScriptingEngine_dl> scriptingEngineDls;
 
-    while (findres.HasNext())
+    uint32_t dllCount = 0;
+
+    auto directoryContentMap = Util::getDirectoryContent(modulePath, libMask);
+    for (const auto content : directoryContentMap)
     {
-        std::stringstream loadmessage;
-        std::string fname = Path + findres.GetNext();
-        Arcemu::DynLib* dl = new Arcemu::DynLib(fname.c_str());
+        std::stringstream loadMessageStream;
+        auto fileName = modulePath + content.second;
+        auto dynLib = new Arcemu::DynLib(fileName.c_str());
 
-        loadmessage << dl->GetName() << " : ";
+        loadMessageStream << dynLib->GetName() << " : ";
 
-        if (!dl->Load())
+        if (!dynLib->Load())
         {
-            loadmessage << "ERROR: Cannot open library.";
-            LOG_ERROR(loadmessage.str().c_str());
-            delete dl;
+            loadMessageStream << "ERROR: Cannot open library.";
+            LOG_ERROR(loadMessageStream.str().c_str());
+            delete dynLib;
             continue;
+        }
 
+        auto serverStateCall = reinterpret_cast<exp_set_serverstate_singleton>(dynLib->GetAddressForSymbol("_exp_set_serverstate_singleton"));
+        if (!serverStateCall)
+        {
+            loadMessageStream << "ERROR: Cannot find set_serverstate_call function.";
+            LOG_ERROR(loadMessageStream.str().c_str());
+            delete dynLib;
+            continue;
+        }
+
+        serverStateCall(ServerState::instance());
+
+        auto versionCall = reinterpret_cast<exp_get_version>(dynLib->GetAddressForSymbol("_exp_get_version"));
+        auto registerCall = reinterpret_cast<exp_script_register>(dynLib->GetAddressForSymbol("_exp_script_register"));
+        auto typeCall = reinterpret_cast<exp_get_script_type>(dynLib->GetAddressForSymbol("_exp_get_script_type"));
+        if (!versionCall || !registerCall || !typeCall)
+        {
+            loadMessageStream << "ERROR: Cannot find version functions.";
+            LOG_ERROR(loadMessageStream.str().c_str());
+            delete dynLib;
+            continue;
+        }
+
+        std::string dllVersion = versionCall();
+        uint32_t scriptType = typeCall();
+
+        if (dllVersion != BUILD_HASH_STR)
+        {
+            loadMessageStream << "ERROR: Version mismatch.";
+            LOG_ERROR(loadMessageStream.str().c_str());
+            delete dynLib;
+            continue;
+        }
+
+        loadMessageStream << std::string(BUILD_HASH_STR) << " : ";
+
+        if ((scriptType & SCRIPT_TYPE_SCRIPT_ENGINE) != 0)
+        {
+            ScriptingEngine_dl scriptingEngineDl;
+            scriptingEngineDl.dl = dynLib;
+            scriptingEngineDl.InitializeCall = registerCall;
+            scriptingEngineDl.Type = scriptType;
+
+            scriptingEngineDls.push_back(scriptingEngineDl);
+
+            loadMessageStream << "delayed load";
         }
         else
         {
-            exp_get_version vcall = reinterpret_cast<exp_get_version>(dl->GetAddressForSymbol("_exp_get_version"));
-            exp_script_register rcall = reinterpret_cast<exp_script_register>(dl->GetAddressForSymbol("_exp_script_register"));
-            exp_get_script_type scall = reinterpret_cast<exp_get_script_type>(dl->GetAddressForSymbol("_exp_get_script_type"));
-            exp_set_serverstate_singleton set_serverstate_call = reinterpret_cast<exp_set_serverstate_singleton>(dl->GetAddressForSymbol("_exp_set_serverstate_singleton"));
+            registerCall(this);
+            dynamiclibs.push_back(dynLib);
 
-            if (!set_serverstate_call)
-            {
-                loadmessage << "ERROR: Cannot find set_serverstate_call function.";
-                LOG_ERROR(loadmessage.str().c_str());
-                delete dl;
-                continue;
-            }
-
-            // Make sure we use the same ServerState singleton
-            set_serverstate_call(ServerState::instance());
-
-            if (!vcall || !rcall || !scall)
-            {
-                loadmessage << "ERROR: Cannot find version functions.";
-                LOG_ERROR(loadmessage.str().c_str());
-                delete dl;
-                continue;
-            }
-            else
-            {
-                const char *version = vcall();
-                uint32 stype = scall();
-
-                if (strcmp(version, BUILD_HASH_STR) != 0)
-                {
-                    loadmessage << "ERROR: Version mismatch.";
-                    LOG_ERROR(loadmessage.str().c_str());
-                    delete dl;
-                    continue;
-
-                }
-                else
-                {
-                    loadmessage << std::string(BUILD_HASH_STR) << " : ";
-
-                    if ((stype & SCRIPT_TYPE_SCRIPT_ENGINE) != 0)
-                    {
-                        ScriptingEngine_dl se;
-
-                        se.dl = dl;
-                        se.InitializeCall = rcall;
-                        se.Type = stype;
-
-                        Engines.push_back(se);
-
-                        loadmessage << "delayed load";
-
-                    }
-                    else
-                    {
-                        rcall(this);
-                        dynamiclibs.push_back(dl);
-
-                        loadmessage << "loaded";
-                    }
-                    LogDetail(loadmessage.str().c_str());
-                    count++;
-                }
-            }
+            loadMessageStream << "loaded";
         }
+        LogDetail(loadMessageStream.str().c_str());
+
+        dllCount++;
     }
 
-    if (count == 0)
+    if (dllCount == 0)
     {
         LOG_ERROR("No external scripts found! Server will continue to function with limited functionality.");
     }
     else
     {
-        LogDetail("ScriptMgr : Loaded %u external libraries.", count);
+        LogDetail("ScriptMgr : Loaded %u external libraries.", dllCount);
         LogNotice("ScriptMgr : Loading optional scripting engine(s)...");
 
-        for (std::vector< ScriptingEngine_dl >::iterator itr = Engines.begin(); itr != Engines.end(); ++itr)
+        for (auto& engineDl : scriptingEngineDls)
         {
-            itr->InitializeCall(this);
-            dynamiclibs.push_back(itr->dl);
+            engineDl.InitializeCall(this);
+            dynamiclibs.push_back(engineDl.dl);
         }
 
         LogDetail("ScriptMgr : Done loading scripting engine(s)...");
@@ -221,9 +201,9 @@ void ScriptMgr::DumpUnimplementedSpells()
 
     of.open("unimplemented1.txt");
 
-    for (auto it = sSpellCustomizations.GetSpellInfoStore()->begin(); it != sSpellCustomizations.GetSpellInfoStore()->end(); ++it)
+    for (auto it = sSpellMgr.getSpellInfoMap()->begin(); it != sSpellMgr.getSpellInfoMap()->end(); ++it)
     {
-        SpellInfo* sp = sSpellCustomizations.GetSpellInfo(it->first);
+        SpellInfo const* sp = sSpellMgr.getSpellInfo(it->first);
         if (!sp)
             continue;
 
@@ -258,9 +238,9 @@ void ScriptMgr::DumpUnimplementedSpells()
 
     count = 0;
 
-    for (auto it = sSpellCustomizations.GetSpellInfoStore()->begin(); it != sSpellCustomizations.GetSpellInfoStore()->end(); ++it)
+    for (auto it = sSpellMgr.getSpellInfoMap()->begin(); it != sSpellMgr.getSpellInfoMap()->end(); ++it)
     {
-        SpellInfo* sp = sSpellCustomizations.GetSpellInfo(it->first);
+        SpellInfo const* sp = sSpellMgr.getSpellInfo(it->first);
         if (!sp)
             continue;
 
@@ -312,14 +292,14 @@ void ScriptMgr::register_dummy_aura(uint32 entry, exp_handle_dummy_aura callback
         LogDebugFlag(LF_SCRIPT_MGR, "ScriptMgr tried to register a script for Aura ID: %u but this aura has already one.", entry);
     }
 
-    SpellInfo* sp = sSpellCustomizations.GetSpellInfo(entry);
+    SpellInfo const* sp = sSpellMgr.getSpellInfo(entry);
     if (sp == NULL)
     {
         LogDebugFlag(LF_SCRIPT_MGR, "ScriptMgr tried to register a dummy aura handler for invalid Spell ID: %u.", entry);
         return;
     }
 
-    if (!sp->appliesAreaAura(SPELL_AURA_DUMMY) && !sp->appliesAreaAura(SPELL_AURA_PERIODIC_TRIGGER_DUMMY))
+    if (!sp->hasEffectApplyAuraName(SPELL_AURA_DUMMY) && !sp->hasEffectApplyAuraName(SPELL_AURA_PERIODIC_TRIGGER_DUMMY))
         LogDebugFlag(LF_SCRIPT_MGR, "ScriptMgr registered a dummy aura handler for Spell ID: %u (%s), but spell has no dummy aura!", entry, sp->getName().c_str());
 
     _auras.insert(HandleDummyAuraMap::value_type(entry, callback));
@@ -333,7 +313,7 @@ void ScriptMgr::register_dummy_spell(uint32 entry, exp_handle_dummy_spell callba
         return;
     }
 
-    SpellInfo* sp = sSpellCustomizations.GetSpellInfo(entry);
+    SpellInfo const* sp = sSpellMgr.getSpellInfo(entry);
     if (sp == NULL)
     {
         LogDebugFlag(LF_SCRIPT_MGR, "ScriptMgr tried to register a dummy handler for invalid Spell ID: %u.", entry);
@@ -435,7 +415,7 @@ void ScriptMgr::register_script_effect(uint32 entry, exp_handle_script_effect ca
         return;
     }
 
-    SpellInfo* sp = sSpellCustomizations.GetSpellInfo(entry);
+    SpellInfo const* sp = sSpellMgr.getSpellInfo(entry);
     if (sp == NULL)
     {
         LogDebugFlag(LF_SCRIPT_MGR, "ScriptMgr tried to register a script effect handler for invalid Spell %u.", entry);
@@ -1274,7 +1254,7 @@ void HookInterface::OnEnterCombat(Player* pPlayer, Unit* pTarget)
         ((tOnEnterCombat)*itr)(pPlayer, pTarget);
 }
 
-bool HookInterface::OnCastSpell(Player* pPlayer, SpellInfo* pSpell, Spell* spell)
+bool HookInterface::OnCastSpell(Player* pPlayer, SpellInfo const* pSpell, Spell* spell)
 {
     ServerHookList hookList = sScriptMgr._hooks[SERVER_HOOK_EVENT_ON_CAST_SPELL];
     bool ret_val = true;

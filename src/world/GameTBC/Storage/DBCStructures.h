@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -85,9 +85,11 @@ namespace DBC
             char const taxi_nodes_format[] = "nifffssssssssssssssssxii";
             char const taxi_path_format[] = "niii";
             char const taxi_path_node_format[] = "niiifffiiii";
+            char const totem_category_format[] = "nxxxxxxxxxxxxxxxxxii";
             char const vehicle_format[] = "niffffiiiiiiiifffffffffffffffssssfifiixx";
             char const vehicle_seat_format[] = "niiffffffffffiiiiiifffffffiiifffiiiiiiiffiiiiixxxxxxxxxxxx";
             char const wmo_area_table_format[] = "niiixxxxxiixxxxxxxxxxxxxxxxx";
+            char const world_map_area_entry_format[] = "xinxxxxxi";
             char const world_map_overlay_format[] = "nxiiiixxxxxxxxxxx";
         }
 
@@ -818,6 +820,15 @@ namespace DBC
             uint32_t departureEventID;    // 10
         };
 
+        struct TotemCategoryEntry
+        {
+            uint32_t id;            // 0
+            //char* name[16];       // 1-16
+            //uint32_t unk;         // 17
+            uint32_t categoryType;  // 18
+            uint32_t categoryMask;  // 19
+        };
+
         #define MAX_VEHICLE_SEATS 8
 
         struct VehicleEntry
@@ -963,6 +974,19 @@ namespace DBC
             uint32_t areaId;          // 10  ref -> AreaTableEntry
             //char Name[16];        // 11-26
             //uint32_t nameflags;     // 27
+        };
+
+        struct WorldMapAreaEntry
+        {
+            //uint32_t id;              // 0
+            uint32_t mapId;             // 1
+            uint32_t zoneId;            // 2
+            //char const* name;         // 3
+            //float y1;                 // 4
+            //float y2;                 // 5
+            //float x1;                 // 6
+            //float x2;                 // 7
+            int32_t continentMapId;     // 8 Map id of the continent where the area actually exists (-1 value means that mapId already has the continent map id)
         };
 
         struct WorldMapOverlayEntry

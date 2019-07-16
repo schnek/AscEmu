@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -378,7 +377,7 @@ void StrandOfTheAncient::OnAddPlayer(Player* plr)
 {
     if (!m_started)
     {
-        plr->CastSpell(plr, BG_PREPARATION, true);
+        plr->castSpell(plr, BG_PREPARATION, true);
     }
 }
 
@@ -599,8 +598,8 @@ void StrandOfTheAncient::HookFlagStand(Player* /*plr*/, GameObject* /*obj*/)
 // time in seconds
 void StrandOfTheAncient::SetTime(uint32 secs)
 {
-    uint32 minutes = secs / TIME_MINUTE;
-    uint32 seconds = secs % TIME_MINUTE;
+    uint32 minutes = secs / TimeVars::Minute;
+    uint32 seconds = secs % TimeVars::Minute;
     uint32 digits[3];
     digits[0] = minutes;
     digits[1] = seconds / 10;
@@ -773,17 +772,17 @@ void StrandOfTheAncient::PrepareRound()
         {
             Player* p = *itr;
             p->SafeTeleport(p->GetMapId(), p->GetInstanceID(), sotaAttackerStartingPosition[0]);
-            p->CastSpell(p, BG_PREPARATION, true);
+            p->castSpell(p, BG_PREPARATION, true);
         }
 
         for (std::set<Player*>::iterator itr = m_players[Defenders].begin(); itr != m_players[Defenders].end(); ++itr)
         {
             Player* p = *itr;
             p->SafeTeleport(p->GetMapId(), p->GetInstanceID(), sotaDefenderStartingPosition);
-            p->CastSpell(p, BG_PREPARATION, true);
+            p->castSpell(p, BG_PREPARATION, true);
         }
 
-        sEventMgr.AddEvent(this, &StrandOfTheAncient::StartRound, EVENT_SOTA_START_ROUND, MSTIME_SECOND * 10, 1, 0);
+        sEventMgr.AddEvent(this, &StrandOfTheAncient::StartRound, EVENT_SOTA_START_ROUND, TimeVarsMs::Second * 10, 1, 0);
     }
 };
 
@@ -805,7 +804,7 @@ void StrandOfTheAncient::StartRound()
 
     SetWorldState(WORLDSTATE_SOTA_TIMER_MINS, 10); 
     SetTime(ROUND_LENGTH);
-    sEventMgr.AddEvent(this, &StrandOfTheAncient::TimeTick, EVENT_SOTA_TIMER, MSTIME_SECOND * 1, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+    sEventMgr.AddEvent(this, &StrandOfTheAncient::TimeTick, EVENT_SOTA_TIMER, TimeVarsMs::Second * 1, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
     UpdatePvPData();
 }
 
@@ -836,7 +835,7 @@ void StrandOfTheAncient::FinishRound()
 void StrandOfTheAncient::Finish(uint32 winningteam)
 {
     sEventMgr.RemoveEvents(this);
-    sEventMgr.AddEvent(static_cast< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, MSTIME_SECOND * 120, 1, 0);
+    sEventMgr.AddEvent(static_cast< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, TimeVarsMs::Second * 120, 1, 0);
     this->EndBattleground(winningteam == TEAM_ALLIANCE ? TEAM_ALLIANCE : TEAM_HORDE);
 }
 

@@ -1,8 +1,8 @@
 /*
- * Yelly Database Scripts
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (C) 2009 WhyScripts Team <http://www.whydb.org/>
  * Copyright (C) 2006-2008 U2 Team <http://www.undzwei.eu/>
  * Copyright (C) 2007-2008 Yelly Team
- * Copyright (C) 2009 WhyScripts Team <http://www.whydb.org/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -171,9 +171,9 @@ public:
         //Send quests and gossip menu.
         Arcemu::Gossip::Menu menu(pObject->getGuid(), 6812, pPlayer->GetSession()->language);
         sQuestMgr.FillQuestMenu(static_cast<Creature*>(pObject), pPlayer, menu);
-        if (pPlayer->HasItemCount(18563, 1, false) && pPlayer->HasItemCount(18564, 1, false))
+        if (pPlayer->hasItem(18563) && pPlayer->hasItem(18564))
         {
-            if (pPlayer->HasItemCount(19016, 0, false))
+            if (!pPlayer->hasItem(19016))
             {
                 menu.AddItem(GOSSIP_ICON_CHAT, pPlayer->GetSession()->LocalizedGossipOption(507), 1);  // What do you know of it
             }
@@ -223,7 +223,7 @@ public:
             } break;
             case 7:
             {
-                player->GetItemInterface()->AddItemById(19016, 1, 0);
+                player->getItemInterface()->AddItemById(19016, 1, 0);
                 Arcemu::Gossip::Menu::Complete(player);
             } break;
         }

@@ -1,8 +1,7 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2007 Moon++ <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,17 +17,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _LUAPACKET_H
-#define _LUAPACKET_H
+#pragma once
 
 #include "LUAEngine.h"
 
 namespace luPacket
 {
-    /*
-        NORMAL OPERATIONS
-        */
-
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Normal operations
     int CreatePacket(lua_State* L, WorldPacket* /*packet*/)
     {
         uint16 opcode = static_cast<uint16>(luaL_checkinteger(L, 1));
@@ -58,9 +54,8 @@ namespace luPacket
             lua_pushinteger(L, packet->size());
         return 1;
     }
-    /*
-        READ OPERATIONS
-        */
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Read operations
     int ReadUByte(lua_State* L, WorldPacket* packet)
     {
         if (packet == NULL)
@@ -193,11 +188,8 @@ namespace luPacket
             lua_pushnil(L);
         return 1;
     }
-
-    /*
-        WRITE OPERATIONS
-        */
-
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Write operations
     int WriteByte(lua_State* L, WorldPacket* packet)
     {
         int8 byte = (int8)luaL_checkinteger(L, 1);
@@ -277,6 +269,3 @@ namespace luPacket
         return 1;
     }
 };
-
-
-#endif      // _LUAPACKET_H

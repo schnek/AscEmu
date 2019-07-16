@@ -1,9 +1,9 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
-#We have our own custom modules that we use. This tells cmakes where to find them.
-set(CMAKE_MODULE_PATH 
-    ${CMAKE_MODULE_PATH}
-    ${CMAKE_SOURCE_DIR}/cmake/Modules)
+#We have our own custom modules and dep modules that we use. This tells cmakes where to find them.
+list(APPEND CMAKE_MODULE_PATH 
+    ${CMAKE_SOURCE_DIR}/cmake/Modules
+    ${CMAKE_SOURCE_DIR}/dep/cotire/CMake)
 
 # get git information
 include(${CMAKE_SOURCE_DIR}/cmake/GitRevision.cmake)
@@ -14,18 +14,10 @@ if(USE_PCH)
 endif()
 
 # get architecture type
-if(UNIX)
-    if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86_64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "[aA][mM][dD]64" )
-        set(IS_64BIT TRUE)
-    else()
-        set(IS_64BIT FALSE)
-    endif()
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(IS_64BIT TRUE)
 else()
-    if(CMAKE_GENERATOR MATCHES Win64*)
-        set(IS_64BIT TRUE)
-    else()
-        set(IS_64BIT FALSE)
-    endif()
+    set(IS_64BIT FALSE)
 endif()
 
 # set default architecture identifier

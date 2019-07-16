@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -30,10 +30,8 @@
 #include "Objects/GameObject.h"
 #include "Objects/ObjectMgr.h"
 
-#define MAX_MAP 800
-
 Mutex m_cellloadLock;
-uint32 m_celltilesLoaded[MAX_MAP][64][64];
+uint32 m_celltilesLoaded[MAX_NUM_MAPS][64][64];
 
 extern bool bServerShutdown;
 

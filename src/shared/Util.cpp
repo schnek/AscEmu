@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -11,6 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <random>
 
 #include <fstream>
+#include "utf8.h"
 
 namespace Util
 {
@@ -92,6 +93,57 @@ namespace Util
         return std::stoul(stringVersion);
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // WString functions
+    size_t Utf8length(std::string& utf8str)
+    {
+        try
+        {
+            return utf8::distance(utf8str.c_str(), utf8str.c_str() + utf8str.size());
+        }
+        catch (std::exception)
+        {
+            utf8str = "";
+            return 0;
+        }
+    }
+
+    bool Utf8toWStr(std::string utf8str, std::wstring& wstr)
+    {
+        try
+        {
+            size_t len = utf8::distance(utf8str.c_str(), utf8str.c_str() + utf8str.size());
+            wstr.resize(len);
+
+            if (len)
+                utf8::utf8to16(utf8str.c_str(), utf8str.c_str() + utf8str.size(), &wstr[0]);
+        }
+        catch (std::exception)
+        {
+            wstr = L"";
+            return false;
+        }
+
+        return true;
+    }
+
+    bool WStrToUtf8(std::wstring wstr, std::string& utf8str)
+    {
+        try
+        {
+            utf8str.resize(wstr.size() * 2);
+
+            char* oend = utf8::utf16to8(wstr.c_str(), wstr.c_str() + wstr.size(), &utf8str[0]);
+            utf8str.resize(oend - (&utf8str[0]));
+        }
+        catch (std::exception)
+        {
+            utf8str = "";
+            return false;
+        }
+
+        return true;
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Time calculation
@@ -227,19 +279,44 @@ namespace Util
         Util::StringToLowerCase(time_var);
 
         if (time_var.compare("y") == 0)
-            multiplier = TIME_YEAR;
+            multiplier = TimeVars::Year;
         else if (time_var.compare("m") == 0)
-            multiplier = TIME_MONTH;
+            multiplier = TimeVars::Month;
         else if (time_var.compare("d") == 0)
-            multiplier = TIME_DAY;
+            multiplier = TimeVars::Day;
         else if (time_var.compare("h") == 0)
-            multiplier = TIME_HOUR;
+            multiplier = TimeVars::Hour;
         else
-            multiplier = TIME_MINUTE;
+            multiplier = TimeVars::Minute;
 
         time_period = (multiplier * time_period);
 
         return time_period;
+    }
+
+    uint32_t getGameTime()
+    {
+        const auto now = std::chrono::system_clock::now();
+        auto inTimeT = std::chrono::system_clock::to_time_t(now);
+
+        const uint32_t currentYear = localtime(&inTimeT)->tm_year - 100;
+        const uint32_t currentMonth = localtime(&inTimeT)->tm_mon;
+        const uint32_t currentDayInMonth = localtime(&inTimeT)->tm_mday - 1;
+
+        const uint32_t currentDayInWeek = localtime(&inTimeT)->tm_wday == 0 ? 6 : localtime(&inTimeT)->tm_wday - 1;
+
+        const uint32_t currentHours = localtime(&inTimeT)->tm_hour;
+        const uint32_t currentMinutes = localtime(&inTimeT)->tm_min;
+
+
+        uint32_t gameTimeValue = currentMinutes << TimeShiftmask::Minute & TimeBitmask::Minute;
+        gameTimeValue |= currentHours << TimeShiftmask::Hour & TimeBitmask::Hour;
+        gameTimeValue |= currentDayInWeek << TimeShiftmask::Weekday & TimeBitmask::Weekday;
+        gameTimeValue |= currentDayInMonth << TimeShiftmask::Day & TimeBitmask::Day;
+        gameTimeValue |= currentMonth << TimeShiftmask::Month & TimeBitmask::Month;
+        gameTimeValue |= currentYear << TimeShiftmask::Year & TimeBitmask::Year;
+
+        return gameTimeValue;
     }
 
     std::string ByteArrayToHexString(uint8_t const* bytes, uint32_t arrayLength, bool reverseArray)
@@ -312,7 +389,72 @@ namespace Util
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // C++17 filesystem dependent functions
-#ifdef USE_EXPERIMENTAL_FILESYSTEM
+    std::map<uint32_t, std::string> getDirectoryContentWithPath(std::string pathName, std::string specialSuffix)
+    {
+        std::map<uint32_t, std::string> directoryContentMap;
+
+        uint32_t count = 0;
+        for (auto& p : fs::recursive_directory_iterator(pathName))
+        {
+            const std::string filePathName = p.path().string();
+
+            if (!specialSuffix.empty())
+            {
+                if (filePathName.size() >= specialSuffix.size() &&
+                    filePathName.compare(filePathName.size() - specialSuffix.size(), specialSuffix.size(), specialSuffix) == 0)
+                {
+                    std::string fileName = filePathName;
+
+                    directoryContentMap.insert(std::pair<uint32_t, std::string>(count, fileName));
+                    ++count;
+                }
+            }
+            else
+            {
+                std::string fileName = filePathName;
+
+                directoryContentMap.insert(std::pair<uint32_t, std::string>(count, fileName));
+                ++count;
+            }
+        }
+
+        return directoryContentMap;
+    }
+
+    std::map<uint32_t, std::string> getDirectoryContent(std::string pathName, std::string specialSuffix)
+    {
+        std::map<uint32_t, std::string> directoryContentMap;
+
+        uint32_t count = 0;
+        for (auto& p : fs::recursive_directory_iterator(pathName))
+        {
+            const std::string filePathName = p.path().string();
+
+            if (!specialSuffix.empty())
+            {
+                if (filePathName.size() >= specialSuffix.size() &&
+                    filePathName.compare(filePathName.size() - specialSuffix.size(), specialSuffix.size(), specialSuffix) == 0)
+                {
+                    std::string fileName = filePathName;
+                    fileName.erase(0, pathName.size());
+
+                    directoryContentMap.insert(std::pair<uint32_t, std::string>(count, fileName));
+                    ++count;
+                }
+            }
+            else
+            {
+                std::string fileName = filePathName;
+                fileName.erase(0, pathName.size());
+
+                directoryContentMap.insert(std::pair<uint32_t, std::string>(count, fileName));
+                ++count;
+            }
+        }
+
+        return directoryContentMap;
+    }
+
     std::string readFileIntoString(fs::path path)
     {
         std::ifstream fileStream{ path };
@@ -327,7 +469,7 @@ namespace Util
 
         return fileString;
     }
-#endif
+
     // Database update files only
     uint32_t readMajorVersionFromString(std::string fileName)
     {

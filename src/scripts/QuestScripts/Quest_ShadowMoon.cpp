@@ -1,9 +1,9 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
+ * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2008-2015 Sun++ Team <http://www.sunplusplus.info/>
  * Copyright (C) 2005-2007 Ascent Team
- * Copyright (C) 2007-2015 Moon++ Team <http://www.moonplusplus.info/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,7 +104,7 @@ class DeathbringerJovaanAI : public CreatureAIScript
                     CreatureAIScript* pRazuunAI = spawnCreatureAndGetAIScript(21502, -3300.47f, 2927.22f, 173.870f, 2.42924f);    // Spawn Razuun
                     if (pRazuunAI != nullptr)
                     {
-                        pRazuunAI->getCreature()->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+                        pRazuunAI->getCreature()->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
                         pRazuunAI->setCanEnterCombat(false);
                         pRazuunAI->SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
                         pRazuunAI->setRooted(true);
@@ -300,7 +300,7 @@ class EnslavedNetherwingDrakeAI : public CreatureAIScript
     {
         Movement::LocationWithFlag WayPoint = { getCreature()->GetPositionX(), getCreature()->GetPositionY() + 30, getCreature()->GetPositionZ() + 100, getCreature()->GetOrientation(), Movement::WP_MOVE_TYPE_FLY };
         setRooted(true);
-        getCreature()->addUnitFlags(UNIT_FLAG_FEIGN_DEATH | UNIT_FLAG_NOT_ATTACKABLE_2);
+        getCreature()->addUnitFlags(UNIT_FLAG_FEIGN_DEATH | UNIT_FLAG_NON_ATTACKABLE);
         AddWaypoint(CreateWaypoint(1, 0, WayPoint.wp_flag, WayPoint.wp_location));
     }
 
@@ -359,15 +359,15 @@ void FlanisSwiftwing_Gossip::OnSelectOption(Object* /*pObject*/, Player* Plr, ui
         return;
 
     item->setStackCount(1);
-    if (!Plr->GetItemInterface()->AddItemToFreeSlot(item))
+    if (!Plr->getItemInterface()->AddItemToFreeSlot(item))
     {
         Plr->GetSession()->SendNotification("No free slots were found in your inventory!");
         item->DeleteMe();
     }
     else
     {
-        Plr->sendItemPushResultPacket(false, true, false, Plr->GetItemInterface()->LastSearchResult()->ContainerSlot,
-            Plr->GetItemInterface()->LastSearchResult()->Slot, 1, item->getEntry(), item->getPropertySeed(),
+        Plr->sendItemPushResultPacket(false, true, false, Plr->getItemInterface()->LastSearchResult()->ContainerSlot,
+            Plr->getItemInterface()->LastSearchResult()->Slot, 1, item->getEntry(), item->getPropertySeed(),
             item->getRandomPropertiesId(), item->getStackCount());
     }
 };

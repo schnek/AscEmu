@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -33,11 +33,11 @@
 #include "Map/MapMgr.h"
 #include "Map/MapScriptInterface.h"
 #include "Map/WorldCreatorDefines.hpp"
-#include "Spell/Customization/SpellCustomizations.hpp"
+#include "Spell/SpellMgr.h"
 #include "Units/Creatures/Pet.h"
 #include "Spell/Definitions/SpellEffects.h"
 #include "Management/GuildMgr.h"
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 #include "Management/Guild.h"
 #endif
 
@@ -59,7 +59,7 @@ m_hiArenaTeamId(0),
 TransportersCount(0),
 m_hiPlayerGuid(1)
 {
-    memset(m_InstanceBossInfoMap, 0, sizeof(InstanceBossInfoMap*) * NUM_MAPS);
+    memset(m_InstanceBossInfoMap, 0, sizeof(InstanceBossInfoMap*) * MAX_NUM_MAPS);
 }
 
 
@@ -185,7 +185,7 @@ ObjectMgr::~ObjectMgr()
         delete(*itr);
 
     LogNotice("ObjectMgr : Deleting Boss Information...");
-    for (uint32 i = 0; i < NUM_MAPS; i++)
+    for (uint32 i = 0; i < MAX_NUM_MAPS; i++)
     {
         if (this->m_InstanceBossInfoMap[i] != nullptr)
         {
@@ -370,7 +370,7 @@ DBC::Structures::SkillLineAbilityEntry const* ObjectMgr::GetSpellSkill(uint32 id
     return mSpellSkills[id];
 }
 
-SpellInfo* ObjectMgr::GetNextSpellRank(SpellInfo* sp, uint32 level)
+SpellInfo const* ObjectMgr::GetNextSpellRank(SpellInfo const* sp, uint32 level)
 {
     // Looks for next spell rank
     if (sp == nullptr)
@@ -381,7 +381,7 @@ SpellInfo* ObjectMgr::GetNextSpellRank(SpellInfo* sp, uint32 level)
     auto skill_line_ability = GetSpellSkill(sp->getId());
     if (skill_line_ability != nullptr && skill_line_ability->next > 0)
     {
-        SpellInfo* sp1 = sSpellCustomizations.GetSpellInfo(skill_line_ability->next);
+        SpellInfo const* sp1 = sSpellMgr.getSpellInfo(skill_line_ability->next);
         if (sp1 && sp1->getBaseLevel() <= level)   // check level
         {
             return GetNextSpellRank(sp1, level);   // recursive for higher ranks
@@ -425,7 +425,7 @@ void ObjectMgr::LoadPlayersInfo()
                     uint32 instanceId = result2->Fetch()[0].GetUInt32();
                     uint32 mode = result2->Fetch()[1].GetUInt32();
                     uint32 mapId = result2->Fetch()[2].GetUInt32();
-                    if (mode >= NUM_INSTANCE_MODES || mapId >= NUM_MAPS)
+                    if (mode >= NUM_INSTANCE_MODES || mapId >= MAX_NUM_MAPS)
                     {
                         continue;
                     }
@@ -639,7 +639,7 @@ void ObjectMgr::LoadInstanceBossInfos()
             delete bossInfo;
             continue;
         }
-        if (bossInfo->mapid >= NUM_MAPS)
+        if (bossInfo->mapid >= MAX_NUM_MAPS)
         {
             LogDebugFlag(LF_DB_TABLES, "Not loading boss information for map %u! (map id out of range)", bossInfo->mapid);
             delete bossInfo;
@@ -1163,7 +1163,7 @@ void ObjectMgr::LoadVendors()
             LOG_ERROR("Invalid format in vendors (%u/6) columns, loading anyway because we have enough data", result->GetFieldCount());
         }
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
         DBC::Structures::ItemExtendedCostEntry const* item_extended_cost = nullptr;
 #else
         DB2::Structures::ItemExtendedCostEntry const* item_extended_cost = nullptr;
@@ -1218,99 +1218,6 @@ void ObjectMgr::ReloadVendors()
 std::vector<CreatureItem>* ObjectMgr::GetVendorList(uint32 entry)
 {
     return mVendors[entry];
-}
-
-void ObjectMgr::LoadAIThreatToSpellId()
-{
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM ai_threattospellid");
-    if (result != nullptr)
-    {
-        do
-        {
-            Field* fields = result->Fetch();
-            SpellInfo* sp = sSpellCustomizations.GetSpellInfo(fields[0].GetUInt32());
-            if (sp != nullptr)
-            {
-                sp->custom_ThreatForSpell = fields[1].GetInt32();
-                sp->custom_ThreatForSpellCoef = fields[2].GetFloat();
-            }
-            else
-            {
-                LogDebugFlag(LF_DB_TABLES, "AIThreatSpell : Cannot apply to spell %u; spell is nonexistent.", fields[0].GetUInt32());
-            }
-
-        } while (result->NextRow());
-
-        delete result;
-    }
-}
-
-void ObjectMgr::LoadSpellEffectsOverride()
-{
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM spell_effects_override");
-    if (result)
-    {
-        do
-        {
-            Field* f = result->Fetch();
-            uint32 seo_SpellId = f[0].GetUInt32();
-            uint8 seo_EffectId = f[1].GetUInt8();
-            uint32 seo_Disable = f[2].GetUInt32();
-            uint32 seo_Effect = f[3].GetUInt32();
-            uint32 seo_BasePoints = f[4].GetUInt32();
-            uint32 seo_ApplyAuraName = f[5].GetUInt32();
-            //uint32 seo_SpellGroupRelation = f[6].GetUInt32();
-            uint32 seo_MiscValue = f[7].GetUInt32();
-            uint32 seo_TriggerSpell = f[8].GetUInt32();
-            uint32 seo_ImplicitTargetA = f[9].GetUInt32();
-            uint32 seo_ImplicitTargetB = f[10].GetUInt32();
-            uint32 seo_EffectCustomFlag = f[11].GetUInt32();
-
-            if (seo_SpellId)
-            {
-                SpellInfo* sp = sSpellCustomizations.GetSpellInfo(seo_SpellId);
-                if (sp != nullptr)
-                {
-                    if (seo_Disable)
-                        sp->setEffect(SPELL_EFFECT_NULL, seo_EffectId);
-
-                    if (seo_Effect)
-                        sp->setEffect(seo_Effect, seo_EffectId);
-
-                    if (seo_BasePoints)
-                        sp->setEffectBasePoints(seo_BasePoints, seo_EffectId);
-
-                    if (seo_ApplyAuraName)
-                        sp->setEffectApplyAuraName(seo_ApplyAuraName, seo_EffectId);
-
-                    //                    if (seo_SpellGroupRelation)
-                    //                        sp->EffectSpellGroupRelation[seo_EffectId] = seo_SpellGroupRelation;
-
-                    if (seo_MiscValue)
-                        sp->setEffectMiscValue(seo_MiscValue, seo_EffectId);
-
-                    if (seo_TriggerSpell)
-                        sp->setEffectTriggerSpell(seo_TriggerSpell, seo_EffectId);
-
-                    if (seo_ImplicitTargetA)
-                        sp->setEffectImplicitTargetA(seo_ImplicitTargetA, seo_EffectId);
-
-                    if (seo_ImplicitTargetB)
-                        sp->setEffectImplicitTargetB(seo_ImplicitTargetB, seo_EffectId);
-
-                    if (seo_EffectCustomFlag != 0)
-                        sp->EffectCustomFlag[seo_Effect] = seo_EffectCustomFlag;
-                }
-                else
-                {
-                    LogDebugFlag(LF_DB_TABLES, "Tried to load a spell effect override for a nonexistant spell: %u", seo_SpellId);
-                }
-            }
-
-        }
-        while (result->NextRow());
-        delete result;
-    }
 }
 
 Item* ObjectMgr::CreateItem(uint32 entry, Player* owner)
@@ -1412,7 +1319,7 @@ AchievementCriteriaEntryList const & ObjectMgr::GetAchievementCriteriaByType(Ach
 
 void ObjectMgr::LoadAchievementCriteriaList()
 {
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     for (uint32 rowId = 0; rowId < sAchievementCriteriaStore.GetNumRows(); ++rowId)
     {
         auto criteria = sAchievementCriteriaStore.LookupEntry(rowId);
@@ -1448,7 +1355,7 @@ void ObjectMgr::CorpseCollectorUnload()
     _corpseslock.Release();
 }
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
 //move to spellmgr or mysqldatastore todo danko
 void ObjectMgr::LoadSkillLineAbilityMap()
 {
@@ -1634,7 +1541,7 @@ void ObjectMgr::createGuardGossipOptionAndSubMenu(uint64_t senderGuid, Player* p
     }
 }
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
 void ObjectMgr::LoadTrainers()
 {
     QueryResult* result = WorldDatabase.Query("SELECT * FROM trainer_defs");
@@ -1750,7 +1657,7 @@ void ObjectMgr::LoadTrainers()
                     if (ts.learnedSpell[i])
                     {
                         /*
-                        SpellEntry const* learnedSpellInfo = sSpellCustomizations.GetSpellInfo(ts.learnedSpell[i]);
+                        SpellEntry const* learnedSpellInfo = sSpellMgr.getSpellInfo(ts.learnedSpell[i]);
                         if (learnedSpellInfo && learnedSpellInfo->)
                         tr->TrainerType = 2;
                         */
@@ -1859,14 +1766,14 @@ void ObjectMgr::LoadTrainers()
 
                 if (CastSpellID != 0)
                 {
-                    ts.pCastSpell = sSpellCustomizations.GetSpellInfo(CastSpellID);
+                    ts.pCastSpell = sSpellMgr.getSpellInfo(CastSpellID);
                     if (ts.pCastSpell)
                     {
                         for (uint8 k = 0; k < 3; ++k)
                         {
                             if (ts.pCastSpell->getEffect(k) == SPELL_EFFECT_LEARN_SPELL)
                             {
-                                ts.pCastRealSpell = sSpellCustomizations.GetSpellInfo(ts.pCastSpell->getEffectTriggerSpell(k));
+                                ts.pCastRealSpell = sSpellMgr.getSpellInfo(ts.pCastSpell->getEffectTriggerSpell(k));
                                 if (ts.pCastRealSpell == NULL)
                                 {
                                     LOG_ERROR("Trainer %u contains cast spell %u that is non-teaching", entry, CastSpellID);
@@ -1883,7 +1790,7 @@ void ObjectMgr::LoadTrainers()
 
                 if (LearnSpellID != 0)
                 {
-                    ts.pLearnSpell = sSpellCustomizations.GetSpellInfo(LearnSpellID);
+                    ts.pLearnSpell = sSpellMgr.getSpellInfo(LearnSpellID);
                 }
 
                 if (ts.pCastSpell == NULL && ts.pLearnSpell == NULL)
@@ -2248,7 +2155,7 @@ uint32 ObjectMgr::GetPetSpellCooldown(uint32 SpellId)
     if (itr != mPetSpellCooldowns.end())
         return itr->second;
 
-    SpellInfo* sp = sSpellCustomizations.GetSpellInfo(SpellId);
+    SpellInfo const* sp = sSpellMgr.getSpellInfo(SpellId);
     if (sp->getRecoveryTime() > sp->getCategoryRecoveryTime())
         return sp->getRecoveryTime();
     else
@@ -2416,7 +2323,7 @@ Pet* ObjectMgr::CreatePet(uint32 entry)
 {
     uint32 guid;
     guid = ++m_hiPetGuid;
-    return new Pet(Arcemu::Util::MAKE_PET_GUID(entry, guid));
+    return new Pet(WoWGuid::createPetGuid(entry, guid));
 }
 
 Player* ObjectMgr::CreatePlayer(uint8 _class)
@@ -3635,128 +3542,125 @@ void ObjectMgr::EventScriptsUpdate(Player* plr, uint32 next_event)
 void ObjectMgr::LoadCreatureAIAgents()
 {
     // Load AI Agents
-    if (Config.MainConfig.getBoolDefault("Server", "LoadAIAgents", true))
+    QueryResult* result = WorldDatabase.Query("SELECT * FROM ai_agents");
+    if (result != nullptr)
     {
-        QueryResult* result = WorldDatabase.Query("SELECT * FROM ai_agents");
-        if (result != nullptr)
+        do
         {
-            do
+            Field* fields = result->Fetch();
+            uint32 entry = fields[0].GetUInt32();
+            CreatureProperties const* cn = sMySQLStore.getCreatureProperties(entry);
+            SpellInfo const* spe = sSpellMgr.getSpellInfo(fields[6].GetUInt32());
+
+            if (spe == nullptr)
             {
-                Field* fields = result->Fetch();
-                uint32 entry = fields[0].GetUInt32();
-                CreatureProperties const* cn = sMySQLStore.getCreatureProperties(entry);
-                SpellInfo* spe = sSpellCustomizations.GetSpellInfo(fields[6].GetUInt32());
+                LogDebugFlag(LF_DB_TABLES, "AIAgent : For %u has nonexistent spell %u.", fields[0].GetUInt32(), fields[6].GetUInt32());
+                continue;
+            }
 
-                if (spe == nullptr)
+            if (!cn)
+                continue;
+
+            AI_Spell* sp = new AI_Spell;
+            sp->entryId = fields[0].GetUInt32();
+            sp->instance_mode = fields[1].GetUInt8();
+            sp->agent = fields[2].GetUInt16();
+            sp->procChance = fields[4].GetUInt32();
+            sp->procCount = fields[5].GetUInt32();
+            sp->spell = spe;
+            sp->spellType = static_cast<uint8>(fields[7].GetUInt32());
+
+            int32  targettype = fields[8].GetInt32();
+            if (targettype == -1)
+                sp->spelltargetType = static_cast<uint8>(spe->aiTargetType());
+            else
+                sp->spelltargetType = static_cast<uint8>(targettype);
+
+            sp->cooldown = fields[9].GetInt32();
+            sp->floatMisc1 = fields[10].GetFloat();
+            sp->autocast_type = (uint32)-1;
+            sp->cooldowntime = Util::getMSTime();
+            sp->procCounter = 0;
+            sp->Misc2 = fields[11].GetUInt32();
+            if (sp->agent == AGENT_SPELL)
+            {
+                if (!sp->spell)
                 {
-                    LogDebugFlag(LF_DB_TABLES, "AIAgent : For %u has nonexistent spell %u.", fields[0].GetUInt32(), fields[6].GetUInt32());
+                    LogDebugFlag(LF_DB_TABLES, "SpellId %u in ai_agent for %u is invalid.", (unsigned int)fields[6].GetUInt32(), (unsigned int)sp->entryId);
+                    delete sp;
+                    sp = nullptr;
                     continue;
                 }
 
-                if (!cn)
+                if (sp->spell->getEffect(0) == SPELL_EFFECT_LEARN_SPELL || sp->spell->getEffect(1) == SPELL_EFFECT_LEARN_SPELL ||
+                    sp->spell->getEffect(2) == SPELL_EFFECT_LEARN_SPELL)
+                {
+                    LogDebugFlag(LF_DB_TABLES, "Teaching spell %u in ai_agent for %u", (unsigned int)fields[6].GetUInt32(), (unsigned int)sp->entryId);
+                    delete sp;
+                    sp = nullptr;
                     continue;
+                }
 
-                AI_Spell* sp = new AI_Spell;
-                sp->entryId = fields[0].GetUInt32();
-                sp->instance_mode = fields[1].GetUInt8();
-                sp->agent = fields[2].GetUInt16();
-                sp->procChance = fields[4].GetUInt32();
-                sp->procCount = fields[5].GetUInt32();
-                sp->spell = spe;
-                sp->spellType = static_cast<uint8>(fields[7].GetUInt32());
+                sp->minrange = GetMinRange(sSpellRangeStore.LookupEntry(sp->spell->getRangeIndex()));
+                sp->maxrange = GetMaxRange(sSpellRangeStore.LookupEntry(sp->spell->getRangeIndex()));
 
-                int32  targettype = fields[8].GetInt32();
-                if (targettype == -1)
-                    sp->spelltargetType = static_cast<uint8>(spe->aiTargetType());
+                //omg the poor darling has no clue about making ai_agents
+                if (sp->cooldown == (uint32)-1)
+                {
+                    //now this will not be exact cooldown but maybe a bigger one to not make him spam spells to often
+                    int cooldown;
+                    auto spell_duration = sSpellDurationStore.LookupEntry(sp->spell->getDurationIndex());
+                    int Dur = 0;
+                    int Casttime = 0; //most of the time 0
+                    int RecoveryTime = sp->spell->getRecoveryTime();
+                    if (sp->spell->getDurationIndex())
+                        Dur = ::GetDuration(spell_duration);
+                    Casttime = GetCastTime(sSpellCastTimesStore.LookupEntry(sp->spell->getCastingTimeIndex()));
+                    cooldown = Dur + Casttime + RecoveryTime;
+                    if (cooldown < 0)
+                        sp->cooldown = 2000; //huge value that should not loop while adding some timestamp to it
+                    else sp->cooldown = cooldown;
+                }
+            }
+
+            if (sp->agent == AGENT_RANGED)
+            {
+                const_cast<CreatureProperties*>(cn)->m_canRangedAttack = true;
+                delete sp;
+                sp = nullptr;
+            }
+            else if (sp->agent == AGENT_FLEE)
+            {
+                const_cast<CreatureProperties*>(cn)->m_canFlee = true;
+                if (sp->floatMisc1)
+                    const_cast<CreatureProperties*>(cn)->m_canFlee = (sp->floatMisc1 > 0.0f ? true : false);
                 else
-                    sp->spelltargetType = static_cast<uint8>(targettype);
+                    const_cast<CreatureProperties*>(cn)->m_fleeHealth = 0.2f;
 
-                sp->cooldown = fields[9].GetInt32();
-                sp->floatMisc1 = fields[10].GetFloat();
-                sp->autocast_type = (uint32)-1;
-                sp->cooldowntime = Util::getMSTime();
-                sp->procCounter = 0;
-                sp->Misc2 = fields[11].GetUInt32();
-                if (sp->agent == AGENT_SPELL)
-                {
-                    if (!sp->spell)
-                    {
-                        LogDebugFlag(LF_DB_TABLES, "SpellId %u in ai_agent for %u is invalid.", (unsigned int)fields[6].GetUInt32(), (unsigned int)sp->entryId);
-                        delete sp;
-                        sp = nullptr;
-                        continue;
-                    }
-
-                    if (sp->spell->getEffect(0) == SPELL_EFFECT_LEARN_SPELL || sp->spell->getEffect(1) == SPELL_EFFECT_LEARN_SPELL ||
-                        sp->spell->getEffect(2) == SPELL_EFFECT_LEARN_SPELL)
-                    {
-                        LogDebugFlag(LF_DB_TABLES, "Teaching spell %u in ai_agent for %u", (unsigned int)fields[6].GetUInt32(), (unsigned int)sp->entryId);
-                        delete sp;
-                        sp = nullptr;
-                        continue;
-                    }
-
-                    sp->minrange = GetMinRange(sSpellRangeStore.LookupEntry(sp->spell->getRangeIndex()));
-                    sp->maxrange = GetMaxRange(sSpellRangeStore.LookupEntry(sp->spell->getRangeIndex()));
-
-                    //omg the poor darling has no clue about making ai_agents
-                    if (sp->cooldown == (uint32)-1)
-                    {
-                        //now this will not be exact cooldown but maybe a bigger one to not make him spam spells to often
-                        int cooldown;
-                        auto spell_duration = sSpellDurationStore.LookupEntry(sp->spell->getDurationIndex());
-                        int Dur = 0;
-                        int Casttime = 0; //most of the time 0
-                        int RecoveryTime = sp->spell->getRecoveryTime();
-                        if (sp->spell->getDurationIndex())
-                            Dur = ::GetDuration(spell_duration);
-                        Casttime = GetCastTime(sSpellCastTimesStore.LookupEntry(sp->spell->getCastingTimeIndex()));
-                        cooldown = Dur + Casttime + RecoveryTime;
-                        if (cooldown < 0)
-                            sp->cooldown = 2000; //huge value that should not loop while adding some timestamp to it
-                        else sp->cooldown = cooldown;
-                    }
-                }
-
-                if (sp->agent == AGENT_RANGED)
-                {
-                    const_cast<CreatureProperties*>(cn)->m_canRangedAttack = true;
-                    delete sp;
-                    sp = nullptr;
-                }
-                else if (sp->agent == AGENT_FLEE)
-                {
-                    const_cast<CreatureProperties*>(cn)->m_canFlee = true;
-                    if (sp->floatMisc1)
-                        const_cast<CreatureProperties*>(cn)->m_canFlee = (sp->floatMisc1 > 0.0f ? true : false);
-                    else
-                        const_cast<CreatureProperties*>(cn)->m_fleeHealth = 0.2f;
-
-                    if (sp->Misc2)
-                        const_cast<CreatureProperties*>(cn)->m_fleeDuration = sp->Misc2;
-                    else
-                        const_cast<CreatureProperties*>(cn)->m_fleeDuration = 10000;
-
-                    delete sp;
-                    sp = nullptr;
-                }
-                else if (sp->agent == AGENT_CALLFORHELP)
-                {
-                    const_cast<CreatureProperties*>(cn)->m_canCallForHelp = true;
-                    if (sp->floatMisc1)
-                        const_cast<CreatureProperties*>(cn)->m_callForHelpHealth = 0.2f;
-
-                    delete sp;
-                    sp = nullptr;
-                }
+                if (sp->Misc2)
+                    const_cast<CreatureProperties*>(cn)->m_fleeDuration = sp->Misc2;
                 else
-                {
-                    const_cast<CreatureProperties*>(cn)->spells.push_back(sp);
-                }
+                    const_cast<CreatureProperties*>(cn)->m_fleeDuration = 10000;
 
-            } while (result->NextRow());
+                delete sp;
+                sp = nullptr;
+            }
+            else if (sp->agent == AGENT_CALLFORHELP)
+            {
+                const_cast<CreatureProperties*>(cn)->m_canCallForHelp = true;
+                if (sp->floatMisc1)
+                    const_cast<CreatureProperties*>(cn)->m_callForHelpHealth = 0.2f;
 
-            delete result;
-        }
+                delete sp;
+                sp = nullptr;
+            }
+            else
+            {
+                const_cast<CreatureProperties*>(cn)->spells.push_back(sp);
+            }
+
+        } while (result->NextRow());
+
+        delete result;
     }
 }

@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -26,7 +25,6 @@
 #include "Server/MainServerDefines.h"
 #include "Map/MapMgr.h"
 #include "Spell/SpellMgr.h"
-#include <Spell/Customization/SpellCustomizations.hpp>
 
 static float EOTSBuffCoordinates[4][4] =
 {
@@ -252,7 +250,7 @@ bool EyeOfTheStorm::HookHandleRepop(Player* plr)
     float distcur;
     LocationVector dest;
 
-    dest.ChangeCoords(EOTSStartLocations[t][0], EOTSStartLocations[t][1], EOTSStartLocations[t][2], 0);
+    dest.ChangeCoords({ EOTSStartLocations[t][0], EOTSStartLocations[t][1], EOTSStartLocations[t][2] });
 
     for (uint8 i = 0; i < EOTS_TOWER_COUNT; ++i)
     {
@@ -260,11 +258,11 @@ bool EyeOfTheStorm::HookHandleRepop(Player* plr)
             (((m_CPBanner[i]->getEntry() == EOTS_BANNER_ALLIANCE) && (t == TEAM_ALLIANCE)) ||
                 ((m_CPBanner[i]->getEntry() == EOTS_BANNER_HORDE) && (t == TEAM_HORDE))))
         {
-            distcur = plr->GetPositionNC().Distance2DSq(EOTSGraveyardLocations[i][0], EOTSGraveyardLocations[i][1]);
+            distcur = plr->GetPositionNC().Distance2DSq({ EOTSGraveyardLocations[i][0], EOTSGraveyardLocations[i][1] });
             if (distcur < dist)
             {
                 dist = distcur;
-                dest.ChangeCoords(EOTSGraveyardLocations[i][0], EOTSGraveyardLocations[i][1], EOTSGraveyardLocations[i][2], 0);
+                dest.ChangeCoords({ EOTSGraveyardLocations[i][0], EOTSGraveyardLocations[i][1], EOTSGraveyardLocations[i][2] });
             }
         }
     }
@@ -327,10 +325,10 @@ void EyeOfTheStorm::HookOnAreaTrigger(Player* plr, uint32 id)
         if (EOTSm_buffs[x] && EOTSm_buffs[x]->IsInWorld())
         {
             spellid = EOTSm_buffs[x]->GetGameObjectProperties()->raw.parameter_3;
-            SpellInfo* sp = sSpellCustomizations.GetSpellInfo(spellid);
+            SpellInfo const* sp = sSpellMgr.getSpellInfo(spellid);
             if (sp)
             {
-                Spell* pSpell = sSpellFactoryMgr.NewSpell(plr, sp, true, NULL);
+                Spell* pSpell = sSpellMgr.newSpell(plr, sp, true, NULL);
                 SpellCastTargets targets(plr->getGuid());
                 pSpell->prepare(&targets);
             }
@@ -349,7 +347,7 @@ void EyeOfTheStorm::HookOnAreaTrigger(Player* plr, uint32 id)
         // Remove player from battleground.
         this->RemovePlayer(plr, false);
         // Kick    player from server.
-        plr->Kick(MSTIME_6SECONDS);
+        plr->Kick(TimeVarsMs::Second * 6);
         return;
     }
 #endif
@@ -420,7 +418,7 @@ void EyeOfTheStorm::HookFlagDrop(Player* plr, GameObject* /*obj*/)
     }
 
     m_dropFlag->RemoveFromWorld(false);
-    plr->CastSpell(plr->getGuid(), EOTS_NETHERWING_FLAG_SPELL, true);
+    plr->castSpell(plr->getGuid(), EOTS_NETHERWING_FLAG_SPELL, true);
 
     SetWorldState(EOTS_NETHERWING_FLAG_READY, 0);
     PlaySoundToAll(plr->isTeamHorde() ? SOUND_HORDE_CAPTURE : SOUND_ALLIANCE_CAPTURE);
@@ -441,7 +439,7 @@ bool EyeOfTheStorm::HookSlowLockOpen(GameObject* /*pGo*/, Player* pPlayer, Spell
         return false;
 
     m_standFlag->RemoveFromWorld(false);
-    pPlayer->CastSpell(pPlayer->getGuid(), EOTS_NETHERWING_FLAG_SPELL, true);
+    pPlayer->castSpell(pPlayer->getGuid(), EOTS_NETHERWING_FLAG_SPELL, true);
 
     SetWorldState(EOTS_NETHERWING_FLAG_READY, 0);
     PlaySoundToAll(pPlayer->isTeamHorde() ? SOUND_HORDE_CAPTURE : SOUND_ALLIANCE_CAPTURE);
@@ -462,7 +460,7 @@ void EyeOfTheStorm::OnAddPlayer(Player* plr)
 {
     if (!m_started && plr->IsInWorld())
     {
-        plr->CastSpell(plr, BG_PREPARATION, true);
+        plr->castSpell(plr, BG_PREPARATION, true);
         plr->m_bgScore.MiscData[BG_SCORE_EOTS_FLAGS_CAPTURED] = 0;
     }
     UpdatePvPData();
@@ -508,7 +506,7 @@ void EyeOfTheStorm::DropFlag2(Player* plr, uint32 id)
             break;
     }
 
-    plr->CastSpell(plr, EOTS_RECENTLY_DROPPED_FLAG, true);
+    plr->castSpell(plr, EOTS_RECENTLY_DROPPED_FLAG, true);
     PlaySoundToAll(plr->isTeamHorde() ? SOUND_HORDE_SCORES : SOUND_ALLIANCE_SCORES);
     m_dropFlag->setFlags(GO_FLAG_NONSELECTABLE);
     m_dropFlag->PushToWorld(m_mapMgr);
@@ -522,7 +520,7 @@ void EyeOfTheStorm::HookOnFlagDrop(Player* plr)
         return;
 
     plr->RemoveAura(EOTS_NETHERWING_FLAG_SPELL);
-    plr->CastSpell(plr, EOTS_RECENTLY_DROPPED_FLAG, true);
+    plr->castSpell(plr, EOTS_RECENTLY_DROPPED_FLAG, true);
 
     m_dropFlag->SetPosition(plr->GetPosition());
     m_dropFlag->PushToWorld(m_mapMgr);

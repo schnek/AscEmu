@@ -1,7 +1,8 @@
 /*
- * ArcScripts for ArcEmu MMORPG Server
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2008 WEmu Team
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,7 +25,6 @@
 #include "Storage/MySQLDataStore.hpp"
 #include <Management/QuestLogEntry.hpp>
 #include "Map/MapScriptInterface.h"
-#include <Spell/Customization/SpellCustomizations.hpp>
 #include "Spell/SpellAuras.h"
 #include <Units/Creatures/Pet.h>
 
@@ -82,7 +82,7 @@ bool ElementalPowerExtractor(uint32 /*i*/, Spell* pSpell)
     Creature* pTarget = static_cast<Creature*>(pUnit);
     if ((pTarget->getEntry() == 18881 || pTarget->getEntry() == 18865) && pTarget->isAlive())
     {
-        pPlayer->GetItemInterface()->AddItemById(28548, 1, 0);
+        pPlayer->getItemInterface()->AddItemById(28548, 1, 0);
     }
 
     return true;
@@ -180,7 +180,7 @@ bool KarangsBanner(uint8_t /*effectIndex*/, Spell* pSpell)
     Player* pPlayer = pSpell->p_caster;
 
     // Banner Aura
-    pPlayer->CastSpell(pPlayer, sSpellCustomizations.GetSpellInfo(20746), true);
+    pPlayer->castSpell(pPlayer, sSpellMgr.getSpellInfo(20746), true);
 
     pSpell->p_caster->GetMapMgr()->GetInterface()->SpawnCreature(12921, 2231.710205f, -1543.603027f, 90.694946f, 4.700579f, true, false, 0, 0);
     pSpell->p_caster->GetMapMgr()->GetInterface()->SpawnCreature(12921, 2232.534912f, -1556.983276f, 89.744415f, 1.527570f, true, false, 0, 0);
@@ -372,9 +372,9 @@ bool CookingPot(uint8_t /*effectIndex*/, Spell* pSpell)
     if (qle == nullptr)
         return true;
 
-    pPlayer->GetItemInterface()->RemoveItemAmt(31673, 1);
-    pPlayer->GetItemInterface()->RemoveItemAmt(31672, 2);
-    pPlayer->GetItemInterface()->AddItemById(33848, 1, 0);
+    pPlayer->getItemInterface()->RemoveItemAmt(31673, 1);
+    pPlayer->getItemInterface()->RemoveItemAmt(31672, 2);
+    pPlayer->getItemInterface()->AddItemById(33848, 1, 0);
 
     return true;
 }
@@ -996,8 +996,8 @@ bool EmblazonRuneblade(uint8_t /*effectIndex*/, Spell* pSpell)
         return true;
     }
 
-    pPlayer->GetItemInterface()->AddItemById(38631, 1, 0);
-    pPlayer->GetItemInterface()->RemoveItemAmt(38607, 1);
+    pPlayer->getItemInterface()->AddItemById(38631, 1, 0);
+    pPlayer->getItemInterface()->RemoveItemAmt(38607, 1);
     return true;
 }
 
@@ -1103,7 +1103,7 @@ bool GoblinWeatherMachine(uint8_t /*effectIndex*/, Spell* pSpell)
 
     uint32 Weather = 46736 + Util::getRandomUInt(4);
 
-    pSpell->p_caster->CastSpell(pSpell->p_caster, sSpellCustomizations.GetSpellInfo(Weather), true);
+    pSpell->p_caster->castSpell(pSpell->p_caster, sSpellMgr.getSpellInfo(Weather), true);
     return true;
 }
 
@@ -1360,7 +1360,7 @@ bool HunterTamingQuest(uint8_t /*effectIndex*/, Aura* a, bool apply)
     {
         uint32 TamingSpellid = a->GetSpellInfo()->getEffectMiscValue(1);
 
-        SpellInfo* triggerspell = sSpellCustomizations.GetSpellInfo(TamingSpellid);
+        SpellInfo const* triggerspell = sSpellMgr.getSpellInfo(TamingSpellid);
         if (triggerspell == NULL)
         {
             DLLLogDetail("An Aura with spellid %u is calling HunterTamingQuest() with an invalid TamingSpellid: %u", a->GetSpellId(), TamingSpellid);
@@ -1489,7 +1489,7 @@ bool ToLegionHold(uint8_t /*effectIndex*/, Aura* pAura, bool apply)
         Creature* pJovaan = pPlayer->GetMapMgr()->CreateAndSpawnCreature(21633, -3310.743896f, 2951.929199f, 171.132538f, 5.054039f);    // Spawn Jovaan
         if (pJovaan != nullptr)
         {
-            pJovaan->addUnitFlags(UNIT_FLAG_NOT_ATTACKABLE_2);
+            pJovaan->addUnitFlags(UNIT_FLAG_NON_ATTACKABLE);
             if (pJovaan->GetAIInterface() != nullptr)
             {
                 pJovaan->GetAIInterface()->SetAllowedToEnterCombat(false);
@@ -1790,7 +1790,7 @@ bool Triage(uint8_t /*effectIndex*/, Spell* pSpell)
     if (!pSpell->p_caster || pSpell->GetUnitTarget() == nullptr)
         return true;
 
-    pSpell->p_caster->CastSpell(pSpell->GetUnitTarget(), sSpellCustomizations.GetSpellInfo(746), true);
+    pSpell->p_caster->castSpell(pSpell->GetUnitTarget(), sSpellMgr.getSpellInfo(746), true);
 
     pSpell->p_caster->AddQuestKill(6624, 0, 0);
 
@@ -2625,7 +2625,7 @@ bool ManaRemnants(uint8_t /*effectIndex*/, Spell* pSpell)
         QuestLogEntry* qle = pPlayer->GetQuestLogForEntry(quests[i]);
         if (qle != nullptr && qle->GetMobCount(0) < qle->GetQuest()->required_mob_or_go_count[0])
         {
-            pPlayer->CastSpell(Ward, sSpellCustomizations.GetSpellInfo(44981), false);
+            pPlayer->castSpell(Ward, sSpellMgr.getSpellInfo(44981), false);
             pPlayer->setChannelObjectGuid(Ward->getGuid());
             pPlayer->setChannelSpellId(44981);
 
@@ -2842,7 +2842,7 @@ bool Carcass(uint8_t /*effectIndex*/, Spell* pSpell) // Becoming a Shadoweave Ta
 
     if (pQuest != nullptr && pQuest->GetMobCount(0) < pQuest->GetQuest()->required_mob_or_go_count[0])
     {
-        NetherDrake->CastSpell(NetherDrake, sSpellCustomizations.GetSpellInfo(38502), true);
+        NetherDrake->castSpell(NetherDrake, sSpellMgr.getSpellInfo(38502), true);
         NetherDrake->GetAIInterface()->setSplineFlying();
         NetherDrake->GetAIInterface()->MoveTo(pos.x, pos.y + 2, pos.z);
 
@@ -2873,7 +2873,7 @@ bool ForceofNeltharakuSpell(uint8_t /*effectIndex*/, Spell* pSpell) // Becoming 
     {
         if (pQuest->GetMobCount(0) < pQuest->GetQuest()->required_mob_or_go_count[0])
         {
-            pTarget->CastSpell(pPlayer, sSpellCustomizations.GetSpellInfo(38775), true);
+            pTarget->castSpell(pPlayer, sSpellMgr.getSpellInfo(38775), true);
 
             pPlayer->AddQuestKill(10854, 0, 0);
             pTarget->setMoveRoot(false);
@@ -3007,22 +3007,22 @@ bool FindingTheSource(uint8_t /*effectIndex*/, Spell* pSpell)
     if (place1 != nullptr)
     {
         if (pPlayer->CalcDistance(pPlayer, place1) < 11)
-            pPlayer->CastSpell(pPlayer, 14797, true);
+            pPlayer->castSpell(pPlayer, 14797, true);
     }
     if (place2 != nullptr)
     {
         if (pPlayer->CalcDistance(pPlayer, place2) < 11)
-            pPlayer->CastSpell(pPlayer, 14797, true);
+            pPlayer->castSpell(pPlayer, 14797, true);
     }
     if (place3 != nullptr)
     {
         if (pPlayer->CalcDistance(pPlayer, place3) < 11)
-            pPlayer->CastSpell(pPlayer, 14797, true);
+            pPlayer->castSpell(pPlayer, 14797, true);
     }
     if (place4 != nullptr)
     {
         if (pPlayer->CalcDistance(pPlayer, place4) < 11)
-            pPlayer->CastSpell(pPlayer, 14797, true);
+            pPlayer->castSpell(pPlayer, 14797, true);
     }
     if (place5 != nullptr)
     {
@@ -3127,8 +3127,8 @@ bool CastFishingNet(uint8_t /*effectIndex*/, Spell* pSpell)
         }
     }
 
-    if (pPlayer->GetItemInterface()->GetItemCount(pQuest->GetQuest()->required_item[0], true) < pQuest->GetQuest()->required_itemcount[0])
-        pPlayer->GetItemInterface()->AddItemById(23614, 1, 0); //Red Snapper.
+    if (pPlayer->getItemInterface()->GetItemCount(pQuest->GetQuest()->required_item[0], true) < pQuest->GetQuest()->required_itemcount[0])
+        pPlayer->getItemInterface()->AddItemById(23614, 1, 0); //Red Snapper.
 
     return true;
 }

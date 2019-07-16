@@ -1,7 +1,7 @@
 /*
- Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
- This file is released under the MIT license. See README-MIT for more information.
- */
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
 #include "Setup.h"
 
@@ -31,7 +31,7 @@ public:
 
         if (_gameobject->CalcDistance(_gameobject, plr) <= 1.050000f && !plr->HasAura(26273))       /// aura given by the PX-238 Winter Wondervolt
         {
-            plr->CastSpell(plr, 26275, true);   /// Spell that change into random gnome dispalyid (respect male & female)
+            plr->castSpell(plr, 26275, true);   /// Spell that change into random gnome dispalyid (respect male & female)
         }
     }
 };
@@ -52,7 +52,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
                 if (!proto)
                     return;
 
-                slotresult = pPlayer->GetItemInterface()->FindFreeInventorySlot(proto);
+                slotresult = pPlayer->getItemInterface()->FindFreeInventorySlot(proto);
                 Winteritem = 21212;
             }
             break;
@@ -62,7 +62,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
                 if (!proto)
                     return;
 
-                slotresult = pPlayer->GetItemInterface()->FindFreeInventorySlot(proto);
+                slotresult = pPlayer->getItemInterface()->FindFreeInventorySlot(proto);
                 Winteritem = 21519;
             }
             break;
@@ -72,7 +72,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
                 if (!proto)
                     return;
 
-                slotresult = pPlayer->GetItemInterface()->FindFreeInventorySlot(proto);
+                slotresult = pPlayer->getItemInterface()->FindFreeInventorySlot(proto);
                 Winteritem = 34191;
             }
             break;
@@ -81,7 +81,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
 
         if (!slotresult.Result)
         {
-            pPlayer->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+            pPlayer->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
             return;
         }
         else
@@ -91,7 +91,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
                 return;
 
             item->setStackCount(5);
-            auto item_add_result = pPlayer->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot);
+            auto item_add_result = pPlayer->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot);
             if (!item_add_result)
             {
                 DLLLogDetail("Error while adding item %u to player %s", item->getEntry(), pPlayer->getName().c_str());
@@ -99,7 +99,7 @@ void WinterReveler(Player* pPlayer, Unit* pUnit)
             }
             else
             {
-                pUnit->CastSpell(pPlayer, 26218, true);
+                pUnit->castSpell(pPlayer, 26218, true);
             }
         }
     }

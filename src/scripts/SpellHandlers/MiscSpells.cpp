@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -28,7 +27,6 @@
 #include "Map/MapScriptInterface.h"
 #include "Spell/SpellMgr.h"
 #include "Spell/SpellAuras.h"
-#include <Spell/Customization/SpellCustomizations.hpp>
 
 enum
 {
@@ -45,14 +43,14 @@ bool FrostWarding(uint8_t /*effectIndex*/, Spell* s)
     if (!unitTarget)
         return false;
 
-    uint32 spellId = s->GetSpellInfo()->getId();
+    uint32 spellId = s->getSpellInfo()->getId();
 
     unitTarget->RemoveReflect(spellId, true);
 
     ReflectSpellSchool* rss = new ReflectSpellSchool;
 
-    rss->chance = s->GetSpellInfo()->getProcChance();
-    rss->spellId = s->GetSpellInfo()->getId();
+    rss->chance = s->getSpellInfo()->getProcChance();
+    rss->spellId = s->getSpellInfo()->getId();
     rss->school = SCHOOL_FROST;
     rss->infront = false;
     rss->charges = 0;
@@ -69,12 +67,12 @@ bool MoltenShields(uint8_t /*effectIndex*/, Spell* s)
     if (!unitTarget)
         return false;
 
-    unitTarget->RemoveReflect(s->GetSpellInfo()->getId(), true);
+    unitTarget->RemoveReflect(s->getSpellInfo()->getId(), true);
 
     ReflectSpellSchool* rss = new ReflectSpellSchool;
 
-    rss->chance = s->GetSpellInfo()->getEffectBasePoints(0);
-    rss->spellId = s->GetSpellInfo()->getId();
+    rss->chance = s->getSpellInfo()->getEffectBasePoints(0);
+    rss->spellId = s->getSpellInfo()->getId();
     rss->school = SCHOOL_FIRE;
     rss->infront = false;
     rss->charges = 0;
@@ -125,25 +123,25 @@ bool Cannibalize(uint8_t effectIndex, Spell* s)
 
 bool ArcaniteDragonLing(uint8_t /*effectIndex*/, Spell* s)
 {
-    s->u_caster->CastSpell(s->u_caster, 19804, true);
+    s->u_caster->castSpell(s->u_caster, 19804, true);
     return true;
 }
 
 bool MithrilMechanicalDragonLing(uint8_t /*effectIndex*/, Spell* s)
 {
-    s->u_caster->CastSpell(s->u_caster, 12749, true);
+    s->u_caster->castSpell(s->u_caster, 12749, true);
     return true;
 }
 
 bool MechanicalDragonLing(uint8_t /*effectIndex*/, Spell* s)
 {
-    s->u_caster->CastSpell(s->u_caster, 4073, true);
+    s->u_caster->castSpell(s->u_caster, 4073, true);
     return true;
 }
 
 bool GnomishBattleChicken(uint8_t /*effectIndex*/, Spell* s)
 {
-    s->u_caster->CastSpell(s->u_caster, 13166, true);
+    s->u_caster->castSpell(s->u_caster, 13166, true);
     return true;
 }
 
@@ -156,8 +154,8 @@ bool GiftOfLife(uint8_t /*effectIndex*/, Spell* s)
 
     SpellCastTargets tgt;
     tgt.m_unitTarget = playerTarget->getGuid();
-    SpellInfo* inf = sSpellCustomizations.GetSpellInfo(23782);
-    Spell* spe = sSpellFactoryMgr.NewSpell(s->u_caster, inf, true, NULL);
+    SpellInfo const* inf = sSpellMgr.getSpellInfo(23782);
+    Spell* spe = sSpellMgr.newSpell(s->u_caster, inf, true, NULL);
     spe->prepare(&tgt);
 
     return true;
@@ -170,7 +168,7 @@ bool Give5kGold(uint8_t /*effectIndex*/, Spell* s)
         if (worldConfig.player.isGoldCapEnabled && (s->GetPlayerTarget()->getCoinage() + 50000000) > worldConfig.player.limitGoldAmount)
         {
             s->GetPlayerTarget()->setCoinage(worldConfig.player.limitGoldAmount);
-            s->GetPlayerTarget()->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_TOO_MUCH_GOLD);
+            s->GetPlayerTarget()->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_TOO_MUCH_GOLD);
         }
         else
         {
@@ -196,7 +194,7 @@ bool NorthRendInscriptionResearch(uint8_t /*effectIndex*/, Spell* s)
     if (Rand(chance))
     {
         // Type 0 = Major, 1 = Minor
-        uint32 glyphType = (s->GetSpellInfo()->getId() == 61177) ? 0 : 1;
+        uint32 glyphType = (s->getSpellInfo()->getId() == 61177) ? 0 : 1;
 
         std::vector<uint32> discoverableGlyphs;
 
@@ -209,13 +207,13 @@ bool NorthRendInscriptionResearch(uint8_t /*effectIndex*/, Spell* s)
 
             if (skill_line_ability->skilline == SKILL_INSCRIPTION && skill_line_ability->next == 0)
             {
-                SpellInfo* se1 = sSpellCustomizations.GetSpellInfo(skill_line_ability->spell);
+                SpellInfo const* se1 = sSpellMgr.getSpellInfo(skill_line_ability->spell);
                 if (se1 && se1->getEffect(0) == SPELL_EFFECT_CREATE_ITEM)
                 {
                     ItemProperties const* itm = sMySQLStore.getItemProperties(se1->getEffectItemType(0));
                     if (itm && (itm->Spells[0].Id != 0))
                     {
-                        SpellInfo* se2 = sSpellCustomizations.GetSpellInfo(itm->Spells[0].Id);
+                        SpellInfo const* se2 = sSpellMgr.getSpellInfo(itm->Spells[0].Id);
                         if (se2 && se2->getEffect(0) == SPELL_EFFECT_USE_GLYPH)
                         {
 #if VERSION_STRING > TBC
@@ -262,13 +260,13 @@ bool DeadlyThrowInterrupt(uint8_t /*effectIndex*/, Aura* a, bool apply)
 
         if (m_target->getCurrentSpell(CURRENT_CHANNELED_SPELL) != nullptr && m_target->getCurrentSpell(CURRENT_CHANNELED_SPELL)->getCastTimeLeft() > 0)
         {
-            school = m_target->getCurrentSpell(CURRENT_CHANNELED_SPELL)->GetSpellInfo()->getSchool();
+            school = m_target->getCurrentSpell(CURRENT_CHANNELED_SPELL)->getSpellInfo()->getSchool();
             m_target->interruptSpellWithSpellType(CURRENT_CHANNELED_SPELL);
         }
         // No need to check cast time for generic spells, checked already in Object::isCastingSpell()
         else if (m_target->getCurrentSpell(CURRENT_GENERIC_SPELL) != nullptr)
         {
-            school = m_target->getCurrentSpell(CURRENT_GENERIC_SPELL)->GetSpellInfo()->getSchool();
+            school = m_target->getCurrentSpell(CURRENT_GENERIC_SPELL)->getSpellInfo()->getSchool();
             m_target->interruptSpellWithSpellType(CURRENT_GENERIC_SPELL);
         }
 
@@ -387,7 +385,7 @@ bool ChaosBlast(uint8_t /*effectIndex*/, Spell* pSpell)
     if (pSpell->u_caster == NULL)
         return true;
 
-    pSpell->u_caster->CastSpell(pSpell->GetUnitTarget(), 37675, true);
+    pSpell->u_caster->castSpell(pSpell->GetUnitTarget(), 37675, true);
     return true;
 }
 
@@ -401,12 +399,12 @@ bool Dummy_Solarian_WrathOfTheAstromancer(uint8_t /*effectIndex*/, Spell* pSpell
     if (!Target)
         return true;
 
-    SpellInfo* SpellInfo = sSpellCustomizations.GetSpellInfo(42787);
+    SpellInfo const* SpellInfo = sSpellMgr.getSpellInfo(42787);
     if (!SpellInfo)
         return true;
 
     //Explode bomb after 6sec
-    sEventMgr.AddEvent(Target, &Unit::EventCastSpell, Target, SpellInfo, EVENT_UNK, 6000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+    sEventMgr.AddEvent(Target, &Unit::eventCastSpell, Target, SpellInfo, EVENT_UNK, 6000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
     return true;
 }
 
@@ -465,7 +463,7 @@ bool ListeningToMusicParent(uint8_t /*effectIndex*/, Spell* s)
     if (s->p_caster == NULL)
         return true;
 
-    s->p_caster->CastSpell(s->p_caster, 50493, true);
+    s->p_caster->castSpell(s->p_caster, 50493, true);
 
     return true;
 }
@@ -490,10 +488,10 @@ bool TeleportToCoordinates(uint8_t /*effectIndex*/, Spell* s)
     if (s->p_caster == nullptr)
         return true;
 
-    TeleportCoords const* teleport_coord = sMySQLStore.getTeleportCoord(s->GetSpellInfo()->getId());
+    TeleportCoords const* teleport_coord = sMySQLStore.getTeleportCoord(s->getSpellInfo()->getId());
     if (teleport_coord == nullptr)
     {
-        DLLLogDetail("Spell %u ( %s ) has a TeleportToCoordinates scripted effect, but has no coordinates to teleport to. ", s->GetSpellInfo()->getId(), s->GetSpellInfo()->getName().c_str());
+        DLLLogDetail("Spell %u ( %s ) has a TeleportToCoordinates scripted effect, but has no coordinates to teleport to. ", s->getSpellInfo()->getId(), s->getSpellInfo()->getName().c_str());
         return true;
     }
 
@@ -616,7 +614,7 @@ bool SOTATeleporter(uint8_t /*effectIndex*/, Spell* s)
         }
     }
 
-    dest.ChangeCoords(sotaTransDest[closest_platform][0], sotaTransDest[closest_platform][1], sotaTransDest[closest_platform][2], sotaTransDest[closest_platform][3]);
+    dest.ChangeCoords({ sotaTransDest[closest_platform][0], sotaTransDest[closest_platform][1], sotaTransDest[closest_platform][2], sotaTransDest[closest_platform][3] });
 
     plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest);
     return true;

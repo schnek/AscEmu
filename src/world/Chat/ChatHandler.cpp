@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -163,13 +163,13 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
     return 1;
 }
 
-WorldPacket* ChatHandler::FillMessageData(uint32 type, uint32 language, const char* message, uint64 guid , uint8 flag) const
+WorldPacket* ChatHandler::FillMessageData(uint32 type, uint32 language, const char* message, uint64 guid, uint8 flag) const
 {
     ARCEMU_ASSERT(type != CHAT_MSG_CHANNEL);
     //channels are handled in channel handler and so on
     uint32 messageLength = (uint32)strlen(message) + 1;
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
     WorldPacket* data = new WorldPacket(SMSG_MESSAGECHAT, messageLength + 60);
 #else
     WorldPacket* data = new WorldPacket(SMSG_MESSAGECHAT, messageLength + 30);
@@ -331,7 +331,7 @@ uint32 ChatHandler::GetSelectedWayPointId(WorldSession* m_session)
         return 0;
     }
 
-    return Arcemu::Util::GUID_LOPART(guid);
+    return WoWGuid::getGuidLowPartFromUInt64(guid);
 }
 
 const char* ChatHandler::GetMapTypeString(uint8 type)
@@ -729,8 +729,8 @@ void ChatHandler::SendItemLinkToPlayer(ItemProperties const* iProto, WorldSessio
 
     if (ItemCount)
     {
-        int8 count = static_cast<int8>(owner->GetItemInterface()->GetItemCount(iProto->ItemId, true));
-        //int8 slot = owner->GetItemInterface()->GetInventorySlotById(iProto->ItemId); //DISABLED due to being a retarded concept
+        int8 count = static_cast<int8>(owner->getItemInterface()->GetItemCount(iProto->ItemId, true));
+        //int8 slot = owner->getItemInterface()->GetInventorySlotById(iProto->ItemId); //DISABLED due to being a retarded concept
         if (iProto->ContainerSlots > 0)
         {
             SystemMessage(pSession, "Item %u %s Count %u ContainerSlots %u", iProto->ItemId, GetItemLinkByProto(iProto, language).c_str(), count, iProto->ContainerSlots);

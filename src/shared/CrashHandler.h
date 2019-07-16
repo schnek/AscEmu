@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -33,7 +33,7 @@ void OutputCrashLogLine(const char* format, ...);
 
 extern CircularQueue<uint32, 30> last_spells;
 
-class SERVER_DECL CStackWalker : public StackWalker
+class CStackWalker : public StackWalker
 {
     public:
 

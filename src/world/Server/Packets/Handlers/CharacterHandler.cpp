@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -38,49 +38,33 @@ This file is released under the MIT license. See README-MIT for more information
 
 using namespace AscEmu::Packets;
 
-CharacterErrorCodes VerifyName(const char* name, size_t nlen)
+CharacterErrorCodes VerifyName(std::string name)
 {
-    const char* p;
-    size_t i;
+    static const wchar_t* bannedCharacters = L"\t\v\b\f\a\n\r\\\"\'\? <>[](){}_=+-|/!@#$%^&*~`.,0123456789\0";
+    static const wchar_t* allowedCharacters = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    static const char* bannedCharacters = "\t\v\b\f\a\n\r\\\"\'\? <>[](){}_=+-|/!@#$%^&*~`.,0123456789\0";
-    static const char* allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::wstring wname;
+    if (!Util::Utf8toWStr(name, wname))
+        return E_CHAR_NAME_NO_NAME;
+
+
+    if (wname.find_first_of(bannedCharacters) != wname.npos)
+        return E_CHAR_NAME_INVALID_CHARACTER;
+
 
     if (worldConfig.server.enableLimitedNames)
     {
-        if (nlen == 0)
+        if (wname.find_first_not_of(allowedCharacters) != wname.npos)
+            return E_CHAR_NAME_INVALID_CHARACTER;
+
+        if (wname.length() == 0)
             return E_CHAR_NAME_NO_NAME;
 
-        if (nlen < 2)
+        if (wname.length() < 2)
             return E_CHAR_NAME_TOO_SHORT;
 
-        if (nlen > 12)
+        if (wname.length() > 12)
             return E_CHAR_NAME_TOO_LONG;
-
-        for (i = 0; i < nlen; ++i)
-        {
-            p = allowedCharacters;
-            for (; *p != 0; ++p)
-            {
-                if (name[i] == *p)
-                    goto cont;
-            }
-            return E_CHAR_NAME_INVALID_CHARACTER;
-        cont:
-            continue;
-        }
-    }
-    else
-    {
-        for (i = 0; i < nlen; ++i)
-        {
-            p = bannedCharacters;
-            while (*p != 0 && name[i] != *p && name[i] != 0)
-                ++p;
-
-            if (*p != 0)
-                return E_CHAR_NAME_INVALID_CHARACTER;
-        }
     }
 
     return E_CHAR_NAME_SUCCESS;
@@ -150,7 +134,7 @@ void WorldSession::handleCharFactionOrRaceChange(WorldPacket& recvPacket)
         return;
     }
 
-    const auto loginErrorCode = VerifyName(srlPacket.charCreate.name.c_str(), srlPacket.charCreate.name.length());
+    const auto loginErrorCode = VerifyName(srlPacket.charCreate.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharFactionChange(loginErrorCode).serialise().get());
@@ -228,7 +212,7 @@ void WorldSession::handleCharRenameOpcode(WorldPacket& recvPacket)
     if (result == nullptr)
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.name.c_str(), srlPacket.name.length());
+    const auto loginErrorCode = VerifyName(srlPacket.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharRename(srlPacket.size, loginErrorCode, srlPacket.guid, srlPacket.name).serialise().get());
@@ -426,7 +410,7 @@ void WorldSession::handleCharCreateOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name.c_str(), srlPacket.createStruct.name.length());
+    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharCreate(loginErrorCode).serialise().get());
@@ -564,10 +548,10 @@ void WorldSession::handleCharCustomizeLooksOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name.c_str(), srlPacket.createStruct.name.length());
+    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
-        SendPacket(SmsgCharCustomize(E_CHAR_NAME_NO_NAME).serialise().get());
+        SendPacket(SmsgCharCustomize(loginErrorCode).serialise().get());
         return;
     }
 
@@ -626,7 +610,7 @@ void WorldSession::initGMMyMaster()
 
 void WorldSession::sendServerStats()
 {
-    if (Config.MainConfig.getBoolDefault("Server", "SendStatsOnJoin", false))
+    if (worldConfig.server.sendStatsOnJoin)
     {
 #ifdef WIN32
         _player->BroadcastMessage("Server: %sAscEmu - %s-Windows-%s", MSG_COLOR_WHITE, CONFIG, ARCH);
@@ -653,7 +637,7 @@ void WorldSession::fullLogin(Player* player)
     m_MoverGuid = player->getGuid();
     m_MoverWoWGuid.Init(player->getGuid());
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     movement_packet[0] = m_MoverWoWGuid.GetNewGuidMask();
     memcpy(&movement_packet[1], m_MoverWoWGuid.GetNewGuid(), m_MoverWoWGuid.GetNewGuidLen());
 #endif
@@ -677,13 +661,15 @@ void WorldSession::fullLogin(Player* player)
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // dance moves - unknown 2x uint32_t(0)
+#if VERSION_STRING != Mop
     SendPacket(SmsgLearnedDanceMoves(0, 0).serialise().get());
+#endif
     //////////////////////////////////////////////////////////////////////////////////////////
 #endif
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // hotfix data for cata
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
     //\todo send Hotfixdata
 #endif
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -742,7 +728,7 @@ void WorldSession::fullLogin(Player* player)
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Send Equipment set list - not sure what the intend was here.
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     player->SendEquipmentSetList();
 #endif
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -812,8 +798,6 @@ void WorldSession::characterEnumProc(QueryResult* result)
 
     if (result)
     {
-        uint32_t numchar = result->GetRowCount();
-
         do
         {
             Field* fields = result->Fetch();
@@ -892,7 +876,7 @@ void WorldSession::characterEnumProc(QueryResult* result)
             if (charEnum.Class == WARLOCK || charEnum.Class == HUNTER)
             {
                 QueryResult* player_pet_db_result = CharacterDatabase.Query("SELECT entry, level FROM playerpets WHERE ownerguid = %u "
-                    "AND MOD(active, 10) = 1 AND alive = TRUE;", Arcemu::Util::GUID_LOPART(charEnum.guid));
+                    "AND MOD(active, 10) = 1 AND alive = TRUE;", WoWGuid::getGuidLowPartFromUInt64(charEnum.guid));
                 if (player_pet_db_result)
                 {
                     petLevel = player_pet_db_result->Fetch()[1].GetUInt32();
@@ -914,7 +898,7 @@ void WorldSession::characterEnumProc(QueryResult* result)
 
             QueryResult* item_db_result = CharacterDatabase.Query("SELECT slot, entry, enchantments FROM playeritems "
                 "WHERE ownerguid=%u AND containerslot = '-1' AND slot BETWEEN '0' AND '20'",
-                Arcemu::Util::GUID_LOPART(charEnum.guid));
+                WoWGuid::getGuidLowPartFromUInt64(charEnum.guid));
 #if VERSION_STRING >= WotLK
             memset(charEnum.player_items, 0, sizeof(PlayerItem) * INVENTORY_SLOT_BAG_END);
 #else

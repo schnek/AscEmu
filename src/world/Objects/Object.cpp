@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -42,7 +42,7 @@
 #include <Spell/Definitions/AuraInterruptFlags.h>
 #include "Spell/Definitions/SpellSchoolConversionTable.h"
 #include "Spell/Definitions/PowerType.h"
-#include "Spell/Customization/SpellCustomizations.hpp"
+#include "Spell/SpellMgr.h"
 #include "Units/Creatures/CreatureDefines.hpp"
 #include "Data/WoWObject.h"
 #include "Data/WoWPlayer.h"
@@ -257,9 +257,9 @@ void Object::setGuidHigh(uint32_t high) { setGuid(objectData()->guid_parts.low, 
 
 uint32_t Object::getOType() const { return objectData()->type; }
 void Object::setOType(uint32_t type) { write(objectData()->type, type); }
-void Object::setObjectType(uint32_t objectTypeId)
+void Object::setObjectType(uint8_t objectTypeId)
 {
-    uint32_t object_type = TYPE_OBJECT;
+    uint16_t object_type = TYPE_OBJECT;
     switch (objectTypeId)
     {
     case TYPEID_CONTAINER:
@@ -628,7 +628,7 @@ float Object::getDistanceSq(LocationVector comp) const
 
 float Object::getDistanceSq(float x, float y, float z) const
 {
-    return m_position.distanceSquare(x, y, z);
+    return m_position.distanceSquare({ x, y, z });
 }
 
 Player* Object::asPlayer()
@@ -649,7 +649,7 @@ Spell* Object::getCurrentSpellById(uint32_t spellId) const
     {
         if (m_currentSpell[i] == nullptr)
             continue;
-        if (m_currentSpell[i]->GetSpellInfo()->getId() == spellId)
+        if (m_currentSpell[i]->getSpellInfo()->getId() == spellId)
             return m_currentSpell[i];
     }
     return nullptr;
@@ -661,17 +661,17 @@ void Object::setCurrentSpell(Spell* curSpell)
 
     // Get current spell type
     CurrentSpellType spellType = CURRENT_GENERIC_SPELL;
-    if (curSpell->GetSpellInfo()->isOnNextMeleeAttack())
+    if (curSpell->getSpellInfo()->isOnNextMeleeAttack())
     {
         // Melee spell
         spellType = CURRENT_MELEE_SPELL;
     }
-    else if (curSpell->GetSpellInfo()->isRangedAutoRepeat())
+    else if (curSpell->getSpellInfo()->isRangedAutoRepeat())
     {
         // Autorepeat spells (Auto shot / Shoot (wand))
         spellType = CURRENT_AUTOREPEAT_SPELL;
     }
-    else if (curSpell->GetSpellInfo()->isChanneled())
+    else if (curSpell->getSpellInfo()->isChanneled())
     {
         // Channeled spells
         spellType = CURRENT_CHANNELED_SPELL;
@@ -695,7 +695,7 @@ void Object::setCurrentSpell(Spell* curSpell)
             if (m_currentSpell[CURRENT_AUTOREPEAT_SPELL] != nullptr)
             {
                 // Generic spells do not break Auto Shot
-                if (m_currentSpell[CURRENT_AUTOREPEAT_SPELL]->GetSpellInfo()->getId() != 75)
+                if (m_currentSpell[CURRENT_AUTOREPEAT_SPELL]->getSpellInfo()->getId() != 75)
                     interruptSpellWithSpellType(CURRENT_AUTOREPEAT_SPELL);
             }
             break;
@@ -708,7 +708,7 @@ void Object::setCurrentSpell(Spell* curSpell)
             interruptSpellWithSpellType(CURRENT_CHANNELED_SPELL);
 
             // Also break autorepeat spells, unless it's Auto Shot
-            if (m_currentSpell[CURRENT_AUTOREPEAT_SPELL] != nullptr && m_currentSpell[CURRENT_AUTOREPEAT_SPELL]->GetSpellInfo()->getId() != 75)
+            if (m_currentSpell[CURRENT_AUTOREPEAT_SPELL] != nullptr && m_currentSpell[CURRENT_AUTOREPEAT_SPELL]->getSpellInfo()->getId() != 75)
             {
                 interruptSpellWithSpellType(CURRENT_AUTOREPEAT_SPELL);
             }
@@ -717,7 +717,7 @@ void Object::setCurrentSpell(Spell* curSpell)
         case CURRENT_AUTOREPEAT_SPELL:
         {
             // Other autorepeats than Auto Shot break non-delayed generic and channeled spells
-            if (curSpell->GetSpellInfo()->getId() != 75)
+            if (curSpell->getSpellInfo()->getId() != 75)
             {
                 interruptSpellWithSpellType(CURRENT_GENERIC_SPELL);
                 interruptSpellWithSpellType(CURRENT_CHANNELED_SPELL);
@@ -751,7 +751,7 @@ void Object::interruptSpell(uint32_t spellId, bool checkMeleeSpell)
             continue;
 
         if (m_currentSpell[i] != nullptr &&
-            (spellId == 0 || m_currentSpell[i]->GetSpellInfo()->getId() == spellId))
+            (spellId == 0 || m_currentSpell[i]->getSpellInfo()->getId() == spellId))
         {
             interruptSpellWithSpellType(CurrentSpellType(i));
         }
@@ -768,7 +768,7 @@ void Object::interruptSpellWithSpellType(CurrentSpellType spellType)
             if (isPlayer() && IsInWorld())
             {
                 // Send server-side cancel message
-                auto spellId = curSpell->GetSpellInfo()->getId();
+                auto spellId = curSpell->getSpellInfo()->getId();
                 static_cast<Player*>(this)->OutPacket(SMSG_CANCEL_AUTO_REPEAT, 4, &spellId);
             }
         }
@@ -783,14 +783,14 @@ bool Object::isCastingSpell(bool skipChanneled /*= false*/, bool skipAutorepeat 
 {
     // Check generic spell, but ignore finished spells
     if (m_currentSpell[CURRENT_GENERIC_SPELL] != nullptr && m_currentSpell[CURRENT_GENERIC_SPELL]->getState() != SPELL_STATE_FINISHED && m_currentSpell[CURRENT_GENERIC_SPELL]->getCastTimeLeft() > 0 &&
-        (!isAutoshoot || !(m_currentSpell[CURRENT_GENERIC_SPELL]->GetSpellInfo()->getAttributesExB() & ATTRIBUTESEXB_NOT_RESET_AUTO_ATTACKS)))
+        (!isAutoshoot || !(m_currentSpell[CURRENT_GENERIC_SPELL]->getSpellInfo()->getAttributesExB() & ATTRIBUTESEXB_NOT_RESET_AUTO_ATTACKS)))
     {
         return true;
     }
 
     // If not skipped, check channeled spell
     if (!skipChanneled && m_currentSpell[CURRENT_CHANNELED_SPELL] != nullptr && m_currentSpell[CURRENT_CHANNELED_SPELL]->getState() != SPELL_STATE_FINISHED &&
-        (!isAutoshoot || !(m_currentSpell[CURRENT_CHANNELED_SPELL]->GetSpellInfo()->getAttributesExB() & ATTRIBUTESEXB_NOT_RESET_AUTO_ATTACKS)))
+        (!isAutoshoot || !(m_currentSpell[CURRENT_CHANNELED_SPELL]->getSpellInfo()->getAttributesExB() & ATTRIBUTESEXB_NOT_RESET_AUTO_ATTACKS)))
     {
         return true;
     }
@@ -809,7 +809,7 @@ Spell* Object::findCurrentCastedSpellBySpellId(uint32_t spellId)
     {
         if (m_currentSpell[i] == nullptr)
             continue;
-        if (m_currentSpell[i]->GetSpellInfo()->getId() == spellId)
+        if (m_currentSpell[i]->getSpellInfo()->getId() == spellId)
             return m_currentSpell[i];
     }
     return nullptr;
@@ -1072,14 +1072,22 @@ Object::Object() : m_position(0, 0, 0, 0), m_spawnLocation(0, 0, 0, 0)
     auto size_object = OBJECT_END * sizeof(uint32_t);
     auto size_object_struct = sizeof(WoWObject);
 
+    std::cout << "Struct size of object: " << size_object_struct << " enum: " << size_object << std::endl;
+
     auto size_player = PLAYER_END * sizeof(uint32_t);
     auto size_player_struct = sizeof(WoWPlayer);
+
+    std::cout << "Struct size of player: " << size_player_struct << " enum: " << size_player << std::endl;
 
     auto size_unit = UNIT_END * sizeof(uint32_t);
     auto size_unit_struct = sizeof(WoWUnit);
 
+    std::cout << "Struct size of unit: " << size_unit_struct << " enum: " << size_unit << std::endl;
+
     auto size_gobj = GAMEOBJECT_END * sizeof(uint32_t);
     auto size_gobj_struct = sizeof(WoWGameObject);
+
+    std::cout << "Struct size of gobj: " << size_gobj_struct << " enum: " << size_gobj << std::endl;
 #endif
 }
 
@@ -1123,9 +1131,9 @@ Object::~Object()
 void Object::_Create(uint32 mapid, float x, float y, float z, float ang)
 {
     m_mapId = mapid;
-    m_position.ChangeCoords(x, y, z, ang);
-    m_spawnLocation.ChangeCoords(x, y, z, ang);
-    m_lastMapUpdatePosition.ChangeCoords(x, y, z, ang);
+    m_position.ChangeCoords({ x, y, z, ang });
+    m_spawnLocation.ChangeCoords({ x, y, z, ang });
+    m_lastMapUpdatePosition.ChangeCoords({ x, y, z, ang });
 }
 
 #if VERSION_STRING <= TBC
@@ -1214,7 +1222,7 @@ uint32 Object::buildCreateUpdateBlockForPlayer(ByteBuffer* data, Player* target)
     uint8 updatetype = UPDATETYPE_CREATE_OBJECT;
     uint16 updateflags = m_updateFlag;
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     if (target == this)
     {
         updateflags |= UPDATEFLAG_SELF;
@@ -1827,7 +1835,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16 flags, Player* target)
 }
 #endif
 
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
 void Object::buildMovementUpdate(ByteBuffer* data, uint16 updateFlags, Player* /*target*/)
 {
     ObjectGuid Guid = getGuid();
@@ -2280,7 +2288,7 @@ void Object::buildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player*
 
                                         for (auto i = 0; i < 4; ++i)
                                         {
-                                            if (quest->required_mob_or_go[i] == this_go->getEntry())
+                                            if (quest->required_mob_or_go[i] == static_cast<int32_t>(this_go->getEntry()))
                                             {
                                                 if (quest_log->GetMobCount(i) < quest->required_mob_or_go_count[i])
                                                 {
@@ -2303,7 +2311,7 @@ void Object::buildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player*
                                         {
                                             if (const auto quest_log = target->GetQuestLogForEntry(quest_props.first->id))
                                             {
-                                                if (target->GetItemInterface()->GetItemCount(item_pair.first) < item_pair.second)
+                                                if (target->getItemInterface()->GetItemCount(item_pair.first) < item_pair.second)
                                                 {
                                                     activate_quest_object = true;
                                                     break;
@@ -2384,7 +2392,7 @@ bool Object::SetPosition(const LocationVector & v, bool allowPorting /* = false 
 
     m_position = const_cast<LocationVector &>(v);
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     if (!allowPorting && v.z < -500)
     {
         m_position.z = 500;
@@ -2414,12 +2422,12 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 
     //if (m_position.x != newX || m_position.y != newY)
     //updateMap = true;
-    if (m_lastMapUpdatePosition.Distance2DSq(newX, newY) > 4.0f)		/* 2.0f */
+    if (m_lastMapUpdatePosition.Distance2DSq({ newX, newY }) > 4.0f)		/* 2.0f */
         updateMap = true;
 
-    m_position.ChangeCoords(newX, newY, newZ, newOrientation);
+    m_position.ChangeCoords({ newX, newY, newZ, newOrientation });
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
     if (!allowPorting && newZ < -500)
     {
         m_position.z = 500;
@@ -2431,7 +2439,7 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 
     if (IsInWorld() && updateMap)
     {
-        m_lastMapUpdatePosition.ChangeCoords(newX, newY, newZ, newOrientation);
+        m_lastMapUpdatePosition.ChangeCoords({ newX, newY, newZ, newOrientation });
         m_mapMgr->ChangeObjectLocation(this);
 
         if (isPlayer() && static_cast<Player*>(this)->GetGroup() && static_cast<Player*>(this)->m_last_group_position.Distance2DSq(m_position) > 25.0f)       // distance of 5.0
@@ -2963,7 +2971,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
     if (pVictim == nullptr || !pVictim->isAlive())
         return;
 
-    SpellInfo* spellInfo = sSpellCustomizations.GetSpellInfo(spellID);
+    const auto spellInfo = sSpellMgr.getSpellInfo(spellID);
     if (spellInfo == nullptr)
         return;
 
@@ -3109,15 +3117,11 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
             if (spellpower > hp)
                 spellpower = hp;
 
-            SpellInfo* entry = sSpellCustomizations.GetSpellInfo(44413);
+            SpellInfo const* entry = sSpellMgr.getSpellInfo(44413);
             if (!entry)
                 return;
 
-            Spell* sp = sSpellFactoryMgr.NewSpell(pl, entry, true, nullptr);
-            sp->GetSpellInfo()->setEffectBasePoints(spellpower, 0);
-            SpellCastTargets targets;
-            targets.m_unitTarget = pl->getGuid();
-            sp->prepare(&targets);
+            pl->castSpell(pl->getGuid(), entry, spellpower, true);
         }
     }
 
@@ -3512,8 +3516,8 @@ uint32 Object::GetTeam()
 
 Transporter* Object::GetTransport() const
 {
-#if VERSION_STRING != Cata
-    return objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(obj_movement_info.transport_data.transportGuid));
+#if VERSION_STRING < Cata
+    return objmgr.GetTransporter(WoWGuid::getGuidLowPartFromUInt64(obj_movement_info.transport_data.transportGuid));
 #else
     return nullptr;
 #endif
@@ -3697,7 +3701,7 @@ void Object::SendMonsterSayMessageInRange(Creature* creature, MySQLStructure::Np
 
                 // replace text with content
                 std::string newText = text;
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 #if VERSION_STRING > Classic
                 static const char* races[NUM_RACES] = { "None", "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "None", "Blood Elf", "Draenei" };
 #else
@@ -3998,8 +4002,12 @@ bool Object::GetPoint(float angle, float rad, float & outx, float & outy, float 
     return true;
 }
 
+#if VERSION_STRING >= Cata
 #if VERSION_STRING == Cata
-#include "GameCata/Movement/MovementStructures.h"
+    #include "GameCata/Movement/MovementStructures.h"
+#elif VERSION_STRING == Mop
+    #include "GameMop/Movement/MovementStructures.h"
+#endif
 
 void MovementInfo::readMovementInfo(ByteBuffer& data, uint16_t opcode)
 {

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -39,8 +39,8 @@ public:
 
         /* The Twin Blades of Azzinoth.
             * According to comments on wowhead, this proc has ~0.75ppm (procs-per-minute). */
-        Item* mh = static_cast<Player*>(mTarget)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
-        Item* of = static_cast<Player*>(mTarget)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_OFFHAND);
+        Item* mh = static_cast<Player*>(mTarget)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
+        Item* of = static_cast<Player*>(mTarget)->getItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_OFFHAND);
         if (mh != nullptr && of != nullptr)
         {
             uint32 mhs = mh->getItemProperties()->Delay;

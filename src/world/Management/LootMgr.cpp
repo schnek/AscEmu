@@ -1,6 +1,6 @@
 /*
 * AscEmu Framework based on ArcEmu MMORPG Server
-* Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+* Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
 * Copyright (C) 2005-2007 Ascent Team
 *
@@ -785,19 +785,19 @@ void LootRoll::Finalize()
 
     ItemProperties const* it = sMySQLStore.getItemProperties(itemid);
     int8 error;
-    if ((error = _player->GetItemInterface()->CanReceiveItem(it, 1)) != 0)
+    if ((error = _player->getItemInterface()->CanReceiveItem(it, 1)) != 0)
     {
-        _player->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, error);
+        _player->getItemInterface()->BuildInventoryChangeError(NULL, NULL, error);
         return;
     }
 
-    Item* add = _player->GetItemInterface()->FindItemLessMax(itemid, amt, false);
+    Item* add = _player->getItemInterface()->FindItemLessMax(itemid, amt, false);
     if (!add)
     {
-        SlotResult slotresult = _player->GetItemInterface()->FindFreeInventorySlot(it);
+        SlotResult slotresult = _player->getItemInterface()->FindFreeInventorySlot(it);
         if (!slotresult.Result)
         {
-            _player->GetItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
+            _player->getItemInterface()->BuildInventoryChangeError(NULL, NULL, INV_ERR_INVENTORY_FULL);
             return;
         }
         LOG_DEBUG("AutoLootItem MISC");
@@ -818,7 +818,7 @@ void LootRoll::Finalize()
             item->ApplyRandomProperties(false);
         }
 
-        if (_player->GetItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
+        if (_player->getItemInterface()->SafeAddItem(item, slotresult.ContainerSlot, slotresult.Slot))
         {
             _player->sendItemPushResultPacket(false, true, true, slotresult.ContainerSlot, slotresult.Slot, 1, item->getEntry(), item->getPropertySeed(), item->getRandomPropertiesId(), item->getStackCount());
             sQuestMgr.OnPlayerItemPickup(_player, item);
@@ -834,7 +834,7 @@ void LootRoll::Finalize()
         add->setStackCount(add->getStackCount() + amt);
         add->m_isDirty = true;
         sQuestMgr.OnPlayerItemPickup(_player, add);
-        _player->sendItemPushResultPacket(false, true, true, (uint8)_player->GetItemInterface()->GetBagSlotByGuid(add->getGuid()), 0, 1, add->getEntry(), add->getPropertySeed(), add->getRandomPropertiesId(), add->getStackCount());
+        _player->sendItemPushResultPacket(false, true, true, (uint8)_player->getItemInterface()->GetBagSlotByGuid(add->getGuid()), 0, 1, add->getEntry(), add->getPropertySeed(), add->getRandomPropertiesId(), add->getStackCount());
 #if VERSION_STRING > TBC
         _player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LOOT_ITEM, add->getEntry(), 1, 0);
 #endif

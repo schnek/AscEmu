@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,7 +12,7 @@ namespace AscEmu { namespace Packets
 {
     class SmsgGuildBankQueryTextResult : public ManagedPacket
     {
-#if VERSION_STRING == Cata
+#if VERSION_STRING >= Cata
     public:
         uint32_t tabId;
         std::string tabInfo;
@@ -39,7 +39,7 @@ namespace AscEmu { namespace Packets
             return true;
         }
 
-        bool internalDeserialise(WorldPacket& packet) override
+        bool internalDeserialise(WorldPacket& /*packet*/) override
         {
             return false;
         }

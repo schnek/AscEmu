@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -85,7 +84,7 @@ void RingOfValor::HookOnAreaTrigger(Player* /*plr*/, uint32 trigger)
 bool RingOfValor::HookHandleRepop(Player* plr)
 {
     LocationVector dest;
-    dest.ChangeCoords(762.91f, -284.28f, 28.28f);
+    dest.ChangeCoords({ 762.91f, -284.28f, 28.28f });
     plr->SafeTeleport(m_mapMgr->GetMapId(), m_mapMgr->GetInstanceID(), dest);
     return true;
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -44,6 +44,11 @@ public:
     float getFloatDefault(std::string sectionName, std::string confName, float defaultFloat);
 
     bool tryGetBool(std::string sectionName, std::string keyName, bool* b);
+    bool tryGetFloat(std::string sectionName, std::string keyName, float* f);
+    bool tryGetInt(std::string sectionName, std::string keyName, int* i);
+    bool tryGetInt(std::string sectionName, std::string keyName, uint8_t* i);
+    bool tryGetInt(std::string sectionName, std::string keyName, uint32_t* i);
+    bool tryGetString(std::string sectionName, std::string keyName, std::string* s);
 
 private:
 

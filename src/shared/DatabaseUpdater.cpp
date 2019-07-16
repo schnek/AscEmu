@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -11,7 +11,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Util.hpp"
 #include <iostream>
 
-#ifdef USE_EXPERIMENTAL_FILESYSTEM
 void DatabaseUpdater::initBaseIfNeeded(std::string dbName, std::string dbBaseType, Database& dbPointer)
 {
     QueryResult* dbResult = dbPointer.Query("SHOW TABLES FROM %s", dbName.c_str());
@@ -127,7 +126,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
     Field* fields = result->Fetch();
     const std::string dbLastUpdate = fields[0].GetString();
 
-    LogDetail(" %s Database Version : %s", database.c_str(), dbLastUpdate.c_str());
+    LogDetail("Database %s Version : %s", database.c_str(), dbLastUpdate.c_str());
 
     const auto lastUpdateMajor = Util::readMajorVersionFromString(dbLastUpdate);
     const auto lastUpdateMinor = Util::readMinorVersionFromString(dbLastUpdate);
@@ -221,4 +220,3 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
         }
     }
 }
-#endif

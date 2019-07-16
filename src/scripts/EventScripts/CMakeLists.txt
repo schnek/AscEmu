@@ -1,4 +1,4 @@
-# Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 
 if(NOT BUILD_EVENTSCRIPTS)
   message("\tEventScripts was skipped because BUILD_EVENTSCRIPTS is unchecked.")
@@ -41,7 +41,6 @@ set(sources
     Event_Zalzanes_Fall.cpp
     Setup.cpp
     # Required for linker
-    ../../world/Server/LazyTimer.cpp
     ../../world/Server/ServerState.cpp
     ../../shared/Util.cpp
 )
@@ -65,14 +64,15 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/src/world
    ${CMAKE_CURRENT_SOURCE_DIR}
    ${ZLIB_INCLUDE_DIRS}
+   ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${sources} ${headers})
 
 target_link_libraries(${PROJECT_NAME} world)
 
-if(USE_PCH AND PCHSupport_FOUND)
-    ADD_NATIVE_PRECOMPILED_HEADER(${PROJECT_NAME} Setup.h ${CMAKE_CURRENT_SOURCE_DIR}/Setup.cpp)
+if(USE_PCH)
+    gen_cxx_pch(${PROJECT_NAME} Setup.h ${CMAKE_CURRENT_SOURCE_DIR}/Setup.cpp)
 endif()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})

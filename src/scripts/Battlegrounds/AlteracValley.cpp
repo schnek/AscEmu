@@ -1,7 +1,7 @@
 /*
- Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
- This file is released under the MIT license. See README-MIT for more information.
- */
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
 #include <StdAfx.h>
 #include "AlteracValley.h"
@@ -532,11 +532,8 @@ void AlteracValley::AVNode::Assault(Player* plr)
 
     // start timer
     sEventMgr.RemoveEvents(m_bg, EVENT_AV_CAPTURE_CP_0 + m_nodeId);
-#ifdef _DEBUG
-    sEventMgr.AddEvent(m_bg, &AlteracValley::EventAssaultControlPoint, m_nodeId, EVENT_AV_CAPTURE_CP_0 + m_nodeId, 20000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-#else
-    sEventMgr.AddEvent(m_bg, &AlteracValley::EventAssaultControlPoint, m_nodeId, EVENT_AV_CAPTURE_CP_0 + m_nodeId, TIME_MINUTE * 4 * 1000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-#endif
+
+    sEventMgr.AddEvent(m_bg, &AlteracValley::EventAssaultControlPoint, m_nodeId, EVENT_AV_CAPTURE_CP_0 + m_nodeId, TimeVars::Minute * 4 * 1000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
     // update state
     ChangeState(plr->isTeamHorde() ? AV_NODE_STATE_HORDE_ASSAULTING : AV_NODE_STATE_ALLIANCE_ASSAULTING);
@@ -1009,9 +1006,9 @@ bool AlteracValley::HookHandleRepop(Player* plr)
     float dt;
     LocationVector dest_pos;
     if (plr->isTeamHorde())
-        dest_pos.ChangeCoords(-1433.550903f, -608.329529f, 51.149689f);
+        dest_pos.ChangeCoords({ -1433.550903f, -608.329529f, 51.149689f });
     else
-        dest_pos.ChangeCoords(876.434448f, -489.599579f, 96.517174f);
+        dest_pos.ChangeCoords({ 876.434448f, -489.599579f, 96.517174f });
 
     if (m_started)
     {
@@ -1025,11 +1022,11 @@ bool AlteracValley::HookHandleRepop(Player* plr)
             if ((plr->isTeamAlliance() && m_nodes[x]->m_state == AV_NODE_STATE_ALLIANCE_CONTROLLED) ||
                 (plr->isTeamHorde() && m_nodes[x]->m_state == AV_NODE_STATE_HORDE_CONTROLLED))
             {
-                dt = plr->GetPositionNC().Distance2DSq(m_nodes[x]->m_template->m_graveyardLocation.x, m_nodes[x]->m_template->m_graveyardLocation.y);
+                dt = plr->GetPositionNC().Distance2DSq({ m_nodes[x]->m_template->m_graveyardLocation.x, m_nodes[x]->m_template->m_graveyardLocation.y });
                 if (dt < dist)
                 {
                     // new one
-                    dest_pos.ChangeCoords(m_nodes[x]->m_template->m_graveyardLocation.x, m_nodes[x]->m_template->m_graveyardLocation.y, m_nodes[x]->m_template->m_graveyardLocation.z);
+                    dest_pos.ChangeCoords({ m_nodes[x]->m_template->m_graveyardLocation.x, m_nodes[x]->m_template->m_graveyardLocation.y, m_nodes[x]->m_template->m_graveyardLocation.z });
                     dist = dt;
                 }
             }
@@ -1109,7 +1106,7 @@ void AlteracValley::OnStart()
 void AlteracValley::OnAddPlayer(Player* plr)
 {
     if (!m_started)
-        plr->CastSpell(plr, BG_PREPARATION, true);
+        plr->castSpell(plr, BG_PREPARATION, true);
 
     if (plr->isTeamHorde())
     {

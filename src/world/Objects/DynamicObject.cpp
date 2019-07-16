@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -154,7 +154,7 @@ void DynamicObject::Create(Unit* caster, Spell* pSpell, float x, float y, float 
     else
         p_caster = pSpell->p_caster;
 
-    m_spellProto = pSpell->GetSpellInfo();
+    m_spellProto = pSpell->getSpellInfo();
     setEntry(m_spellProto->getId());
     setScale(1.0f);
 
@@ -240,7 +240,7 @@ void DynamicObject::UpdateTargets()
 
             if (getDistanceSq(target) <= radius)
             {
-                pAura = sSpellFactoryMgr.NewAura(m_spellProto, m_aliveDuration, u_caster, target, true);
+                pAura = sSpellMgr.newAura(m_spellProto, m_aliveDuration, u_caster, target, true);
                 for (uint8 i = 0; i < 3; ++i)
                 {
                     if (m_spellProto->getEffect(i) == SPELL_EFFECT_PERSISTENT_AREA_AURA)

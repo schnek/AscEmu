@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -24,7 +24,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 using namespace AscEmu::Packets;
 
-#if VERSION_STRING != Cata
+#if VERSION_STRING < Cata
 WorldPacket* WorldSession::buildQuestQueryResponse(QuestProperties const* qst)
 {
     // 2048 bytes should be more than enough. The fields cost ~200 bytes.
@@ -428,7 +428,7 @@ void WorldSession::handleQuestgiverStatusQueryOpcode(WorldPacket& recvPacket)
     }
     else if (srlPacket.questGiverGuid.isItem())
     {
-        Item* quest_giver = _player->GetItemInterface()->GetItemByGUID(srlPacket.questGiverGuid.GetOldGuid());
+        Item* quest_giver = _player->getItemInterface()->GetItemByGUID(srlPacket.questGiverGuid.GetOldGuid());
         if (quest_giver)
             qst_giver = quest_giver;
         else
@@ -502,7 +502,7 @@ void WorldSession::handleQuestGiverQueryQuestOpcode(WorldPacket& recvPacket)
     }
     else if (srlPacket.guid.isItem())
     {
-        Item* quest_giver = _player->GetItemInterface()->GetItemByGUID(srlPacket.guid.GetOldGuid());
+        Item* quest_giver = _player->getItemInterface()->GetItemByGUID(srlPacket.guid.GetOldGuid());
         if (quest_giver)
             qst_giver = quest_giver;
         else
@@ -577,7 +577,7 @@ void WorldSession::handleQuestlogRemoveQuestOpcode(WorldPacket& recvPacket)
     for (uint8_t i = 0; i < 4; ++i)
     {
         if (qPtr->receive_items[i])
-            _player->GetItemInterface()->RemoveItemAmt(qPtr->receive_items[i], 1);
+            _player->getItemInterface()->RemoveItemAmt(qPtr->receive_items[i], 1);
     }
 
     if (qPtr->srcitem && qPtr->srcitem != qPtr->receive_items[0])
@@ -585,7 +585,7 @@ void WorldSession::handleQuestlogRemoveQuestOpcode(WorldPacket& recvPacket)
         ItemProperties const* itemProto = sMySQLStore.getItemProperties(qPtr->srcitem);
         if (itemProto != nullptr)
             if (itemProto->QuestId != qPtr->id)
-                _player->GetItemInterface()->RemoveItemAmt(qPtr->srcitem, qPtr->srcitemcount ? qPtr->srcitemcount : 1);
+                _player->getItemInterface()->RemoveItemAmt(qPtr->srcitem, qPtr->srcitemcount ? qPtr->srcitemcount : 1);
     }
 
     for (uint8_t i = 0; i < MAX_REQUIRED_QUEST_ITEM; ++i)
@@ -594,7 +594,7 @@ void WorldSession::handleQuestlogRemoveQuestOpcode(WorldPacket& recvPacket)
         {
             ItemProperties const* itemProto = sMySQLStore.getItemProperties(qPtr->required_item[i]);
             if (itemProto != nullptr && itemProto->Class == ITEM_CLASS_QUEST)
-                _player->GetItemInterface()->RemoveItemAmt(qPtr->required_item[i], qPtr->required_itemcount[i]);
+                _player->getItemInterface()->RemoveItemAmt(qPtr->required_item[i], qPtr->required_itemcount[i]);
         }
     }
 

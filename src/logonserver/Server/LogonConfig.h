@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -27,7 +27,7 @@ class SERVER_DECL LogonConfig
             std::string password;
             uint32_t port;
             int connections;
-        }logonDb;
+        } logonDb;
 
         // logon.conf - Listen
         struct Listen
@@ -36,24 +36,25 @@ class SERVER_DECL LogonConfig
             std::string interServerHost;
             uint32_t realmListPort;
             uint32_t port;
-        }listen;
+        } listen;
 
         // logon.conf - LogLevel
         struct LogLevel
         {
             uint32_t file;
-        }logLevel;
+        } logLevel;
 
         // logon.conf - Rates
         struct Rates
         {
             uint32_t accountRefreshTime;
-        }rates;
+        } rates;
 
         // logon.conf - LogonServer
         struct LogonServer
         {
+            bool disablePings;
             std::string allowedIps;
             std::string allowedModIps;
-        }logonServer;
+        } logonServer;
 };

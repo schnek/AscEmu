@@ -1,6 +1,5 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2018 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -84,7 +83,7 @@ LocationVector RingOfTrials::GetStartingCoords(uint32 Team)
 bool RingOfTrials::HookHandleRepop(Player* plr)
 {
     LocationVector dest;
-    dest.ChangeCoords(4057.042725f, 2918.686523f, 13.051933f);
+    dest.ChangeCoords({ 4057.042725f, 2918.686523f, 13.051933f });
     plr->SafeTeleport(m_mapMgr->GetMapId(), m_mapMgr->GetInstanceID(), dest);
     return true;
 }
