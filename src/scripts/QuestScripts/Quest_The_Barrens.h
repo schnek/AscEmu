@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 //////////////////////////////////////////////////////////////////////////////////////////
 // Quest The Barrens
 
-namespace AscEmu { namespace Scripts { namespace Quests { namespace TheBarrens
+namespace AscEmu::Scripts::Quests::TheBarrens
 {
     // CreatureScripts
     uint32_t TheEscapeQuestIds[] =
@@ -31,4 +31,4 @@ namespace AscEmu { namespace Scripts { namespace Quests { namespace TheBarrens
         4316, // https://www.wowhead.com/npc=4316/kolkar-packhound
         0
     };
-}}}}
+} // AscEmu::Scripts::Quests::TheBarrens

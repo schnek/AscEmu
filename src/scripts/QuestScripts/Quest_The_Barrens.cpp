@@ -135,9 +135,7 @@ void SetupBarrens(ScriptMgr* mgr)
 //start MIT
     // CreatureScripts
     mgr->register_creature_script(TheEscapeQuestIds, &TheEscapeQuest::Create); // https://www.wowhead.com/quest=863/the-escape
-
     mgr->register_creature_script(FreeFromTheHoldQuestIds, &FreeFromTheHoldQuest::Create); // https://www.wowhead.com/quest=898/free-from-the-hold
-
     mgr->register_creature_script(VerogtheDervishQuestIds, &VerogtheDervishQuest::Create); // https://www.wowhead.com/quest=851/verog-the-dervish
 }
 //end MIT
