@@ -11,17 +11,17 @@ This file is released under the MIT license. See README-MIT for more information
 namespace AscEmu::Scripts::Quests::TheBarrens
 {
     // CreatureScripts
-    static const std::vector<uint32_t> TheEscapeQuestIds = 
+    uint32_t TheEscapeQuestIds[] =
     {
         3439, // wizzlecranks-shredder
     };
 
-    static const std::vector<uint32_t> FreeFromTheHoldQuestIds = 
+    uint32_t FreeFromTheHoldQuestIds[] =
     {
         3465, // gilthares-firebough
     };
 
-    static const std::vector<uint32_t> VerogtheDervishQuestIds = 
+    uint32_t VerogtheDervishQuestIds[] =
     {
         3275, // kolkar-marauder
         3274, // kolkar-pack-runner
