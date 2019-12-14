@@ -1,30 +1,7 @@
-/*
- * Copyright (c) 2014-2019 AscEmu Team <http://www.ascemu.org>
- * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
- * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
- * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- * Copyright (C) 2005-2007 Ascent Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-
-//start MIT
 #include "Setup.h"
 #include "Quest_The_Barrens.h"
 
 using namespace AscEmu::Scripts::Quests::TheBarrens;
-//end MIT
 
 class BeatenCorpse : public Arcemu::Gossip::Script
 {
@@ -40,7 +17,7 @@ public:
         }
     }
 
-    void OnSelectOption(Object* pObject, Player* plr, uint32 /*Id*/, const char* /*Code*/, uint32 /*gossipId*/) override
+    void OnSelectOption(Object* pObject, Player* plr, uint32_t /*Id*/, const char* /*Code*/, uint32_t /*gossipId*/) override
     {
         Arcemu::Gossip::Menu::SendSimpleMenu(pObject->getGuid(), 3558, plr);
 
@@ -62,17 +39,17 @@ class TheEscapeQuest : public CreatureAIScript
     ADD_CREATURE_FACTORY_FUNCTION(TheEscapeQuest)
     explicit TheEscapeQuest(Creature* pCreature) : CreatureAIScript(pCreature) {}
 
-    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == 195)
         {
             getCreature()->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, "Thank you Young warior!");
             getCreature()->Despawn(5000, 1000);
             getCreature()->DeleteWaypoints();
-            if (getCreature()->m_escorter == NULL)
+            if (getCreature()->m_escorter == nullptr)
                 return;
             Player* plr = getCreature()->m_escorter;
-            getCreature()->m_escorter = NULL;
+            getCreature()->m_escorter = nullptr;
 
             auto quest_entry = plr->GetQuestLogForEntry(863);
             if (quest_entry == nullptr)
@@ -87,17 +64,17 @@ class FreeFromTheHoldQuest : public CreatureAIScript
     ADD_CREATURE_FACTORY_FUNCTION(FreeFromTheHoldQuest)
     explicit FreeFromTheHoldQuest(Creature* pCreature) : CreatureAIScript(pCreature) {}
 
-    void OnReachWP(uint32 iWaypointId, bool /*bForwards*/) override
+    void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
     {
         if (iWaypointId == 100)
         {
             getCreature()->SendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, "Finally, I am rescued");
             getCreature()->Despawn(5000, 1000);
             getCreature()->DeleteWaypoints();
-            if (getCreature()->m_escorter == NULL)
+            if (getCreature()->m_escorter == nullptr)
                 return;
             Player* plr = getCreature()->m_escorter;
-            getCreature()->m_escorter = NULL;
+            getCreature()->m_escorter = nullptr;
 
             auto quest_entry = plr->GetQuestLogForEntry(898);
             if (quest_entry == nullptr)
