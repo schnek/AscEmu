@@ -117,7 +117,7 @@ struct CharCreate
 };
 
 extern OpcodeHandler WorldPacketHandlers[NUM_MSG_TYPES];
-extern CharacterErrorCodes VerifyName(std::string name);
+extern CharacterErrorCodes isVerifyName(std::string name);
 
 class SERVER_DECL WorldSession
 {
@@ -216,9 +216,7 @@ class SERVER_DECL WorldSession
 
         uint8 Update(uint32 InstanceID);
 
-        
         void SendNotification(const char* message, ...);
-
 
         void SetInstance(uint32 Instance) { instanceId = Instance; }
         uint32 GetLatency() const { return _latency; }

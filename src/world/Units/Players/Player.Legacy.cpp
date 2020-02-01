@@ -2180,6 +2180,10 @@ void Player::InitVisibleUpdateBits()
 
 void Player::SaveToDB(bool bNewCharacter /* =false */)
 {
+    //std::wstring wname;
+    //if (!Util::Utf8toWStr(m_name, wname))
+    //    return;
+
     bool in_arena = false;
     QueryBuffer* buf = nullptr;
     if (!bNewCharacter)
@@ -2233,7 +2237,7 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
         << getGuidLow() << ", "
         << GetSession()->GetAccountId() << ","
         // stat saving
-        << "'" << m_name << "', "
+        << "'" << /*!*/m_name/*!*/ << "', "
         << uint32(getRace()) << ","
         << uint32(getClass()) << ","
         << uint32(getGender()) << ",";

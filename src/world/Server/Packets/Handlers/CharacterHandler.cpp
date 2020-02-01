@@ -31,32 +31,91 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgSetPlayerDeclinedNames.h"
 #include "Server/Packets/SmsgSetPlayerDeclinedNamesResult.h"
 #include "Server/Packets/SmsgCharEnum.h"
+#include "Server/WorldConfig.h"
 #include "Management/GuildMgr.h"
 #include "Server/CharacterErrors.h"
 #include "AuthCodes.h"
 
-
 using namespace AscEmu::Packets;
 
-CharacterErrorCodes VerifyName(std::string name)
+enum LanguageType
 {
-    static const wchar_t* bannedCharacters = L"\t\v\b\f\a\n\r\\\"\'\? <>[](){}_=+-|/!@#$%^&*~`.,0123456789\0";
-    static const wchar_t* allowedCharacters = L"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    LT_BASIC_LATIN    = 0x0000,
+    LT_EXTENDEN_LATIN = 0x0001,
+    LT_CYRILLIC       = 0x0002,
+    LT_EAST_ASIA      = 0x0004,
+    LT_ANY            = 0xFFFF
+};
 
+static LanguageType GetRealmLanguageType(bool create)
+{
+    switch(worldConfig.server.gmtTimeZone)
+    {
+        case TIME_ZONE_UNKNOWN:                             // any language
+        case TIME_ZONE_DEVELOPMENT:
+        case TIME_ZONE_TEST_SERVER:
+        case TIME_ZONE_QA_SERVER:
+            return LT_ANY;
+        case TIME_ZONE_UNITED_STATES:                       // extended-Latin
+        case TIME_ZONE_OCEANIC:
+        case TIME_ZONE_LATIN_AMERICA:
+        case TIME_ZONE_ENGLISH:
+        case TIME_ZONE_GERMAN:
+        case TIME_ZONE_FRENCH:
+        case TIME_ZONE_SPANISH:
+            return LT_EXTENDEN_LATIN;
+        case TIME_ZONE_KOREA:                               // East-Asian
+        case TIME_ZONE_TAIWAN:
+        case TIME_ZONE_CHINA:
+            return LT_EAST_ASIA;
+        case TIME_ZONE_RUSSIAN:                             // Cyrillic
+            return LT_CYRILLIC;
+        default:
+            return create ? LT_BASIC_LATIN : LT_ANY;        // basic-Latin at create, any at login
+    }
+}
+
+bool isVerifyName(std::wstring wstr, uint32 strictMask, bool numericOrSpace, bool create = false)
+{
+	if (strictMask == 0)                                     // any language, ignore realm
+	{
+		if (Util::isExtendedLatinString(wstr, numericOrSpace))
+			return true;
+		if (Util::isCyrillicString(wstr, numericOrSpace))
+			return true;
+		if (Util::isEastAsianString(wstr, numericOrSpace))
+			return true;
+		return false;
+	}
+	if (strictMask & 0x2)                                    // realm zone specific
+	{
+		LanguageType lt = GetRealmLanguageType(create);
+		if (lt & LT_EXTENDEN_LATIN)
+			if (Util::isExtendedLatinString(wstr, numericOrSpace))
+				return true;
+		if (lt & LT_CYRILLIC)
+			if (Util::isCyrillicString(wstr, numericOrSpace))
+				return true;
+		if (lt & LT_EAST_ASIA)
+			if (Util::isEastAsianString(wstr, numericOrSpace))
+				return true;
+	}
+	if (strictMask & 0x1)                                    // basic latin
+	{
+		if (Util::isBasicLatinString(wstr, numericOrSpace))
+			return true;
+	}
+	return false;
+}
+
+CharacterErrorCodes isVerifyName(std::string name)
+{
     std::wstring wname;
     if (!Util::Utf8toWStr(name, wname))
-        return E_CHAR_NAME_NO_NAME;
-
-
-    if (wname.find_first_of(bannedCharacters) != wname.npos)
-        return E_CHAR_NAME_INVALID_CHARACTER;
-
+        return E_CHAR_NAME_SUCCESS;
 
     if (worldConfig.server.enableLimitedNames)
     {
-        if (wname.find_first_not_of(allowedCharacters) != wname.npos)
-            return E_CHAR_NAME_INVALID_CHARACTER;
-
         if (wname.length() == 0)
             return E_CHAR_NAME_NO_NAME;
 
@@ -134,7 +193,7 @@ void WorldSession::handleCharFactionOrRaceChange(WorldPacket& recvPacket)
         return;
     }
 
-    const auto loginErrorCode = VerifyName(srlPacket.charCreate.name);
+    const auto loginErrorCode = isVerifyName(srlPacket.charCreate.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharFactionChange(loginErrorCode).serialise().get());
@@ -212,7 +271,7 @@ void WorldSession::handleCharRenameOpcode(WorldPacket& recvPacket)
     if (result == nullptr)
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.name);
+    const auto loginErrorCode = isVerifyName(srlPacket.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharRename(srlPacket.size, loginErrorCode, srlPacket.guid, srlPacket.name).serialise().get());
@@ -410,7 +469,7 @@ void WorldSession::handleCharCreateOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name);
+    const auto loginErrorCode = isVerifyName(srlPacket.createStruct.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharCreate(loginErrorCode).serialise().get());
@@ -548,7 +607,7 @@ void WorldSession::handleCharCustomizeLooksOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    const auto loginErrorCode = VerifyName(srlPacket.createStruct.name);
+    const auto loginErrorCode = isVerifyName(srlPacket.createStruct.name);
     if (loginErrorCode != E_CHAR_NAME_SUCCESS)
     {
         SendPacket(SmsgCharCustomize(loginErrorCode).serialise().get());

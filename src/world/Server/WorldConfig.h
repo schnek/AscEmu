@@ -10,17 +10,51 @@ This file is released under the MIT license. See README-MIT for more information
 #include <string>
 #include <cstdint>
 
+enum TimeZone
+{
+    TIME_ZONE_UNKNOWN        = 0,                           // any language
+    TIME_ZONE_DEVELOPMENT    = 1,                           // any language
+    TIME_ZONE_UNITED_STATES  = 2,                           // extended-Latin
+    TIME_ZONE_OCEANIC        = 3,                           // extended-Latin
+    TIME_ZONE_LATIN_AMERICA  = 4,                           // extended-Latin
+    TIME_ZONE_TOURNAMENT_5   = 5,                           // basic-Latin at create, any at login
+    TIME_ZONE_KOREA          = 6,                           // East-Asian
+    TIME_ZONE_TOURNAMENT_7   = 7,                           // basic-Latin at create, any at login
+    TIME_ZONE_ENGLISH        = 8,                           // extended-Latin
+    TIME_ZONE_GERMAN         = 9,                           // extended-Latin
+    TIME_ZONE_FRENCH         = 10,                          // extended-Latin
+    TIME_ZONE_SPANISH        = 11,                          // extended-Latin
+    TIME_ZONE_RUSSIAN        = 12,                          // Cyrillic
+    TIME_ZONE_TOURNAMENT_13  = 13,                          // basic-Latin at create, any at login
+    TIME_ZONE_TAIWAN         = 14,                          // East-Asian
+    TIME_ZONE_TOURNAMENT_15  = 15,                          // basic-Latin at create, any at login
+    TIME_ZONE_CHINA          = 16,                          // East-Asian
+    TIME_ZONE_CN1            = 17,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN2            = 18,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN3            = 19,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN4            = 20,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN5            = 21,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN6            = 22,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN7            = 23,                          // basic-Latin at create, any at login
+    TIME_ZONE_CN8            = 24,                          // basic-Latin at create, any at login
+    TIME_ZONE_TOURNAMENT_25  = 25,                          // basic-Latin at create, any at login
+    TIME_ZONE_TEST_SERVER    = 26,                          // any language
+    TIME_ZONE_TOURNAMENT_27  = 27,                          // basic-Latin at create, any at login
+    TIME_ZONE_QA_SERVER      = 28,                          // any language
+    TIME_ZONE_CN9            = 29                           // basic-Latin at create, any at login
+};
+
 enum WorldConfigRates
 {
-    RATE_HEALTH = 0,    // health
-    RATE_POWER1,        // mana
-    RATE_POWER2,        // rage
-    RATE_POWER3,        // focus
-    RATE_POWER4,        // energy
+    RATE_HEALTH              = 0,                           // health
+    RATE_POWER1,                                            // mana
+    RATE_POWER2,                                            // rage
+    RATE_POWER3,                                            // focus
+    RATE_POWER4,                                            // energy
     //RATE_POWER5,
     //RATE_POWER6,
-    RATE_POWER7,        // runic power
-    RATE_DROP0,         // quality level
+    RATE_POWER7,                                            // runic power
+    RATE_DROP0,                                             // quality level
     RATE_DROP1,
     RATE_DROP2,
     RATE_DROP3,
