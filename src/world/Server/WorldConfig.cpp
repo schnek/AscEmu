@@ -59,7 +59,7 @@ WorldConfig::WorldConfig(): mFloatRates{}, mIntRates{}
     server.secondsBeforeKickAFKPlayers = 0;
     server.queueUpdateInterval = 5000;
     server.enableBreathing = true;
-    server.enableLimitedNames = true;
+    server.enableLimitedNames = 0;
     server.useAccountData = false;
     server.requireGmForCommands = false;
     server.saveExtendedCharData = false;
@@ -324,7 +324,7 @@ void WorldConfig::loadWorldConfigValues(bool reload /*false*/)
     server.secondsBeforeKickAFKPlayers *= 1000;
     ARCEMU_ASSERT(Config.MainConfig.tryGetInt("Server", "QueueUpdateInterval", &server.queueUpdateInterval));
     ARCEMU_ASSERT(Config.MainConfig.tryGetBool("Server", "EnableBreathing", &server.enableBreathing));
-    ARCEMU_ASSERT(Config.MainConfig.tryGetBool("Server", "LimitedNames", &server.enableLimitedNames));
+    ARCEMU_ASSERT(Config.MainConfig.tryGetInt("Server", "LimitedNames", &server.enableLimitedNames));
     ARCEMU_ASSERT(Config.MainConfig.tryGetBool("Server", "UseAccountData", &server.useAccountData));
     ARCEMU_ASSERT(Config.MainConfig.tryGetBool("Server", "AllowPlayerCommands", &server.requireGmForCommands));
     ARCEMU_ASSERT(Config.MainConfig.tryGetBool("Server", "SaveExtendedCharData", &server.saveExtendedCharData));

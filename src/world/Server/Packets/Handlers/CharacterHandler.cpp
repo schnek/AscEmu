@@ -40,23 +40,30 @@ using namespace AscEmu::Packets;
 
 enum LanguageType
 {
-    LT_BASIC_LATIN    = 0x0000,
-    LT_EXTENDEN_LATIN = 0x0001,
-    LT_CYRILLIC       = 0x0002,
-    LT_EAST_ASIA      = 0x0004,
-    LT_ANY            = 0xFFFF
+    LT_BASIC_LATIN             = 0x0000,
+    LT_EXTENDEN_LATIN          = 0x0001,
+    LT_CYRILLIC                = 0x0002,
+    LT_EAST_ASIA               = 0x0004,
+    LT_ANY                     = 0xFFFF
+};
+
+enum LanguageStrictMask
+{
+    LANGUAGE_NULL              = 0x0,
+    LANGUAGE_LATIN             = 0x1,
+    LANGUAGE_SPECIFIC_ZONE     = 0x2
 };
 
 static LanguageType GetRealmLanguageType(bool create)
 {
     switch(worldConfig.server.gmtTimeZone)
     {
-        case TIME_ZONE_UNKNOWN:                             // any language
+        case TIME_ZONE_UNKNOWN:                                              // any language
         case TIME_ZONE_DEVELOPMENT:
         case TIME_ZONE_TEST_SERVER:
         case TIME_ZONE_QA_SERVER:
             return LT_ANY;
-        case TIME_ZONE_UNITED_STATES:                       // extended-Latin
+        case TIME_ZONE_UNITED_STATES:                                        // extended-Latin
         case TIME_ZONE_OCEANIC:
         case TIME_ZONE_LATIN_AMERICA:
         case TIME_ZONE_ENGLISH:
@@ -64,20 +71,20 @@ static LanguageType GetRealmLanguageType(bool create)
         case TIME_ZONE_FRENCH:
         case TIME_ZONE_SPANISH:
             return LT_EXTENDEN_LATIN;
-        case TIME_ZONE_KOREA:                               // East-Asian
+        case TIME_ZONE_KOREA:                                                // East-Asian
         case TIME_ZONE_TAIWAN:
         case TIME_ZONE_CHINA:
             return LT_EAST_ASIA;
-        case TIME_ZONE_RUSSIAN:                             // Cyrillic
+        case TIME_ZONE_RUSSIAN:                                              // Cyrillic
             return LT_CYRILLIC;
         default:
-            return create ? LT_BASIC_LATIN : LT_ANY;        // basic-Latin at create, any at login
+            return create ? LT_BASIC_LATIN : LT_ANY;                         // basic-Latin at create, any at login
     }
 }
 
 bool isVerifyName(std::wstring wstr, uint32 strictMask, bool numericOrSpace, bool create = false)
 {
-	if (strictMask == 0)                                     // any language, ignore realm
+	if (strictMask == LANGUAGE_NULL)                                         // any language, ignore realm
 	{
 		if (Util::isExtendedLatinString(wstr, numericOrSpace))
 			return true;
@@ -87,7 +94,12 @@ bool isVerifyName(std::wstring wstr, uint32 strictMask, bool numericOrSpace, boo
 			return true;
 		return false;
 	}
-	if (strictMask & 0x2)                                    // realm zone specific
+	if (strictMask & LANGUAGE_LATIN)                                         // basic latin
+	{
+		if (Util::isBasicLatinString(wstr, numericOrSpace))
+			return true;
+	}    
+	if (strictMask & LANGUAGE_SPECIFIC_ZONE)                                 // realm zone specific
 	{
 		LanguageType lt = GetRealmLanguageType(create);
 		if (lt & LT_EXTENDEN_LATIN)
@@ -100,11 +112,7 @@ bool isVerifyName(std::wstring wstr, uint32 strictMask, bool numericOrSpace, boo
 			if (Util::isEastAsianString(wstr, numericOrSpace))
 				return true;
 	}
-	if (strictMask & 0x1)                                    // basic latin
-	{
-		if (Util::isBasicLatinString(wstr, numericOrSpace))
-			return true;
-	}
+
 	return false;
 }
 

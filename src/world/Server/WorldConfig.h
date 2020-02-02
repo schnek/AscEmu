@@ -163,7 +163,7 @@ class SERVER_DECL WorldConfig
             uint32_t secondsBeforeKickAFKPlayers;
             uint32_t queueUpdateInterval;
             bool enableBreathing;
-            bool enableLimitedNames;
+            uint32_t enableLimitedNames;
             bool useAccountData;
             bool requireGmForCommands;
             bool saveExtendedCharData;
