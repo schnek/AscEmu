@@ -262,7 +262,12 @@
 #
 #    LimitedNames
 #        This directive forces all character names to be a-z and A-Z compliant.
-#        Default: 1 (enabled)
+#        Default: 0 (disabled)
+#                 1 (enabled)
+#                 2 Realm TimeZone specific (strict). See TimeZone setting.
+#                   - Note: In any case if you want correctly see character name at client this client must have apporopriate fonts 
+#                   (included in client by default, with active official localization or custom localization fonts in clientdir/Fonts).
+#                 3 Basic latin characters + server TimeZone specific.
 #
 #    UseAccountData
 #        This directive determines whether the account_data table is used to
@@ -295,7 +300,7 @@
         KickAFKPlayers       = "0"
         QueueUpdateInterval  = "5000"
         EnableBreathing      = "1"
-        LimitedNames         = "1"
+        LimitedNames         = "0"
         UseAccountData       = "0"
         AllowPlayerCommands  = "0"
         SaveExtendedCharData = "0"
