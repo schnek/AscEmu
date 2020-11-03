@@ -919,7 +919,10 @@ void World::loadMySQLTablesByTask()
     MAKE_TASK(ObjectMgr, LoadPlayersInfo);
     tl.wait();
 
-    MAKE_TASK(ObjectMgr, LoadInstanceBossInfos);
+#if VERSION_STRING >= WotLK
+    MAKE_TASK(ObjectMgr, LoadInstanceEncounters);
+#endif
+
     MAKE_TASK(ObjectMgr, LoadCreatureWaypoints);
     MAKE_TASK(ObjectMgr, LoadCreatureTimedEmotes);
     MAKE_TASK(ObjectMgr, LoadTrainers);
