@@ -58,14 +58,29 @@ struct WorldState
     }
 };
 
-typedef std::set<uint32> InstanceBossTrashList;
-struct InstanceBossInfo
+#if VERSION_STRING >= WotLK
+enum EncounterCreditType
 {
-    uint32 mapid;
-    uint32 creatureid;
-    InstanceBossTrashList trash;
-    uint32 trashRespawnOverride;
+    ENCOUNTER_CREDIT_KILL_CREATURE  = 0,
+    ENCOUNTER_CREDIT_CAST_SPELL     = 1
 };
+#endif
+
+#if VERSION_STRING >= WotLK
+struct DungeonEncounter
+{
+    DungeonEncounter(DBC::Structures::DungeonEncounterEntry const* _dbcEntry, EncounterCreditType _creditType, uint32_t _creditEntry, uint32_t _lastEncounterDungeon)
+        : dbcEntry(_dbcEntry), creditType(_creditType), creditEntry(_creditEntry), lastEncounterDungeon(_lastEncounterDungeon) { }
+
+    DBC::Structures::DungeonEncounterEntry const* dbcEntry;
+    EncounterCreditType creditType;
+    uint32_t creditEntry;
+    uint32_t lastEncounterDungeon;
+};
+
+typedef std::list<DungeonEncounter const*> DungeonEncounterList;
+typedef std::unordered_map<uint32_t, DungeonEncounterList> DungeonEncounterContainer;
+#endif
 
 struct GM_Ticket
 {
@@ -346,7 +361,6 @@ class Charter
 
 typedef std::unordered_map<uint32, Player*> PlayerStorageMap;
 typedef std::list<GM_Ticket*> GmTicketList;
-typedef std::map<uint32, InstanceBossInfo*> InstanceBossInfoMap;
 
 #if VERSION_STRING > TBC
 typedef std::list<DBC::Structures::AchievementCriteriaEntry const*> AchievementCriteriaEntryList;
@@ -427,7 +441,6 @@ class SERVER_DECL ObjectMgr : public EventableObject
 
         // object holders
         GmTicketList GM_TicketList;
-        InstanceBossInfoMap* m_InstanceBossInfoMap[MAX_NUM_MAPS];
         PlayerCacheMap m_playerCache;
         FastMutex m_playerCacheLock;
 
@@ -540,7 +553,6 @@ class SERVER_DECL ObjectMgr : public EventableObject
         void LoadCorpses(MapMgr* mgr);
         void LoadGMTickets();
         void SaveGMTicket(GM_Ticket* ticket, QueryBuffer* buf);
-        void LoadInstanceBossInfos();
         void LoadSpellSkills();
         void LoadVendors();
         void ReloadVendors();
@@ -637,6 +649,19 @@ class SERVER_DECL ObjectMgr : public EventableObject
 
         bool HandleInstanceReputationModifiers(Player* pPlayer, Unit* pVictim);
         void LoadInstanceReputationModifiers();
+        void LoadInstanceEncounters();
+
+
+#if VERSION_STRING >= WotLK
+        DungeonEncounterList const* GetDungeonEncounterList(uint32_t mapId, uint8_t difficulty)
+        {
+            std::unordered_map<uint32_t, DungeonEncounterList>::const_iterator itr = _dungeonEncounterStore.find(uint32(uint16(mapId) | (uint32(difficulty) << 16)));
+            if (itr != _dungeonEncounterStore.end())
+                return &itr->second;
+            return NULL;
+        }
+
+#endif
 
         inline bool IsSpellDisabled(uint32 spellid)
         {
@@ -674,6 +699,11 @@ class SERVER_DECL ObjectMgr : public EventableObject
 
         EventScriptMaps mEventScriptMaps;
         SpellEffectMaps mSpellEffectMaps;
+
+#if VERSION_STRING >= WotLK
+        DungeonEncounterContainer _dungeonEncounterStore;
+#endif
+
 #if VERSION_STRING >= Cata
         SpellsRequiringSpellMap mSpellsReqSpell;
         SpellRequiredMap mSpellReq;
