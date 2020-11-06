@@ -919,6 +919,9 @@ void World::loadMySQLTablesByTask()
     MAKE_TASK(ObjectMgr, LoadPlayersInfo);
     tl.wait();
 
+    MAKE_TASK(MySQLDataStore, loadCreatureSpawns);
+    MAKE_TASK(MySQLDataStore, loadGameobjectSpawns);
+
 #if VERSION_STRING >= WotLK
     MAKE_TASK(ObjectMgr, LoadInstanceEncounters);
 #endif
