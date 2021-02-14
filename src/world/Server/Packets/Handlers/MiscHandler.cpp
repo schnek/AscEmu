@@ -951,7 +951,7 @@ void WorldSession::handleSuggestionOpcode(WorldPacket& recvPacket)
     std::string suggestionMessage;
     suggestionMessage = recvPacket.ReadString(lenght);
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_SUGGESTIONS [Suggestion] lenght: %u message: %s", lenght, suggestionMessage.c_str());
+    LogDebugFlag(LF_OPCODE, "Received CMSG_SUGGESTION_SUBMIT [Suggestion] lenght: %u message: %s", lenght, suggestionMessage.c_str());
 
     uint64_t accountId = GetAccountId();
     uint32_t timeStamp = uint32_t(UNIXTIME);

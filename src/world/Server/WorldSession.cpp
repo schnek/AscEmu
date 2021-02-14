@@ -2863,7 +2863,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_REQUEST_HOTFIX].handler = &WorldSession::handleRequestHotfix;
     WorldPacketHandlers[CMSG_RETURN_TO_GRAVEYARD].handler = &WorldSession::handleReturnToGraveyardOpcode;
     WorldPacketHandlers[CMSG_BUG].handler = &WorldSession::handleBugOpcode;
-    WorldPacketHandlers[CMSG_SUGGESTION].handler = &WorldSession::handleSuggestionOpcode;
+    WorldPacketHandlers[CMSG_SUGGESTION_SUBMIT].handler = &WorldSession::handleSuggestionOpcode;
     WorldPacketHandlers[CMSG_LOG_DISCONNECT].handler = &WorldSession::handleLogDisconnectOpcode;
 
     // Chat
@@ -3469,7 +3469,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_REQUEST_HOTFIX].handler = &WorldSession::handleRequestHotfix;
     WorldPacketHandlers[CMSG_RETURN_TO_GRAVEYARD].handler = &WorldSession::handleReturnToGraveyardOpcode;
     WorldPacketHandlers[CMSG_BUG].handler = &WorldSession::handleBugOpcode;
-    WorldPacketHandlers[CMSG_SUGGESTION].handler = &WorldSession::handleSuggestionOpcode;
+    WorldPacketHandlers[CMSG_SUGGESTION_SUBMIT].handler = &WorldSession::handleSuggestionOpcode;
     WorldPacketHandlers[CMSG_LOG_DISCONNECT].handler = &WorldSession::handleLogDisconnectOpcode;
 
     // Chat
