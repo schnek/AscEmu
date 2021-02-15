@@ -12,18 +12,18 @@ This file is released under the MIT license. See README-MIT for more information
 #if VERSION_STRING < WotLK
 namespace AscEmu::Packets
 {
-    class SmsgUpdateAuraDuration : public ManagedPacket
+    class SmsgEquipmentSetId : public ManagedPacket
     {
     public:
         uint8_t slot;
         uint32_t duration;
 
-        SmsgUpdateAuraDuration() : SmsgUpdateAuraDuration(0, 0)
+        SmsgEquipmentSetId() : SmsgEquipmentSetId(0, 0)
         {
         }
 
-        SmsgUpdateAuraDuration(uint8_t slot, uint32_t duration) :
-            ManagedPacket(SMSG_UPDATE_AURA_DURATION, sizeof(uint8_t) + sizeof(uint32_t)),
+        SmsgEquipmentSetId(uint8_t slot, uint32_t duration) :
+            ManagedPacket(SMSG_EQUIPMENT_SET_ID, sizeof(uint8_t) + sizeof(uint32_t)),
             slot(slot),
             duration(duration)
         {

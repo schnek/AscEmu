@@ -238,8 +238,8 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/MovementPacket.h
    ${PATH_PREFIX}/MsgAuctionHello.h
    ${PATH_PREFIX}/MsgBattlegroundPlayerPosition.h
-   ${PATH_PREFIX}/MsgChannelStart.h
-   ${PATH_PREFIX}/MsgChannelUpdate.h
+   ${PATH_PREFIX}/MsgSpellChannelStart.h
+   ${PATH_PREFIX}/SmsgSpellChannelUpdate.h
    ${PATH_PREFIX}/MsgCorpseQuery.h
    ${PATH_PREFIX}/MsgGuildBankLogQuery.h
    ${PATH_PREFIX}/MsgGuildBankMoneyWithdrawn.h
@@ -504,7 +504,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgTriggerMovie.h
    ${PATH_PREFIX}/SmsgTutorialFlags.h
    ${PATH_PREFIX}/SmsgUpdateAccountDataComplete.h
-   ${PATH_PREFIX}/SmsgUpdateAuraDuration.h
+   ${PATH_PREFIX}/SmsgEquipmentSetId.h
    ${PATH_PREFIX}/SmsgUpdateInstanceEncounterUnit.h
    ${PATH_PREFIX}/SmsgUpdateInstanceOwnership.h
    ${PATH_PREFIX}/SmsgUpdateLastInstance.h

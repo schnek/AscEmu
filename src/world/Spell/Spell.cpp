@@ -39,8 +39,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/ObjectMgr.h"
 #include "Server/Definitions.h"
 #include "Server/Packets/SmsgCancelCombat.h"
-#include "Server/Packets/MsgChannelUpdate.h"
-#include "Server/Packets/MsgChannelStart.h"
+#include "Server/Packets/SmsgSpellChannelUpdate.h"
+#include "Server/Packets/MsgSpellChannelStart.h"
 #include "Storage/MySQLDataStore.hpp"
 #include "Units/Creatures/CreatureDefines.hpp"
 #include "Units/Creatures/Pet.h"
@@ -4158,7 +4158,7 @@ void Spell::sendChannelUpdate(const uint32_t time, const uint32_t diff/* = 0*/)
         }
     }
 
-    m_caster->SendMessageToSet(MsgChannelUpdate(m_caster->GetNewGUID(), time).serialise().get(), true);
+    m_caster->SendMessageToSet(SmsgSpellChannelUpdate(m_caster->GetNewGUID(), time).serialise().get(), true);
 }
 
 void Spell::sendSpellStart()
@@ -4361,7 +4361,7 @@ void Spell::sendSpellGo()
 
 void Spell::sendChannelStart(const uint32_t duration)
 {
-    m_caster->SendMessageToSet(MsgChannelStart(m_caster->GetNewGUID(), getSpellInfo()->getId(), duration).serialise().get(), true);
+    m_caster->SendMessageToSet(MsgSpellChannelStart(m_caster->GetNewGUID(), getSpellInfo()->getId(), duration).serialise().get(), true);
 
     Object const* channelTarget = nullptr;
     if (!uniqueHittedTargets.empty())

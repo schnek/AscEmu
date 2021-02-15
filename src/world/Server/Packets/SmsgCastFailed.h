@@ -25,7 +25,7 @@ namespace AscEmu::Packets
         }
 
         SmsgCastFailed(uint8_t multiCast, uint32_t spellId, uint8_t errorMsg, uint32_t extra1, uint32_t extra2) :
-            ManagedPacket(SMSG_CAST_FAILED, 0),
+            ManagedPacket(SMSG_CAST_RESULT, 0),
             multiCast(multiCast),
             spellId(spellId),
             errorMsg(errorMsg),

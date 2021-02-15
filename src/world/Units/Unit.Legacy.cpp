@@ -45,7 +45,7 @@
 #include "Spell/Definitions/SpellDamageType.h"
 #include "Creatures/Pet.h"
 #include "Data/WoWUnit.hpp"
-#include "Server/Packets/SmsgUpdateAuraDuration.h"
+#include "Server/Packets/SmsgEquipmentSetId.h"
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
 #include "Server/Packets/SmsgEmote.h"
 #include "Server/Packets/SmsgAttackStart.h"

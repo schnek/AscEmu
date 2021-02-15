@@ -24,7 +24,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgSpellHealLog.h"
 #include "Server/Packets/SmsgSpellOrDamageImmune.h"
 #include "Server/Packets/SmsgStandstateUpdate.h"
-#include "Server/Packets/SmsgUpdateAuraDuration.h"
+#include "Server/Packets/SmsgEquipmentSetId.h"
 #include "Server/Opcodes.hpp"
 #include "Server/WorldSession.h"
 #include "Spell/Definitions/AuraInterruptFlags.h"
@@ -3309,11 +3309,11 @@ void Unit::sendAuraUpdate(Aura* aur, bool remove)
     {
 #if VERSION_STRING == Classic
         if (isPlayer() && !aur->IsPassive())
-            static_cast<Player*>(this)->SendMessageToSet(SmsgUpdateAuraDuration(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
+            static_cast<Player*>(this)->SendMessageToSet(SmsgEquipmentSetId(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
 #else
         if (isPlayer() && !aur->IsPassive() && !(aur->getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_HIDE_DURATION))
         {
-            static_cast<Player*>(this)->SendMessageToSet(SmsgUpdateAuraDuration(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
+            static_cast<Player*>(this)->SendMessageToSet(SmsgEquipmentSetId(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
 
             auto guid = GetNewGUID();
             static_cast<Player*>(this)->SendMessageToSet(SmsgSetExtraAuraInfo(&guid, aur->m_visualSlot, aur->getSpellId(), aur->getMaxDuration(), aur->getTimeLeft()).serialise().get(), true);

@@ -42,9 +42,9 @@
 #include "Definitions/SpellMechanics.h"
 #include "Definitions/PowerType.h"
 #include "Units/Creatures/Pet.h"
-#include "Server/Packets/SmsgUpdateAuraDuration.h"
+#include "Server/Packets/SmsgEquipmentSetId.h"
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
-#include "Server/Packets/MsgChannelUpdate.h"
+#include "Server/Packets/SmsgSpellChannelUpdate.h"
 #include "Server/Packets/SmsgSpellOrDamageImmune.h"
 #include "Server/Packets/SmsgPlayerVehicleData.h"
 #include "Server/Packets/SmsgSetForceReactions.h"
@@ -5710,7 +5710,7 @@ void Aura::SpellAuraModBlockValue(AuraEffectModifier* aurEff, bool apply)
 
 void Aura::SendChannelUpdate(uint32 time, Object* m_caster)
 {
-    m_caster->SendMessageToSet(MsgChannelUpdate(m_caster->GetNewGUID(), time).serialise().get(), true);
+    m_caster->SendMessageToSet(SmsgSpellChannelUpdate(m_caster->GetNewGUID(), time).serialise().get(), true);
 }
 
 void Aura::SpellAuraExpertise(AuraEffectModifier* /*aurEff*/, bool /*apply*/)

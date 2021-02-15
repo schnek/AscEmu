@@ -441,7 +441,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgTradeStatus.h"
 #include "Server/Packets/SmsgTrainerBuySucceeded.h"
 #include "Server/Packets/SmsgTutorialFlags.h"
-#include "Server/Packets/SmsgUpdateAuraDuration.h"
+#include "Server/Packets/SmsgEquipmentSetId.h"
 #include "Server/Packets/SmsgWorldStateUiTimerUpdate.h"
 #include "Server/Packets/Movement/CreatureMovement.h"
 
