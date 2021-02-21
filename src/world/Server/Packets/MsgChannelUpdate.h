@@ -12,37 +12,27 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class MsgSpellChannelStart : public ManagedPacket
+    class MsgChannelUpdate : public ManagedPacket
     {
     public:
         WoWGuid casterGuid;
-        uint32_t spellId;
-        uint32_t duration;
+        uint32_t time;
 
-        MsgSpellChannelStart() : MsgSpellChannelStart(WoWGuid(), 0, 0)
+        MsgChannelUpdate() : MsgChannelUpdate(WoWGuid(), 0)
         {
         }
 
-        MsgSpellChannelStart(WoWGuid casterGuid, uint32_t spellId, uint32_t duration) :
-            ManagedPacket(SMSG_SPELL_CHANNEL_START, 8),
+        MsgChannelUpdate(WoWGuid casterGuid, uint32_t time) :
+            ManagedPacket(MSG_CHANNEL_UPDATE, 8 + 4),
             casterGuid(casterGuid),
-            spellId(spellId),
-            duration(duration)
+            time(time)
         {
         }
 
     protected:
         bool internalSerialise(WorldPacket& packet) override
         {
-#if VERSION_STRING >= TBC
-            packet << casterGuid;
-#endif
-            
-            packet << spellId << duration;
-
-#if VERSION_STRING >= Cata
-            packet << uint8_t(0) << uint8_t(0);
-#endif
+            packet << casterGuid << time;
 
             return true;
         }
