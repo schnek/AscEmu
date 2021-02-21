@@ -297,7 +297,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgBuyFailed.h
    ${PATH_PREFIX}/SmsgBuyItem.h
    ${PATH_PREFIX}/SmsgCancelCombat.h
-   ${PATH_PREFIX}/SmsgCastFailed.h
+   ${PATH_PREFIX}/SmsgCastResult.h
    ${PATH_PREFIX}/SmsgChannelList.h
    ${PATH_PREFIX}/SmsgChannelMemberCount.h
    ${PATH_PREFIX}/SmsgChannelNotify.h
@@ -399,7 +399,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgLootRemoved.h
    ${PATH_PREFIX}/SmsgLootRoll.h
    ${PATH_PREFIX}/SmsgLootRollWon.h
-   ${PATH_PREFIX}/SmsgMeetingstoneSetQueue.h
+   ${PATH_PREFIX}/SmsgTestDropRateResult.h
    ${PATH_PREFIX}/SmsgMessageChat.h
    ${PATH_PREFIX}/SmsgMonsterMoveTransport.h
    ${PATH_PREFIX}/SmsgMotd.h

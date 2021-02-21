@@ -2405,7 +2405,6 @@ static std::map<uint32_t, MultiversionOpcodeTable> multiversionOpcodeStore =
 {SMSG_SCRIPT_MESSAGE, {0x1F, "SMSG_SCRIPT_MESSAGE", OpcodeDevelopmentState::Unchecked, {0x2B6,/*Classic*/ 0x2B6,/*BC*/ 0x2B6,/*WotLK*/ 0x2B6,/*Cata*/ 0x0000/*Mop*/}}},
 {SMSG_DUEL_COUNTDOWN, {0x1F, "SMSG_DUEL_COUNTDOWN", OpcodeDevelopmentState::Unchecked, {0x2B7,/*Classic*/ 0x2B7,/*BC*/ 0x2B7,/*WotLK*/ 0x4836,/*Cata*/ 0x129F/*Mop*/}}},
 {SMSG_AREA_TRIGGER_MESSAGE, {0x1F, "SMSG_AREA_TRIGGER_MESSAGE", OpcodeDevelopmentState::Unchecked, {0x2B8,/*Classic*/ 0x2B8,/*BC*/ 0x2B8,/*WotLK*/ 0x4505,/*Cata*/ 0x0000/*Mop*/}}},//////////////////////////////////////
-
 {CMSG_TOGGLE_HELM, {0x1F, "CMSG_TOGGLE_HELM", OpcodeDevelopmentState::Unchecked, {0x2B9,/*Classic*/ 0x2B9,/*BC*/ 0x2B9,/*WotLK*/ 0x2B9,/*Cata*/ 0x2B9/*Mop*/}}},
 {CMSG_TOGGLE_CLOAK, {0x1F, "CMSG_TOGGLE_CLOAK", OpcodeDevelopmentState::Unchecked, {0x2BA,/*Classic*/ 0x2BA,/*BC*/ 0x2BA,/*WotLK*/ 0x2BA,/*Cata*/ 0x2BA/*Mop*/}}},
 {SMSG_MEETINGSTONE_JOINFAILED, {0x3, "SMSG_MEETINGSTONE_JOINFAILED", OpcodeDevelopmentState::Unchecked, {0x2BB,/*Classic*/ 0x2BB,/*BC*/ 0,/*WotLK*/ 0,/*Cata*/ 0/*Mop*/}}},

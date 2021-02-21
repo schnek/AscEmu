@@ -10,18 +10,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgMeetingstoneSetQueue : public ManagedPacket
+    class SmsgTestDropRateResult : public ManagedPacket
     {
     public:
         uint32_t dungeonId;
         uint8_t status;
 
-        SmsgMeetingstoneSetQueue() : SmsgMeetingstoneSetQueue(0, 0)
+        SmsgTestDropRateResult() : SmsgTestDropRateResult(0, 0)
         {
         }
 
-        SmsgMeetingstoneSetQueue(uint32_t dungeonId, uint8_t status) :
-            ManagedPacket(SMSG_MEETINGSTONE_SETQUEUE, 0),
+        SmsgTestDropRateResult(uint32_t dungeonId, uint8_t status) :
+            ManagedPacket(SMSG_TEST_DROP_RATE_RESULT, 0),
             dungeonId(dungeonId),
             status(status)
         {

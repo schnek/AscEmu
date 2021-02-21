@@ -1185,7 +1185,7 @@ public:
     void sendPoiById(uint32_t id);
 
     void sendStopMirrorTimerPacket(MirrorTimerTypes type);
-    void sendMeetingStoneSetQueuePacket(uint32_t dungeonId, uint8_t status);
+    void sendTestDropRateResultPacket(uint32_t dungeonId, uint8_t status);
     void sendPlayObjectSoundPacket(uint64_t objectGuid, uint32_t soundId);
     void sendPlaySoundPacket(uint32_t soundId);
     void sendExploreExperiencePacket(uint32_t areaId, uint32_t experience);

@@ -30,7 +30,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgTotemCreated.h"
 #include "Server/Packets/SmsgGossipPoi.h"
 #include "Server/Packets/SmsgStopMirrorTimer.h"
-#include "Server/Packets/SmsgMeetingstoneSetQueue.h"
+#include "Server/Packets/SmsgTestDropRateResult.h"
 #include "Server/Packets/SmsgPlayObjectSound.h"
 #include "Server/Packets/SmsgPlaySound.h"
 #include "Server/Packets/SmsgExplorationExperience.h"
@@ -41,7 +41,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgMountResult.h"
 #include "Server/Packets/SmsgDismountResult.h"
 #include "Server/Packets/SmsgLogXpGain.h"
-#include "Server/Packets/SmsgCastFailed.h"
+#include "Server/Packets/SmsgCastResult.h"
 #include "Server/Packets/SmsgLevelupInfo.h"
 #include "Server/Packets/SmsgItemPushResult.h"
 #include "Server/Packets/SmsgClientControlUpdate.h"
@@ -3529,9 +3529,9 @@ void Player::sendStopMirrorTimerPacket(MirrorTimerTypes type)
     m_session->SendPacket(SmsgStopMirrorTimer(type).serialise().get());
 }
 
-void Player::sendMeetingStoneSetQueuePacket(uint32_t dungeonId, uint8_t status)
+void Player::sendTestDropRateResultPacket(uint32_t dungeonId, uint8_t status)
 {
-    m_session->SendPacket(SmsgMeetingstoneSetQueue(dungeonId, status).serialise().get());
+    m_session->SendPacket(SmsgTestDropRateResult(dungeonId, status).serialise().get());
 }
 
 void Player::sendPlayObjectSoundPacket(uint64_t objectGuid, uint32_t soundId)
@@ -3584,7 +3584,7 @@ void Player::sendLogXpGainPacket(uint64_t guid, uint32_t normalXp, uint32_t rest
 
 void Player::sendCastFailedPacket(uint32_t spellId, uint8_t errorMessage, uint8_t multiCast, uint32_t extra1, uint32_t extra2 /*= 0*/)
 {
-    m_session->SendPacket(SmsgCastFailed(multiCast, spellId, errorMessage, extra1, extra2).serialise().get());
+    m_session->SendPacket(SmsgCastResult(multiCast, spellId, errorMessage, extra1, extra2).serialise().get());
 }
 
 void Player::sendLevelupInfoPacket(uint32_t level, uint32_t hp, uint32_t mana, uint32_t stat0, uint32_t stat1, uint32_t stat2, uint32_t stat3, uint32_t stat4)

@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgCastFailed : public ManagedPacket
+    class SmsgCastResult : public ManagedPacket
     {
     public:
         uint8_t multiCast;
@@ -20,11 +20,11 @@ namespace AscEmu::Packets
         uint32_t extra1;
         uint32_t extra2;
 
-        SmsgCastFailed() : SmsgCastFailed(0, 0, 0, 0, 0)
+        SmsgCastResult() : SmsgCastResult(0, 0, 0, 0, 0)
         {
         }
 
-        SmsgCastFailed(uint8_t multiCast, uint32_t spellId, uint8_t errorMsg, uint32_t extra1, uint32_t extra2) :
+        SmsgCastResult(uint8_t multiCast, uint32_t spellId, uint8_t errorMsg, uint32_t extra1, uint32_t extra2) :
             ManagedPacket(SMSG_CAST_RESULT, 0),
             multiCast(multiCast),
             spellId(spellId),
