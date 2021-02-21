@@ -38,7 +38,7 @@
 #include "Objects/Faction.h"
 #include "Common.hpp"
 #include "Management/LFG/LFGMgr.hpp"
-#include "Server/Packets/SmsgUpdateInstanceEncounterUnit.h"
+#include "Server/Packets/SmsgInstanceEncounter.h"
 
 using namespace AscEmu::Packets;
 
@@ -1039,7 +1039,7 @@ void InstanceScript::generateBossDataState()
 void InstanceScript::sendUnitEncounter(uint32_t type, Unit* unit, uint8_t value_a, uint8_t value_b)
 {
     MapMgr* instance = GetInstance();
-    instance->SendPacketToAllPlayers(SmsgUpdateInstanceEncounterUnit(type, unit ? unit->GetNewGUID() : WoWGuid(), value_a, value_b).serialise().get());
+    instance->SendPacketToAllPlayers(SmsgInstanceEncounter(type, unit ? unit->GetNewGUID() : WoWGuid(), value_a, value_b).serialise().get());
 }
 
 void InstanceScript::displayDataStateList(Player* player)

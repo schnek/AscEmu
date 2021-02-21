@@ -12,7 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgUpdateInstanceEncounterUnit : public ManagedPacket
+    class SmsgInstanceEncounter : public ManagedPacket
     {
     public:
         uint32_t type;
@@ -20,12 +20,12 @@ namespace AscEmu::Packets
         uint8_t valueA;
         uint8_t valueB;
 
-        SmsgUpdateInstanceEncounterUnit() : SmsgUpdateInstanceEncounterUnit(0, WoWGuid(), 0, 0)
+        SmsgInstanceEncounter() : SmsgInstanceEncounter(0, WoWGuid(), 0, 0)
         {
         }
 
-        SmsgUpdateInstanceEncounterUnit(uint32_t type, WoWGuid guid, uint8_t valueA, uint8_t valueB) :
-            ManagedPacket(SMSG_UPDATE_INSTANCE_ENCOUNTER_UNIT, 13),
+        SmsgInstanceEncounter(uint32_t type, WoWGuid guid, uint8_t valueA, uint8_t valueB) :
+            ManagedPacket(SMSG_INSTANCE_ENCOUNTER, 13),
             type(type), guid(guid), valueA(valueA), valueB(valueB)
         {
         }

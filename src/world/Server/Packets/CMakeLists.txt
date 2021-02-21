@@ -505,7 +505,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgTutorialFlags.h
    ${PATH_PREFIX}/SmsgUpdateAccountDataComplete.h
    ${PATH_PREFIX}/SmsgEquipmentSetId.h
-   ${PATH_PREFIX}/SmsgUpdateInstanceEncounterUnit.h
+   ${PATH_PREFIX}/SmsgInstanceEncounter.h
    ${PATH_PREFIX}/SmsgUpdateInstanceOwnership.h
    ${PATH_PREFIX}/SmsgUpdateLastInstance.h
    ${PATH_PREFIX}/SmsgUpdateObject.h
