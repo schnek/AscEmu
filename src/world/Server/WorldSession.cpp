@@ -1095,7 +1095,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GUILD_DISBAND].handler = &WorldSession::handleGuildDisband;
     WorldPacketHandlers[CMSG_GUILD_LEADER].handler = &WorldSession::handleGuildLeader;
     WorldPacketHandlers[CMSG_GUILD_MOTD].handler = &WorldSession::handleGuildMotd;
-    WorldPacketHandlers[CMSG_GUILD_SET_RANK].handler = &WorldSession::handleGuildSetRank;
+    WorldPacketHandlers[CMSG_GUILD_RANK].handler = &WorldSession::handleGuildSetRank;
     WorldPacketHandlers[CMSG_GUILD_ADD_RANK].handler = &WorldSession::handleGuildAddRank;
     WorldPacketHandlers[CMSG_GUILD_DEL_RANK].handler = &WorldSession::handleGuildDelRank;
     WorldPacketHandlers[CMSG_GUILD_SET_PUBLIC_NOTE].handler = &WorldSession::handleGuildSetPublicNote;
@@ -2160,7 +2160,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GUILD_DISBAND].handler = &WorldSession::handleGuildDisband;
     WorldPacketHandlers[CMSG_GUILD_LEADER].handler = &WorldSession::handleGuildLeader;
     WorldPacketHandlers[CMSG_GUILD_MOTD].handler = &WorldSession::handleGuildMotd;
-    WorldPacketHandlers[CMSG_GUILD_SET_RANK].handler = &WorldSession::handleGuildSetRank;
+    WorldPacketHandlers[CMSG_GUILD_RANK].handler = &WorldSession::handleGuildSetRank;
     WorldPacketHandlers[CMSG_GUILD_ADD_RANK].handler = &WorldSession::handleGuildAddRank;
     WorldPacketHandlers[CMSG_GUILD_DEL_RANK].handler = &WorldSession::handleGuildDelRank;
     WorldPacketHandlers[CMSG_GUILD_SET_PUBLIC_NOTE].handler = &WorldSession::handleGuildSetPublicNote;
@@ -2753,7 +2753,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GUILD_BANK_DEPOSIT_MONEY].handler = &WorldSession::handleGuildBankDepositMoney;
     WorldPacketHandlers[CMSG_SET_GUILD_BANK_TEXT].handler = &WorldSession::handleSetGuildBankText;
     WorldPacketHandlers[CMSG_QUERY_GUILD_XP].handler = &WorldSession::handleGuildQueryXPOpcode;
-    WorldPacketHandlers[CMSG_GUILD_SET_RANK].handler = &WorldSession::handleGuildSetRank;
+    WorldPacketHandlers[CMSG_GUILD_RANK].handler = &WorldSession::handleGuildSetRank;
     WorldPacketHandlers[CMSG_GUILD_SET_NOTE].handler = &WorldSession::handleGuildSetNoteOpcode;
     WorldPacketHandlers[CMSG_QUERY_GUILD_REWARDS].handler = &WorldSession::handleGuildRewardsQueryOpcode;
     WorldPacketHandlers[CMSG_GUILD_QUERY_RANKS].handler = &WorldSession::handleGuildQueryRanksOpcode;
@@ -3359,7 +3359,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GUILD_BANK_DEPOSIT_MONEY].handler = &WorldSession::handleGuildBankDepositMoney;
     WorldPacketHandlers[CMSG_SET_GUILD_BANK_TEXT].handler = &WorldSession::handleSetGuildBankText;
     WorldPacketHandlers[CMSG_QUERY_GUILD_XP].handler = &WorldSession::handleGuildQueryXPOpcode;
-    WorldPacketHandlers[CMSG_GUILD_SET_RANK].handler = &WorldSession::handleGuildSetRank;
+    WorldPacketHandlers[CMSG_GUILD_RANK].handler = &WorldSession::handleGuildSetRank;
     WorldPacketHandlers[CMSG_GUILD_SET_NOTE].handler = &WorldSession::handleGuildSetNoteOpcode;
     WorldPacketHandlers[CMSG_QUERY_GUILD_REWARDS].handler = &WorldSession::handleGuildRewardsQueryOpcode;
     WorldPacketHandlers[CMSG_GUILD_QUERY_RANKS].handler = &WorldSession::handleGuildQueryRanksOpcode;

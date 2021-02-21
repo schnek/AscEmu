@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgGuildSetRank : public ManagedPacket
+    class CmsgGuildRank : public ManagedPacket
     {
     public:
         uint32_t newRankId;
@@ -25,12 +25,12 @@ namespace AscEmu::Packets
 
         GuildBankRightsAndSlotsVec _rightsAndSlots;
 
-        CmsgGuildSetRank() : CmsgGuildSetRank(0, 0, "", 0)
+        CmsgGuildRank() : CmsgGuildRank(0, 0, "", 0)
         {
         }
 
-        CmsgGuildSetRank(uint32_t newRankId, uint32_t newRights, std::string rankName, uint32_t moneyPerDay) :
-            ManagedPacket(CMSG_GUILD_SET_RANK, 4 + 4 + 1 + 4),
+        CmsgGuildRank(uint32_t newRankId, uint32_t newRights, std::string rankName, uint32_t moneyPerDay) :
+            ManagedPacket(CMSG_GUILD_RANK, 4 + 4 + 1 + 4),
             newRankId(newRankId),
             newRights(newRights),
             rankName(rankName),

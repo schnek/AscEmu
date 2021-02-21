@@ -284,7 +284,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgGuildSetNote.h"
 #include "Server/Packets/CmsgGuildSetOfficerNote.h"
 #include "Server/Packets/CmsgGuildSetPublicNote.h"
-#include "Server/Packets/CmsgGuildSetRank.h"
+#include "Server/Packets/CmsgGuildRank.h"
 #include "Server/Packets/CmsgInitiateTrade.h"
 #include "Server/Packets/CmsgInspectAchievements.h"
 #include "Server/Packets/CmsgItemNameQuery.h"

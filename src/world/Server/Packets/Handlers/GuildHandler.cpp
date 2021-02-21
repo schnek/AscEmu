@@ -33,7 +33,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgGuildBankQueryText.h"
 #include "Server/Packets/CmsgGuildBankQueryTab.h"
 #include "Server/Packets/CmsgGuildBankerActivate.h"
-#include "Server/Packets/CmsgGuildSetRank.h"
+#include "Server/Packets/CmsgGuildRank.h"
 #include "Map/MapMgr.h"
 #include "Server/Packets/CmsgPetitionShowSignatures.h"
 #include "Server/Packets/SmsgPetitionShowSignatures.h"
@@ -487,7 +487,7 @@ void WorldSession::handleGuildBankMoneyWithdrawn(WorldPacket& /*recvPacket*/)
 
 void WorldSession::handleGuildSetRank(WorldPacket& recvPacket)
 {
-    CmsgGuildSetRank srlPacket;
+    CmsgGuildRank srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
