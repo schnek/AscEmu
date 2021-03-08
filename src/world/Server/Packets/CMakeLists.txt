@@ -190,7 +190,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/CmsgRequestRatedBgInfo.h
    ${PATH_PREFIX}/CmsgRequestVehicleSwitchSeat.h
    ${PATH_PREFIX}/CmsgResurrectResponse.h
-   ${PATH_PREFIX}/CmsgSearchLfgJoin.h
+   ${PATH_PREFIX}/CmsgLfgSearchJoin.h
    ${PATH_PREFIX}/CmsgSearchLfgLeave.h
    ${PATH_PREFIX}/CmsgSellItem.h
    ${PATH_PREFIX}/CmsgSendMail.h

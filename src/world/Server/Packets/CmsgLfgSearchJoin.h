@@ -12,18 +12,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgSearchLfgJoin : public ManagedPacket
+    class CmsgLfgSearchJoin : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint32_t entry;
 
-        CmsgSearchLfgJoin() : CmsgSearchLfgJoin(0)
+        CmsgLfgSearchJoin() : CmsgLfgSearchJoin(0)
         {
         }
 
-        CmsgSearchLfgJoin(uint32_t entry) :
-            ManagedPacket(CMSG_SEARCH_LFG_JOIN, 4),
+        CmsgLfgSearchJoin(uint32_t entry) :
+            ManagedPacket(CMSG_LFG_SEARCH_JOIN, 4),
             entry(entry)
         {
         }

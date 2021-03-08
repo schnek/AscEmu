@@ -16,7 +16,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgLfgSetRoles.h"
 #include "Server/Packets/CmsgLfgProposalResult.h"
 #include "Server/Packets/SmsgLfgRoleChosen.h"
-#include "Server/Packets/CmsgSearchLfgJoin.h"
+#include "Server/Packets/CmsgLfgSearchJoin.h"
 #include "Server/Packets/CmsgSearchLfgLeave.h"
 
 using namespace AscEmu::Packets;
@@ -361,11 +361,11 @@ void WorldSession::sendLfgBootPlayer(const LfgPlayerBoot* pBoot)
         }
     }
 
-    LogDebugFlag(LF_OPCODE, "SMSG_LFG_BOOT_PROPOSAL_UPDATE %u inProgress: %u - didVote: %u - agree: %u - victim: %u votes: %u - agrees: %u - left: %u - needed: %u - reason %s",
+    LogDebugFlag(LF_OPCODE, "SMSG_LFG_BOOT_PLAYER %u inProgress: %u - didVote: %u - agree: %u - victim: %u votes: %u - agrees: %u - left: %u - needed: %u - reason %s",
         guid, uint8_t(pBoot->inProgress), uint8_t(playerVote != LFG_ANSWER_PENDING), uint8_t(playerVote == LFG_ANSWER_AGREE),
         pBoot->victim, votesNum, agreeNum, secsleft, pBoot->votedNeeded, pBoot->reason.c_str());
 
-    WorldPacket data(SMSG_LFG_BOOT_PROPOSAL_UPDATE, 1 + 1 + 1 + 8 + 4 + 4 + 4 + 4 + pBoot->reason.length());
+    WorldPacket data(SMSG_LFG_BOOT_PLAYER, 1 + 1 + 1 + 8 + 4 + 4 + 4 + 4 + pBoot->reason.length());
 
     data << uint8_t(pBoot->inProgress);                      // Vote in progress
     data << uint8_t(playerVote != LFG_ANSWER_PENDING);       // Did Vote
@@ -551,11 +551,11 @@ void WorldSession::handleLfgLeaveOpcode(WorldPacket& /*recvPacket*/)
 
 void WorldSession::handleLfgSearchOpcode(WorldPacket& recvPacket)
 {
-    CmsgSearchLfgJoin srlPacket;
+    CmsgLfgSearchJoin srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_SEARCH_LFG_JOIN for guid %lld dungeon entry: %u",
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_SEARCH_JOIN for guid %lld dungeon entry: %u",
         _player->getGuid(), srlPacket.entry);
 }
 
@@ -602,7 +602,7 @@ void WorldSession::handleLfgSetBootVoteOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_SET_BOOT_VOTE %lld agree: %u",
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_BOOT_PLAYER_VOTE %lld agree: %u",
         _player->getGuid(), srlPacket.voteFor ? 1 : 0);
 
     sLfgMgr.UpdateBoot(_player, srlPacket.voteFor);
@@ -703,7 +703,7 @@ void WorldSession::handleLfgPartyLockInfoRequestOpcode(WorldPacket& /*recvPacket
 {
     uint64_t guid = _player->getGuid();
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_LFD_PARTY_LOCK_INFO_REQUEST guid %lld", guid);
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_GET_PARTY_INFO guid %lld", guid);
 
     Group* grp = _player->getGroup();
     if (!grp)

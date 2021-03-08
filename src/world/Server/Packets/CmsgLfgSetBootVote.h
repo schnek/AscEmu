@@ -23,7 +23,7 @@ namespace AscEmu::Packets
         }
 
         CmsgLfgSetBootVote(bool voteFor) :
-            ManagedPacket(CMSG_LFG_SET_BOOT_VOTE, 1),
+            ManagedPacket(CMSG_LFG_BOOT_PLAYER_VOTE, 1),
             voteFor(voteFor)
         {
         }
