@@ -12,18 +12,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgSearchLfgLeave : public ManagedPacket
+    class CmsgLfgSearchLeave : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint32_t entry;
 
-        CmsgSearchLfgLeave() : CmsgSearchLfgLeave(0)
+        CmsgLfgSearchLeave() : CmsgLfgSearchLeave(0)
         {
         }
 
-        CmsgSearchLfgLeave(uint32_t entry) :
-            ManagedPacket(CMSG_SEARCH_LFG_LEAVE, 4),
+        CmsgLfgSearchLeave(uint32_t entry) :
+            ManagedPacket(CMSG_LFG_SEARCH_LEAVE, 4),
             entry(entry)
         {
         }

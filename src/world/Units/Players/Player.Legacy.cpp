@@ -11691,13 +11691,13 @@ void Player::SendEquipmentSetList()
 void Player::SendEquipmentSetSaved(uint32 setID, uint32 setGUID)
 {
 #if VERSION_STRING > TBC
-    WorldPacket data(SMSG_EQUIPMENT_SET_SAVED, 12);
+    WorldPacket data(SMSG_EQUIPMENT_SET_ID, 12);
     data << uint32(setID);
     data << WoWGuid(uint64(setGUID));
 
     m_session->SendPacket(&data);
 
-    LOG_DEBUG("Sent SMSG_EQUIPMENT_SET_SAVED.");
+    LOG_DEBUG("Sent SMSG_EQUIPMENT_SET_ID.");
 #endif
 }
 

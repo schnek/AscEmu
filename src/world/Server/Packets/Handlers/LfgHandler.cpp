@@ -17,7 +17,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgLfgProposalResult.h"
 #include "Server/Packets/SmsgLfgRoleChosen.h"
 #include "Server/Packets/CmsgLfgSearchJoin.h"
-#include "Server/Packets/CmsgSearchLfgLeave.h"
+#include "Server/Packets/CmsgLfgSearchLeave.h"
 
 using namespace AscEmu::Packets;
 
@@ -561,11 +561,11 @@ void WorldSession::handleLfgSearchOpcode(WorldPacket& recvPacket)
 
 void WorldSession::handleLfgSearchLeaveOpcode(WorldPacket& recvPacket)
 {
-    CmsgSearchLfgLeave srlPacket;
+    CmsgLfgSearchLeave srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_SEARCH_LFG_LEAVE for guid %lld dungeonId: %u",
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_SEARCH_LEAVE for guid %lld dungeonId: %u",
         _player->getGuid(), srlPacket.entry);
 }
 

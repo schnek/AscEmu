@@ -1855,7 +1855,7 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
         _player->UpdateComboPoints();
 
     ByteBuffer packedGuid;
-    WorldPacket data(SMSG_INSPECT_TALENT, 1000);
+    WorldPacket data(SMSG_INSPECT_RESULTS, 1000);
     packedGuid.appendPackGUID(inspectedPlayer->getGuid());
     data.append(packedGuid);
 
