@@ -11,18 +11,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgPetUnlearnedSpell : public ManagedPacket
+    class SmsgPetRemovedSpell : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint32_t spellId;
 
-        SmsgPetUnlearnedSpell() : SmsgPetUnlearnedSpell(0)
+        SmsgPetRemovedSpell() : SmsgPetRemovedSpell(0)
         {
         }
 
-        SmsgPetUnlearnedSpell(uint32_t spellId) :
-            ManagedPacket(SMSG_PET_UNLEARNED_SPELL, 4),
+        SmsgPetRemovedSpell(uint32_t spellId) :
+            ManagedPacket(SMSG_PET_REMOVED_SPELL, 4),
             spellId(spellId)
         {
         }

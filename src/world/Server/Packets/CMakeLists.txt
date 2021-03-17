@@ -76,7 +76,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/CmsgDelIgnore.h
    ${PATH_PREFIX}/CmsgDestroyItem.h
    ${PATH_PREFIX}/CmsgDismissCritter.h
-   ${PATH_PREFIX}/CmsgEjectPassenger.h
+   ${PATH_PREFIX}/CmsgControllerEjectPassenger.h
    ${PATH_PREFIX}/CmsgEmote.h
    ${PATH_PREFIX}/CmsgEnabletaxi.h
    ${PATH_PREFIX}/CmsgGameobjectQuery.h
@@ -168,7 +168,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/CmsgPetUnlearn.h
    ${PATH_PREFIX}/CmsgPlayedTime.h
    ${PATH_PREFIX}/CmsgPlayerLogin.h
-   ${PATH_PREFIX}/CmsgPlayerVehicleEnter.h
+   ${PATH_PREFIX}/CmsgRideVehicleInteract.h
    ${PATH_PREFIX}/CmsgPushquesttoparty.h
    ${PATH_PREFIX}/CmsgQueryTime.h
    ${PATH_PREFIX}/CmsgQuestgiverHello.h
@@ -315,7 +315,7 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgClientControlUpdate.h
    ${PATH_PREFIX}/SmsgComplainResult.h
    ${PATH_PREFIX}/SmsgContactList.h
-   ${PATH_PREFIX}/SmsgControlVehicle.h
+   ${PATH_PREFIX}/SmsgOnCancelExpectedRideVehicleAura.h
    ${PATH_PREFIX}/SmsgConvertRune.h
    ${PATH_PREFIX}/SmsgCooldownEvent.h
    ${PATH_PREFIX}/SmsgCorpseReclaimDelay.h
@@ -426,10 +426,10 @@ set(SRC_PACKET_FILES
    ${PATH_PREFIX}/SmsgPetLearnedSpell.h
    ${PATH_PREFIX}/SmsgPetNameQuery.h
    ${PATH_PREFIX}/SmsgPetUnlearnConfirm.h
-   ${PATH_PREFIX}/SmsgPetUnlearnedSpell.h
+   ${PATH_PREFIX}/SmsgPetRemovedSpell.h
    ${PATH_PREFIX}/SmsgPlayedTime.h
    ${PATH_PREFIX}/SmsgPlayerBound.h
-   ${PATH_PREFIX}/SmsgPlayerVehicleData.h
+   ${PATH_PREFIX}/SmsgSetVehicleRecId.h
    ${PATH_PREFIX}/SmsgPlayObjectSound.h
    ${PATH_PREFIX}/SmsgPlaySound.h
    ${PATH_PREFIX}/SmsgPlaySpellVisual.h

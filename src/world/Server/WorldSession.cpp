@@ -1226,8 +1226,8 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_NEXT_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_SWITCH_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE].handler = &WorldSession::HandleChangeVehicleSeat;
-    //WorldPacketHandlers[CMSG_PLAYER_VEHICLE_ENTER].handler = &WorldSession::HandleEnterVehicle;
-    //WorldPacketHandlers[CMSG_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
+    //WorldPacketHandlers[CMSG_RIDE_VEHICLE_INTERACT].handler = &WorldSession::HandleEnterVehicle;
+    //WorldPacketHandlers[CMSG_CONTROLLER_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
 
     // Unsorted
     //WorldPacketHandlers[CMSG_TIME_SYNC_RESP].handler = &WorldSession::HandleTimeSyncResp;       //MiscHandler.cpp
@@ -1759,8 +1759,8 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_NEXT_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_SWITCH_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE].handler = &WorldSession::HandleChangeVehicleSeat;
-    //WorldPacketHandlers[CMSG_PLAYER_VEHICLE_ENTER].handler = &WorldSession::HandleEnterVehicle;
-    //WorldPacketHandlers[CMSG_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
+    //WorldPacketHandlers[CMSG_RIDE_VEHICLE_INTERACT].handler = &WorldSession::HandleEnterVehicle;
+    //WorldPacketHandlers[CMSG_CONTROLLER_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
 
     // Unsorted
     //WorldPacketHandlers[CMSG_TIME_SYNC_RESP].handler = &WorldSession::HandleTimeSyncResp;       //MiscHandler.cpp
@@ -2292,8 +2292,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_REQUEST_VEHICLE_NEXT_SEAT].handler = &WorldSession::handleRequestVehicleNextSeat;
     WorldPacketHandlers[CMSG_REQUEST_VEHICLE_SWITCH_SEAT].handler = &WorldSession::handleRequestVehicleSwitchSeat;
     WorldPacketHandlers[CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE].handler = &WorldSession::handleChangeSeatsOnControlledVehicle;
-    WorldPacketHandlers[CMSG_PLAYER_VEHICLE_ENTER].handler = &WorldSession::handleEnterVehicle;
-    WorldPacketHandlers[CMSG_EJECT_PASSENGER].handler = &WorldSession::handleRemoveVehiclePassenger;
+    WorldPacketHandlers[CMSG_RIDE_VEHICLE_INTERACT].handler = &WorldSession::handleEnterVehicle;
+    WorldPacketHandlers[CMSG_CONTROLLER_EJECT_PASSENGER].handler = &WorldSession::handleRemoveVehiclePassenger;
 
     // Unsorted
     //WorldPacketHandlers[CMSG_TIME_SYNC_RESP].handler = &WorldSession::HandleTimeSyncResp;
@@ -2892,8 +2892,8 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_NEXT_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_SWITCH_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE].handler = &WorldSession::HandleChangeVehicleSeat;
-    //WorldPacketHandlers[CMSG_PLAYER_VEHICLE_ENTER].handler = &WorldSession::HandleEnterVehicle;
-    //WorldPacketHandlers[CMSG_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
+    //WorldPacketHandlers[CMSG_RIDE_VEHICLE_INTERACT].handler = &WorldSession::HandleEnterVehicle;
+    //WorldPacketHandlers[CMSG_CONTROLLER_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
 
     // Unsorted
     //WorldPacketHandlers[CMSG_TIME_SYNC_RESP].handler = &WorldSession::HandleTimeSyncResOp;       //MiscHandler.cpp
@@ -3498,8 +3498,8 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_NEXT_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_REQUEST_VEHICLE_SWITCH_SEAT].handler = &WorldSession::HandleChangeVehicleSeat;
     //WorldPacketHandlers[CMSG_CHANGE_SEATS_ON_CONTROLLED_VEHICLE].handler = &WorldSession::HandleChangeVehicleSeat;
-    //WorldPacketHandlers[CMSG_PLAYER_VEHICLE_ENTER].handler = &WorldSession::HandleEnterVehicle;
-    //WorldPacketHandlers[CMSG_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
+    //WorldPacketHandlers[CMSG_RIDE_VEHICLE_INTERACT].handler = &WorldSession::HandleEnterVehicle;
+    //WorldPacketHandlers[CMSG_CONTROLLER_EJECT_PASSENGER].handler = &WorldSession::HandleRemoveVehiclePassenger;
 
     // Unsorted
     //WorldPacketHandlers[CMSG_TIME_SYNC_RESP].handler = &WorldSession::HandleTimeSyncResOp;       //MiscHandler.cpp

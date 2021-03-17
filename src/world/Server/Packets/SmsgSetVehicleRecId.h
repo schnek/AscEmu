@@ -12,19 +12,19 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgPlayerVehicleData : public ManagedPacket
+    class SmsgSetVehicleRecId : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         WoWGuid targetGuid;
         uint32_t vehicleId;
 
-        SmsgPlayerVehicleData() : SmsgPlayerVehicleData(WoWGuid(), 0)
+        SmsgSetVehicleRecId() : SmsgSetVehicleRecId(WoWGuid(), 0)
         {
         }
 
-        SmsgPlayerVehicleData(WoWGuid targetGuid, uint32_t vehicleId) :
-            ManagedPacket(SMSG_PLAYER_VEHICLE_DATA, 8 + 4),
+        SmsgSetVehicleRecId(WoWGuid targetGuid, uint32_t vehicleId) :
+            ManagedPacket(SMSG_SET_VEHICLE_REC_ID, 8 + 4),
             targetGuid(targetGuid),
             vehicleId(vehicleId)
         {

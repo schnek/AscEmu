@@ -11,18 +11,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgEjectPassenger : public ManagedPacket
+    class CmsgControllerEjectPassenger : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint64_t guid;
 
-        CmsgEjectPassenger() : CmsgEjectPassenger(0)
+        CmsgControllerEjectPassenger() : CmsgControllerEjectPassenger(0)
         {
         }
 
-        CmsgEjectPassenger(uint64_t guid) :
-            ManagedPacket(CMSG_EJECT_PASSENGER, 0),
+        CmsgControllerEjectPassenger(uint64_t guid) :
+            ManagedPacket(CMSG_CONTROLLER_EJECT_PASSENGER, 0),
             guid(guid)
         {
         }

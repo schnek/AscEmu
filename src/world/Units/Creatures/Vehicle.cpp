@@ -23,7 +23,7 @@
 #include "Map/MapMgr.h"
 #include "Spell/SpellAuras.h"
 #include "Spell/Definitions/PowerType.h"
-#include "Server/Packets/SmsgControlVehicle.h"
+#include "Server/Packets/SmsgOnCancelExpectedRideVehicleAura.h"
 
 Vehicle::Vehicle()
 {
@@ -159,7 +159,7 @@ void Vehicle::AddPassengerToSeat(Unit* passenger, uint32 seatid)
     // root passenger
     passenger->setMoveRoot(true);
 
-    passenger->SendPacket(AscEmu::Packets::SmsgControlVehicle().serialise().get());
+    passenger->SendPacket(AscEmu::Packets::SmsgOnCancelExpectedRideVehicleAura().serialise().get());
 
     passenger->sendHopOnVehicle(owner, seatid);
 
@@ -181,7 +181,7 @@ void Vehicle::AddPassengerToSeat(Unit* passenger, uint32 seatid)
 
     if (passenger->isPlayer())
     {
-        passenger->SendPacket(AscEmu::Packets::SmsgControlVehicle().serialise().get());
+        passenger->SendPacket(AscEmu::Packets::SmsgOnCancelExpectedRideVehicleAura().serialise().get());
 
         passenger->addUnitFlags(UNIT_FLAG_PVP_ATTACKABLE);
 

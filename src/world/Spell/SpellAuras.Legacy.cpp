@@ -46,9 +46,9 @@
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
 #include "Server/Packets/MsgChannelUpdate.h"
 #include "Server/Packets/SmsgSpellOrDamageImmune.h"
-#include "Server/Packets/SmsgPlayerVehicleData.h"
+#include "Server/Packets/SmsgSetVehicleRecId.h"
 #include "Server/Packets/SmsgSetForceReactions.h"
-#include "Server/Packets/SmsgControlVehicle.h"
+#include "Server/Packets/SmsgOnCancelExpectedRideVehicleAura.h"
 #include "Server/Packets/SmsgCancelCombat.h"
 
 using namespace AscEmu::Packets;
@@ -3207,9 +3207,9 @@ void Aura::SpellAuraMounted(AuraEffectModifier* aurEff, bool apply)
             p_target->addVehicleComponent(ci->Id, ci->vehicleid);
 
 #if VERSION_STRING > TBC
-            p_target->SendMessageToSet(SmsgPlayerVehicleData(p_target->GetNewGUID(), p_target->mountvehicleid).serialise().get(), true);
+            p_target->SendMessageToSet(SmsgSetVehicleRecId(p_target->GetNewGUID(), p_target->mountvehicleid).serialise().get(), true);
 
-            p_target->SendPacket(SmsgControlVehicle().serialise().get());
+            p_target->SendPacket(SmsgOnCancelExpectedRideVehicleAura().serialise().get());
 #endif
 
             p_target->addUnitFlags(UNIT_FLAG_MOUNT);
@@ -3230,7 +3230,7 @@ void Aura::SpellAuraMounted(AuraEffectModifier* aurEff, bool apply)
             p_target->getVehicleComponent()->EjectAllPassengers();
 
 #if VERSION_STRING > TBC
-            p_target->SendMessageToSet(SmsgPlayerVehicleData(p_target->GetNewGUID(), 0).serialise().get(), true);
+            p_target->SendMessageToSet(SmsgSetVehicleRecId(p_target->GetNewGUID(), 0).serialise().get(), true);
 #endif
 
             p_target->removeVehicleComponent();

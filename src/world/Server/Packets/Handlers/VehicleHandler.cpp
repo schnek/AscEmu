@@ -6,8 +6,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "StdAfx.h"
 #include "Server/Packets/CmsgRequestVehicleSwitchSeat.h"
 #include "Server/Packets/CmsgChangeSeatsOnControlledVehicle.h"
-#include "Server/Packets/CmsgPlayerVehicleEnter.h"
-#include "Server/Packets/CmsgEjectPassenger.h"
+#include "Server/Packets/CmsgRideVehicleInteract.h"
+#include "Server/Packets/CmsgControllerEjectPassenger.h"
 #include "Server/WorldSession.h"
 #include "Units/Players/Player.h"
 #include "Map/MapMgr.h"
@@ -130,7 +130,7 @@ void WorldSession::handleRemoveVehiclePassenger(WorldPacket& recvPacket)
     if (vehicle == nullptr)
         return;
 
-    CmsgEjectPassenger srlPacket;
+    CmsgControllerEjectPassenger srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
@@ -154,7 +154,7 @@ void WorldSession::handleLeaveVehicle(WorldPacket& /*recvPacket*/)
 
 void WorldSession::handleEnterVehicle(WorldPacket& recvPacket)
 {
-    CmsgPlayerVehicleEnter srlPacket;
+    CmsgRideVehicleInteract srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 

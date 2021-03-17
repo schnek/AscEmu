@@ -11,18 +11,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgPlayerVehicleEnter : public ManagedPacket
+    class CmsgRideVehicleInteract : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint64_t guid;
 
-        CmsgPlayerVehicleEnter() : CmsgPlayerVehicleEnter(0)
+        CmsgRideVehicleInteract() : CmsgRideVehicleInteract(0)
         {
         }
 
-        CmsgPlayerVehicleEnter(uint64_t guid) :
-            ManagedPacket(CMSG_PLAYER_VEHICLE_ENTER, 0),
+        CmsgRideVehicleInteract(uint64_t guid) :
+            ManagedPacket(CMSG_RIDE_VEHICLE_INTERACT, 0),
             guid(guid)
         {
         }

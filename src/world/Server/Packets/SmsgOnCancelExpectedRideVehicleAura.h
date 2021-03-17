@@ -10,13 +10,13 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgControlVehicle : public ManagedPacket
+    class SmsgOnCancelExpectedRideVehicleAura : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
 
-        SmsgControlVehicle() :
-            ManagedPacket(SMSG_CONTROL_VEHICLE, 0)  // SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA
+        SmsgOnCancelExpectedRideVehicleAura() :
+            ManagedPacket(SMSG_ON_CANCEL_EXPECTED_RIDE_VEHICLE_AURA, 0)
         {
         }
 

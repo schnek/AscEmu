@@ -38,7 +38,7 @@
 #include "Pet.h"
 #include "Server/Packets/SmsgPetActionFeedback.h"
 #include "Server/Packets/SmsgPetLearnedSpell.h"
-#include "Server/Packets/SmsgPetUnlearnedSpell.h"
+#include "Server/Packets/SmsgPetRemovedSpell.h"
 
 //MIT START
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1638,7 +1638,7 @@ void Pet::RemoveSpell(SpellInfo const* sp, [[maybe_unused]]bool showUnlearnSpell
 
 #if VERSION_STRING > TBC
     if (showUnlearnSpell && m_Owner && m_Owner->GetSession())
-        m_Owner->SendPacket(AscEmu::Packets::SmsgPetUnlearnedSpell(sp->getId()).serialise().get());
+        m_Owner->SendPacket(AscEmu::Packets::SmsgPetRemovedSpell(sp->getId()).serialise().get());
 #endif
 }
 
