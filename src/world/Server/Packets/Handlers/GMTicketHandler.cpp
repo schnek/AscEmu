@@ -17,7 +17,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgGmTicketDeleteTicket.h"
 #include "Server/Packets/SmsgGmTicketGetTicket.h"
 #include "Server/Packets/SmsgGmTicketSystemstatus.h"
-#include "Server/Packets/CmsgGmReportLag.h"
+#include "Server/Packets/CmsgGmLagReportSubmit.h"
 #include "Server/Packets/CmsgGmSurveySubmit.h"
 #include <zlib.h>
 
@@ -75,7 +75,7 @@ void WorldSession::handleGMSurveySubmitOpcode(WorldPacket& recvPacket)
 void WorldSession::handleReportLag(WorldPacket& recvPacket)
 {
 #if VERSION_STRING > TBC
-    CmsgGmReportLag srlPacket;
+    CmsgGmLagReportSubmit srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
@@ -234,7 +234,7 @@ void WorldSession::handleGMTicketGetTicketOpcode(WorldPacket& /*recvPacket*/)
 #if VERSION_STRING > WotLK
         else
         {
-            WorldPacket data(SMSG_GMRESPONSE_RECEIVED);
+            WorldPacket data(SMSG_GMTICKET_GET_RESPONSE);
             data << uint32_t(1);        // unk
             data << uint32_t(ticket->guid);
             data << ticket->message.c_str();

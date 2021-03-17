@@ -21,7 +21,7 @@ namespace AscEmu::Packets
         }
 
         SmsgWorldStateUiTimerUpdate(uint32_t unixtime) :
-            ManagedPacket(SMSG_WORLD_STATE_UI_TIMER_UPDATE, 4),
+            ManagedPacket(SMSG_UI_TIME, 4),
             unixtime(unixtime)
         {
         }

@@ -26,7 +26,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgCrossedInebriationThreshold.h"
 #include "Server/Packets/SmsgSetProficiency.h"
 #include "Server/Packets/SmsgPartyKillLog.h"
-#include "Server/Packets/SmsgEquipmentSetUseResult.h"
+#include "Server/Packets/SmsgUseEquipmentSetResult.h"
 #include "Server/Packets/SmsgTotemCreated.h"
 #include "Server/Packets/SmsgGossipPoi.h"
 #include "Server/Packets/SmsgStopMirrorTimer.h"
@@ -3504,7 +3504,7 @@ void Player::sendDestroyObjectPacket(uint64_t destroyedGuid)
 void Player::sendEquipmentSetUseResultPacket(uint8_t result)
 {
 #if VERSION_STRING > TBC
-    m_session->SendPacket(SmsgEquipmentSetUseResult(result).serialise().get());
+    m_session->SendPacket(SmsgUseEquipmentSetResult(result).serialise().get());
 #endif
 }
 

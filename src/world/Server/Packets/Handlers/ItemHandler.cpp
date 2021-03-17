@@ -2769,7 +2769,7 @@ void WorldSession::handleEquipmentSetUse(WorldPacket& data)
 {
     CHECK_INWORLD_RETURN
     
-    LogDebugFlag(LF_OPCODE, "Received CMSG_EQUIPMENT_SET_USE");
+    LogDebugFlag(LF_OPCODE, "Received CMSG_USE_EQUIPMENT_SET");
 
     WoWGuid guid;
     int8_t SrcBagID;

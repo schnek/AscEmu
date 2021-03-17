@@ -1002,7 +1002,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::HandleItemRefundRequestOpcode;
 
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
+    //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
@@ -1161,7 +1161,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[MSG_PVP_LOG_DATA].handler = &WorldSession::handlePVPLogDataOpcode;
     WorldPacketHandlers[MSG_INSPECT_HONOR_STATS].handler = &WorldSession::handleInspectHonorStatsOpcode;
     WorldPacketHandlers[CMSG_SET_ACTIONBAR_TOGGLES].handler = &WorldSession::handleSetActionBarTogglesOpcode;
-    //WorldPacketHandlers[CMSG_BATTLEFIELD_MGR_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
+    //WorldPacketHandlers[CMSG_BATTLEFIELD_MANAGER_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
 
     // GM Ticket System
     /*WorldPacketHandlers[CMSG_GMTICKET_CREATE].handler = &WorldSession::handleGMTicketCreateOpcode;
@@ -1172,8 +1172,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GMTICKETSYSTEM_TOGGLE].handler = &WorldSession::handleGMTicketToggleSystemStatusOpcode;*/
 
     // Lag report
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].handler = &WorldSession::handleReportLag;
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].status = STATUS_LOGGEDIN;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].handler = &WorldSession::handleReportLag;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].status = STATUS_LOGGEDIN;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].handler = &WorldSession::handleGMSurveySubmitOpcode;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].status = STATUS_LOGGEDIN;
 
@@ -1196,7 +1196,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_COMPLAIN].handler = &WorldSession::handleReportSpamOpcode;
     //WorldPacketHandlers[CMSG_GAMEOBJ_REPORT_USE].handler = &WorldSession::HandleGameobjReportUseOpCode;
     WorldPacketHandlers[CMSG_PET_CAST_SPELL].handler = &WorldSession::handlePetCastSpell;
-    //WorldPacketHandlers[CMSG_WORLD_STATE_UI_TIMER_UPDATE].handler = &WorldSession::HandleWorldStateUITimerUpdate;
+    //WorldPacketHandlers[CMSG_UI_TIME_REQUEST].handler = &WorldSession::HandleWorldStateUITimerUpdate;
     WorldPacketHandlers[CMSG_SET_TAXI_BENCHMARK_MODE].handler = &WorldSession::handleSetTaxiBenchmarkOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_SKILL].handler = &WorldSession::handleUnlearnSkillOpcode;
 
@@ -1535,7 +1535,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::HandleItemRefundRequestOpcode;
 
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
+    //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
@@ -1694,7 +1694,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[MSG_PVP_LOG_DATA].handler = &WorldSession::HandlePVPLogDataOpcode;
     //WorldPacketHandlers[MSG_INSPECT_HONOR_STATS].handler = &WorldSession::HandleInspectHonorStatsOpcode;
     //WorldPacketHandlers[CMSG_SET_ACTIONBAR_TOGGLES].handler = &WorldSession::HandleSetActionBarTogglesOpcode;
-    //WorldPacketHandlers[CMSG_BATTLEFIELD_MGR_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
+    //WorldPacketHandlers[CMSG_BATTLEFIELD_MANAGER_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
 
     // GM Ticket System
     WorldPacketHandlers[CMSG_GMTICKET_CREATE].handler = &WorldSession::handleGMTicketCreateOpcode;
@@ -1705,8 +1705,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GMTICKETSYSTEM_TOGGLE].handler = &WorldSession::handleGMTicketToggleSystemStatusOpcode;
 
     // Lag report
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].handler = &WorldSession::handleReportLag;
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].status = STATUS_LOGGEDIN;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].handler = &WorldSession::handleReportLag;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].status = STATUS_LOGGEDIN;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].handler = &WorldSession::handleGMSurveySubmitOpcode;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].status = STATUS_LOGGEDIN;
 
@@ -1729,7 +1729,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_COMPLAIN].handler = &WorldSession::HandleReportSpamOpcode;
     //WorldPacketHandlers[CMSG_GAMEOBJ_REPORT_USE].handler = &WorldSession::HandleGameobjReportUseOpCode;
     //WorldPacketHandlers[CMSG_PET_CAST_SPELL].handler = &WorldSession::handlePetCastSpell;
-    //WorldPacketHandlers[CMSG_WORLD_STATE_UI_TIMER_UPDATE].handler = &WorldSession::HandleWorldStateUITimerUpdate;
+    //WorldPacketHandlers[CMSG_UI_TIME_REQUEST].handler = &WorldSession::HandleWorldStateUITimerUpdate;
     //WorldPacketHandlers[CMSG_SET_TAXI_BENCHMARK_MODE].handler = &WorldSession::HandleSetTaxiBenchmarkOpcode;
     //WorldPacketHandlers[CMSG_UNLEARN_SKILL].handler = &WorldSession::handleUnlearnSkillOpcode;
 
@@ -2068,7 +2068,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
 
     WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
-    WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
+    WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
     WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
@@ -2226,7 +2226,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[MSG_PVP_LOG_DATA].handler = &WorldSession::handlePVPLogDataOpcode;
     WorldPacketHandlers[MSG_INSPECT_HONOR_STATS].handler = &WorldSession::handleInspectHonorStatsOpcode;
     WorldPacketHandlers[CMSG_SET_ACTIONBAR_TOGGLES].handler = &WorldSession::handleSetActionBarTogglesOpcode;
-    //WorldPacketHandlers[CMSG_BATTLEFIELD_MGR_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
+    //WorldPacketHandlers[CMSG_BATTLEFIELD_MANAGER_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
 
     // GM Ticket System
     WorldPacketHandlers[CMSG_GMTICKET_CREATE].handler = &WorldSession::handleGMTicketCreateOpcode;
@@ -2237,8 +2237,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GMTICKETSYSTEM_TOGGLE].handler = &WorldSession::handleGMTicketToggleSystemStatusOpcode;
 
     // Lag report
-    WorldPacketHandlers[CMSG_GM_REPORT_LAG].handler = &WorldSession::handleReportLag;
-    WorldPacketHandlers[CMSG_GM_REPORT_LAG].status = STATUS_LOGGEDIN;
+    WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].handler = &WorldSession::handleReportLag;
+    WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].status = STATUS_LOGGEDIN;
 
     WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].handler = &WorldSession::handleGMSurveySubmitOpcode;
     WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].status = STATUS_LOGGEDIN;
@@ -2262,7 +2262,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_COMPLAIN].handler = &WorldSession::handleReportSpamOpcode;
     WorldPacketHandlers[CMSG_GAMEOBJ_REPORT_USE].handler = &WorldSession::handleGameobjReportUseOpCode;
     WorldPacketHandlers[CMSG_PET_CAST_SPELL].handler = &WorldSession::handlePetCastSpell;
-    WorldPacketHandlers[CMSG_WORLD_STATE_UI_TIMER_UPDATE].handler = &WorldSession::handleWorldStateUITimerUpdate;
+    WorldPacketHandlers[CMSG_UI_TIME_REQUEST].handler = &WorldSession::handleWorldStateUITimerUpdate;
     WorldPacketHandlers[CMSG_SET_TAXI_BENCHMARK_MODE].handler = &WorldSession::handleSetTaxiBenchmarkOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_SKILL].handler = &WorldSession::handleUnlearnSkillOpcode;
 
@@ -2637,7 +2637,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
+    //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System
@@ -2813,7 +2813,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[MSG_PVP_LOG_DATA].handler = &WorldSession::handlePVPLogDataOpcode;
     WorldPacketHandlers[MSG_INSPECT_HONOR_STATS].handler = &WorldSession::handleInspectHonorStatsOpcode;
     WorldPacketHandlers[CMSG_SET_ACTIONBAR_TOGGLES].handler = &WorldSession::handleSetActionBarTogglesOpcode;
-    //WorldPacketHandlers[CMSG_BATTLEFIELD_MGR_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
+    //WorldPacketHandlers[CMSG_BATTLEFIELD_MANAGER_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
     WorldPacketHandlers[CMSG_REQUEST_RATED_BG_INFO].handler = &WorldSession::handleRequestRatedBgInfoOpcode;
     WorldPacketHandlers[CMSG_REQUEST_RATED_BG_STATS].handler = &WorldSession::handleRequestRatedBgStatsOpcode;
     WorldPacketHandlers[CMSG_REQUEST_PVP_REWARDS].handler = &WorldSession::handleRequestPvPRewardsOpcode;
@@ -2829,8 +2829,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[SMSG_GMTICKET_GETTICKET].handler = &WorldSession::handleGMTicketToggleSystemStatusOpcode;
 
     // Reports
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].handler = &WorldSession::handleReportLag;
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].status = STATUS_LOGGEDIN;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].handler = &WorldSession::handleReportLag;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].status = STATUS_LOGGEDIN;
 
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].handler = &WorldSession::handleGMSurveySubmitOpcode;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].status = STATUS_LOGGEDIN;
@@ -2856,7 +2856,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_SET_TITLE].handler = &WorldSession::HandleSetVisibleRankOpcode;
     WorldPacketHandlers[CMSG_GAMEOBJ_REPORT_USE].handler = &WorldSession::handleGameobjReportUseOpCode;
     WorldPacketHandlers[CMSG_PET_CAST_SPELL].handler = &WorldSession::handlePetCastSpell;
-    WorldPacketHandlers[CMSG_WORLD_STATE_UI_TIMER_UPDATE].handler = &WorldSession::handleWorldStateUITimerUpdate;
+    WorldPacketHandlers[CMSG_UI_TIME_REQUEST].handler = &WorldSession::handleWorldStateUITimerUpdate;
     WorldPacketHandlers[CMSG_SET_TAXI_BENCHMARK_MODE].handler = &WorldSession::handleSetTaxiBenchmarkOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_SKILL].handler = &WorldSession::handleUnlearnSkillOpcode;
     WorldPacketHandlers[CMSG_REQUEST_CEMETERY_LIST].handler = &WorldSession::handleRequestCemeteryListOpcode;
@@ -3243,7 +3243,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
+    //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System
@@ -3419,7 +3419,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[MSG_PVP_LOG_DATA].handler = &WorldSession::handlePVPLogDataOpcode;
     WorldPacketHandlers[MSG_INSPECT_HONOR_STATS].handler = &WorldSession::handleInspectHonorStatsOpcode;
     WorldPacketHandlers[CMSG_SET_ACTIONBAR_TOGGLES].handler = &WorldSession::handleSetActionBarTogglesOpcode;
-    //WorldPacketHandlers[CMSG_BATTLEFIELD_MGR_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
+    //WorldPacketHandlers[CMSG_BATTLEFIELD_MANAGER_ENTRY_INVITE_RESPONSE].handler = &WorldSession::HandleBgInviteResponse;
     WorldPacketHandlers[CMSG_REQUEST_RATED_BG_INFO].handler = &WorldSession::handleRequestRatedBgInfoOpcode;
     WorldPacketHandlers[CMSG_REQUEST_RATED_BG_STATS].handler = &WorldSession::handleRequestRatedBgStatsOpcode;
     WorldPacketHandlers[CMSG_REQUEST_PVP_REWARDS].handler = &WorldSession::handleRequestPvPRewardsOpcode;
@@ -3435,8 +3435,8 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[SMSG_GMTICKET_GETTICKET].handler = &WorldSession::handleGMTicketToggleSystemStatusOpcode;
 
     // Reports
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].handler = &WorldSession::handleReportLag;
-    //WorldPacketHandlers[CMSG_GM_REPORT_LAG].status = STATUS_LOGGEDIN;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].handler = &WorldSession::handleReportLag;
+    //WorldPacketHandlers[CMSG_GMLAGREPORT_SUBMIT].status = STATUS_LOGGEDIN;
 
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].handler = &WorldSession::handleGMSurveySubmitOpcode;
     //WorldPacketHandlers[CMSG_GMSURVEY_SUBMIT].status = STATUS_LOGGEDIN;
@@ -3462,7 +3462,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_SET_TITLE].handler = &WorldSession::HandleSetVisibleRankOpcode;
     WorldPacketHandlers[CMSG_GAMEOBJ_REPORT_USE].handler = &WorldSession::handleGameobjReportUseOpCode;
     WorldPacketHandlers[CMSG_PET_CAST_SPELL].handler = &WorldSession::handlePetCastSpell;
-    WorldPacketHandlers[CMSG_WORLD_STATE_UI_TIMER_UPDATE].handler = &WorldSession::handleWorldStateUITimerUpdate;
+    WorldPacketHandlers[CMSG_UI_TIME_REQUEST].handler = &WorldSession::handleWorldStateUITimerUpdate;
     WorldPacketHandlers[CMSG_SET_TAXI_BENCHMARK_MODE].handler = &WorldSession::handleSetTaxiBenchmarkOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_SKILL].handler = &WorldSession::handleUnlearnSkillOpcode;
     WorldPacketHandlers[CMSG_REQUEST_CEMETERY_LIST].handler = &WorldSession::handleRequestCemeteryListOpcode;

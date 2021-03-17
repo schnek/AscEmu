@@ -12,7 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgGmReportLag : public ManagedPacket
+    class CmsgGmLagReportSubmit : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
@@ -20,12 +20,12 @@ namespace AscEmu::Packets
         uint32_t mapId;
         LocationVector location;
 
-        CmsgGmReportLag() : CmsgGmReportLag(0, 0, { 0.0f, 0.0f, 0.0f })
+        CmsgGmLagReportSubmit() : CmsgGmLagReportSubmit(0, 0, { 0.0f, 0.0f, 0.0f })
         {
         }
 
-        CmsgGmReportLag(uint32_t lagType, uint32_t mapId, LocationVector location) :
-            ManagedPacket(CMSG_GM_REPORT_LAG, 4 + 4 + 4 * 3),
+        CmsgGmLagReportSubmit(uint32_t lagType, uint32_t mapId, LocationVector location) :
+            ManagedPacket(CMSG_GMLAGREPORT_SUBMIT, 4 + 4 + 4 * 3),
             lagType(lagType),
             mapId(mapId),
             location(location)

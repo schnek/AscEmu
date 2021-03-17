@@ -10,18 +10,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class SmsgEquipmentSetUseResult : public ManagedPacket
+    class SmsgUseEquipmentSetResult : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint8_t result;
 
-        SmsgEquipmentSetUseResult() : SmsgEquipmentSetUseResult(0)
+        SmsgUseEquipmentSetResult() : SmsgUseEquipmentSetResult(0)
         {
         }
 
-        SmsgEquipmentSetUseResult(uint8_t result) :
-            ManagedPacket(SMSG_EQUIPMENT_SET_USE_RESULT, 0),
+        SmsgUseEquipmentSetResult(uint8_t result) :
+            ManagedPacket(SMSG_USE_EQUIPMENT_SET_RESULT, 0),
             result(result)
         {
         }
