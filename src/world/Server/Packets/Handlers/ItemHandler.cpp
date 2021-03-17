@@ -8,8 +8,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/WorldSession.h"
 #include "Units/Players/Player.h"
 #include "Management/ItemInterface.h"
-#include "Server/Packets/CmsgItemrefundinfo.h"
-#include "Server/Packets/CmsgItemrefundrequest.h"
+#include "Server/Packets/CmsgGetItemPurchaseData.h"
+#include "Server/Packets/CmsgItemPurchaseRefund.h"
 #include "Server/Packets/CmsgSplitItem.h"
 #include "Server/Packets/SmsgInventoryChangeFailure.h"
 #include "Server/Packets/CmsgAutoequipItem.h"
@@ -392,7 +392,7 @@ void WorldSession::sendRefundInfo(uint64_t GUID)
 
         item->setFlags(ITEM_FLAG_REFUNDABLE);
         
-        WorldPacket packet(SMSG_ITEMREFUNDINFO, 68);
+        WorldPacket packet(SMSG_SET_ITEM_PURCHASE_DATA, 68);
         packet << uint64_t(GUID);
         packet << uint32_t(proto->BuyPrice);
         packet << uint32_t(item_extended_cost->honor_points);
@@ -441,7 +441,7 @@ void WorldSession::sendRefundInfo(uint64_t guid)
         item->addFlags(ITEM_FLAG_REFUNDABLE);
 
         ObjectGuid objectGuid = item->getGuid();
-        WorldPacket data(SMSG_ITEMREFUNDINFO, 68);
+        WorldPacket data(SMSG_SET_ITEM_PURCHASE_DATA, 68);
         data.writeBit(objectGuid[3]);
         data.writeBit(objectGuid[5]);
         data.writeBit(objectGuid[7]);
@@ -490,11 +490,11 @@ void WorldSession::sendRefundInfo(uint64_t guid)
 #if VERSION_STRING >= WotLK
 void WorldSession::handleItemRefundInfoOpcode(WorldPacket& recvPacket)
 {
-    CmsgItemrefundinfo srlPacket;
+    CmsgGetItemPurchaseData srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_ITEMREFUNDINFO.");
+    LogDebugFlag(LF_OPCODE, "Received CMSG_GET_ITEM_PURCHASE_DATA.");
 
     this->sendRefundInfo(srlPacket.itemGuid);
 }
@@ -502,11 +502,11 @@ void WorldSession::handleItemRefundInfoOpcode(WorldPacket& recvPacket)
 void WorldSession::handleItemRefundRequestOpcode(WorldPacket& recvPacket)
 {
     CHECK_INWORLD_RETURN
-    CmsgItemrefundrequest srlPacket;
+    CmsgItemPurchaseRefund srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_ITEMREFUNDREQUEST.");
+    LogDebugFlag(LF_OPCODE, "Received CMSG_ITEM_PURCHASE_REFUND.");
 
     uint32_t error = 1;
 
@@ -553,7 +553,7 @@ void WorldSession::handleItemRefundRequestOpcode(WorldPacket& recvPacket)
         }
     }
 
-    WorldPacket packet(SMSG_ITEMREFUNDREQUEST, 60);
+    WorldPacket packet(SMSG_ITEM_PURCHASE_REFUND_RESULT, 60);
     packet << uint64_t(srlPacket.itemGuid);
     packet << uint32_t(error);
 
@@ -572,7 +572,7 @@ void WorldSession::handleItemRefundRequestOpcode(WorldPacket& recvPacket)
 
     SendPacket(&packet);
 
-    LogDebugFlag(LF_OPCODE, "Sent SMSG_ITEMREFUNDREQUEST.");
+    LogDebugFlag(LF_OPCODE, "Sent SMSG_ITEM_PURCHASE_REFUND_RESULT.");
 }
 #endif
 
@@ -2841,7 +2841,7 @@ void WorldSession::handleEquipmentSetSave(WorldPacket& data)
 {
     CHECK_INWORLD_RETURN
     
-    LogDebugFlag(LF_OPCODE, "Received CMSG_EQUIPMENT_SET_SAVE");
+    LogDebugFlag(LF_OPCODE, "Received CMSG_SAVE_EQUIPMENT_SET");
 
     WoWGuid guid;
 

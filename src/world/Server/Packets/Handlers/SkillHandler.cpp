@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/ManagedPacket.h"
 #include "Server/Packets/CmsgUnlearnSkill.h"
 #include "Server/Packets/CmsgLearnTalent.h"
-#include "Server/Packets/CmsgLearnTalentMultiple.h"
+#include "Server/Packets/CmsgLearnTalentGroup.h"
 #include "Units/Players/Player.h"
 
 using namespace AscEmu::Packets;
@@ -60,11 +60,11 @@ void WorldSession::handleUnlearnTalents(WorldPacket& /*recvPacket*/)
 void WorldSession::handleLearnMultipleTalentsOpcode(WorldPacket& recvPacket)
 {
 #if VERSION_STRING > TBC
-    CmsgLearnTalentMultiple srlPacket;
+    CmsgLearnTalentGroup srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Recieved CMSG_LEARN_TALENTS_MULTIPLE");
+    LogDebugFlag(LF_OPCODE, "Recieved CMSG_LEARN_TALENT_GROUP");
 
     for (auto learnTalent : srlPacket.multipleTalents)
         _player->learnTalent(learnTalent.talentId, learnTalent.talentRank);

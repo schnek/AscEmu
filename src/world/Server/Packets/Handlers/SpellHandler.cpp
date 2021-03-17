@@ -449,7 +449,7 @@ void WorldSession::handleUpdateProjectilePosition(WorldPacket& recvPacket)
     curSpell->m_targets.setDestination(LocationVector(x, y, z));
 
 #if VERSION_STRING > TBC
-    WorldPacket data(SMSG_SET_PROJECTILE_POSITION, 21);
+    WorldPacket data(SMSG_NOTIFY_MISSILE_TRAJECTORY_COLLISION, 21);
     data << uint64_t(casterGuid);
     data << uint8_t(castCount);
     data << float(x);

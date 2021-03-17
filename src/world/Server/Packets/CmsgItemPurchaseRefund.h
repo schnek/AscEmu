@@ -12,18 +12,18 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgItemrefundrequest : public ManagedPacket
+    class CmsgItemPurchaseRefund : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint64_t itemGuid;
 
-        CmsgItemrefundrequest() : CmsgItemrefundrequest(0)
+        CmsgItemPurchaseRefund() : CmsgItemPurchaseRefund(0)
         {
         }
 
-        CmsgItemrefundrequest(uint64_t itemGuid) :
-            ManagedPacket(CMSG_ITEMREFUNDREQUEST, 8),
+        CmsgItemPurchaseRefund(uint64_t itemGuid) :
+            ManagedPacket(CMSG_ITEM_PURCHASE_REFUND, 8),
             itemGuid(itemGuid)
         {
         }

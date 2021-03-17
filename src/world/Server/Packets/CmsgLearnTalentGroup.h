@@ -18,19 +18,19 @@ struct MultipleTalents
 
 namespace AscEmu::Packets
 {
-    class CmsgLearnTalentMultiple : public ManagedPacket
+    class CmsgLearnTalentGroup : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint32_t talentCount;
         std::vector<MultipleTalents> multipleTalents;
 
-        CmsgLearnTalentMultiple() : CmsgLearnTalentMultiple(0, {})
+        CmsgLearnTalentGroup() : CmsgLearnTalentGroup(0, {})
         {
         }
 
-        CmsgLearnTalentMultiple(uint32_t talentCount, std::vector<MultipleTalents> multipleTalents) :
-            ManagedPacket(CMSG_LEARN_TALENTS_MULTIPLE, 4),
+        CmsgLearnTalentGroup(uint32_t talentCount, std::vector<MultipleTalents> multipleTalents) :
+            ManagedPacket(CMSG_LEARN_TALENT_GROUP, 4),
             talentCount(talentCount),
             multipleTalents(multipleTalents)
         {

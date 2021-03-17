@@ -134,7 +134,7 @@ namespace Arcemu
 
 
             //////////////////////////////////////////////////////////////////////////////////////////
-            /// \note void FillEquipmentSetListPacket   - Fills the SMSG_EQUIPMENT_SET_LIST packet with data from the class.
+            /// \note void FillEquipmentSetListPacket   - Fills the SMSG_LOAD_EQUIPMENT_SET packet with data from the class.
             ///
             /// \param WorldPacket& data  -  Reference to a WorldPacket structure that can store the data to be sen
             ///

@@ -728,7 +728,7 @@ void Pet::SendTalentsToOwner()
     if (m_Owner == NULL)
         return;
 
-    WorldPacket data(SMSG_TALENTS_INFO, 50);
+    WorldPacket data(SMSG_TALENT_UPDATE, 50);
     data << uint8(1);                   // Pet talent packet identificator
     data << uint32(getPetTalentPoints());           // Unspent talent points
 

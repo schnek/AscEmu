@@ -11679,12 +11679,12 @@ void Player::TagUnit(Object* o)
 void Player::SendEquipmentSetList()
 {
 #if VERSION_STRING > TBC
-    WorldPacket data(SMSG_EQUIPMENT_SET_LIST, 1000);
+    WorldPacket data(SMSG_LOAD_EQUIPMENT_SET, 1000);
 
     getItemInterface()->m_EquipmentSets.FillEquipmentSetListPacket(data);
     m_session->SendPacket(&data);
 
-    LOG_DEBUG("Sent SMSG_EQUIPMENT_SET_LIST.");
+    LOG_DEBUG("Sent SMSG_LOAD_EQUIPMENT_SET.");
 #endif
 }
 

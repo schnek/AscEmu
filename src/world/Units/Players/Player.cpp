@@ -2653,7 +2653,7 @@ void Player::smsg_TalentsInfo([[maybe_unused]]bool SendPetTalents)
 {
     // TODO: classic and tbc
 #if VERSION_STRING >= WotLK
-    WorldPacket data(SMSG_TALENTS_INFO, 1000);
+    WorldPacket data(SMSG_TALENT_UPDATE, 1000);
     data << uint8_t(SendPetTalents ? 1 : 0);
     if (SendPetTalents)
     {

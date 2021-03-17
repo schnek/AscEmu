@@ -998,10 +998,10 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_TEMP_ENCHANTMENT].handler = &WorldSession::handleCancelTemporaryEnchantmentOpcode;
     WorldPacketHandlers[CMSG_SOCKET_GEMS].handler = &WorldSession::handleInsertGemOpcode;
     WorldPacketHandlers[CMSG_WRAP_ITEM].handler = &WorldSession::handleWrapItemOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDINFO].handler = &WorldSession::handleItemRefundInfoOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDREQUEST].handler = &WorldSession::HandleItemRefundRequestOpcode;
+    //WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
+    //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::HandleItemRefundRequestOpcode;
 
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_SAVE].handler = &WorldSession::handleEquipmentSetSave;
+    //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
@@ -1015,10 +1015,10 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_AUTO_REPEAT_SPELL].handler = &WorldSession::handleCancelAutoRepeatSpellOpcode;
     WorldPacketHandlers[CMSG_TOTEM_DESTROYED].handler = &WorldSession::handleCancelTotem;
     WorldPacketHandlers[CMSG_LEARN_TALENT].handler = &WorldSession::handleLearnTalentOpcode;
-    //WorldPacketHandlers[CMSG_LEARN_TALENTS_MULTIPLE].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
+    //WorldPacketHandlers[CMSG_LEARN_TALENT_GROUP].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_TALENTS].handler = &WorldSession::handleUnlearnTalents;
     WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler = &WorldSession::handleUnlearnTalents;
-    //WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler = &WorldSession::handleUpdateProjectilePosition;
+    //WorldPacketHandlers[CMSG_ON_MISSILE_TRAJECTORY_COLLISION].handler = &WorldSession::handleUpdateProjectilePosition;
 
     // Combat / Duel
     WorldPacketHandlers[CMSG_ATTACKSWING].handler = &WorldSession::handleAttackSwingOpcode;
@@ -1531,10 +1531,10 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_CANCEL_TEMP_ENCHANTMENT].handler = &WorldSession::handleCancelTemporaryEnchantmentOpcode;
     //WorldPacketHandlers[CMSG_SOCKET_GEMS].handler = &WorldSession::handleInsertGemOpcode;
     //WorldPacketHandlers[CMSG_WRAP_ITEM].handler = &WorldSession::handleWrapItemOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDINFO].handler = &WorldSession::handleItemRefundInfoOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDREQUEST].handler = &WorldSession::HandleItemRefundRequestOpcode;
+    //WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
+    //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::HandleItemRefundRequestOpcode;
 
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_SAVE].handler = &WorldSession::handleEquipmentSetSave;
+    //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
@@ -1548,10 +1548,10 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_CANCEL_AUTO_REPEAT_SPELL].handler = &WorldSession::handleCancelAutoRepeatSpellOpcode;
     //WorldPacketHandlers[CMSG_TOTEM_DESTROYED].handler = &WorldSession::handleCancelTotem;
     //WorldPacketHandlers[CMSG_LEARN_TALENT].handler = &WorldSession::handleLearnTalentOpcode;
-    //WorldPacketHandlers[CMSG_LEARN_TALENTS_MULTIPLE].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
+    //WorldPacketHandlers[CMSG_LEARN_TALENT_GROUP].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
     //WorldPacketHandlers[CMSG_UNLEARN_TALENTS].handler = &WorldSession::handleUnlearnTalents;
     //WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler = &WorldSession::handleUnlearnTalents;
-    //WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler = &WorldSession::handleUpdateProjectilePosition;
+    //WorldPacketHandlers[CMSG_ON_MISSILE_TRAJECTORY_COLLISION].handler = &WorldSession::handleUpdateProjectilePosition;
 
     // Combat / Duel
     WorldPacketHandlers[CMSG_ATTACKSWING].handler = &WorldSession::handleAttackSwingOpcode;
@@ -2064,10 +2064,10 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_TEMP_ENCHANTMENT].handler = &WorldSession::handleCancelTemporaryEnchantmentOpcode;
     WorldPacketHandlers[CMSG_SOCKET_GEMS].handler = &WorldSession::handleInsertGemOpcode;
     WorldPacketHandlers[CMSG_WRAP_ITEM].handler = &WorldSession::handleWrapItemOpcode;
-    WorldPacketHandlers[CMSG_ITEMREFUNDINFO].handler = &WorldSession::handleItemRefundInfoOpcode;
-    WorldPacketHandlers[CMSG_ITEMREFUNDREQUEST].handler = &WorldSession::handleItemRefundRequestOpcode;
+    WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
+    WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
 
-    WorldPacketHandlers[CMSG_EQUIPMENT_SET_SAVE].handler = &WorldSession::handleEquipmentSetSave;
+    WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
     WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
@@ -2081,10 +2081,10 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_AUTO_REPEAT_SPELL].handler = &WorldSession::handleCancelAutoRepeatSpellOpcode;
     WorldPacketHandlers[CMSG_TOTEM_DESTROYED].handler = &WorldSession::handleCancelTotem;
     WorldPacketHandlers[CMSG_LEARN_TALENT].handler = &WorldSession::handleLearnTalentOpcode;
-    WorldPacketHandlers[CMSG_LEARN_TALENTS_MULTIPLE].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
+    WorldPacketHandlers[CMSG_LEARN_TALENT_GROUP].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
     WorldPacketHandlers[CMSG_UNLEARN_TALENTS].handler = &WorldSession::handleUnlearnTalents;
     WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler = &WorldSession::handleUnlearnTalents;
-    WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler = &WorldSession::handleUpdateProjectilePosition;
+    WorldPacketHandlers[CMSG_ON_MISSILE_TRAJECTORY_COLLISION].handler = &WorldSession::handleUpdateProjectilePosition;
     // Combat / Duel
     WorldPacketHandlers[CMSG_ATTACKSWING].handler = &WorldSession::handleAttackSwingOpcode;
     WorldPacketHandlers[CMSG_ATTACKSTOP].handler = &WorldSession::handleAttackStopOpcode;
@@ -2634,9 +2634,9 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_CANCEL_TEMP_ENCHANTMENT].handler = &WorldSession::handleCancelTemporaryEnchantmentOpcode;
     WorldPacketHandlers[CMSG_SOCKET_GEMS].handler = &WorldSession::handleInsertGemOpcode;
     //WorldPacketHandlers[CMSG_WRAP_ITEM].handler = &WorldSession::handleWrapItemOpcode;
-    WorldPacketHandlers[CMSG_ITEMREFUNDINFO].handler = &WorldSession::handleItemRefundInfoOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDREQUEST].handler = &WorldSession::handleItemRefundRequestOpcode;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_SAVE].handler = &WorldSession::handleEquipmentSetSave;
+    WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
+    //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
+    //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
@@ -2649,12 +2649,12 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_CHANNELLING].handler = &WorldSession::handleCancelChannellingOpcode;
     WorldPacketHandlers[CMSG_CANCEL_AUTO_REPEAT_SPELL].handler = &WorldSession::handleCancelAutoRepeatSpellOpcode;
     WorldPacketHandlers[CMSG_TOTEM_DESTROYED].handler = &WorldSession::handleCancelTotem;
-    WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler = &WorldSession::handleUpdateProjectilePosition;
+    WorldPacketHandlers[CMSG_ON_MISSILE_TRAJECTORY_COLLISION].handler = &WorldSession::handleUpdateProjectilePosition;
     
     // Talent System
     WorldPacketHandlers[CMSG_LEARN_TALENT].handler = &WorldSession::handleLearnTalentOpcode;
     WorldPacketHandlers[CMSG_LEARN_PREVIEW_TALENTS].handler = &WorldSession::handleLearnPreviewTalentsOpcode;
-    //WorldPacketHandlers[CMSG_LEARN_TALENTS_MULTIPLE].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
+    //WorldPacketHandlers[CMSG_LEARN_TALENT_GROUP].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
     //WorldPacketHandlers[CMSG_UNLEARN_TALENTS].handler = &WorldSession::handleUnlearnTalents;
     WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler = &WorldSession::handleUnlearnTalents;
 
@@ -3240,9 +3240,9 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_CANCEL_TEMP_ENCHANTMENT].handler = &WorldSession::handleCancelTemporaryEnchantmentOpcode;
     WorldPacketHandlers[CMSG_SOCKET_GEMS].handler = &WorldSession::handleInsertGemOpcode;
     //WorldPacketHandlers[CMSG_WRAP_ITEM].handler = &WorldSession::handleWrapItemOpcode;
-    WorldPacketHandlers[CMSG_ITEMREFUNDINFO].handler = &WorldSession::handleItemRefundInfoOpcode;
-    //WorldPacketHandlers[CMSG_ITEMREFUNDREQUEST].handler = &WorldSession::handleItemRefundRequestOpcode;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_SAVE].handler = &WorldSession::handleEquipmentSetSave;
+    WorldPacketHandlers[CMSG_GET_ITEM_PURCHASE_DATA].handler = &WorldSession::handleItemRefundInfoOpcode;
+    //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
+    //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_USE].handler = &WorldSession::handleEquipmentSetUse;
     //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
 
@@ -3255,12 +3255,12 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_CANCEL_CHANNELLING].handler = &WorldSession::handleCancelChannellingOpcode;
     WorldPacketHandlers[CMSG_CANCEL_AUTO_REPEAT_SPELL].handler = &WorldSession::handleCancelAutoRepeatSpellOpcode;
     WorldPacketHandlers[CMSG_TOTEM_DESTROYED].handler = &WorldSession::handleCancelTotem;
-    WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler = &WorldSession::handleUpdateProjectilePosition;
+    WorldPacketHandlers[CMSG_ON_MISSILE_TRAJECTORY_COLLISION].handler = &WorldSession::handleUpdateProjectilePosition;
     
     // Talent System
     WorldPacketHandlers[CMSG_LEARN_TALENT].handler = &WorldSession::handleLearnTalentOpcode;
     WorldPacketHandlers[CMSG_LEARN_PREVIEW_TALENTS].handler = &WorldSession::handleLearnPreviewTalentsOpcode;
-    //WorldPacketHandlers[CMSG_LEARN_TALENTS_MULTIPLE].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
+    //WorldPacketHandlers[CMSG_LEARN_TALENT_GROUP].handler = &WorldSession::handleLearnMultipleTalentsOpcode;
     //WorldPacketHandlers[CMSG_UNLEARN_TALENTS].handler = &WorldSession::handleUnlearnTalents;
     WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler = &WorldSession::handleUnlearnTalents;
 
