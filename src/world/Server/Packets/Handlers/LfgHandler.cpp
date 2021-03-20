@@ -612,7 +612,7 @@ void WorldSession::handleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recvPacke
 {
     uint64_t guid = _player->getGuid();
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_LFD_PLAYER_LOCK_INFO_REQUEST %lld", guid);
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_GET_PLAYER_INFO %lld", guid);
 
     // Get Random dungeons that can be done at a certain level and expansion
     // todo FIXME - Should return seasonals (when not disabled)

@@ -954,7 +954,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
-    //WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
+    //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
     //WorldPacketHandlers[CMSG_LFG_TELEPORT].handler = &WorldSession::handleLfgTeleportOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PARTY_INFO].handler = &WorldSession::handleLfgPartyLockInfoRequestOpcode;
 
@@ -1003,7 +1003,7 @@ void WorldSession::loadHandlers()
 
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
+    //WorldPacketHandlers[CMSG_DELETEEQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
     WorldPacketHandlers[CMSG_USE_ITEM].handler = &WorldSession::handleUseItemOpcode;
@@ -1487,7 +1487,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
-    //WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
+    //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
     //WorldPacketHandlers[CMSG_LFG_TELEPORT].handler = &WorldSession::handleLfgTeleportOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PARTY_INFO].handler = &WorldSession::handleLfgPartyLockInfoRequestOpcode;
 
@@ -1536,7 +1536,7 @@ void WorldSession::loadHandlers()
 
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
+    //WorldPacketHandlers[CMSG_DELETEEQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
     WorldPacketHandlers[CMSG_USE_ITEM].handler = &WorldSession::handleUseItemOpcode;
@@ -2020,7 +2020,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
     WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
-    WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
+    WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
     WorldPacketHandlers[CMSG_LFG_TELEPORT].handler = &WorldSession::handleLfgTeleportOpcode;
     WorldPacketHandlers[CMSG_LFG_GET_PARTY_INFO].handler = &WorldSession::handleLfgPartyLockInfoRequestOpcode;
 
@@ -2069,7 +2069,7 @@ void WorldSession::loadHandlers()
 
     WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
-    WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
+    WorldPacketHandlers[CMSG_DELETEEQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System / Talent System
     WorldPacketHandlers[CMSG_USE_ITEM].handler = &WorldSession::handleUseItemOpcode;
@@ -2589,7 +2589,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
-    //WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
+    //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
     //WorldPacketHandlers[CMSG_LFG_TELEPORT].handler = &WorldSession::handleLfgTeleportOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PARTY_INFO].handler = &WorldSession::handleLfgPartyLockInfoRequestOpcode;
 
@@ -2638,7 +2638,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
+    //WorldPacketHandlers[CMSG_DELETEEQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System
     WorldPacketHandlers[CMSG_USE_ITEM].handler = &WorldSession::handleUseItemOpcode;
@@ -3195,7 +3195,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
-    //WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
+    //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
     //WorldPacketHandlers[CMSG_LFG_TELEPORT].handler = &WorldSession::handleLfgTeleportOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PARTY_INFO].handler = &WorldSession::handleLfgPartyLockInfoRequestOpcode;
 
@@ -3244,7 +3244,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_ITEM_PURCHASE_REFUND].handler = &WorldSession::handleItemRefundRequestOpcode;
     //WorldPacketHandlers[CMSG_SAVE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetSave;
     //WorldPacketHandlers[CMSG_USE_EQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetUse;
-    //WorldPacketHandlers[CMSG_EQUIPMENT_SET_DELETE].handler = &WorldSession::handleEquipmentSetDelete;
+    //WorldPacketHandlers[CMSG_DELETEEQUIPMENT_SET].handler = &WorldSession::handleEquipmentSetDelete;
 
     // Spell System
     WorldPacketHandlers[CMSG_USE_ITEM].handler = &WorldSession::handleUseItemOpcode;

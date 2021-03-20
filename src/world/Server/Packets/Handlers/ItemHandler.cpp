@@ -2882,7 +2882,7 @@ void WorldSession::handleEquipmentSetDelete(WorldPacket& data)
 {
     CHECK_INWORLD_RETURN
     
-    LogDebugFlag(LF_OPCODE, "Received CMSG_EQUIPMENT_SET_DELETE");
+    LogDebugFlag(LF_OPCODE, "Received CMSG_DELETEEQUIPMENT_SET");
 
     WoWGuid guid;
 
