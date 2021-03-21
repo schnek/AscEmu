@@ -951,7 +951,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_LEAVE].handler = &WorldSession::handleLfgLeaveOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_JOIN].handler = &WorldSession::handleLfgSearchOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_LEAVE].handler = &WorldSession::handleLfgSearchLeaveOpcode;
-    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
+    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESPONSE].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
@@ -1484,7 +1484,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_LEAVE].handler = &WorldSession::handleLfgLeaveOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_JOIN].handler = &WorldSession::handleLfgSearchOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_LEAVE].handler = &WorldSession::handleLfgSearchLeaveOpcode;
-    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
+    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESPONSE].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
@@ -2017,7 +2017,7 @@ void WorldSession::loadHandlers()
     WorldPacketHandlers[CMSG_LFG_LEAVE].handler = &WorldSession::handleLfgLeaveOpcode;
     WorldPacketHandlers[CMSG_LFG_SEARCH_JOIN].handler = &WorldSession::handleLfgSearchOpcode;
     WorldPacketHandlers[CMSG_LFG_SEARCH_LEAVE].handler = &WorldSession::handleLfgSearchLeaveOpcode;
-    WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
+    WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESPONSE].handler = &WorldSession::handleLfgProposalResultOpcode;
     WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
     WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
@@ -2586,7 +2586,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_LEAVE].handler = &WorldSession::handleLfgLeaveOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_JOIN].handler = &WorldSession::handleLfgSearchOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_LEAVE].handler = &WorldSession::handleLfgSearchLeaveOpcode;
-    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
+    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESPONSE].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;
@@ -3192,7 +3192,7 @@ void WorldSession::loadHandlers()
     //WorldPacketHandlers[CMSG_LFG_LEAVE].handler = &WorldSession::handleLfgLeaveOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_JOIN].handler = &WorldSession::handleLfgSearchOpcode;
     //WorldPacketHandlers[CMSG_LFG_SEARCH_LEAVE].handler = &WorldSession::handleLfgSearchLeaveOpcode;
-    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler = &WorldSession::handleLfgProposalResultOpcode;
+    //WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESPONSE].handler = &WorldSession::handleLfgProposalResultOpcode;
     //WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler = &WorldSession::handleLfgSetRolesOpcode;
     //WorldPacketHandlers[CMSG_LFG_BOOT_PLAYER_VOTE].handler = &WorldSession::handleLfgSetBootVoteOpcode;
     //WorldPacketHandlers[CMSG_LFG_GET_PLAYER_INFO].handler = &WorldSession::handleLfgPlayerLockInfoRequestOpcode;

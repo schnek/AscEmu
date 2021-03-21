@@ -14,7 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgLfgTeleport.h"
 #include "Server/Packets/CmsgLfgSetBootVote.h"
 #include "Server/Packets/CmsgLfgSetRoles.h"
-#include "Server/Packets/CmsgLfgProposalResult.h"
+#include "Server/Packets/CmsgLfgProposalResponse.h"
 #include "Server/Packets/SmsgLfgRoleChosen.h"
 #include "Server/Packets/CmsgLfgSearchJoin.h"
 #include "Server/Packets/CmsgLfgSearchLeave.h"
@@ -571,11 +571,11 @@ void WorldSession::handleLfgSearchLeaveOpcode(WorldPacket& recvPacket)
 
 void WorldSession::handleLfgProposalResultOpcode(WorldPacket& recvPacket)
 {
-    CmsgLfgProposalResult srlPacket;
+    CmsgLfgProposalResponse srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_PROPOSAL_RESULT guid %lld proposal: %u accept: %u", 
+    LogDebugFlag(LF_OPCODE, "Received CMSG_LFG_PROPOSAL_RESPONSE guid %lld proposal: %u accept: %u", 
         _player->getGuid(), srlPacket.lfgGroupId, srlPacket.accept ? 1 : 0);
 
     sLfgMgr.UpdateProposal(srlPacket.lfgGroupId, _player->getGuid(), srlPacket.accept);

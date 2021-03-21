@@ -12,19 +12,19 @@ This file is released under the MIT license. See README-MIT for more information
 
 namespace AscEmu::Packets
 {
-    class CmsgLfgProposalResult : public ManagedPacket
+    class CmsgLfgProposalResponse : public ManagedPacket
     {
 #if VERSION_STRING > TBC
     public:
         uint32_t lfgGroupId;
         bool accept;
 
-        CmsgLfgProposalResult() : CmsgLfgProposalResult(0, false)
+        CmsgLfgProposalResponse() : CmsgLfgProposalResponse(0, false)
         {
         }
 
-        CmsgLfgProposalResult(uint32_t lfgGroupId, bool accept) :
-            ManagedPacket(CMSG_LFG_PROPOSAL_RESULT, 5),
+        CmsgLfgProposalResponse(uint32_t lfgGroupId, bool accept) :
+            ManagedPacket(CMSG_LFG_PROPOSAL_RESPONSE, 5),
             lfgGroupId(lfgGroupId),
             accept(accept)
         {
