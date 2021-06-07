@@ -7,6 +7,7 @@ set(SRC_MAP_FILES
    ${PATH_PREFIX}/CellHandlerDefines.hpp
    ${PATH_PREFIX}/Instance.cpp
    ${PATH_PREFIX}/Instance.h
+   ${PATH_PREFIX}/InstanceDefines.hpp
    ${PATH_PREFIX}/InstanceMgr.cpp
    ${PATH_PREFIX}/InstanceMgr.h
    ${PATH_PREFIX}/Map.cpp
@@ -25,6 +26,8 @@ set(SRC_MAP_FILES
    ${PATH_PREFIX}/WorldCreator.cpp
    ${PATH_PREFIX}/WorldCreator.h
    ${PATH_PREFIX}/WorldCreatorDefines.hpp
+   ${PATH_PREFIX}/AreaBoundary.cpp
+   ${PATH_PREFIX}/AreaBoundary.h
 )
 
 source_group(Map FILES ${SRC_MAP_FILES})

@@ -6,14 +6,17 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "CommonTypes.hpp"
-#include "Spell/SpellMgr.h"
+#include "Spell/SpellMgr.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Management/Item.h"
+#include "Map/InstanceDefines.hpp"
 #include "Units/Creatures/AIInterface.h"
 #include "ScriptMgr.h"
 #include "ScriptEvent.hpp"
 #include "Map/MapMgr.h"
 #include "Map/Instance.h"
+
+#include "Movement/WaypointDefines.h"
 
 class Creature;
 class CreatureAIScript;
@@ -152,7 +155,6 @@ public:
 class SERVER_DECL CreatureAIScript
 {
 public:
-
     CreatureAIScript(Creature* creature);
     virtual ~CreatureAIScript();
 
@@ -178,7 +180,7 @@ public:
     virtual void OnCallForHelp() {}
     virtual void OnLoad() {}
     virtual void OnDespawn() {}
-    virtual void OnReachWP(uint32_t /*_waypointId*/, bool /*_isForwards*/) {}
+    virtual void OnReachWP(uint32_t /*type*/, uint32_t /*id*/) {}
     virtual void OnLootTaken(Player* /*player*/, ItemProperties const* /*_itemProperties*/) {}
     virtual void AIUpdate() {}
     virtual void OnEmote(Player* /*_player*/, EmoteType /*_emote*/) {}
@@ -225,6 +227,7 @@ public:
     Creature* getNearestCreature(float posX, float posY, float posZ, uint32_t entry);
 
     void GetCreatureListWithEntryInGrid(std::list<Creature*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/);
+    Creature* findNearestCreature(uint32_t entry, float maxSearchRange /*= 250.0f*/);
     void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/);
 
     float getRangeToObject(Object* object);
@@ -259,18 +262,27 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // wp movement
-    Movement::WayPoint* CreateWaypoint(int pId, uint32_t pWaittime, uint32_t pMoveFlag, Movement::Location pCoords);
-    void AddWaypoint(Movement::WayPoint* pWayPoint);
-    void ForceWaypointMove(uint32_t pWaypointId);
-    void SetWaypointToMove(uint32_t pWaypointId);
-    void StopWaypointMovement();
-    void SetWaypointMoveType(Movement::WaypointMovementScript wp_move_script_type);
-    uint32_t GetCurrentWaypoint();
-    size_t GetWaypointCount();
-    bool HasWaypoints();
+    WaypointNode createWaypoint(int pId, uint32_t pWaittime, uint32_t pMoveType, LocationVector pCoords);
+    void addWaypoint(uint32_t pathid, WaypointNode pWayPoint);
+    WaypointPath* getCustomPath(uint32_t pathId);
+
+    void setWaypointToMove(uint32_t pathid, uint32_t pWaypointId);
+    void stopWaypointMovement();
+
+    // loads waypoints from database and initialise them
+    void loadCustomWaypoins(uint32_t pathId);
+
+    uint32_t getCurrentWaypoint();
+
+    size_t getWaypointCount(uint32_t pathId);
+    bool hasWaypoints(uint32_t pathId); //todo aaron02
+
+private:
+    std::unordered_map<uint32_t, WaypointPath> _waypointStore;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // combat setup
+public:
     bool canEnterCombat();
     void setCanEnterCombat(bool enterCombat);
     bool _isInCombat();
@@ -297,11 +309,9 @@ public:
     // script phase
     // \brief: script phase is reset to 0 in _internalOnDied() and _internalOnCombatStop()
 private:
-
     uint32_t mScriptPhase;
 
 public:
-
     uint32_t getScriptPhase();
     void setScriptPhase(uint32_t scriptPhase);
     void resetScriptPhase();
@@ -319,7 +329,6 @@ protected:
     //        available (instanceUpdateFrequency). If the creature is on a map without a
     //        instance script, the timer gets updated locale (AIUpdateFrequency).
 private:
-
     //reference to instance time - used for creatures located on a map with a instance script.
     typedef std::list<uint32_t> creatureTimerIds;
     creatureTimerIds mCreatureTimerIds;
@@ -333,7 +342,6 @@ private:
     uint32_t mCreatureTimerCount;
 
 public:
-
     uint32_t _addTimer(uint32_t durationInMs);
     uint32_t _getTimeForTimer(uint32_t timerId);
     void _removeTimer(uint32_t& timerId);
@@ -352,13 +360,12 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // ai upodate frequency
 private:
-
     uint32_t mAIUpdateFrequency;
 
     uint32_t mCustomAIUpdateDelayTimerId;
     uint32_t mCustomAIUpdateDelay;
-public:
 
+public:
     //new
     void registerAiUpdateFrequency();
     void removeAiUpdateFrequency();
@@ -386,7 +393,6 @@ public:
     CreatureAISpellsArray mCreatureAISpells;
 
 public:
-
     uint32_t mSpellWaitTimerId;
 
     //addAISpell(spellID, Chance, TargetType, Duration (s), waitBeforeNextCast (s))
@@ -430,7 +436,6 @@ public:
     };
 
 private:
-
     typedef std::vector<uint32_t> definedEmoteVector;
     definedEmoteVector mEmotesOnCombatStart;
     definedEmoteVector mEmotesOnTargetDied;
@@ -439,7 +444,6 @@ private:
     definedEmoteVector mEmotesOnIdle;
 
 public:
-
     void sendChatMessage(uint8_t type, uint32_t soundId, std::string text);
     void sendDBChatMessage(uint32_t textId);
 
@@ -454,7 +458,6 @@ public:
     // \brief: idle timer is seperated from custom timers. If isIdleEmoteEnabled is true,
     //         a random chat message is send by _internalAIUpdate stored in mEmotesOnIdle
 private:
-
     bool isIdleEmoteEnabled;
     uint32_t idleEmoteTimerId;
 
@@ -462,7 +465,6 @@ private:
     uint32_t idleEmoteTimeMax;
 
 public:
-
     void enableOnIdleEmote(bool enable, uint32_t durationInMs = 0);
     void setIdleEmoteTimerId(uint32_t timerId);
     uint32_t getIdleEmoteTimerId();
@@ -474,11 +476,9 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // basic
 private:
-
     Creature* _creature;
 
 public:
-
     Creature* getCreature() { return _creature; }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -494,13 +494,13 @@ public:
         {
             switch (_creature->GetMapMgr()->pInstance->m_difficulty)
             {
-            case MODE_NORMAL_10MEN:
+            case InstanceDifficulty::RAID_10MAN_NORMAL:
                 return normal10;
-            case MODE_NORMAL_25MEN:
+            case InstanceDifficulty::RAID_25MAN_NORMAL:
                 return normal25;
-            case MODE_HEROIC_10MEN:
+            case InstanceDifficulty::RAID_10MAN_HEROIC:
                 return heroic10;
-            case MODE_HEROIC_25MEN:
+            case InstanceDifficulty::RAID_25MAN_HEROIC:
                 return heroic25;
             default:
                 break;
@@ -513,11 +513,9 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // linked creature AI scripts
 private:
-
     CreatureAIScript* linkedCreatureAI;
 
 public:
-
     CreatureAIScript* getLinkedCreatureAIScript() { return linkedCreatureAI; }
     void setLinkedCreatureAIScript(CreatureAIScript* creatureAI);
     void removeLinkToCreatureAIScript();

@@ -31,18 +31,18 @@
 #include "Map/MapMgr.h"
 #include "Objects/Faction.h"
 #include "Spell/SpellAuras.h"
-#include "Spell/Definitions/SpellLog.h"
-#include "Spell/Definitions/SpellCastTargetFlags.h"
-#include "Spell/Definitions/ProcFlags.h"
-#include <Spell/Definitions/AuraInterruptFlags.h>
-#include "Spell/Definitions/SpellSchoolConversionTable.h"
-#include "Spell/Definitions/SpellTypes.h"
-#include "Spell/Definitions/SpellIsFlags.h"
-#include "Spell/Definitions/SpellMechanics.h"
-#include "Spell/Definitions/PowerType.h"
-#include "Spell/Definitions/SpellDidHitResult.h"
-#include "Spell/Definitions/SpellEffectTarget.h"
-#include "Spell/Definitions/SpellDamageType.h"
+#include "Spell/Definitions/SpellLog.hpp"
+#include "Spell/Definitions/SpellCastTargetFlags.hpp"
+#include "Spell/Definitions/ProcFlags.hpp"
+#include <Spell/Definitions/AuraInterruptFlags.hpp>
+#include "Spell/Definitions/SpellSchoolConversionTable.hpp"
+#include "Spell/Definitions/SpellTypes.hpp"
+#include "Spell/Definitions/SpellIsFlags.hpp"
+#include "Spell/Definitions/SpellMechanics.hpp"
+#include "Spell/Definitions/PowerType.hpp"
+#include "Spell/Definitions/SpellDidHitResult.hpp"
+#include "Spell/Definitions/SpellEffectTarget.hpp"
+#include "Spell/Definitions/SpellDamageType.hpp"
 #include "Creatures/Pet.h"
 #include "Data/WoWUnit.hpp"
 #include "Server/Packets/SmsgUpdateAuraDuration.h"
@@ -56,9 +56,10 @@
 #include "Server/Packets/SmsgAuraUpdate.h"
 #include "Server/Packets/SmsgPeriodicAuraLog.h"
 #include "Server/Packets/SmsgAttackSwingBadFacing.h"
-#include "Movement/Spline/New/MoveSpline.h"
-#include "Movement/Spline/New/MoveSplineInit.h"
-#include "Movement/Spline/New/MovementPacketBuilder.h"
+#include "Movement/Spline/MoveSpline.h"
+#include "Movement/Spline/MoveSplineInit.h"
+#include "Movement/Spline/MovementPacketBuilder.h"
+#include "Server/Packets/SmsgMoveKnockBack.h"
 
 using namespace AscEmu::Packets;
 
@@ -474,9 +475,9 @@ static float AttackToRageConversionTable[DBC_PLAYER_LEVEL_CAP + 1] =
 #endif
 
 Unit::Unit() :
-    m_movementManager(),
-    m_movementAI(this),
-    movespline(new MovementNew::MoveSpline())
+    m_threatManager(this),
+    movespline(new MovementNew::MoveSpline()),
+    i_movementManager(new MovementManager(this))
 {
     mControledUnit = this;
     mPlayerControler = nullptr;
@@ -493,7 +494,7 @@ Unit::Unit() :
     m_ignoreArmorPctMaceSpec = 0;
     m_ignoreArmorPct = 0;
     m_fearmodifiers = 0;
-    m_unitState = UNIT_STATE_NONE;
+    m_unitState = 0;
     m_deathState = ALIVE;
     m_meleespell = 0;
     m_addDmgOnce = 0;
@@ -577,7 +578,8 @@ Unit::Unit() :
     //      CalculateActualArmor();
 
     m_aiInterface = new AIInterface();
-    m_aiInterface->Init(this, AI_SCRIPT_AGRO, Movement::WP_MOVEMENT_SCRIPT_NONE);
+    m_aiInterface->Init(this, AI_SCRIPT_AGRO);
+    getThreatManager().initialize();
 
     m_oldEmote = 0;
 
@@ -726,6 +728,7 @@ Unit::~Unit()
     //start to remove badptrs, if you delete from the heap null the ptr's damn!
     RemoveAllAuras();
     delete movespline;
+    delete i_movementManager;
 
     delete m_aiInterface;
     m_aiInterface = NULL;
@@ -756,7 +759,7 @@ Unit::~Unit()
     for (std::list<ExtraStrike*>::iterator itx = m_extraStrikeTargets.begin(); itx != m_extraStrikeTargets.end(); ++itx)
     {
         ExtraStrike* es = *itx;
-        LOG_ERROR("ExtraStrike added to Unit %u by Spell ID %u wasn't removed when removing the Aura", getGuid(), es->spell_info->getId());
+        sLogger.failure("ExtraStrike added to Unit %u by Spell ID %u wasn't removed when removing the Aura", getGuid(), es->spell_info->getId());
         delete es;
     }
     m_extraStrikeTargets.clear();
@@ -779,12 +782,13 @@ Unit::~Unit()
     clearHealthBatch();
 
     RemoveGarbage();
+
+    getThreatManager().clearAllThreat();
+    getThreatManager().removeMeFromThreatLists();
 }
 
 void Unit::Update(unsigned long time_passed)
 {
-    m_movementAI.updateMovement(time_passed);
-
     const auto msTime = Util::getMSTime();
     
     auto diff = msTime - m_lastSpellUpdateTime;
@@ -899,11 +903,10 @@ void Unit::Update(unsigned long time_passed)
         {
             if (m_useAI)
                 m_aiInterface->Update(time_passed);
-            else if (!m_aiInterface->MoveDone())            //pending move
-                m_aiInterface->UpdateMovementSpline();
         }
-
+        getThreatManager().update(time_passed);
         updateSplineMovement(time_passed);
+        getMovementManager()->update(time_passed);
 
         if (m_diminishActive)
         {
@@ -981,23 +984,66 @@ void Unit::updateSplinePosition()
         pos.z = loc.z;
         pos.o = normalizeOrientation(loc.orientation);
 
-        if (TransportBase* transport = getCurrentVehicle())
+        if (TransportBase* vehicle = getCurrentVehicle())
         {
-            transport->CalculatePassengerPosition(loc.x, loc.y, loc.z, &loc.orientation);
+            vehicle->CalculatePassengerPosition(loc.x, loc.y, loc.z, &loc.orientation);
         }
         else if (TransportBase* transport = GetTransport())
         {
             transport->CalculatePassengerPosition(loc.x, loc.y, loc.z, &loc.orientation);
         }
         else
+        {
             return;
+        }
     }
 
-    // \todo
-    //if (hasUnitStateFlag(UNIT_STATE_CANNOT_TURN))
-    //    loc.orientation = GetOrientation();
+    if (hasUnitStateFlag(UNIT_STATE_CANNOT_TURN))
+        loc.orientation = GetOrientation();
 
     SetPosition(loc.x, loc.y, loc.z, loc.orientation);
+}
+
+void Unit::stopMoving()
+{
+    removeUnitStateFlag(UNIT_STATE_MOVING);
+
+    // not need send any packets if not in world or not moving
+    if (!IsInWorld() || movespline->Finalized())
+        return;
+
+    // Update position now since Stop does not start a new movement that can be updated later
+    if (movespline->HasStarted())
+        updateSplinePosition();
+    MovementNew::MoveSplineInit init(this);
+    init.Stop();
+}
+
+void Unit::pauseMovement(uint32_t timer/* = 0*/, uint8_t slot/* = 0*/, bool forced/* = true*/)
+{
+    if (isInvalidMovementSlot(slot))
+        return;
+
+    if (MovementGenerator* movementGenerator = getMovementManager()->getCurrentMovementGenerator(MovementSlot(slot)))
+        movementGenerator->pause(timer);
+
+    if (forced && getMovementManager()->getCurrentSlot() == MovementSlot(slot))
+        stopMoving();
+}
+
+void Unit::resumeMovement(uint32_t timer/* = 0*/, uint8_t slot/* = 0*/)
+{
+    if (isInvalidMovementSlot(slot))
+        return;
+
+    if (MovementGenerator* movementGenerator = getMovementManager()->getCurrentMovementGenerator(MovementSlot(slot)))
+        movementGenerator->resume(timer);
+}
+
+void Unit::removeAllFollowers()
+{
+    while (!m_followingMe.empty())
+        (*m_followingMe.begin())->setTarget(nullptr);
 }
 
 void Unit::disableSpline()
@@ -6576,7 +6622,7 @@ bool Unit::IsInInstance()
 {
     MySQLStructure::MapInfo const* pMapinfo = sMySQLStore.getWorldMapInfo(this->GetMapId());
     if (pMapinfo)
-        return (pMapinfo->type != INSTANCE_NULL);
+        return !pMapinfo->isNonInstanceMap();
 
     return false;
 }
@@ -7306,19 +7352,22 @@ DamageInfo Unit::Strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     // postroll processing
 
     //trigger hostile action in ai
-    pVictim->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, this, 0);
+    pVictim->GetAIInterface()->handleEvent(EVENT_HOSTILEACTION, this, 0);
 
     switch (r)
     {
         case 0:     // miss
             hit_status |= HITSTATUS_MISS;
-            if (pVictim->isCreature() && pVictim->GetAIInterface()->getNextTarget() == NULL)    // dirty ai agro fix
-                pVictim->GetAIInterface()->AttackReaction(this, 1, 0);
+            if (pVictim->isCreature() && pVictim->getThreatManager().getCurrentVictim() == nullptr) // if we missed our target fix agro by adding threat
+            {
+                pVictim->GetAIInterface()->onHostileAction(this);
+            }
             break;
         case 1:     //dodge
-            if (pVictim->isCreature() && pVictim->GetAIInterface()->getNextTarget() == NULL)    // dirty ai agro fix
-                pVictim->GetAIInterface()->AttackReaction(this, 1, 0);
-
+            if (pVictim->isCreature() && pVictim->getThreatManager().getCurrentVictim() == nullptr) // if our target dodget our attack fix agro by adding threat
+            {
+                pVictim->GetAIInterface()->onHostileAction(this);
+            }
             CALL_SCRIPT_EVENT(pVictim, OnTargetDodged)(this);
             CALL_SCRIPT_EVENT(this, OnDodged)(this);
             targetEvent = 1;
@@ -7348,8 +7397,10 @@ DamageInfo Unit::Strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
             else sEventMgr.ModifyEventTimeLeft(pVictim, EVENT_DODGE_BLOCK_FLAG_EXPIRE, 5000, 0);
             break;
         case 2:     //parry
-            if (pVictim->isCreature() && pVictim->GetAIInterface()->getNextTarget() == NULL) // dirty ai agro fix
-                pVictim->GetAIInterface()->AttackReaction(this, 1, 0);
+            if (pVictim->isCreature() && pVictim->getThreatManager().getCurrentVictim() == nullptr) // if our target parry our attack fix agro by adding threat
+            {
+                pVictim->GetAIInterface()->onHostileAction(this);
+            }
 
             CALL_SCRIPT_EVENT(pVictim, OnTargetParried)(this);
             CALL_SCRIPT_EVENT(this, OnParried)(this);
@@ -7714,8 +7765,8 @@ DamageInfo Unit::Strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     //special states processing
     if (pVictim->isCreature())
     {
-        if (pVictim->GetAIInterface() && (pVictim->GetAIInterface()->isAiState(AI_STATE_EVADE) ||
-            (pVictim->GetAIInterface()->GetIsSoulLinked() && pVictim->GetAIInterface()->getSoullinkedWith() != this)))
+        if (pVictim->isInEvadeMode())
+/*      || (pVictim->GetAIInterface()->GetIsSoulLinked() && pVictim->GetAIInterface()->getSoullinkedWith() != this))*/
         {
             vstate = VisualState::EVADE;
             dmg.realDamage = 0;
@@ -7933,7 +7984,7 @@ DamageInfo Unit::Strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
                     pVictim->getCurrentSpell(CURRENT_GENERIC_SPELL)->AddTime(0);
             }
         }
-        else
+        else if (vstate != VisualState::EVADE)
         {
             // have to set attack target here otherwise it wont be set
             // because dealdamage is not called.
@@ -8084,7 +8135,7 @@ void Unit::smsg_AttackStart(Unit* pVictim)
 {
     SendMessageToSet(SmsgAttackStart(getGuid(), pVictim->getGuid()).serialise().get(), false);
 
-    LOG_DEBUG("WORLD: Sent SMSG_ATTACKSTART");
+    sLogger.debug("WORLD: Sent SMSG_ATTACKSTART");
 
     // FLAGS changed so other players see attack animation
     //    addUnitFlag(UNIT_FLAG_COMBAT);
@@ -8325,7 +8376,7 @@ void Unit::RemoveAllAuraType(uint32 auratype)
 
 bool Unit::SetAurDuration(uint32 spellId, Unit* caster, uint32 duration)
 {
-    LOG_DEBUG("setAurDuration2");
+    sLogger.debug("setAurDuration2");
     Aura* aur = getAuraWithIdForGuid(spellId, caster->getGuid());
     if (!aur)
         return false;
@@ -8341,7 +8392,7 @@ bool Unit::SetAurDuration(uint32 spellId, uint32 duration)
     if (!aur)
         return false;
 
-    LOG_DEBUG("setAurDuration2");
+    sLogger.debug("setAurDuration2");
     aur->setTimeLeft(duration);
     sEventMgr.ModifyEventTimeLeft(aur, EVENT_AURA_REMOVE, duration);
 
@@ -8369,17 +8420,17 @@ void Unit::SendChatMessageAlternateEntry(uint32 entry, uint8 type, uint32 lang, 
 
 void Unit::WipeHateList()
 {
-    GetAIInterface()->WipeHateList();
+    getThreatManager().clearAllThreat();
 }
 
 void Unit::ClearHateList()
 {
-    GetAIInterface()->ClearHateList();
+    getThreatManager().resetAllThreat();
 }
 
 void Unit::WipeTargetList()
 {
-    GetAIInterface()->WipeTargetList();
+    getThreatManager().clearAllThreat();
 }
 
 void Unit::addToInRangeObjects(Object* pObj)
@@ -8403,8 +8454,8 @@ void Unit::onRemoveInRangeObject(Object* pObj)
 
     if (pObj->isCreatureOrPlayer())
     {
-        Unit* pUnit = static_cast<Unit*>(pObj);
-        GetAIInterface()->CheckTarget(pUnit);
+        //Unit* pUnit = static_cast<Unit*>(pObj);
+        //GetAIInterface()->CheckTarget(pUnit); look if still needed now
 
         if (getCharmGuid() == pObj->getGuid())
             interruptSpell();
@@ -8414,24 +8465,6 @@ void Unit::onRemoveInRangeObject(Object* pObj)
 void Unit::clearInRangeSets()
 {
     Object::clearInRangeSets();
-}
-
-void Unit::MoveToWaypoint(uint32 wp_id)
-{
-    if (this->m_useAI && this->GetAIInterface() != nullptr)
-    {
-        AIInterface* aiInterface = this->GetAIInterface();
-        Movement::WayPoint* wayPoint = aiInterface->getWayPoint(wp_id);
-        if (wayPoint != nullptr)
-        {
-            aiInterface->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-            aiInterface->setWayPointToMove(wp_id);
-        }
-        else
-        {
-            LOG_ERROR("Invalid waypoint specified.");
-        }
-    }
 }
 
 void Unit::CalcDamage()
@@ -8732,7 +8765,7 @@ AuraCheckResponse Unit::AuraCheck(SpellInfo const* proto, Object* /*caster*/)
             }
         }
     }
-    //LOG_DEBUG("resp = %i", resp.Error);
+    //sLogger.debug("resp = %i", resp.Error);
     // return it back to our caller
     return resp;
 }
@@ -8787,6 +8820,8 @@ void Unit::OnPushToWorld()
 
     z_axisposition = 0.0f;
 #endif
+
+    getMovementManager()->addToWorld();
 }
 
 //! Remove Unit from world
@@ -8802,6 +8837,8 @@ void Unit::RemoveFromWorld(bool free_guid)
     }
 
     removeVehicleComponent();
+
+    removeAllFollowers();
 
     CombatStatus.OnRemoveFromWorld();
 #if VERSION_STRING > TBC
@@ -8855,8 +8892,7 @@ void Unit::RemoveFromWorld(bool free_guid)
             m_auras[x]->RelocateEvents();
         }
     }
-
-    m_aiInterface->WipeReferences();
+    getThreatManager().removeMeFromThreatLists();
 }
 
 void Unit::Deactivate(MapMgr* mgr)
@@ -9197,13 +9233,15 @@ void CombatStatusHandler::UpdateFlag()
         {
             //printf(I64FMT" is now in combat.\n", m_Unit->getGuid());
             m_Unit->addUnitFlags(UNIT_FLAG_COMBAT);
-            if (!m_Unit->hasUnitStateFlag(UNIT_STATE_ATTACKING)) m_Unit->addUnitStateFlag(UNIT_STATE_ATTACKING);
+            // todo
+            //if (!m_Unit->hasUnitStateFlag(UNIT_STATE_ATTACKING)) m_Unit->addUnitStateFlag(UNIT_STATE_ATTACKING);
         }
         else
         {
             //printf(I64FMT" is no longer in combat.\n", m_Unit->getGuid());
             m_Unit->removeUnitFlags(UNIT_FLAG_COMBAT);
-            if (m_Unit->hasUnitStateFlag(UNIT_STATE_ATTACKING)) m_Unit->removeUnitStateFlag(UNIT_STATE_ATTACKING);
+            // todo
+            //if (m_Unit->hasUnitStateFlag(UNIT_STATE_ATTACKING)) m_Unit->removeUnitStateFlag(UNIT_STATE_ATTACKING);
 
             // remove any of our healers from combat too, if they are able to be.
             ClearMyHealers();
@@ -9472,9 +9510,7 @@ void CombatStatusHandler::AttackersForgetHate()
             m_attackTargets.erase(i2);
             continue;
         }
-
-        if (pt->GetAIInterface())
-            pt->GetAIInterface()->RemoveThreatByPtr(m_Unit);
+        pt->getThreatManager().clearThreat(m_Unit);
     }
 }
 
@@ -9493,7 +9529,7 @@ bool CombatStatusHandler::IsInCombat() const
             else if (m_Unit->isPet())
                 return m_lastStatus;
 
-            return m_Unit->GetAIInterface()->getAITargetsCount() == 0 ? false : true;
+            return m_Unit->getThreatManager().getThreatListSize() == 0 ? false : true;
         }
         case TYPEID_PLAYER:
         {
@@ -9552,7 +9588,7 @@ void Unit::DispelAll(bool positive)
 // MaxDispel was set to -1 which will led to a uint32 of 4294967295
 bool Unit::RemoveAllAurasByMechanic(uint32 MechanicType, uint32 /*MaxDispel = 0*/, bool HostileOnly = true)
 {
-    LogDebugFlag(LF_AURA, "Unit::MechanicImmunityMassDispel called, mechanic: %u" , MechanicType);
+    sLogger.debug("Unit::MechanicImmunityMassDispel called, mechanic: %u" , MechanicType);
     uint32 DispelCount = 0;
     for (uint32 x = (HostileOnly ? MAX_NEGATIVE_AURAS_EXTEDED_START : MAX_POSITIVE_AURAS_EXTEDED_START); x < MAX_REMOVABLE_AURAS_END; x++)    // If HostileOnly = 1, then we use aura slots 40-56 (hostile). Otherwise, we use 0-56 (all)
     {
@@ -9564,7 +9600,7 @@ bool Unit::RemoveAllAurasByMechanic(uint32 MechanicType, uint32 /*MaxDispel = 0*
         {
             if (m_auras[x]->getSpellInfo()->getMechanicsType() == MechanicType)   // Remove all mechanics of type MechanicType (my english goen boom)
             {
-                LogDebugFlag(LF_AURA, "Removed aura. [AuraSlot %u, SpellId %u]", x, m_auras[x]->getSpellId());
+                sLogger.debug("Removed aura. [AuraSlot %u, SpellId %u]", x, m_auras[x]->getSpellId());
                 ///\todo Stop moving if fear was removed.
                 m_auras[x]->removeAura(); // EZ-Remove
                 DispelCount++;
@@ -9657,7 +9693,9 @@ void Unit::AggroPvPGuards()
         {
             Unit* tmpUnit = static_cast<Unit*>(i);
             if (tmpUnit->GetAIInterface() && tmpUnit->GetAIInterface()->m_isNeutralGuard && CalcDistance(tmpUnit) <= (50.0f * 50.0f))
-                tmpUnit->GetAIInterface()->AttackReaction(this, 1, 0);
+            {
+                tmpUnit->GetAIInterface()->onHostileAction(this);
+            }
         }
     }
 }
@@ -10027,7 +10065,32 @@ void Unit::HandleKnockback(Object* caster, float horizontal, float vertical)
 
     float destx, desty, destz;
     if (GetPoint(angle, horizontal, destx, desty, destz, true))
-        GetAIInterface()->splineMoveKnockback(destx, desty, destz, horizontal, vertical);
+        getMovementManager()->moveKnockbackFrom(destx, desty, horizontal, vertical);
+}
+
+void Unit::knockbackFrom(float x, float y, float speedXY, float speedZ)
+{
+    Player* player = ToPlayer();
+    if (!player)
+    {
+        if (getCharmGuid())
+        {
+            Unit* charmer = GetMapMgrPlayer(getCharmGuid());
+            player = charmer->ToPlayer();
+        }
+    }
+
+    if (!player)
+    {
+        getMovementManager()->moveKnockbackFrom(x, y, speedXY, speedZ);
+    }
+    else
+    {
+        player->GetSession()->SendPacket(SmsgMoveKnockBack(player->GetNewGUID(), Util::getMSTime(), cosf(player->GetOrientation()), sinf(player->GetOrientation()), speedXY, -speedZ).serialise().get());
+
+        if (player->hasAuraWithAuraEffect(SPELL_AURA_ENABLE_FLIGHT2) || player->hasAuraWithAuraEffect(SPELL_AURA_FLY))
+            player->setMoveCanFly(true);
+    }
 }
 
 void Unit::BuildPetSpellList(WorldPacket& data)
@@ -10229,7 +10292,7 @@ void Unit::Possess(Unit* pTarget, uint32 delay)
     {
         // unit-only stuff.
         pTarget->setAItoUse(false);
-        pTarget->GetAIInterface()->StopMovement(0);
+        pTarget->stopMoving();
         pTarget->m_redirectSpellPackets = pThis;
         pTarget->mPlayerControler = pThis;
     }

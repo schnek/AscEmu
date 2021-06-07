@@ -23,8 +23,8 @@
 #include "Spell/SpellAuras.h"
 #include "Server/Opcodes.hpp"
 #include "Server/Script/ScriptMgr.h"
-#include "Spell/Definitions/ProcFlags.h"
-#include <Spell/Definitions/DispelType.h>
+#include "Spell/Definitions/ProcFlags.hpp"
+#include <Spell/Definitions/DispelType.hpp>
 
 enum
 {
@@ -234,15 +234,15 @@ bool DeathGrip(uint8_t effectIndex, Spell* s)
         data << posZ;
 
         if (unitTarget->isCreature())
-            unitTarget->GetAIInterface()->StopMovement(2000);
+            unitTarget->pauseMovement(2000);
 
         unitTarget->SendMessageToSet(&data, true);
         unitTarget->SetPosition(posX, posY, posZ, alpha, true);
-        unitTarget->addUnitStateFlag(UNIT_STATE_ATTACKING);
+        unitTarget->addUnitStateFlag(UNIT_STATE_MELEE_ATTACKING);
         unitTarget->smsg_AttackStart(unitTarget);
         unitTarget->setAttackTimer(MELEE, time);
         unitTarget->setAttackTimer(OFFHAND, time);
-        unitTarget->GetAIInterface()->taunt(s->getUnitCaster(), true);
+        unitTarget->getThreatManager().tauntUpdate();
     }
 
     return true;

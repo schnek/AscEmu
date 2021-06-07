@@ -54,16 +54,16 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgClearCooldown.h"
 #include "Server/World.h"
 #include "Server/Packets/SmsgContactList.h"
-#include "Spell/Definitions/AuraInterruptFlags.h"
-#include "Spell/Definitions/PowerType.h"
-#include "Spell/Definitions/Spec.h"
-#include "Spell/Definitions/SpellDamageType.h"
-#include "Spell/Definitions/SpellFailure.h"
-#include "Spell/Definitions/SpellIsFlags.h"
+#include "Spell/Definitions/AuraInterruptFlags.hpp"
+#include "Spell/Definitions/PowerType.hpp"
+#include "Spell/Definitions/Spec.hpp"
+#include "Spell/Definitions/SpellDamageType.hpp"
+#include "Spell/Definitions/SpellFailure.hpp"
+#include "Spell/Definitions/SpellIsFlags.hpp"
 #include "Spell/Spell.h"
 #include "Spell/SpellAuras.h"
 #include "Spell/SpellDefines.hpp"
-#include "Spell/SpellMgr.h"
+#include "Spell/SpellMgr.hpp"
 #include "Storage/MySQLDataStore.hpp"
 #include "Units/Creatures/Pet.h"
 #include "Units/UnitDefines.hpp"
@@ -231,11 +231,6 @@ void Player::ProcessPendingUpdates()
 UpdateManager & Player::getUpdateMgr()
 {
     return m_updateMgr;
-}
-
-SplineManager & Player::getSplineMgr()
-{
-    return m_splineMgr;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -716,139 +711,6 @@ void Player::setGlyphsEnabled(uint32_t glyphs) { write(playerData()->glyphs_enab
 // Movement
 
 #if VERSION_STRING < Cata
-void Player::sendForceMovePacket(UnitSpeedType speed_type, float speed)
-{
-    WorldPacket data(50);
-
-    switch (speed_type)
-    {
-        case TYPE_WALK:
-            data.Initialize(SMSG_FORCE_WALK_SPEED_CHANGE);
-            break;
-        case TYPE_RUN:
-            data.Initialize(SMSG_FORCE_RUN_SPEED_CHANGE);
-            break;
-        case TYPE_RUN_BACK:
-            data.Initialize(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
-            break;
-        case TYPE_SWIM:
-            data.Initialize(SMSG_FORCE_SWIM_SPEED_CHANGE);
-            break;
-        case TYPE_SWIM_BACK:
-            data.Initialize(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
-            break;
-        case TYPE_TURN_RATE:
-            data.Initialize(SMSG_FORCE_TURN_RATE_CHANGE);
-            break;
-#if VERSION_STRING > Classic
-        case TYPE_FLY:
-            data.Initialize(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
-            break;
-        case TYPE_FLY_BACK:
-            data.Initialize(SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE);
-            break;
-#endif
-#if VERSION_STRING > TBC
-        case TYPE_PITCH_RATE:
-            data.Initialize(SMSG_FORCE_PITCH_RATE_CHANGE);
-            break;
-#endif
-    }
-
-    data << GetNewGUID();
-    data << m_speedChangeCounter++;
-
-    if (speed_type == TYPE_RUN)
-        data << uint8_t(1);
-
-    data << float(speed);
-
-    SendMessageToSet(&data, true);
-}
-
-void Player::sendMoveSetSpeedPaket(UnitSpeedType speed_type, float speed)
-{
-    WorldPacket data(45);
-
-    switch (speed_type)
-    {
-#if VERSION_STRING >= WotLK
-        case TYPE_WALK:
-            data.Initialize(MSG_MOVE_SET_WALK_SPEED);
-            break;
-        case TYPE_RUN:
-            data.Initialize(MSG_MOVE_SET_RUN_SPEED);
-            break;
-        case TYPE_RUN_BACK:
-            data.Initialize(MSG_MOVE_SET_RUN_BACK_SPEED);
-            break;
-        case TYPE_SWIM:
-            data.Initialize(MSG_MOVE_SET_SWIM_SPEED);
-            break;
-        case TYPE_SWIM_BACK:
-            data.Initialize(MSG_MOVE_SET_SWIM_BACK_SPEED);
-            break;
-        case TYPE_TURN_RATE:
-            data.Initialize(MSG_MOVE_SET_TURN_RATE);
-            break;
-        case TYPE_FLY:
-            data.Initialize(MSG_MOVE_SET_FLIGHT_SPEED);
-            break;
-        case TYPE_FLY_BACK:
-            data.Initialize(MSG_MOVE_SET_FLIGHT_BACK_SPEED);
-            break;
-        case TYPE_PITCH_RATE:
-            data.Initialize(MSG_MOVE_SET_PITCH_RATE);
-            break;
-#else
-        case TYPE_RUN:
-            data.Initialize(SMSG_FORCE_RUN_SPEED_CHANGE);
-            break;
-        case TYPE_RUN_BACK:
-            data.Initialize(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
-            break;
-        case TYPE_SWIM:
-            data.Initialize(SMSG_FORCE_SWIM_SPEED_CHANGE);
-            break;
-        case TYPE_SWIM_BACK:
-            data.Initialize(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
-            break;
-#if VERSION_STRING > Classic
-        case TYPE_FLY:
-            data.Initialize(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
-            break;
-#endif
-        case TYPE_FLY_BACK:
-        case TYPE_TURN_RATE:
-        case TYPE_WALK:
-        case TYPE_PITCH_RATE:
-            break;
-#endif
-    }
-
-    data << GetNewGUID();
-#if VERSION_STRING == TBC
-    // TODO : Move to own file
-    if (speed_type != TYPE_SWIM_BACK)
-    {
-        data << m_speedChangeCounter++;
-        if (speed_type == TYPE_RUN)
-            data << uint8_t(1);
-    }
-    else
-    {
-        data << uint32_t(0) << uint8_t(0) << uint32_t(Util::getMSTime())
-            << GetPosition() << m_position.o << uint32_t(0);
-    }
-#endif
-
-#if VERSION_STRING != TBC
-    BuildMovementPacket(&data);
-#endif
-    data << float(speed);
-
-    SendMessageToSet(&data, true);
-}
 
 bool Player::isSpellFitByClassAndRace(uint32_t /*spell_id*/)
 {
@@ -1370,12 +1232,12 @@ void Player::setInitialDisplayIds(uint8_t gender, uint8_t race)
                 setNativeDisplayId(raceEntry->model_female);
                 break;
             default:
-                LOG_ERROR("Gender %u is not valid for Player charecters!", gender);
+                sLogger.failure("Gender %u is not valid for Player charecters!", gender);
         }
     }
     else
     {
-        LOG_ERROR("Race %u is not supported by this AEVersion (%u)", race, getAEVersion());
+        sLogger.failure("Race %u is not supported by this AEVersion (%u)", race, getAEVersion());
     }
 }
 
@@ -1768,14 +1630,17 @@ void Player::regeneratePlayerPowers(uint16_t diff)
             if (aur == nullptr)
                 continue;
 
-            if (aur->hasAuraEffect(SPELL_AURA_MOD_REGEN) && aur->getSpellInfo()->getAuraInterruptFlags() & AURA_INTERRUPT_ON_STAND_UP)
+            if (!(aur->getSpellInfo()->getAuraInterruptFlags() & AURA_INTERRUPT_ON_STAND_UP))
+                continue;
+
+            if (aur->hasAuraEffect(SPELL_AURA_MOD_REGEN) || aur->hasAuraEffect(SPELL_AURA_PERIODIC_HEAL_PCT))
             {
                 // Food takes priority over drink
                 foundFood = true;
                 break;
             }
 
-            if (aur->hasAuraEffect(SPELL_AURA_MOD_POWER_REGEN) && aur->getSpellInfo()->getAuraInterruptFlags() & AURA_INTERRUPT_ON_STAND_UP)
+            if (aur->hasAuraEffect(SPELL_AURA_MOD_POWER_REGEN) || aur->hasAuraEffect(SPELL_AURA_PERIODIC_POWER_PCT))
             {
                 // Don't break here, try find a food aura
                 foundDrink = true;
@@ -2288,7 +2153,7 @@ void Player::learnTalent(uint32_t talentId, uint32_t talentRank)
     auto spellId = talentInfo->RankID[talentRank];
     if (spellId == 0)
     {
-        LOG_DETAIL("Player::learnTalent: Player tried to learn talent %u (rank %u) but talent's spell id is 0.", talentId, talentRank);
+        sLogger.info("Player::learnTalent: Player tried to learn talent %u (rank %u) but talent's spell id is 0.", talentId, talentRank);
         return;
     }
 
@@ -3398,6 +3263,8 @@ void Player::addToFriendList(std::string name, std::string note)
             m_session->SendPacket(SmsgFriendStatus(FRIEND_ADDED_OFFLINE, targetPlayer->getGuidLow()).serialise().get());
         }
 
+        // todo: missing FRIEND_LIST_FULL when friend list is full
+
         CharacterDatabase.Execute("INSERT INTO social_friends VALUES(%u, %u, \'%s\')",
             getGuidLow(), targetPlayer->getGuidLow(), !note.empty() ? CharacterDatabase.EscapeString(std::string(note)).c_str() : "");
 
@@ -3563,10 +3430,14 @@ void Player::addToIgnoreList(std::string name)
             return;
         }
 
+        // todo: missing FRIEND_IGNORE_FULL when ignore list is full
+
         CharacterDatabase.Execute("INSERT INTO social_ignores VALUES(%u, %u)", getGuidLow(), targetPlayer->getGuidLow());
 
         std::lock_guard<std::mutex> guard(m_mutexIgnoreList);
         m_socialIgnoring.push_back(targetPlayer->getGuidLow());
+
+        m_session->SendPacket(SmsgFriendStatus(FRIEND_IGNORE_ADDED, targetPlayer->getGuidLow()).serialise().get());
     }
     else
     {
@@ -3581,7 +3452,9 @@ void Player::removeFromIgnoreList(uint32_t guid)
         CharacterDatabase.Execute("DELETE FROM social_ignores WHERE character_guid = %u AND ignore_guid = %u", getGuidLow(), guid);
 
         std::lock_guard<std::mutex> guard(m_mutexIgnoreList);
-        std::remove(m_socialIgnoring.begin(), m_socialIgnoring.end(), guid);
+        m_socialIgnoring.erase(std::remove(m_socialIgnoring.begin(), m_socialIgnoring.end(), guid), m_socialIgnoring.end());
+
+        m_session->SendPacket(SmsgFriendStatus(FRIEND_IGNORE_REMOVED, guid).serialise().get());
     }
     else
     {
@@ -4122,7 +3995,7 @@ void Player::addToGMTargetList(uint32_t guid)
 void Player::removeFromGMTargetList(uint32_t guid)
 {
     std::lock_guard<std::mutex> guard(m_lockGMTargetList);
-    std::remove(m_gmPlayerTargetList.begin(), m_gmPlayerTargetList.end(), guid);
+    m_gmPlayerTargetList.erase(std::remove(m_gmPlayerTargetList.begin(), m_gmPlayerTargetList.end(), guid), m_gmPlayerTargetList.end());
 }
 
 bool Player::isOnGMTargetList(uint32_t guid) const

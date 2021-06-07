@@ -21,6 +21,7 @@
 
 #include "StdAfx.h"
 #include "Server/MainServerDefines.h"
+#include "Map/InstanceDefines.hpp"
 #include "Map/MapMgr.h"
 #include "Map/WorldCreatorDefines.hpp"
 #include "Map/WorldCreator.h"
@@ -44,13 +45,13 @@ bool ChatHandler::HandleCreateInstanceCommand(const char* args, WorldSession* m_
         return false;
 
     // Create Map Manager
-    MapMgr* mgr = sInstanceMgr.CreateInstance(INSTANCE_NONRAID, mapid);
+    MapMgr* mgr = sInstanceMgr.CreateInstance(INSTANCE_DUNGEON, mapid);
     if (mgr == nullptr)
     {
-        LOG_ERROR("call failed for map %u", mapid);
+        sLogger.failure("call failed for map %u", mapid);
         return false;
     }
-    LogNotice("CreateInstanceGMCommand : GM created instance for map %u", mapid);
+    sLogger.info("CreateInstanceGMCommand : GM created instance for map %u", mapid);
 
     LocationVector vec(x, y, z);
     m_session->GetPlayer()->SafeTeleport(mgr, vec);
@@ -132,12 +133,12 @@ bool ChatHandler::HandleGetInstanceInfoCommand(const char* args, WorldSession* m
     {
         ss << "Type: " << MSG_COLOR_CYAN << GetMapTypeString(static_cast<uint8>(instance->m_mapInfo->type)) << "|r";
 
-        if (instance->m_mapInfo->type == INSTANCE_MULTIMODE)
+        if (instance->m_mapInfo->isMultimodeDungeon())
         {
             ss << " (" << MSG_COLOR_CYAN << GetDifficultyString(instance->m_difficulty) << "|r)";
         }
 
-        if (instance->m_mapInfo->type == INSTANCE_RAID)
+        if (instance->m_mapInfo->isRaid())
         {
             ss << " (" << MSG_COLOR_CYAN << GetRaidDifficultyString(instance->m_difficulty) << "|r)";
         }
@@ -155,7 +156,7 @@ bool ChatHandler::HandleGetInstanceInfoCommand(const char* args, WorldSession* m
     else if (!instance->m_mapMgr->HasPlayers())
     {
         ss << "Status: " << MSG_COLOR_LIGHTRED << "Idle|r";
-        if (instance->m_mapMgr->InactiveMoveTime && instance->m_mapMgr->GetMapInfo()->type != INSTANCE_NULL)
+        if (instance->m_mapMgr->InactiveMoveTime && !instance->m_mapMgr->GetMapInfo()->isNonInstanceMap())
             ss << " (" << MSG_COLOR_CYAN << "Shutdown in " << MSG_COLOR_LIGHTRED << (((long)instance->m_mapMgr->InactiveMoveTime - UNIXTIME) / 60) << MSG_COLOR_CYAN << " minutes|r)";
         ss << "\n";
     }
@@ -224,7 +225,7 @@ bool ChatHandler::HandleResetInstanceCommand(const char* args, WorldSession* m_s
         {
             bool foundSomething = false;
             plr->getPlayerInfo()->savedInstanceIdsLock.Acquire();
-            for (uint8 difficulty = 0; difficulty < NUM_INSTANCE_MODES; difficulty++)
+            for (uint8 difficulty = 0; difficulty < InstanceDifficulty::MAX_DIFFICULTY; difficulty++)
             {
                 PlayerInstanceMap::iterator itr = plr->getPlayerInfo()->savedInstanceIds[difficulty].find(instance->m_mapId);
                 if (itr == plr->getPlayerInfo()->savedInstanceIds[difficulty].end() || (*itr).second != instance->m_instanceId)

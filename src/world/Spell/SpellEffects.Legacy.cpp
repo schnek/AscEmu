@@ -39,26 +39,26 @@
 #include "Map/Area/AreaStorage.hpp"
 #include "Map/MapMgr.h"
 #include "Objects/Faction.h"
-#include "SpellMgr.h"
+#include "SpellMgr.hpp"
 #include "SpellAuras.h"
-#include "Definitions/SpellCastTargetFlags.h"
-#include "Definitions/SpellDamageType.h"
-#include "Definitions/ProcFlags.h"
-#include "Definitions/CastInterruptFlags.h"
-#include "Definitions/AuraInterruptFlags.h"
-#include "Definitions/ChannelInterruptFlags.h"
-#include "Definitions/PreventionType.h"
-#include "Definitions/SpellRanged.h"
-#include "Definitions/LockTypes.h"
-#include "Definitions/SpellIsFlags.h"
-#include "Definitions/TeleportEffectCustomFlags.h"
-#include "Definitions/SummonControlTypes.h"
-#include "Definitions/SummonTypes.h"
-#include "Definitions/SpellState.h"
-#include "Definitions/DispelType.h"
-#include "Definitions/SpellMechanics.h"
-#include "Definitions/PowerType.h"
-#include "Definitions/Spec.h"
+#include "Definitions/SpellCastTargetFlags.hpp"
+#include "Definitions/SpellDamageType.hpp"
+#include "Definitions/ProcFlags.hpp"
+#include "Definitions/CastInterruptFlags.hpp"
+#include "Definitions/AuraInterruptFlags.hpp"
+#include "Definitions/ChannelInterruptFlags.hpp"
+#include "Definitions/PreventionType.hpp"
+#include "Definitions/SpellRanged.hpp"
+#include "Definitions/LockTypes.hpp"
+#include "Definitions/SpellIsFlags.hpp"
+#include "Definitions/TeleportEffectCustomFlags.hpp"
+#include "Definitions/SummonControlTypes.hpp"
+#include "Definitions/SummonTypes.hpp"
+#include "Definitions/SpellState.hpp"
+#include "Definitions/DispelType.hpp"
+#include "Definitions/SpellMechanics.hpp"
+#include "Definitions/PowerType.hpp"
+#include "Definitions/Spec.hpp"
 #include "Spell.h"
 #include "Units/Creatures/Pet.h"
 #include "Server/Packets/SmsgTaxinodeStatus.h"
@@ -220,7 +220,7 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
     &Spell::SpellEffectTriggerSpellWithValue,   // 142 SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE
     &Spell::SpellEffectApplyOwnerAA,            // 143 SPELL_EFFECT_APPLY_OWNER_AA
     &Spell::SpellEffectKnockBack,               // 144 SPELL_EFFECT_KNOCK_BACK
-    &Spell::SpellEffectPlayerPull,              // 145 SPELL_EFFECT_PLAYER_PULL
+    &Spell::SpellEffectPullTowardsDest,         // 145 SPELL_EFFECT_PULL_TOWARDS_DEST
     &Spell::SpellEffectActivateRunes,           // 146 SPELL_EFFECT_ACTIVATE_RUNES
     &Spell::spellEffectNotImplemented,          // 147 SPELL_EFFECT_NULL_147
     &Spell::spellEffectNotImplemented,          // 148 SPELL_EFFECT_NULL_148
@@ -452,7 +452,7 @@ const char* SpellEffectNames[TOTAL_SPELL_EFFECTS] =
 
 void Spell::spellEffectNotImplemented(uint8_t effIndex)
 {
-    LogDebugFlag(LF_SPELL_EFF, "Spells: Unhandled spell effect %u in spell %u.", getSpellInfo()->getEffect(effIndex), getSpellInfo()->getId());
+    sLogger.debug("Spells: Unhandled spell effect %u in spell %u.", getSpellInfo()->getEffect(effIndex), getSpellInfo()->getId());
 }
 
 void Spell::spellEffectNotUsed(uint8_t /*effIndex*/)
@@ -1519,7 +1519,7 @@ void Spell::SpellEffectDummy(uint8_t effectIndex) // Dummy(Scripted events)
     if (sScriptMgr.CallScriptedDummySpell(m_spellInfo->getId(), effectIndex, this))
         return;
 
-    LogDebugFlag(LF_SPELL_EFF, "Spell ID: %u (%s) has a dummy effect index (%hhu) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+    sLogger.debug("Spell ID: %u (%s) has a dummy effect index (%hhu) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
 }
 
 void Spell::SpellEffectTeleportUnits(uint8_t effectIndex)    // Teleport Units
@@ -1535,7 +1535,7 @@ void Spell::SpellEffectTeleportUnits(uint8_t effectIndex)    // Teleport Units
         TeleportCoords const* teleport_coord = sMySQLStore.getTeleportCoord(spellId);
         if (teleport_coord == nullptr)
         {
-            LOG_ERROR("Spell %u (%s) has a TELEPORT TO COORDINATES effect, but has no coordinates to teleport to. ", spellId, m_spellInfo->getName().c_str());
+            sLogger.failure("Spell %u (%s) has a TELEPORT TO COORDINATES effect, but has no coordinates to teleport to. ", spellId, m_spellInfo->getName().c_str());
             return;
         }
 
@@ -1624,7 +1624,7 @@ void Spell::SpellEffectTeleportUnits(uint8_t effectIndex)    // Teleport Units
     if (sScriptMgr.CallScriptedDummySpell(m_spellInfo->getId(), effectIndex, this))
         return;
 
-    LOG_ERROR("Unhandled Teleport effect Index %hhu for Spell %u (%s).", effectIndex, m_spellInfo->getId(), m_spellInfo->getName().c_str());
+    sLogger.failure("Unhandled Teleport effect Index %hhu for Spell %u (%s).", effectIndex, m_spellInfo->getId(), m_spellInfo->getName().c_str());
 }
 
 void Spell::SpellEffectApplyAura(uint8_t effectIndex)  // Apply Aura
@@ -2481,7 +2481,7 @@ void Spell::SpellEffectCreateItem(uint8_t effectIndex)
 
     if (playerTarget == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) has a create item effect but no player target!", spellid, m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has a create item effect but no player target!", spellid, m_spellInfo->getName().c_str());
         return;
     }
 
@@ -2493,14 +2493,14 @@ void Spell::SpellEffectCreateItem(uint8_t effectIndex)
 
     if (itemid == 0)
     {
-        LOG_ERROR("Spell %u (%s) has a create item effect but no itemid to add, Spell needs to be fixed!", spellid, m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has a create item effect but no itemid to add, Spell needs to be fixed!", spellid, m_spellInfo->getName().c_str());
         return;
     }
 
     ItemProperties const* m_itemProto = sMySQLStore.getItemProperties(itemid);
     if (m_itemProto == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) has a create item effect but the itemid is invalid!", spellid, m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has a create item effect but the itemid is invalid!", spellid, m_spellInfo->getName().c_str());
         return;
     }
 
@@ -2661,7 +2661,7 @@ void Spell::SpellEffectCreateItem(uint8_t effectIndex)
                 }
                 else
                 {
-                    LOG_ERROR("Spell %u (%s) Effect Index %hhu tried to teach a non-existing Spell %u in %s:%u", spellid, m_spellInfo->getName().c_str(), effectIndex, learn_spell, __FILE__, __LINE__);
+                    sLogger.failure("Spell %u (%s) Effect Index %hhu tried to teach a non-existing Spell %u in %s:%u", spellid, m_spellInfo->getName().c_str(), effectIndex, learn_spell, __FILE__, __LINE__);
                 }
             }
         }
@@ -2698,7 +2698,7 @@ void Spell::SpellEffectCreateItem(uint8_t effectIndex)
                 }
                 else
                 {
-                    LOG_ERROR("Spell %u (%s) Effect index %hhu tried to teach a non-existing Spell %u in %s:%u", spellid, m_spellInfo->getName().c_str(), effectIndex, learn_spell, __FILE__, __LINE__);
+                    sLogger.failure("Spell %u (%s) Effect index %hhu tried to teach a non-existing Spell %u in %s:%u", spellid, m_spellInfo->getName().c_str(), effectIndex, learn_spell, __FILE__, __LINE__);
                 }
             }
         }
@@ -2811,7 +2811,7 @@ void Spell::SpellEffectWeapon(uint8_t /*effectIndex*/)
         default:
         {
             skill = 0;
-            LogDebugFlag(LF_SPELL_EFF, "WARNING: Could not determine skill for spell id %d (SPELL_EFFECT_WEAPON)", this->getSpellInfo()->getId());
+            sLogger.debug("WARNING: Could not determine skill for spell id %d (SPELL_EFFECT_WEAPON)", this->getSpellInfo()->getId());
         }
         break;
     }
@@ -2939,7 +2939,7 @@ void Spell::SpellEffectSummon(uint8_t effectIndex)
     auto summon_properties = sSummonPropertiesStore.LookupEntry(summonpropid);
     if (summon_properties == nullptr)
     {
-        LOG_ERROR("No SummonPropertiesEntry for Spell %u (%s)", m_spellInfo->getId(), m_spellInfo->getName().c_str());
+        sLogger.failure("No SummonPropertiesEntry for Spell %u (%s)", m_spellInfo->getId(), m_spellInfo->getName().c_str());
         return;
     }
 
@@ -2949,7 +2949,7 @@ void Spell::SpellEffectSummon(uint8_t effectIndex)
 
     if (cp == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) tried to summon creature %u without database data", m_spellInfo->getId(), m_spellInfo->getName().c_str(), entry);
+        sLogger.failure("Spell %u (%s) tried to summon creature %u without database data", m_spellInfo->getId(), m_spellInfo->getName().c_str(), entry);
         return;
     }
 
@@ -3045,7 +3045,7 @@ void Spell::SpellEffectSummon(uint8_t effectIndex)
             return;
     }
 
-    LOG_ERROR("Unknown summon type in summon property %u in spell %u %s", summonpropid, m_spellInfo->getId(), m_spellInfo->getName().c_str());
+    sLogger.failure("Unknown summon type in summon property %u in spell %u %s", summonpropid, m_spellInfo->getId(), m_spellInfo->getName().c_str());
 }
 
 void Spell::SpellEffectSummonWild(uint8_t effectIndex)  // Summon Wild
@@ -3062,7 +3062,7 @@ void Spell::SpellEffectSummonWild(uint8_t effectIndex)  // Summon Wild
     CreatureProperties const* properties = sMySQLStore.getCreatureProperties(cr_entry);
     if (properties == nullptr)
     {
-        LogError("Warning : Missing summon creature template %u used by spell %u!", cr_entry, getSpellInfo()->getId());
+        sLogger.failure("Warning : Missing summon creature template %u used by spell %u!", cr_entry, getSpellInfo()->getId());
         return;
     }
     float x, y, z;
@@ -3140,7 +3140,7 @@ void Spell::SpellEffectSummonGuardian(uint32 /*i*/, DBC::Structures::SummonPrope
             return;
 
         s->Load(properties_, u_caster, v, m_spellInfo->getId(), spe->Slot - 1);
-        s->GetAIInterface()->SetUnitToFollowAngle(followangle);
+
         if (s->GetScript() != nullptr)
             s->GetScript()->OnSummon(static_cast<Unit*>(m_caster));
         s->PushToWorld(u_caster->GetMapMgr());
@@ -3197,7 +3197,6 @@ void Spell::SpellEffectSummonTemporaryPet(uint32 /*i*/, DBC::Structures::SummonP
             break;
         }
 
-        pet->GetAIInterface()->SetUnitToFollowAngle(followangle);
         if (pet->GetScript() != nullptr)
             pet->GetScript()->OnSummon(static_cast<Unit*>(m_caster));
     }
@@ -3227,7 +3226,7 @@ void Spell::SpellEffectSummonPossessed(uint32 /*i*/, DBC::Structures::SummonProp
     p_caster->Possess(s, 1000);
 }
 
-void Spell::SpellEffectSummonCompanion(uint32 i, DBC::Structures::SummonPropertiesEntry const* spe, CreatureProperties const* properties_, LocationVector & v)
+void Spell::SpellEffectSummonCompanion(uint32 /*i*/, DBC::Structures::SummonPropertiesEntry const* spe, CreatureProperties const* properties_, LocationVector & v)
 {
     if (u_caster == nullptr)
         return;
@@ -3258,7 +3257,7 @@ void Spell::SpellEffectSummonCompanion(uint32 i, DBC::Structures::SummonProperti
 
     summon->Load(properties_, u_caster, v, m_spellInfo->getId(), spe->Slot - 1);
     summon->setCreatedBySpellId(m_spellInfo->getId());
-    summon->GetAIInterface()->SetFollowDistance(GetRadius(i));
+
     if (summon->GetScript() != nullptr)
         summon->GetScript()->OnSummon(static_cast<Unit*>(m_caster));
     summon->PushToWorld(u_caster->GetMapMgr());
@@ -3310,7 +3309,11 @@ void Spell::SpellEffectLeap(uint8_t effectIndex) // Leap
         if (playerTarget != nullptr)
             playerTarget->SafeTeleport(playerTarget->GetMapId(), playerTarget->GetInstanceID(), LocationVector(destx, desty, destz, playerTarget->GetOrientation()));
         else
-            unitTarget->GetAIInterface()->splineMoveJump(destx, desty, destz, unitTarget->GetOrientation());
+        {
+            float speedXY, speedZ;
+            calculateJumpSpeeds(u_caster, getSpellInfo(), effectIndex, u_caster->getExactDist2d(unitTarget->GetPositionX(), unitTarget->GetPositionY()), speedXY, speedZ);
+            u_caster->getMovementManager()->moveJump(destx, desty, destz, unitTarget->GetOrientation(), speedXY, speedZ, EVENT_JUMP, !unitTarget);
+        }
     }
     else
     {
@@ -3467,14 +3470,14 @@ void Spell::SpellEffectTriggerMissile(uint8_t effectIndex) // Trigger Missile
     uint32 spellid = getSpellInfo()->getEffectTriggerSpell(effectIndex);
     if (spellid == 0)
     {
-        LOG_ERROR("Spell %u (%s) has a trigger missle effect index (%hhu) but no trigger spell ID. Spell needs fixing.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+        sLogger.failure("Spell %u (%s) has a trigger missle effect index (%hhu) but no trigger spell ID. Spell needs fixing.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
         return;
     }
 
     SpellInfo const* spInfo = sSpellMgr.getSpellInfo(spellid);
     if (spInfo == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) has a trigger missle effect index (%hhu) but has an invalid trigger spell ID. Spell needs fixing.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+        sLogger.failure("Spell %u (%s) has a trigger missle effect index (%hhu) but has an invalid trigger spell ID. Spell needs fixing.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
         return;
     }
 
@@ -3790,18 +3793,9 @@ void Spell::SpellEffectLearnSpell(uint8_t effectIndex) // Learn Spell
 
     if (getSpellInfo()->getId() == 483 || getSpellInfo()->getId() == 55884)          // "Learning"
     {
-        if (!i_caster || !p_caster) return;
+        if (!p_caster) return;
 
-        uint32 spellid = 0;
-        for (uint8 j = 0; j < 5; ++j)
-        {
-            if (i_caster->getItemProperties()->Spells[j].Trigger == LEARNING && i_caster->getItemProperties()->Spells[j].Id != 0)
-            {
-                spellid = i_caster->getItemProperties()->Spells[j].Id;
-                break;
-            }
-        }
-
+        uint32_t spellid = damage;
         if (!spellid || !sSpellMgr.getSpellInfo(spellid)) return;
 
         // learn me!
@@ -4183,7 +4177,7 @@ void Spell::SpellEffectSummonObject(uint8_t effectIndex)
     GameObjectProperties const* info = sMySQLStore.getGameObjectProperties(entry);
     if (info == nullptr)
     {
-        LogError("Spell %u ( %s ) Effect Index %u tried to summon a GameObject with ID %u. GameObject is not in the database.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex, entry);
+        sLogger.failure("Spell %u ( %s ) Effect Index %u tried to summon a GameObject with ID %u. GameObject is not in the database.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex, entry);
         return;
     }
 
@@ -4309,7 +4303,7 @@ void Spell::SpellEffectEnchantItem(uint8_t effectIndex) // Enchant Item Permanen
 
     if (!spell_item_enchant)
     {
-        LOG_ERROR("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
+        sLogger.failure("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
         return;
     }
 
@@ -4340,20 +4334,20 @@ void Spell::SpellEffectEnchantItemTemporary(uint8_t effectIndex)  // Enchant Ite
 
     if (Duration == 0)
     {
-        LOG_ERROR("Spell %u (%s) has no enchantment duration. Spell needs to be fixed!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has no enchantment duration. Spell needs to be fixed!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
         return;
     }
 
     if (EnchantmentID == 0)
     {
-        LOG_ERROR("Spell %u (%s) has no enchantment ID. Spell needs to be fixed!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has no enchantment ID. Spell needs to be fixed!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
         return;
     }
 
     auto spell_item_enchant = sSpellItemEnchantmentStore.LookupEntry(EnchantmentID);
     if (spell_item_enchant == nullptr)
     {
-        LOG_ERROR("Invalid enchantment entry %u for Spell %u", EnchantmentID, getSpellInfo()->getId());
+        sLogger.failure("Invalid enchantment entry %u for Spell %u", EnchantmentID, getSpellInfo()->getId());
         return;
     }
 
@@ -4375,7 +4369,7 @@ void Spell::SpellEffectTameCreature(uint8_t /*effectIndex*/)
     Creature* tame = static_cast<Creature*>(unitTarget);
 
     // Remove target
-    tame->GetAIInterface()->HandleEvent(EVENT_LEAVECOMBAT, p_caster, 0);
+    tame->GetAIInterface()->handleEvent(EVENT_LEAVECOMBAT, p_caster, 0);
     Pet* pPet = sObjectMgr.CreatePet(tame->getEntry());
     if (!pPet->CreateAsSummon(tame->getEntry(), tame->GetCreatureProperties(), tame, p_caster, nullptr, 2, 0))
     {
@@ -4572,7 +4566,7 @@ void Spell::SpellEffectSendEvent(uint8_t effectIndex) //Send Event
     if (sScriptMgr.HandleScriptedSpellEffect(m_spellInfo->getId(), effectIndex, this))
         return;
 
-    LogDebugFlag(LF_SPELL_EFF, "Spell ID: %u (%s) has a scripted effect index (%u) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+    sLogger.debug("Spell ID: %u (%s) has a scripted effect index (%u) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
 
 }
 
@@ -4614,16 +4608,22 @@ void Spell::SpellEffectThreat(uint8_t effectIndex) // Threat
 
     int32 amount = getSpellInfo()->getEffectBasePoints(effectIndex);
 
-    bool chck = unitTarget->GetAIInterface()->modThreatByPtr(u_caster, amount);
+    bool chck = unitTarget->getThreatManager().getThreat(u_caster);
+
     if (!chck)
-        unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, 0);
+    {
+        unitTarget->GetAIInterface()->onHostileAction(u_caster);
+        unitTarget->getThreatManager().addThreat(u_caster, 0.0f);
+    }
+    else
+        unitTarget->getThreatManager().modifyThreatByPercent(u_caster, (int32)unitTarget->getThreatManager().getThreat(u_caster) * amount / 100);
 }
 
 void Spell::SpellEffectClearQuest(uint8_t effectIndex)
 {
     if (playerTarget == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) was not casted on Player, but Spell requires Player to be a target.", m_spellInfo->getId(), m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) was not casted on Player, but Spell requires Player to be a target.", m_spellInfo->getId(), m_spellInfo->getName().c_str());
         return;
     }
 
@@ -4708,7 +4708,6 @@ void Spell::SpellEffectInterruptCast(uint8_t /*effectIndex*/) // Interrupt Cast
     {
         if (u_caster && (u_caster != unitTarget))
         {
-            unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, m_spellInfo->getId());
             Creature* c = static_cast< Creature* >(unitTarget);
             if (c->GetCreatureProperties()->modImmunities & 32768)
                 return;
@@ -4779,7 +4778,8 @@ void Spell::SpellEffectDistract(uint8_t /*effectIndex*/) // Distract
 
         auto destination = m_targets.getDestination();
         float newo = unitTarget->calcRadAngle(unitTarget->GetPositionX(), unitTarget->GetPositionY(), destination.x, destination.y);
-        unitTarget->GetAIInterface()->StopMovement(Stare_duration);
+
+        unitTarget->pauseMovement(Stare_duration);
         unitTarget->SetFacing(newo);
     }
 
@@ -4835,19 +4835,23 @@ void Spell::SpellEffectUseGlyph(uint8_t effectIndex)
     if (!p_caster)
         return;
 
+    if (m_glyphslot >= GLYPHS_COUNT)
+        return;
+
+    const auto glyphSlot = static_cast<uint16_t>(m_glyphslot);
     uint32 glyph_new = m_spellInfo->getEffectMiscValue(effectIndex);
     auto glyph_prop_new = sGlyphPropertiesStore.LookupEntry(glyph_new);
     if (!glyph_prop_new)
         return;
 
     // check if glyph is locked (obviously)
-    if (!(p_caster->getGlyphsEnabled() & (1 << m_glyphslot)))
+    if (!(p_caster->getGlyphsEnabled() & (1 << glyphSlot)))
     {
         sendCastResult(SPELL_FAILED_GLYPH_SOCKET_LOCKED);
         return;
     }
 
-    uint32 glyph_old = p_caster->getGlyph(static_cast<uint16_t>(m_glyphslot));
+    uint32 glyph_old = p_caster->getGlyph(glyphSlot);
     if (glyph_old)
     {
         if (glyph_old == glyph_new)
@@ -4862,7 +4866,7 @@ void Spell::SpellEffectUseGlyph(uint8_t effectIndex)
         }
     }
 
-    auto glyph_slot = sGlyphSlotStore.LookupEntry(p_caster->getGlyphSlot(m_glyphslot));
+    auto glyph_slot = sGlyphSlotStore.LookupEntry(p_caster->getGlyphSlot(glyphSlot));
     if (glyph_slot)
     {
         if (glyph_slot->Type != glyph_prop_new->Type)
@@ -4870,9 +4874,9 @@ void Spell::SpellEffectUseGlyph(uint8_t effectIndex)
             sendCastResult(SPELL_FAILED_INVALID_GLYPH);
             return;
         }
-        p_caster->setGlyph(static_cast<uint8_t>(m_glyphslot), glyph_new);
+        p_caster->setGlyph(glyphSlot, glyph_new);
         p_caster->castSpell(p_caster, glyph_prop_new->SpellID, true);
-        p_caster->m_specs[p_caster->m_talentActiveSpec].glyphs[m_glyphslot] = static_cast<uint16>(glyph_new);
+        p_caster->m_specs[p_caster->m_talentActiveSpec].glyphs[glyphSlot] = static_cast<uint16>(glyph_new);
         p_caster->smsg_TalentsInfo(false);
     }
 #endif
@@ -4916,7 +4920,7 @@ void Spell::SpellEffectScriptEffect(uint8_t effectIndex) // Script Effect
     if (sScriptMgr.HandleScriptedSpellEffect(m_spellInfo->getId(), effectIndex, this))
         return;
 
-    LOG_ERROR("Spell ID: %u (%s) has a scripted effect index (%hhu) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+    sLogger.failure("Spell ID: %u (%s) has a scripted effect index (%hhu) but no handler for it.", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
 }
 
 void Spell::SpellEffectSanctuary(uint8_t /*effectIndex*/) // Stop all attacks made to you
@@ -4930,7 +4934,7 @@ void Spell::SpellEffectSanctuary(uint8_t /*effectIndex*/) // Stop all attacks ma
     for (const auto& itr : u_caster->getInRangeObjectsSet())
     {
         if (itr && itr->isCreature())
-            static_cast<Creature*>(itr)->GetAIInterface()->RemoveThreatByPtr(unitTarget);
+            static_cast<Creature*>(itr)->getThreatManager().clearThreat(unitTarget);
     }
 }
 
@@ -4990,11 +4994,12 @@ void Spell::SpellEffectDuel(uint8_t /*effectIndex*/) // Duel
         sendCastResult(SPELL_FAILED_TARGETS_DEAD);
         return; // Target not alive
     }
-    if (playerTarget->hasUnitStateFlag(UNIT_STATE_ATTACKING))
+    // todo
+    /*if (playerTarget->hasUnitStateFlag(UNIT_STATE_ATTACKING))
     {
         sendCastResult(SPELL_FAILED_TARGET_IN_COMBAT);
         return; // Target in combat with another unit
-    }
+    }*/
     if (playerTarget->DuelingWith)
     {
         sendCastResult(SPELL_FAILED_TARGET_DUELING);
@@ -5036,7 +5041,7 @@ void Spell::SpellEffectActivateObject(uint8_t effectIndex) // Activate Object
 
     if (!gameObjTarget)
     {
-        LOG_ERROR("Spell %u (%s) effect %hhu not handled because no target was found. ", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+        sLogger.failure("Spell %u (%s) effect %hhu not handled because no target was found. ", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
         return;
     }
 
@@ -5050,7 +5055,7 @@ void Spell::SpellEffectBuildingDamage(uint8_t effectIndex)
 {
     if (gameObjTarget == nullptr)
     {
-        LOG_ERROR("Spell %u (%s) effect %hhu not handled because no target was found. ", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
+        sLogger.failure("Spell %u (%s) effect %hhu not handled because no target was found. ", m_spellInfo->getId(), m_spellInfo->getName().c_str(), effectIndex);
         return;
     }
 
@@ -5120,7 +5125,7 @@ void Spell::SpellEffectEnchantHeldItem(uint8_t effectIndex)
 
     if (!spell_item_enchant)
     {
-        LOG_ERROR("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
+        sLogger.failure("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
         return;
     }
 
@@ -5217,7 +5222,10 @@ void Spell::SpellEffectCharge(uint8_t /*effectIndex*/)
     if (unitTarget == nullptr || !unitTarget->isAlive())
         return;
 
-    u_caster->GetAIInterface()->splineMoveCharge(unitTarget, u_caster->getBoundingRadius());
+    float speed = G3D::fuzzyGt(getSpellInfo()->getSpeed(), 0.0f) ? getSpellInfo()->getSpeed() : SPEED_CHARGE;
+
+    LocationVector pos = unitTarget->getFirstCollisionPosition(unitTarget->getCombatReach(), unitTarget->getRelativeAngle(m_caster));
+    u_caster->getMovementManager()->moveCharge(pos.x, pos.y, pos.z, speed);
 }
 
 void Spell::SpellEffectKnockBack(uint8_t effectIndex)
@@ -5225,7 +5233,32 @@ void Spell::SpellEffectKnockBack(uint8_t effectIndex)
     if (unitTarget == nullptr || !unitTarget->isAlive())
         return;
 
-    unitTarget->HandleKnockback(m_caster, getSpellInfo()->getEffectMiscValue(effectIndex) / 10.0f, damage / 10.0f);
+    // Spells with SPELL_EFFECT_KNOCK_BACK (like Thunderstorm) can't knockback target if target has ROOT/STUN
+    if (unitTarget->hasUnitStateFlag(UNIT_STATE_ROOTED | UNIT_STATE_STUNNED))
+        return;
+
+    float ratio = 0.1f;
+    float speedxy = float(m_spellInfo->getEffectMiscValue(effectIndex)) * ratio;
+    float speedz = float(damage) * ratio;
+    if (speedxy < 0.01f && speedz < 0.01f)
+        return;
+
+    float x, y;
+    if (m_spellInfo->getEffect(effectIndex) == 144)
+    {
+        if (m_targets.hasDestination())
+        {
+            auto destination = m_targets.getDestination();
+            x = destination.x;
+            y = destination.y;
+        }
+        else
+            return;
+    }
+    else
+        m_caster->getPosition(x, y);
+
+    unitTarget->knockbackFrom(x, y, speedxy, speedz);
 }
 
 void Spell::SpellEffectKnockBack2(uint8_t effectIndex)
@@ -5234,6 +5267,39 @@ void Spell::SpellEffectKnockBack2(uint8_t effectIndex)
         return;
 
     unitTarget->HandleKnockback(m_caster, getSpellInfo()->getEffectMiscValue(effectIndex) / 10.0f, damage / 10.0f);
+}
+
+void Spell::SpellEffectPullTowardsDest(uint8_t effIndex)
+{
+    if (!unitTarget)
+        return;
+
+    if (!m_targets.hasDestination())
+    {
+        sLogger.failure("Spell %u with SPELL_EFFECT_PULL_TOWARDS_DEST has no dest target", m_spellInfo->getId());
+        return;
+    }
+
+    LocationVector pos = m_targets.getDestination();
+    // This is a blizzlike mistake: this should be 2D distance according to projectile motion formulas, but Blizzard erroneously used 3D distance
+    float distXY = unitTarget->getExactDist(pos);
+
+    // Avoid division by 0
+    if (distXY < 0.001)
+        return;
+
+    float distZ = pos.getPositionZ() - unitTarget->GetPositionZ();
+
+    float speedXY = m_spellInfo->getEffectMiscValue(effIndex) ? m_spellInfo->getEffectMiscValue(effIndex) / 10.0f : 30.0f;
+    float speedZ = (2 * speedXY * speedXY * distZ + MovementNew::gravity * distXY * distXY) / (2 * speedXY * distXY);
+
+    if (!std::isfinite(speedZ))
+    {
+        sLogger.failure("Spell %u with SPELL_EFFECT_PULL_TOWARDS_DEST called with invalid speedZ.", m_spellInfo->getId());
+        return;
+    }
+
+    unitTarget->jumpTo(speedXY, speedZ, true, pos);
 }
 
 void Spell::SpellEffectDisenchant(uint8_t /*effectIndex*/)
@@ -5256,7 +5322,7 @@ void Spell::SpellEffectDisenchant(uint8_t /*effectIndex*/)
         sLootMgr.FillItemLoot(it->loot, it->getEntry());
     }
 
-    LogDebugFlag(LF_SPELL_EFF, "Successfully disenchanted item %d", uint32(it->getEntry()));
+    sLogger.debug("Successfully disenchanted item %d", uint32(it->getEntry()));
     p_caster->SendLoot(it->getGuid(), LOOT_DISENCHANTING, p_caster->GetMapId());
 
     //We can increase Enchanting skill up to 60
@@ -5428,7 +5494,7 @@ void Spell::SpellEffectSummonDeadPet(uint8_t /*effectIndex*/)
         pPet->setDynamicFlags(0);
         pPet->setHealth((uint32)((pPet->getMaxHealth() * damage) / 100));
         pPet->setDeathState(ALIVE);
-        pPet->GetAIInterface()->HandleEvent(EVENT_FOLLOWOWNER, pPet, 0);
+        pPet->GetAIInterface()->handleEvent(EVENT_FOLLOWOWNER, pPet, 0);
         sEventMgr.RemoveEvents(pPet, EVENT_PET_DELAYED_REMOVE);
         pPet->SendSpellsToOwner();
     }
@@ -5549,7 +5615,19 @@ void Spell::SpellEffectAttackMe(uint8_t /*effectIndex*/)
     if (!unitTarget || !unitTarget->isAlive())
         return;
 
-    unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, 0);
+    if (!unitTarget->getThreatManager().canHaveThreatList())
+        return;
+
+    ThreatManager& mgr = unitTarget->getThreatManager();
+    if (mgr.getCurrentVictim() == u_caster)
+        return;
+
+    if (!mgr.isThreatListEmpty())
+    {
+        mgr.addThreat(u_caster, 20.0f, nullptr, false, false);
+        // Set threat equal to highest threat currently on target
+        mgr.matchUnitThreatToHighestThreat(u_caster);
+    }
 }
 
 void Spell::SpellEffectSkinPlayerCorpse(uint8_t /*effectIndex*/)
@@ -6006,10 +6084,10 @@ void Spell::SpellEffectPlayerPull(uint8_t /*effectIndex*/)
 
 void Spell::SpellEffectReduceThreatPercent(uint8_t /*effectIndex*/)
 {
-    if (!unitTarget || !unitTarget->isCreature() || !u_caster || unitTarget->GetAIInterface()->getThreatByPtr(u_caster) == 0)
+    if (!unitTarget || !unitTarget->isCreature() || !u_caster || unitTarget->getThreatManager().getThreat(u_caster) == 0)
         return;
 
-    unitTarget->GetAIInterface()->modThreatByPtr(u_caster, (int32)unitTarget->GetAIInterface()->getThreatByPtr(u_caster) * damage / 100);
+    unitTarget->getThreatManager().modifyThreatByPercent(u_caster, (int32)unitTarget->getThreatManager().getThreat(u_caster) * damage / 100);
 }
 
 void Spell::SpellEffectSpellSteal(uint8_t /*effectIndex*/)
@@ -6094,12 +6172,12 @@ void Spell::SpellEffectProspecting(uint8_t /*effectIndex*/)
 
     if (itemTarget->loot->items.size() > 0)
     {
-        LogDebugFlag(LF_SPELL_EFF, "Successfully prospected item %d", uint32(itemTarget->getEntry()));
+        sLogger.debug("Successfully prospected item %d", uint32(itemTarget->getEntry()));
         p_caster->SendLoot(itemTarget->getGuid(), LOOT_PROSPECTING, p_caster->GetMapId());
     }
     else // this should never happen either
     {
-        LogDebugFlag(LF_SPELL_EFF, "Prospecting failed, item %d has no loot", uint32(itemTarget->getEntry()));
+        sLogger.debug("Prospecting failed, item %d has no loot", uint32(itemTarget->getEntry()));
         sendCastResult(SPELL_FAILED_CANT_BE_PROSPECTED);
     }
 }
@@ -6123,6 +6201,10 @@ void Spell::SpellEffectRedirectThreat(uint8_t /*effectIndex*/)
         return;
 
     p_caster->SetMisdirectionTarget(unitTarget->getGuid());
+
+    // Threat Management
+    if (unitTarget)
+        p_caster->getThreatManager().registerRedirectThreat(m_spellInfo->getId(), unitTarget->getGuid(), uint32(damage));
 }
 
 void Spell::SpellEffectPlayMusic(uint8_t effectIndex)
@@ -6131,7 +6213,7 @@ void Spell::SpellEffectPlayMusic(uint8_t effectIndex)
 
     if (soundid == 0)
     {
-        LOG_ERROR("Spell %u (%s) has no sound ID to play. Spell needs fixing!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
+        sLogger.failure("Spell %u (%s) has no sound ID to play. Spell needs fixing!", m_spellInfo->getId(), m_spellInfo->getName().c_str());
         return;
     }
 
@@ -6145,7 +6227,7 @@ void Spell::SpellEffectForgetSpecialization(uint8_t effectIndex)
     uint32 spellid = getSpellInfo()->getEffectTriggerSpell(effectIndex);
     playerTarget->removeSpell(spellid, false, false, 0);
 
-    LogDebugFlag(LF_SPELL_EFF, "Player %u have forgot spell %u from spell %u (caster: %u)", playerTarget->getGuidLow(), spellid, getSpellInfo()->getId(), m_caster->getGuidLow());
+    sLogger.debug("Player %u have forgot spell %u from spell %u (caster: %u)", playerTarget->getGuidLow(), spellid, getSpellInfo()->getId(), m_caster->getGuidLow());
 }
 
 void Spell::SpellEffectKillCredit(uint8_t effectIndex)
@@ -6163,7 +6245,7 @@ void Spell::SpellEffectRestorePowerPct(uint8_t effectIndex)
     auto power_type = static_cast<PowerType>(getSpellInfo()->getEffectMiscValue(effectIndex));
     if (power_type > POWER_TYPE_HAPPINESS)
     {
-        LOG_ERROR("Unhandled power type %u in %s, report this line to devs.", power_type, __FUNCTION__);
+        sLogger.failure("Unhandled power type %u in %s, report this line to devs.", power_type, __FUNCTION__);
         return;
     }
 
@@ -6256,7 +6338,7 @@ void Spell::SpellEffectEnchantItemPrismatic(uint8_t effectIndex)
 
     if (!spell_item_enchant)
     {
-        LOG_ERROR("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
+        sLogger.failure("Invalid enchantment entry %u for Spell %u", getSpellInfo()->getEffectMiscValue(effectIndex), getSpellInfo()->getId());
         return;
     }
 
@@ -6314,12 +6396,12 @@ void Spell::SpellEffectMilling(uint8_t /*effectIndex*/)
 
     if (itemTarget->loot->items.size() > 0)
     {
-        LogDebugFlag(LF_SPELL_EFF, "Successfully milled item %d", uint32(itemTarget->getEntry()));
+        sLogger.debug("Successfully milled item %d", uint32(itemTarget->getEntry()));
         p_caster->SendLoot(itemTarget->getGuid(), LOOT_MILLING, p_caster->GetMapId());
     }
     else // this should never happen either
     {
-        LogDebugFlag(LF_SPELL_EFF, "Milling failed, item %d has no loot", uint32(itemTarget->getEntry()));
+        sLogger.debug("Milling failed, item %d has no loot", uint32(itemTarget->getEntry()));
         sendCastResult(SPELL_FAILED_CANT_BE_PROSPECTED);
     }
 }

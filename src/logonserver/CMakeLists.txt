@@ -6,6 +6,7 @@ project(logon CXX)
 include(Auth/CMakeLists.txt)
 include(Console/CMakeLists.txt)
 include(LogonCommServer/CMakeLists.txt)
+include(Realm/CMakeLists.txt)
 include(Server/CMakeLists.txt)
 
 set(SRC_LOGON_PROJECT
@@ -23,6 +24,7 @@ set(sources
    ${SRC_AUTH_FILES}
    ${SRC_CONSOLE_FILES}
    ${SRC_LOGON_COMM_SERVER_FILES}
+   ${SRC_REALM_FILES}
    ${SRC_SERVER_FILES}
    ${SRC_LOGON_PROJECT}
 )
@@ -45,7 +47,9 @@ if(USE_PCH)
     gen_cxx_pch(${PROJECT_NAME} LogonStdAfx.h ${CMAKE_CURRENT_SOURCE_DIR}/LogonStdAfx.cpp)
 endif()
 
-if(NOT WIN32)
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+    target_link_libraries(${PROJECT_NAME} c++experimental)
+elseif (NOT WIN32)
     target_link_libraries(${PROJECT_NAME} stdc++fs)
 endif()
 

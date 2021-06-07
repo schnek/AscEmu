@@ -13,7 +13,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/MainServerDefines.h"
 #include "Server/World.h"
 #include "Server/WorldSession.h"
-#include "Spell/Definitions/SpellCastTargetFlags.h"
+#include "Spell/Definitions/SpellCastTargetFlags.hpp"
 #include "Units/Players/Player.h"
 #include "Units/Players/PlayerDefines.hpp"
 #include "Units/UnitDefines.hpp"
@@ -80,13 +80,13 @@ void WorldSession::handleInitiateTradeOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (_player->hasUnitStateFlag(UNIT_STATE_STUN))
+    if (_player->hasUnitStateFlag(UNIT_STATE_STUNNED))
     {
         sendTradeResult(TRADE_STATUS_YOU_STUNNED);
         return;
     }
 
-    if (playerTarget->hasUnitStateFlag(UNIT_STATE_STUN))
+    if (playerTarget->hasUnitStateFlag(UNIT_STATE_STUNNED))
     {
         sendTradeResult(TRADE_STATUS_TARGET_STUNNED);
         return;

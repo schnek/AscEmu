@@ -52,7 +52,7 @@ This file is released under the MIT license. See README-MIT for more information
 #elif VERSION_STRING == TBC
     #define DBC_TAXI_MASK_SIZE 12
 #elif VERSION_STRING == WotLK
-    #define DBC_TAXI_MASK_SIZE 12
+    #define DBC_TAXI_MASK_SIZE 14
 #elif VERSION_STRING == Cata
     #define DBC_TAXI_MASK_SIZE 114
 #elif VERSION_STRING == Mop
@@ -182,7 +182,7 @@ This file is released under the MIT license. See README-MIT for more information
 #elif VERSION_STRING == WotLK
     #define GLYPHS_COUNT 6
 #elif VERSION_STRING == Cata
-    #define GLYPHS_COUNT 6
+    #define GLYPHS_COUNT 9
 #elif VERSION_STRING == Mop
     #define GLYPHS_COUNT 9
 #endif

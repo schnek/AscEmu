@@ -150,11 +150,11 @@ class FunnyDragon : public CreatureAIScript
     {
         RegisterAIUpdateEvent(5000);
         getCreature()->addUnitFlags(UNIT_FLAG_IGNORE_PLAYER_COMBAT);
-        getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
+        getCreature()->GetAIInterface()->setAllowedToEnterCombat(false);
         setAIAgent(AGENT_NULL);
         _setMeleeDisabled(true);
         getCreature()->setEmoteState(EMOTE_ONESHOT_NONE);
-        getCreature()->GetAIInterface()->m_canMove = false;
+        getCreature()->setControlled(false, UNIT_STATE_ROOTED);
         i = 1;
     }
 
@@ -208,7 +208,6 @@ public:
             }
         }
 
-#if VERSION_STRING > TBC
         if (obelisk1 != nullptr)
             sEventMgr.AddEvent(obelisk1, &GameObject::setState, (uint8_t)1, EVENT_UNK, 10000, 0, 1);
         if (obelisk2 != nullptr)
@@ -219,7 +218,6 @@ public:
             sEventMgr.AddEvent(obelisk4, &GameObject::setState, (uint8_t)1, EVENT_UNK, 10000, 0, 1);
         if (obelisk5 != nullptr)
             sEventMgr.AddEvent(obelisk5, &GameObject::setState, (uint8_t)1, EVENT_UNK, 10000, 0, 1);
-#endif
     }
 
 };
@@ -284,8 +282,8 @@ public:
             {
                 pCreature->SetFaction(14);
                 pCreature->setScale(1.0f);
-                pCreature->GetAIInterface()->setNextTarget(pPlayer);
-                pCreature->GetAIInterface()->AttackReaction(pPlayer, 1);
+                pCreature->GetAIInterface()->setCurrentTarget(pPlayer);
+                pCreature->GetAIInterface()->onHostileAction(pPlayer);
             }
         }
         else

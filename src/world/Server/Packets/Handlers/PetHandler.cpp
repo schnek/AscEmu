@@ -24,7 +24,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/MainServerDefines.h"
 #include "Units/Creatures/Vehicle.h"
 #include "Objects/Faction.h"
-#include "Spell/Definitions/SpellFailure.h"
+#include "Spell/Definitions/SpellFailure.hpp"
 #include "Server/Packets/SmsgPetLearnedSpell.h"
 
 using namespace AscEmu::Packets;
@@ -102,32 +102,31 @@ void WorldSession::handlePetAction(WorldPacket& recvPacket)
                             summonedPet->SendActionFeedback(PET_FEEDBACK_CANT_ATTACK_TARGET);
                             return;
                         }
+                        summonedPet->getThreatManager().clearAllThreat();
+                        summonedPet->getThreatManager().removeMeFromThreatLists();
 
-                        summonedPet->GetAIInterface()->WipeTargetList();
-                        summonedPet->GetAIInterface()->WipeHateList();
+                        summonedPet->GetAIInterface()->setPetOwner(_player);
 
-                        if (summonedPet->GetAIInterface()->getUnitToFollow() == nullptr)
-                            summonedPet->GetAIInterface()->SetUnitToFollow(_player);
-
-                        summonedPet->GetAIInterface()->setAiState(AI_STATE_ATTACKING);
-                        summonedPet->GetAIInterface()->AttackReaction(unitTarget, 1, 0);
+                        summonedPet->GetAIInterface()->onHostileAction(unitTarget, nullptr, true);
                     }
                     break;
                     case PET_ACTION_FOLLOW:
                     {
-                        summonedPet->GetAIInterface()->WipeTargetList();
-                        summonedPet->GetAIInterface()->WipeHateList();
+                        if (summonedPet->hasUnitStateFlag(UNIT_STATE_CHASING))
+                            summonedPet->getMovementManager()->remove(CHASE_MOTION_TYPE);
 
-                        summonedPet->GetAIInterface()->SetUnitToFollow(_player);
-                        summonedPet->GetAIInterface()->HandleEvent(EVENT_FOLLOWOWNER, summonedPet, 0);
+                        summonedPet->getThreatManager().clearAllThreat();
+                        summonedPet->getThreatManager().removeMeFromThreatLists();
+
+                        summonedPet->GetAIInterface()->setPetOwner(_player);
+                        summonedPet->GetAIInterface()->handleEvent(EVENT_FOLLOWOWNER, summonedPet, 0);
                     }
                     break;
                     case PET_ACTION_STAY:
                     {
-                        summonedPet->GetAIInterface()->WipeTargetList();
-                        summonedPet->GetAIInterface()->WipeHateList();
-
-                        summonedPet->GetAIInterface()->ResetUnitToFollow();
+                        summonedPet->getThreatManager().clearAllThreat();
+                        summonedPet->getThreatManager().removeMeFromThreatLists();
+                        summonedPet->getMovementManager()->remove(FOLLOW_MOTION_TYPE);
                     }
                     break;
                     case PET_ACTION_DISMISS:
@@ -175,11 +174,10 @@ void WorldSession::handlePetAction(WorldPacket& recvPacket)
                         }
                         else
                         {
-                            summonedPet->GetAIInterface()->WipeTargetList();
-                            summonedPet->GetAIInterface()->WipeHateList();
+                            summonedPet->getThreatManager().clearAllThreat();
+                            summonedPet->getThreatManager().removeMeFromThreatLists();
 
-                            summonedPet->GetAIInterface()->AttackReaction(unitTarget, 1, 0);
-                            summonedPet->GetAIInterface()->SetNextSpell(aiSpell);
+                            summonedPet->GetAIInterface()->onHostileAction(unitTarget, aiSpell->spell, true);
                         }
                     }
                 }
@@ -189,17 +187,18 @@ void WorldSession::handlePetAction(WorldPacket& recvPacket)
             {
                 if (srlPacket.misc == PET_ACTION_STAY) 
                 {
-                    summonedPet->GetAIInterface()->WipeTargetList();
-                    summonedPet->GetAIInterface()->WipeHateList();
-                    summonedPet->GetAIInterface()->SetUnitToFollow(_player);
-                    summonedPet->GetAIInterface()->HandleEvent(EVENT_FOLLOWOWNER, summonedPet, 0);
+                    summonedPet->getThreatManager().clearAllThreat();
+                    summonedPet->getThreatManager().removeMeFromThreatLists();
+
+                    summonedPet->GetAIInterface()->setPetOwner(_player);
+                    summonedPet->GetAIInterface()->handleEvent(EVENT_FOLLOWOWNER, summonedPet, 0);
                 }
                 summonedPet->SetPetState(srlPacket.misc);
 
             }
             break;
             default:
-                LOG_DEBUG("WARNING: Unknown pet action received. Action = %u, Misc = %u", srlPacket.action, srlPacket.misc);
+                sLogger.debug("WARNING: Unknown pet action received. Action = %u, Misc = %u", srlPacket.action, srlPacket.misc);
             break;
         }
 
@@ -262,7 +261,7 @@ void WorldSession::handleUnstablePet(WorldPacket& recvPacket)
     const auto playerPet = _player->GetPlayerPet(srlPacket.petNumber);
     if (playerPet == nullptr)
     {
-        LOG_ERROR("PET SYSTEM: Player " I64FMT " tried to unstable non-existent pet %u", _player->getGuid(), srlPacket.petNumber);
+        sLogger.failure("PET SYSTEM: Player " I64FMT " tried to unstable non-existent pet %u", _player->getGuid(), srlPacket.petNumber);
         return;
     }
 
@@ -283,7 +282,7 @@ void WorldSession::handleStableSwapPet(WorldPacket& recvPacket)
     const auto playerPet = _player->GetPlayerPet(srlPacket.petNumber);
     if (playerPet == nullptr)
     {
-        LOG_ERROR("PET SYSTEM: Player " I64FMT " tried to unstable non-existent pet %u", _player->getGuid(), srlPacket.petNumber);
+        sLogger.failure("PET SYSTEM: Player " I64FMT " tried to unstable non-existent pet %u", _player->getGuid(), srlPacket.petNumber);
         return;
     }
 
@@ -594,13 +593,13 @@ void WorldSession::handleDismissCritter(WorldPacket& recvPacket)
 
     if (_player->getCritterGuid() == 0)
     {
-        LOG_ERROR("Player %u sent dismiss companion packet, but player has no companion", _player->getGuidLow());
+        sLogger.failure("Player %u sent dismiss companion packet, but player has no companion", _player->getGuidLow());
         return;
     }
 
     if (_player->getCritterGuid() != srlPacket.guid.getRawGuid())
     {
-        LOG_ERROR("Player %u sent dismiss companion packet, but it doesn't match player's companion", _player->getGuidLow());
+        sLogger.failure("Player %u sent dismiss companion packet, but it doesn't match player's companion", _player->getGuidLow());
         return;
     }
 

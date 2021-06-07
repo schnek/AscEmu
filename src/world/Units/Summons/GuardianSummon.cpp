@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "../../StdAfx.h"
 #include "Units/Summons/GuardianSummon.h"
-#include "Spell/Definitions/PowerType.h"
+#include "Spell/Definitions/PowerType.hpp"
 
 GuardianSummon::GuardianSummon(uint64_t GUID, uint32_t duration) : Summon(GUID, duration)
 {}
@@ -25,9 +25,8 @@ void GuardianSummon::Load(CreatureProperties const* properties_, Unit* pOwner, L
     setHealth(getMaxHealth());
     SetType(CREATURE_TYPE_GUARDIAN);
 
-    m_aiInterface->Init(this, AI_SCRIPT_PET, Movement::WP_MOVEMENT_SCRIPT_NONE, pOwner);
-    m_aiInterface->SetUnitToFollow(pOwner);
-    m_aiInterface->SetFollowDistance(3.0f);
+    m_aiInterface->Init(this, AI_SCRIPT_PET, pOwner);
+    m_aiInterface->setPetOwner(pOwner);
 
     m_noRespawn = true;
 }

@@ -6,30 +6,31 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell.h"
 #include "SpellAuras.h"
 #include "SpellTarget.h"
-#include "Definitions/AuraInterruptFlags.h"
-#include "Definitions/AuraStates.h"
-#include "Definitions/CastInterruptFlags.h"
-#include "Definitions/ChannelInterruptFlags.h"
-#include "Definitions/DispelType.h"
-#include "Definitions/LockTypes.h"
-#include "Definitions/PreventionType.h"
-#include "Definitions/ProcFlags.h"
-#include "Definitions/SpellCastTargetFlags.h"
-#include "Definitions/SpellDamageType.h"
-#include "Definitions/SpellDidHitResult.h"
-#include "Definitions/SpellEffectTarget.h"
-#include "Definitions/SpellFamily.h"
-#include "Definitions/SpellInFrontStatus.h"
-#include "Definitions/SpellMechanics.h"
-#include "Definitions/SpellPacketFlags.h"
-#include "Definitions/SpellState.h"
-#include "Definitions/SpellRanged.h"
+#include "Definitions/AuraInterruptFlags.hpp"
+#include "Definitions/AuraStates.hpp"
+#include "Definitions/CastInterruptFlags.hpp"
+#include "Definitions/ChannelInterruptFlags.hpp"
+#include "Definitions/DispelType.hpp"
+#include "Definitions/LockTypes.hpp"
+#include "Definitions/PreventionType.hpp"
+#include "Definitions/ProcFlags.hpp"
+#include "Definitions/SpellCastTargetFlags.hpp"
+#include "Definitions/SpellDamageType.hpp"
+#include "Definitions/SpellDidHitResult.hpp"
+#include "Definitions/SpellEffectTarget.hpp"
+#include "Definitions/SpellFamily.hpp"
+#include "Definitions/SpellInFrontStatus.hpp"
+#include "Definitions/SpellMechanics.hpp"
+#include "Definitions/SpellPacketFlags.hpp"
+#include "Definitions/SpellState.hpp"
+#include "Definitions/SpellRanged.hpp"
 
 #include "Data/Flags.hpp"
 #include "Management/Battleground/Battleground.h"
 #include "Management/ItemInterface.h"
 #include "Map/Area/AreaManagementGlobals.hpp"
 #include "Map/Area/AreaStorage.hpp"
+#include "Map/InstanceDefines.hpp"
 #include "Map/MapMgr.h"
 #include "Map/MapScriptInterface.h"
 #include "Map/WorldCreatorDefines.hpp"
@@ -58,7 +59,7 @@ SpellCastResult Spell::prepare(SpellCastTargets* targets)
 {
     if (!m_caster->IsInWorld())
     {
-        LogDebugFlag(LF_SPELL, "Object " I64FMT " is casting spell ID %u while not in world", m_caster->getGuid(), getSpellInfo()->getId());
+        sLogger.debug("Object " I64FMT " is casting spell ID %u while not in world", m_caster->getGuid(), getSpellInfo()->getId());
         delete this;
         return SPELL_FAILED_DONT_REPORT;
     }
@@ -173,7 +174,7 @@ SpellCastResult Spell::prepare(SpellCastTargets* targets)
                 u_caster->RemoveAura(m_triggeredByAura);
         }
 
-        LogDebugFlag(LF_SPELL, "Spell::prepare : canCast result %u for spell id %u (refer to SpellFailure.h to work out why)", cancastresult, getSpellInfo()->getId());
+        sLogger.debug("Spell::prepare : canCast result %u for spell id %u (refer to SpellFailure.hpp to work out why)", cancastresult, getSpellInfo()->getId());
 
         finish(false);
         return cancastresult;
@@ -240,18 +241,18 @@ void Spell::castMe(const bool doReCheck)
     if (m_caster->isPlayer())
     {
         const auto plr = static_cast<Player*>(m_caster);
-        LogDebugFlag(LF_SPELL, "Spell::castMe : Player guid %u casted spell %s (id %u)",
+        sLogger.debug("Spell::castMe : Player guid %u casted spell %s (id %u)",
             plr->getGuidLow(), getSpellInfo()->getName().c_str(), getSpellInfo()->getId());
     }
     else if (m_caster->isCreature())
     {
         const auto creature = static_cast<Creature*>(m_caster);
-        LogDebugFlag(LF_SPELL, "Spell::castMe : Creature guid %u (entry %u) casted spell %s (id %u)",
+        sLogger.debug("Spell::castMe : Creature guid %u (entry %u) casted spell %s (id %u)",
             creature->spawnid, creature->getEntry(), getSpellInfo()->getName().c_str(), getSpellInfo()->getId());
     }
     else
     {
-        LogDebugFlag(LF_SPELL, "Spell::castMe : Spell id %u casted, caster guid %u", getSpellInfo()->getId(), m_caster->getGuid());
+        sLogger.debug("Spell::castMe : Spell id %u casted, caster guid %u", getSpellInfo()->getId(), m_caster->getGuid());
     }
 
     // Check cast again if spell had cast time
@@ -457,7 +458,7 @@ void Spell::castMe(const bool doReCheck)
 
     // Take cast item after SMSG_SPELL_GO but before effect handling
     if (!GetSpellFailed())
-        RemoveItems();
+        removeCastItem();
 
 #if VERSION_STRING < Cata
     /*
@@ -643,12 +644,12 @@ void Spell::handleHittedEffect(const uint64_t targetGuid, uint8_t effIndex, int3
     // TODO: in the future, consider having two damage variables; one for integer and one for float
     damage = effDamage;
 
-    // todo: this is not how it should be done
+    // Add initial threat
+    // Real threat is sent in damage code, in heal code or in apply aura code
     if (getUnitCaster() != nullptr && GetUnitTarget() != nullptr && GetUnitTarget()->isCreature()
         && targetType & SPELL_TARGET_REQUIRE_ATTACKABLE && !(getSpellInfo()->getAttributesEx() & ATTRIBUTESEX_NO_INITIAL_AGGRO))
     {
-        GetUnitTarget()->GetAIInterface()->AttackReaction(getUnitCaster(), 1, 0);
-        GetUnitTarget()->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, getUnitCaster(), 0);
+        GetUnitTarget()->GetAIInterface()->onHostileAction(getUnitCaster());
     }
 
     // Clear DamageInfo before effect
@@ -660,11 +661,11 @@ void Spell::handleHittedEffect(const uint64_t targetGuid, uint8_t effIndex, int3
     const auto effectId = getSpellInfo()->getEffect(effIndex);
     if (effectId >= TOTAL_SPELL_EFFECTS)
     {
-        LogError("Spell::handleHittedEffect : Unknown spell effect %u in spell id %u, index %u", effectId, getSpellInfo()->getId(), effIndex);
+        sLogger.failure("Spell::handleHittedEffect : Unknown spell effect %u in spell id %u, index %u", effectId, getSpellInfo()->getId(), effIndex);
         return;
     }
 
-    LogDebugFlag(LF_SPELL, "Spell::handleHittedEffect : Spell effect %u, spell id %u, damage %d", effectId, getSpellInfo()->getId(), damage);
+    sLogger.debug("Spell::handleHittedEffect : Spell effect %u, spell id %u, damage %d", effectId, getSpellInfo()->getId(), damage);
 
     const auto scriptResult = sScriptMgr.callScriptedSpellBeforeSpellEffect(this, effIndex);
 
@@ -714,6 +715,10 @@ void Spell::handleHittedEffect(const uint64_t targetGuid, uint8_t effIndex, int3
 
 void Spell::handleMissedTarget(SpellTargetMod const missedTarget)
 {
+    // No need to handle this target if it was in evade mode
+    if (missedTarget.hitResult == SPELL_DID_HIT_EVADE)
+        return;
+
     const auto didReflect = missedTarget.hitResult == SPELL_DID_HIT_REFLECT && missedTarget.extendedHitResult == SPELL_DID_HIT_SUCCESS;
 
     auto travelTime = _getSpellTravelTimeForTarget(missedTarget.targetGuid);
@@ -782,8 +787,7 @@ void Spell::handleMissedEffect(const uint64_t targetGuid)
         if (u_caster != nullptr && targetUnit->isCreature() && !(getSpellInfo()->getAttributesEx() & ATTRIBUTESEX_NO_INITIAL_AGGRO))
         {
             // Let target creature know that someone tried to cast spell on it
-            static_cast<Creature*>(targetUnit)->GetAIInterface()->AttackReaction(u_caster, 0, 0);
-            static_cast<Creature*>(targetUnit)->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);
+            static_cast<Creature*>(targetUnit)->GetAIInterface()->onHostileAction(u_caster);
         }
 
         // Call scripted after spell missed hook
@@ -1139,7 +1143,7 @@ void Spell::cancel()
                     }
 
                     if (m_timer > 0)
-                        RemoveItems();
+                        removeCastItem();
                 }
 
                 getUnitCaster()->RemoveAura(getSpellInfo()->getId(), getCaster()->getGuid());
@@ -1844,7 +1848,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
         // Check if spell can be casted in heroic dungeons or in raids
         if (getSpellInfo()->getAttributesExF() & ATTRIBUTESEXF_NOT_IN_RAIDS_OR_HEROIC_DUNGEONS)
         {
-            if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && (p_caster->GetMapMgr()->GetMapInfo()->type == INSTANCE_RAID || p_caster->GetMapMgr()->iInstanceMode == MODE_HEROIC))
+            if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && (p_caster->GetMapMgr()->GetMapInfo()->isRaid() || p_caster->GetMapMgr()->iInstanceMode == InstanceDifficulty::DUNGEON_HEROIC))
             {
 #if VERSION_STRING < WotLK
                 return SPELL_FAILED_NOT_HERE;
@@ -1900,7 +1904,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                 const auto gameObjectInfo = obj->GetGameObjectProperties();
                 if (gameObjectInfo == nullptr)
                 {
-                    LogDebugFlag(LF_SPELL, "Spell::canCast : Found gameobject entry %u with invalid gameobject properties, spawn id %u", obj->getEntry(), obj->getGuidLow());
+                    sLogger.debug("Spell::canCast : Found gameobject entry %u with invalid gameobject properties, spawn id %u", obj->getEntry(), obj->getGuidLow());
                     continue;
                 }
 
@@ -2109,7 +2113,11 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                 if (m_targets.getGameObjectTarget() != 0)
                 {
                     const auto objectTarget = p_caster->GetMapMgrGameObject(m_targets.getGameObjectTarget());
-                    if (objectTarget != nullptr && objectTarget->getGoType() != GAMEOBJECT_TYPE_QUESTGIVER)
+                    if (objectTarget != nullptr &&
+                        objectTarget->getGoType() != GAMEOBJECT_TYPE_QUESTGIVER &&
+                        objectTarget->getGoType() != GAMEOBJECT_TYPE_AREADAMAGE &&
+                        objectTarget->getGoType() != GAMEOBJECT_TYPE_FLAGSTAND &&
+                        objectTarget->getGoType() != GAMEOBJECT_TYPE_FLAGDROP)
                     {
                         // Get lock id
                         switch (objectTarget->getGoType())
@@ -2120,6 +2128,8 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                             case GAMEOBJECT_TYPE_BUTTON:
                                 lockId = objectTarget->GetGameObjectProperties()->button.lock_id;
                                 break;
+                            // TODO: implement questgiver gameobjects
+                            //case GAMEOBJECT_TYPE_QUESTGIVER:
                             case GAMEOBJECT_TYPE_CHEST:
                                 lockId = objectTarget->GetGameObjectProperties()->chest.lock_id;
                                 break;
@@ -2129,12 +2139,18 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                             case GAMEOBJECT_TYPE_GOOBER:
                                 lockId = objectTarget->GetGameObjectProperties()->goober.lock_id;
                                 break;
+                            // TODO: implement areadamage gameobjects
+                            //case GAMEOBJECT_TYPE_AREADAMAGE:
                             case GAMEOBJECT_TYPE_CAMERA:
                                 lockId = objectTarget->GetGameObjectProperties()->camera.lock_id;
                                 break;
+                            // TODO: implement flagstand gameobjects
+                            //case GAMEOBJECT_TYPE_FLAGSTAND:
                             case GAMEOBJECT_TYPE_FISHINGHOLE:
                                 lockId = objectTarget->GetGameObjectProperties()->fishinghole.lock_id;
                                 break;
+                            // TODO: implement flagdrop gameobjects
+                            //case GAMEOBJECT_TYPE_FLAGDROP:
                             default:
                                 break;
                         }
@@ -2370,7 +2386,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                     return SPELL_FAILED_CANT_DUEL_WHILE_INVISIBLE;
 
                 // Check if caster is in dungeon or raid
-                if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && p_caster->GetMapMgr()->GetMapInfo()->type != INSTANCE_NULL)
+                if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && !p_caster->GetMapMgr()->GetMapInfo()->isNonInstanceMap())
                     return SPELL_FAILED_NO_DUELING;
 
                 const auto targetPlayer = p_caster->GetMapMgrPlayer(m_targets.getUnitTarget());
@@ -2391,13 +2407,13 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                     return SPELL_FAILED_TARGET_NOT_IN_RAID;
 
                 // Check if caster is in an instance map
-                if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && p_caster->GetMapMgr()->GetMapInfo()->type != INSTANCE_NULL)
+                if (p_caster->IsInWorld() && p_caster->GetMapMgr()->GetMapInfo() != nullptr && !p_caster->GetMapMgr()->GetMapInfo()->isNonInstanceMap())
                 {
                     if (!p_caster->IsInMap(targetPlayer))
                         return SPELL_FAILED_TARGET_NOT_IN_INSTANCE;
 
                     const auto mapInfo = p_caster->GetMapMgr()->GetMapInfo();
-                    if (p_caster->GetMapMgr()->iInstanceMode == MODE_HEROIC)
+                    if (p_caster->GetMapMgr()->iInstanceMode == InstanceDifficulty::DUNGEON_HEROIC)
                     {
                         if (mapInfo->minlevel_heroic > targetPlayer->getLevel())
                             return SPELL_FAILED_LOWLEVEL;
@@ -2409,7 +2425,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                     }
 
                     // Check if caster is in a battleground
-                    if (mapInfo->type == INSTANCE_BATTLEGROUND || p_caster->m_bg != nullptr)
+                    if (mapInfo->isBattleground() || p_caster->m_bg != nullptr)
                     {
 #if VERSION_STRING == Classic
                         return SPELL_FAILED_NOT_HERE;
@@ -2499,7 +2515,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                 if (worldConfig.terrainCollision.isPathfindingEnabled)
                 {
                     // Check if caster is able to create path to target
-                    if (!u_caster->GetAIInterface()->CanCreatePath(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ()))
+                    if (!u_caster->GetAIInterface()->canCreatePath(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ()))
                         return SPELL_FAILED_NOPATH;
                 }
             } break;
@@ -2835,7 +2851,7 @@ SpellCastResult Spell::checkPower()
     // Invalid power types
     if (!getSpellInfo()->hasValidPowerType())
     {
-        LogError("Spell::checkPower : Unknown power type %u for spell id %u", getSpellInfo()->getPowerType(), getSpellInfo()->getId());
+        sLogger.failure("Spell::checkPower : Unknown power type %u for spell id %u", getSpellInfo()->getPowerType(), getSpellInfo()->getId());
         return SPELL_FAILED_ERROR;
     }
 
@@ -3280,7 +3296,7 @@ SpellCastResult Spell::checkItems(uint32_t* parameter1, uint32_t* parameter2) co
                     const auto itemProperties = sMySQLStore.getItemProperties(getSpellInfo()->getEffectItemType(i));
                     if (itemProperties == nullptr)
                     {
-                        LogError("Spell::checkItems: Spell entry %u has unknown item id (%u) in SPELL_EFFECT_CREATE_ITEM effect", getSpellInfo()->getId(), getSpellInfo()->getEffectItemType(i));
+                        sLogger.failure("Spell::checkItems: Spell entry %u has unknown item id (%u) in SPELL_EFFECT_CREATE_ITEM effect", getSpellInfo()->getId(), getSpellInfo()->getEffectItemType(i));
                         return SPELL_FAILED_ERROR;
                     }
 
@@ -3320,7 +3336,7 @@ SpellCastResult Spell::checkItems(uint32_t* parameter1, uint32_t* parameter2) co
                     const auto itemProperties = sMySQLStore.getItemProperties(getSpellInfo()->getEffectItemType(i));
                     if (itemProperties == nullptr)
                     {
-                        LogError("Spell::checkItems: Spell entry %u has unknown item id (%u) in SPELL_EFFECT_ENCHANT_ITEM effect", getSpellInfo()->getId(), getSpellInfo()->getEffectItemType(i));
+                        sLogger.failure("Spell::checkItems: Spell entry %u has unknown item id (%u) in SPELL_EFFECT_ENCHANT_ITEM effect", getSpellInfo()->getId(), getSpellInfo()->getEffectItemType(i));
                         return SPELL_FAILED_ERROR;
                     }
 
@@ -3379,7 +3395,7 @@ SpellCastResult Spell::checkItems(uint32_t* parameter1, uint32_t* parameter2) co
                 const auto enchantEntry = sSpellItemEnchantmentStore.LookupEntry(getSpellInfo()->getEffectMiscValue(i));
                 if (enchantEntry == nullptr)
                 {
-                    LogError("Spell::checkItems: Spell entry %u has no valid enchantment (%u)", getSpellInfo()->getId(), getSpellInfo()->getEffectMiscValue(i));
+                    sLogger.failure("Spell::checkItems: Spell entry %u has no valid enchantment (%u)", getSpellInfo()->getId(), getSpellInfo()->getEffectMiscValue(i));
                     return SPELL_FAILED_ERROR;
                 }
 
@@ -3453,7 +3469,7 @@ SpellCastResult Spell::checkItems(uint32_t* parameter1, uint32_t* parameter2) co
                 const auto enchantmentEntry = sSpellItemEnchantmentStore.LookupEntry(getSpellInfo()->getEffectMiscValue(i));
                 if (enchantmentEntry == nullptr)
                 {
-                    LogError("Spell::checkItems: Spell entry %u has no valid enchantment (%u)", getSpellInfo()->getId(), getSpellInfo()->getEffectMiscValue(i));
+                    sLogger.failure("Spell::checkItems: Spell entry %u has no valid enchantment (%u)", getSpellInfo()->getId(), getSpellInfo()->getEffectMiscValue(i));
                     return SPELL_FAILED_ERROR;
                 }
 
@@ -3722,7 +3738,7 @@ SpellCastResult Spell::checkCasterState() const
     };
 
     SpellCastResult errorMsg = SPELL_CAST_SUCCESS;
-    if (u_caster->hasUnitStateFlag(UNIT_STATE_STUN))
+    if (u_caster->hasUnitStateFlag(UNIT_STATE_STUNNED))
     {
         if (getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_USABLE_WHILE_STUNNED)
         {
@@ -3750,19 +3766,19 @@ SpellCastResult Spell::checkCasterState() const
             errorMsg = SPELL_FAILED_STUNNED;
         }
     }
-    else if (u_caster->hasUnitStateFlag(UNIT_STATE_CONFUSE) && !(getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_USABLE_WHILE_CONFUSED))
+    else if (u_caster->hasUnitStateFlag(UNIT_STATE_CONFUSED) && !(getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_USABLE_WHILE_CONFUSED))
     {
         errorMsg = SPELL_FAILED_CONFUSED;
     }
-    else if (u_caster->hasUnitStateFlag(UNIT_STATE_FEAR) && !(getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_USABLE_WHILE_FEARED))
+    else if (u_caster->hasUnitStateFlag(UNIT_STATE_FLEEING) && !(getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_USABLE_WHILE_FEARED))
     {
         errorMsg = SPELL_FAILED_FLEEING;
     }
-    else if (u_caster->hasUnitStateFlag(UNIT_STATE_SILENCE) && getSpellInfo()->getPreventionType() == PREVENTION_TYPE_SILENCE)
+    else if (u_caster->hasUnitFlags(UNIT_FLAG_SILENCED) && getSpellInfo()->getPreventionType() == PREVENTION_TYPE_SILENCE)
     {
         errorMsg = SPELL_FAILED_SILENCED;
     }
-    else if (u_caster->hasUnitStateFlag(UNIT_STATE_PACIFY) && getSpellInfo()->getPreventionType() == PREVENTION_TYPE_PACIFY)
+    else if (u_caster->hasUnitStateFlag(UNIT_FLAG_PACIFIED) && getSpellInfo()->getPreventionType() == PREVENTION_TYPE_PACIFY)
     {
         errorMsg = SPELL_FAILED_PACIFIED;
     }
@@ -4064,7 +4080,7 @@ SpellCastResult Spell::checkShapeshift(SpellInfo const* spellInfo, const uint32_
         auto shapeShift = sSpellShapeshiftFormStore.LookupEntry(shapeshiftForm);
         if (shapeShift == nullptr)
         {
-            LogError("Spell::checkShapeshift: Caster has unknown shapeshift form %u", shapeshiftForm);
+            sLogger.failure("Spell::checkShapeshift: Caster has unknown shapeshift form %u", shapeshiftForm);
             return SPELL_CAST_SUCCESS;
         }
 
@@ -5096,7 +5112,7 @@ void Spell::takePower()
 
     if (!getSpellInfo()->hasValidPowerType())
     {
-        LogError("Spell::takePower : Unknown power type %u for spell id %u", getSpellInfo()->getPowerType(), getSpellInfo()->getId());
+        sLogger.failure("Spell::takePower : Unknown power type %u for spell id %u", getSpellInfo()->getPowerType(), getSpellInfo()->getId());
         return;
     }
 
@@ -5255,6 +5271,62 @@ bool Spell::canAttackCreatureType(Creature* target) const
     return !(target->GetCreatureProperties()->Type != 0 && typeMask != 0 && (typeMask & mask) == 0);
 }
 
+void Spell::removeCastItem()
+{
+    if (getItemCaster() == nullptr)
+        return;
+
+    auto removable = false, chargesUsed = false;
+    const auto proto = getItemCaster()->getItemProperties();
+
+    for (uint8_t i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
+    {
+        const auto protoSpell = proto->Spells[i];
+        if (protoSpell.Id > 0)
+        {
+            if (protoSpell.Charges == 0)
+                continue;
+
+            // Items with negative charges disappear when they reach 0 charges
+            if (protoSpell.Charges < 0)
+                removable = true;
+
+            auto charges = getItemCaster()->getSpellCharges(i);
+            if (charges != 0)
+            {
+                if (charges > 0)
+                    --charges;
+                else
+                    ++charges;
+
+                // If item is not stackable, modify charges
+                if (proto->MaxCount == 1)
+                    getItemCaster()->setSpellCharges(i, charges);
+
+                getItemCaster()->m_isDirty = true;
+            }
+
+            chargesUsed = charges == 0;
+        }
+    }
+
+    if (removable && chargesUsed)
+    {
+        // If the item is stacked, remove 1 from the stack
+        if (getItemCaster()->getStackCount() > 1)
+        {
+            getItemCaster()->modStackCount(-1);
+            getItemCaster()->m_isDirty = true;
+        }
+        else
+        {
+            getItemCaster()->getOwner()->getItemInterface()->SafeFullRemoveItemByGuid(getItemCaster()->getGuid());
+        }
+
+        i_caster = nullptr;
+    }
+}
+
 void Spell::removeReagents()
 {
     if (p_caster == nullptr)
@@ -5336,7 +5408,7 @@ void Spell::_updateCasterPointers(Object* caster)
             g_caster = dynamic_cast<GameObject*>(caster);
             break;
         default:
-            LogDebugFlag(LF_SPELL, "Spell::_updateCasterPointers : Incompatible object type (type %u) for spell caster", caster->getObjectTypeId());
+            sLogger.debug("Spell::_updateCasterPointers : Incompatible object type (type %u) for spell caster", caster->getObjectTypeId());
             break;
     }
 }
@@ -5414,7 +5486,7 @@ void Spell::_updateTargetPointers(const uint64_t targetGuid)
                     corpseTarget = sObjectMgr.GetCorpse(wowGuid.getGuidLowPart());
                     break;
                 default:
-                    LogError("Spell::_updateTargetPointers : Invalid object type for spell target (low guid %u) in spell %u", wowGuid.getGuidLowPart(), getSpellInfo()->getId());
+                    sLogger.failure("Spell::_updateTargetPointers : Invalid object type for spell target (low guid %u) in spell %u", wowGuid.getGuidLowPart(), getSpellInfo()->getId());
                     break;
             }
         }

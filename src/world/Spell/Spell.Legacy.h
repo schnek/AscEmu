@@ -20,16 +20,18 @@
 
 #pragma once
 
-#include "Definitions/SpellFailure.h"
-#include "Definitions/SpellState.h"
-#include "Definitions/SpellTargetMod.h"
-#include "SpellCastTargets.h"
+#include "Definitions/SpellFailure.hpp"
+#include "Definitions/SpellState.hpp"
+#include "Definitions/SpellTargetMod.hpp"
+#include "SpellCastTargets.hpp"
 #include "SpellInfo.hpp"
-#include "SpellTargetConstraint.h"
+#include "SpellTargetConstraint.hpp"
 
 #include "Units/Creatures/Creature.h"
 #include "Units/Players/Player.h"
 #include "Units/Unit.h"
+
+#include "Movement/Spline/MovementTypedefs.h"
 
 class WorldSession;
 class Unit;
@@ -76,6 +78,7 @@ class SERVER_DECL Spell
         void cancel();
 
         int32_t calculateEffect(uint8_t effIndex);
+        void calculateJumpSpeeds(Unit* unitCaster, SpellInfo const* spellInfo, uint8_t i, float dist, float& speedXY, float& speedZ);
 
         //////////////////////////////////////////////////////////////////////////////////////////
         // Spell cast checks
@@ -222,6 +225,8 @@ class SERVER_DECL Spell
 
         bool canAttackCreatureType(Creature* target) const;
 
+        // Removes used item and/or item charges
+        void removeCastItem();
         void removeReagents();
 #if VERSION_STRING < Cata
         void removeAmmo();
@@ -448,8 +453,6 @@ class SERVER_DECL Spell
         bool hasAttributeExF(SpellAttributesExF attribute);
         bool hasAttributeExG(SpellAttributesExG attribute);
 
-        // Removes reagents, ammo, and items/charges
-        void RemoveItems();
         // Handles Teleport function
         void HandleTeleport(float x, float y, float z, uint32 mapid, Unit* Target);
         // Determines how much skill caster going to gain
@@ -564,6 +567,7 @@ class SERVER_DECL Spell
         void SpellEffectCharge(uint8_t effectIndex);
         void SpellEffectKnockBack(uint8_t effectIndex);
         void SpellEffectKnockBack2(uint8_t effectIndex);
+        void SpellEffectPullTowardsDest(uint8_t effectIndex);
         void SpellEffectDisenchant(uint8_t effectIndex);
         void SpellEffectInebriate(uint8_t effectIndex);
         void SpellEffectFeedPet(uint8_t effectIndex);

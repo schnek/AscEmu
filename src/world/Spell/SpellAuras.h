@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "Definitions/AuraEffects.h"
-#include "Definitions/AuraRemoveMode.h"
-#include "Definitions/SpellEffects.h"
+#include "Definitions/AuraEffects.hpp"
+#include "Definitions/AuraRemoveMode.hpp"
+#include "Definitions/SpellEffects.hpp"
 #include "Management/Item.h"
 #include "Objects/Object.h"
 #include "Server/EventableObject.h"
@@ -540,6 +540,7 @@ class SERVER_DECL Aura : public EventableObject
         void SpellAuraModAttackSpeed(AuraEffectModifier* aurEff, bool apply);
         void SpellAuraModThreatGenerated(AuraEffectModifier* aurEff, bool apply);
         void SpellAuraModTaunt(AuraEffectModifier* aurEff, bool apply);
+        void SpellAuraModDetaunt(AuraEffectModifier* aurEff, bool apply);
         void SpellAuraModStun(AuraEffectModifier* aurEff, bool apply);
         void SpellAuraModDamageDone(AuraEffectModifier* aurEff, bool apply);
         void SpellAuraModDamageTaken(AuraEffectModifier* aurEff, bool apply);

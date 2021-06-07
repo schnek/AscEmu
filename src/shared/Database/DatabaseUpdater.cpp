@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "DatabaseUpdater.hpp"
-#include "../Log.hpp"
+#include "../Logging/Logger.hpp"
 #include "Database.h"
 #include "Field.hpp"
 #include "../Common.hpp"
@@ -16,7 +16,7 @@ void DatabaseUpdater::initBaseIfNeeded(std::string dbName, std::string dbBaseTyp
     QueryResult* dbResult = dbPointer.Query("SHOW TABLES FROM %s", dbName.c_str());
     if (dbResult == nullptr)
     {
-        LogDetail("Database: Your Database %s has no tables. AE is setting up the database for you.", dbName.c_str());
+        sLogger.info("Database: Your Database %s has no tables. AE is setting up the database for you.", dbName.c_str());
         setupDatabase(dbBaseType, dbPointer);
     }
 
@@ -70,7 +70,7 @@ void DatabaseUpdater::setupDatabase(std::string database, Database& dbPointer)
 
     if (fs::exists(baseFilePath))
     {
-        LogDebugFlag(LF_DB_TABLES, "%s", baseFilePath.c_str());
+        sLogger.debug("%s", baseFilePath.c_str());
         std::string loadedFile = Util::readFileIntoString(baseFilePath);
 
         // split into seperated string
@@ -97,7 +97,7 @@ void DatabaseUpdater::checkAndApplyDBUpdatesIfNeeded(std::string database, Datab
 
     while (dbPointer.GetQueueSize() > 0)
     {
-        LogDetail("-- busy updating database \"%s\". Waiting for %u queries to be executed.", database.c_str(), dbPointer.GetQueueSize());
+        sLogger.info("-- busy updating database \"%s\". Waiting for %u queries to be executed.", database.c_str(), dbPointer.GetQueueSize());
         Arcemu::Sleep(500);
     }
 }
@@ -119,14 +119,14 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
 
     if (!result)
     {
-        LogError("%s_db_version query failed!", database.c_str());
+        sLogger.failure("%s_db_version query failed!", database.c_str());
         return;
     }
 
     Field* fields = result->Fetch();
     const std::string dbLastUpdate = fields[0].GetString();
 
-    LogDetail("Database %s Version : %s", database.c_str(), dbLastUpdate.c_str());
+    sLogger.info("Database %s Version : %s", database.c_str(), dbLastUpdate.c_str());
 
     const auto lastUpdateMajor = Util::readMajorVersionFromString(dbLastUpdate);
     const auto lastUpdateMinor = Util::readMinorVersionFromString(dbLastUpdate);
@@ -136,10 +136,20 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
     std::map<uint32_t, DatabaseUpdateFile> updateSqlStore;
 
     uint32_t count = 0;
+    std::vector<std::string> updateFiles;
+
     for (auto& p : fs::recursive_directory_iterator(sqlUpdateDir))
     {
         const std::string filePathName = p.path().string();
+        updateFiles.push_back(filePathName);
+    }
 
+    // In Windows, recursive_directory_iterator seems to get files sorted but
+    // in Linux they are in random order -Appled
+    std::sort(updateFiles.begin(), updateFiles.end());
+
+    for (const auto& filePathName : updateFiles)
+    {
         std::string fileName = filePathName;
         fileName.erase(0, sqlUpdateDir.size() + 1);
 
@@ -152,11 +162,13 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
         dbUpdateFile.minorVersion = minorVersion;
 
         //\todo Remove me
-        LogDetail("Available file in updates dir: %s", filePathName.c_str());
+        sLogger.info("Available file in updates dir: %s", filePathName.c_str());
 
         updateSqlStore.emplace(std::pair<uint32_t, DatabaseUpdateFile>(count, dbUpdateFile));
         ++count;
     }
+
+    updateFiles.clear();
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // 3. save filenames into vector, when newer than current db version
@@ -164,7 +176,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
 
     if (!updateSqlStore.empty())
     {
-        LogDebug("=========== New %s update files in %s ===========", database.c_str(), sqlUpdateDir.c_str());
+        sLogger.debug("=========== New %s update files in %s ===========", database.c_str(), sqlUpdateDir.c_str());
         //compare it with latest update in mysql
         for (const auto update : updateSqlStore)
         {
@@ -178,7 +190,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
             if (addToUpdateFiles)
             {
                 applyNewUpdateFilesStore.insert(update);
-                LogDebug("Updatefile %s, Major(%u), Minor(%u) - added and ready to be applied!", update.second.fullName.c_str(), update.second.majorVersion, update.second.minorVersion);
+                sLogger.debug("Updatefile %s, Major(%u), Minor(%u) - added and ready to be applied!", update.second.fullName.c_str(), update.second.majorVersion, update.second.minorVersion);
             }
         }
     }
@@ -187,7 +199,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
     // 4. open/parse files and apply to db
     if (!applyNewUpdateFilesStore.empty())
     {
-        LogDebugFlag(LF_DB_TABLES, "=========== Applying sql updates from %s ===========", sqlUpdateDir.c_str());
+        sLogger.debug("=========== Applying sql updates from %s ===========", sqlUpdateDir.c_str());
 
         for (const auto execute : applyNewUpdateFilesStore)
         {
@@ -195,7 +207,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(std::string database, Database& db
 
             if (fs::exists(sqlFile))
             {
-                LogDebugFlag(LF_DB_TABLES, "%s", execute.second.fullName.c_str());
+                sLogger.debug("%s", execute.second.fullName.c_str());
                 std::string loadedFile = Util::readFileIntoString(sqlFile);
 
                 // split into seperated string

@@ -46,7 +46,7 @@ Map::Map(uint32 mapid, MySQLStructure::MapInfo const* inf)
 
 Map::~Map()
 {
-    LogNotice("Map : ~Map %u", this->_mapId);
+    sLogger.info("Map : ~Map %u", this->_mapId);
 
     for (uint32 x = 0; x < _sizeX; x++)
     {
@@ -131,20 +131,22 @@ void Map::LoadSpawns(bool reload)
     CreatureSpawnCount = 0;
     for (auto cspawn : sMySQLStore._creatureSpawnsStore[this->_mapId])
     {
-        uint32 cellx = CellHandler<MapMgr>::GetPosX(cspawn->x);
-        uint32 celly = CellHandler<MapMgr>::GetPosY(cspawn->y);
-        if (!spawns[cellx])
+        if (!sMySQLStore.isTransportMap(this->_mapId))
         {
-            spawns[cellx] = new CellSpawns * [_sizeY];
-            memset(spawns[cellx], 0, sizeof(CellSpawns*) * _sizeY);
+            uint32 cellx = CellHandler<MapMgr>::GetPosX(cspawn->x);
+            uint32 celly = CellHandler<MapMgr>::GetPosY(cspawn->y);
+            if (!spawns[cellx])
+            {
+                spawns[cellx] = new CellSpawns * [_sizeY];
+                memset(spawns[cellx], 0, sizeof(CellSpawns*) * _sizeY);
+            }
+
+            if (!spawns[cellx][celly])
+                spawns[cellx][celly] = new CellSpawns;
+
+            spawns[cellx][celly]->CreatureSpawns.push_back(cspawn);
+            ++CreatureSpawnCount;
         }
-
-        if (!spawns[cellx][celly])
-            spawns[cellx][celly] = new CellSpawns;
-
-        spawns[cellx][celly]->CreatureSpawns.push_back(cspawn);
-        ++CreatureSpawnCount;
-
     }
 
     GameObjectSpawnCount = 0;
@@ -181,5 +183,5 @@ void Map::LoadSpawns(bool reload)
             ++GameObjectSpawnCount;
         }
     }
-    LogDetail("MapMgr : %u creatures / %u gobjects on map %u cached.", CreatureSpawnCount, GameObjectSpawnCount, _mapId);
+    sLogger.info("MapMgr : %u creatures / %u gobjects on map %u cached.", CreatureSpawnCount, GameObjectSpawnCount, _mapId);
 }

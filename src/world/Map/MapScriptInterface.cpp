@@ -124,7 +124,6 @@ Creature* MapScriptInterface::SpawnCreature(uint32 Entry, float cX, float cY, fl
     uint32 DisplayID = 0;
     uint8 Gender = creature_properties->GetGenderAndCreateRandomDisplayID(&DisplayID);
     spawn->displayid = DisplayID;
-    spawn->form = nullptr;
     spawn->id = 0;
     spawn->movetype = 0;
     spawn->x = cX;
@@ -185,7 +184,7 @@ Creature* MapScriptInterface::SpawnCreature(MySQLStructure::CreatureSpawn* sp, b
     uint8 Gender = creature_properties->GetGenderAndCreateRandomDisplayID(&sp->displayid);
     Creature* p = this->mapMgr.CreateCreature(sp->entry);
     ARCEMU_ASSERT(p != NULL);
-    p->Load(sp, (uint32)NULL, nullptr);
+    p->Load(sp, 0, nullptr);
     p->setGender(Gender);
     p->spawnid = 0;
     p->m_spawn = nullptr;
@@ -208,9 +207,4 @@ StructFactory& StructFactory::getInstance()
 {
     static StructFactory mInstance;
     return mInstance;
-}
-
-Movement::WayPoint* StructFactory::CreateWaypoint()
-{
-    return new Movement::WayPoint;
 }

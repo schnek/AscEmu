@@ -62,7 +62,7 @@ public:
         return m_phaseData[pIndex];
     }
 
-    void OnGameObjectActivate(GameObject* pGameObject, Player* pPlayer)
+    void OnGameObjectActivate(GameObject* pGameObject, Player* /*pPlayer*/)
     {
         if (pGameObject->getEntry() != GO_LODGE_ABLAZE || GetData(OHF_PHASE_1) == OHF_DATA_DONE)
             return;
@@ -195,9 +195,9 @@ class ThrallAI : public CreatureAIScript // this will be replaced with escortAI
     ADD_CREATURE_FACTORY_FUNCTION(ThrallAI)
     explicit ThrallAI(Creature* pCreature) : CreatureAIScript(pCreature)
     {
-        SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_NONE);
+        stopMovement();
         for (uint8_t i = 1; i < MAX_THRALLWP1; ++i)
-            AddWaypoint(CreateWaypoint(i, 0, Movement::WP_MOVE_TYPE_WALK, ThrallWP1[i]));
+            addWaypoint(1, createWaypoint(i, 0, Movement::WP_MOVE_TYPE_WALK, ThrallWP1[i]));
 
         m_currentWp = 0;
     }

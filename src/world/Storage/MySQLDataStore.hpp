@@ -6,8 +6,8 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "Objects/ObjectMgr.h"
-#include "Spell/Definitions/SpellClickSpell.h"
-#include "Spell/Definitions/TeleportCoords.h"
+#include "Spell/Definitions/SpellClickSpell.hpp"
+#include "Spell/Definitions/TeleportCoords.hpp"
 #include "MySQLStructures.h"
 
 extern SERVER_DECL std::set<std::string> CreaturePropertiesTables;
@@ -44,6 +44,7 @@ public:
     typedef std::unordered_map<uint32_t, MySQLStructure::ItemPage> ItemPageContainer;
     typedef std::unordered_map<uint32_t, ItemProperties> ItemPropertiesContainer;
     typedef std::unordered_map<uint32_t, CreatureProperties> CreaturePropertiesContainer;
+    typedef std::unordered_map<uint32_t, CreaturePropertiesMovement> CreaturePropertiesMovementContainer;
     typedef std::unordered_map<uint32_t, GameObjectProperties> GameObjectPropertiesContainer;
     typedef std::unordered_map<uint32_t, QuestProperties> QuestPropertiesContainer;
 
@@ -82,8 +83,6 @@ public:
     typedef std::list<MySQLStructure::WordFilterCharacterNames> WordFilterCharacterNamesSet;
     typedef std::list<MySQLStructure::WordFilterChat> WordFilterChatSet;
 
-    typedef std::unordered_map<uint32_t, MySQLStructure::CreatureFormation> CreatureFormationsMap;
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // locales
     typedef std::unordered_map<uint32_t, MySQLStructure::LocalesCreature> LocalesCreatureContainer;
@@ -107,6 +106,7 @@ public:
 
     typedef std::unordered_map<uint32_t, MySQLStructure::TransportData> TransportDataContainer;
     typedef std::unordered_map<uint32_t, MySQLStructure::TransportEntrys> TransportEntryContrainer;
+    typedef std::vector<uint32_t> TransportMapContainer;
 
     typedef std::unordered_map<uint32_t, MySQLStructure::GossipMenuInit> GossipMenuInitMap;
     typedef std::multimap<uint32_t, MySQLStructure::GossipMenuItems> GossipMenuItemsContainer;
@@ -125,6 +125,8 @@ public:
 
     CreatureProperties const* getCreatureProperties(uint32_t entry);
     CreaturePropertiesContainer const* getCreaturePropertiesStore() { return &_creaturePropertiesStore; }
+
+    CreaturePropertiesMovement const* getCreaturePropertiesMovement(uint32_t entry);
 
     GameObjectProperties const* getGameObjectProperties(uint32_t entry);
     GameObjectPropertiesContainer const* getGameObjectPropertiesStore() { return &_gameobjectPropertiesStore; }
@@ -197,9 +199,6 @@ public:
     AreaTriggerContainer const* getAreaTriggersStore() { return &_areaTriggerStore; }
     MySQLStructure::AreaTrigger const* getMapEntranceTrigger(uint32_t mapId);
 
-    CreatureFormationsMap const* getCreatureFormationsStore() { return &_creatureFormationsStore; }
-    MySQLStructure::CreatureFormation const* getCreatureFormationBySpawnId(uint32_t spawnId);
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // locales
     MySQLStructure::LocalesCreature const* getLocalizedCreature(uint32_t entry, uint32_t sessionLocale);
@@ -229,6 +228,13 @@ public:
 
     bool isCharacterNameAllowed(std::string charName);
 
+    bool isTransportMap(uint32_t mapId) const
+    {
+        if (std::find(_transportMapStore.begin(), _transportMapStore.end(), mapId) != _transportMapStore.end())
+            return true;
+        return false;
+    }
+
     //Config
     void loadAdditionalTableConfig();
 
@@ -236,6 +242,7 @@ public:
     void loadItemPagesTable();
     void loadItemPropertiesTable();
 
+    void loadCreaturePropertiesMovementTable();
     void loadCreaturePropertiesTable();
 
     void loadGameObjectPropertiesTable();
@@ -287,8 +294,6 @@ public:
     void loadWordFilterCharacterNames();
     void loadWordFilterChat();
 
-    void loadCreatureFormationsTable();
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // locales
     void loadLocalesCreature();
@@ -311,6 +316,7 @@ public:
 
     void loadTransportDataTable();
     void loadTransportEntrys();
+    void loadTransportMaps();
 
     void loadGossipMenuItemsTable();
 
@@ -322,6 +328,7 @@ public:
     ItemPageContainer _itemPagesStore;
     ItemPropertiesContainer _itemPropertiesStore;
     CreaturePropertiesContainer _creaturePropertiesStore;
+    CreaturePropertiesMovementContainer _creaturePropertiesMovementStore;
     GameObjectPropertiesContainer _gameobjectPropertiesStore;
     QuestPropertiesContainer _questPropertiesStore;
 
@@ -362,8 +369,6 @@ public:
     WordFilterCharacterNamesSet _wordFilterCharacterNamesStore;
     WordFilterChatSet _wordFilterChatStore;
 
-    CreatureFormationsMap _creatureFormationsStore;
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // locales
     LocalesCreatureContainer _localesCreatureStore;
@@ -386,6 +391,7 @@ public:
 
     TransportDataContainer _transportDataStore;
     TransportEntryContrainer _transportEntryStore;
+    TransportMapContainer _transportMapStore;
 
     GossipMenuInitMap _gossipMenuInitStore;
     GossipMenuItemsContainer _gossipMenuItemsStores;

@@ -13,8 +13,13 @@ if(UNIX)
     else()
         message(STATUS "Detected ${CMAKE_BUILD_TYPE} configuration")
     endif()
-    # Link atomic library
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+        set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -lc++experimental")
+    else()
+        # Link atomic library
+        set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -latomic")
+    endif()
 endif()
 
 # cmake options
@@ -41,5 +46,7 @@ add_subdirectory(src/scripts)
 # install libraries for windows build (libmysql.dll, libey32.dll)
 if(WIN32)
     install(FILES ${INSTALLED_DEPENDENCIES} DESTINATION .)
-    install(DIRECTORY ${INSTALL_DB_FILES} DESTINATION sql FILES_MATCHING PATTERN "*.sql")
 endif()
+
+# install db updates
+install(DIRECTORY ${INSTALL_DB_FILES} DESTINATION sql FILES_MATCHING PATTERN "*.sql")

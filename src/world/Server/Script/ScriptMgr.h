@@ -28,9 +28,9 @@
 #include "Units/Unit.h"
 #include "Management/ArenaTeam.h"
 #include "Server/ServerState.h"
-#include "Spell/Definitions/ProcFlags.h"
+#include "Spell/Definitions/ProcFlags.hpp"
 #include "Spell/SpellAuras.h"
-#include "Spell/SpellScript.h"
+#include "Spell/SpellScript.hpp"
 #include "ScriptEvent.hpp"
 
 class Channel;
@@ -449,8 +449,6 @@ public:
                                     // 1: Defines max. number of creature on hatelist (0 - any, HateList.size + 1 - the least hated etc.)
 };
 
-#include "CreatureAIScript.h"
-
 class GameEvent;
 class SERVER_DECL EventScript
 {
@@ -622,6 +620,8 @@ class SERVER_DECL InstanceScript
         virtual void UpdateEvent() {}
 
         virtual void OnEncounterStateChange(uint32_t /*entry*/, uint32_t /*state*/) {}
+        virtual void TransportBoarded(Unit* /*punit*/, Transporter* /*transport*/) {}
+        virtual void TransportUnboarded(Unit* /*punit*/, Transporter* /*transport*/) {}
 
         virtual void Destroy() {}
 
@@ -643,6 +643,7 @@ class SERVER_DECL InstanceScript
         virtual void setLocalData(uint32_t /*type*/, uint32_t /*data*/) {}
         virtual void setLocalData64(uint32_t /*type*/, uint64_t /*data*/) {}
         virtual uint32_t getLocalData(uint32_t /*type*/) const { return 0; }
+        virtual Creature* getLocalCreatureData(uint32_t /*type*/) const { return nullptr; }
         virtual uint64_t getLocalData64(uint32_t /*type*/) const { return 0; }
         virtual void DoAction(int32_t /*action*/) {}
         virtual void TransporterEvents(Transporter* /*transport*/, uint32_t /*eventId*/) {}
@@ -650,6 +651,13 @@ class SERVER_DECL InstanceScript
         
         //used for debug
         std::string getDataStateString(uint32_t bossEntry);
+
+        void setZoneMusic(uint32_t zoneId, uint32_t musicId)
+        {
+            WorldPacket data(SMSG_PLAY_MUSIC, 4);
+            data << uint32_t(musicId);
+            sWorld.sendZoneMessage(&data, zoneId);
+        }
 
         //////////////////////////////////////////////////////////////////////////////////////////
         // encounters

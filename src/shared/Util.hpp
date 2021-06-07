@@ -15,22 +15,7 @@ This file is released under the MIT license. See README-MIT for more information
 namespace Util
 {
     //////////////////////////////////////////////////////////////////////////////////////////
-    // String functions
-
-    /*! \brief Manipulates the string to lowercase */
-    void StringToLowerCase(std::string& str);
-
-    /*! \brief Manipulates the string to uppercase */
-    void StringToUpperCase(std::string& str);
-
-    /*! \brief Capitalize word (uppercase first char, lowercase rest) */
-    void CapitalizeString(std::string& str);
-
-    /*! \brief Seperates string by seperator (one char) returns string vecotr */
-    std::vector<std::string> SplitStringBySeperator(const std::string& str_src, const std::string& str_sep);
-
-    /*! \brief Returns true if string x is in sttrin y */
-    bool findXinYString(std::string& x, std::string& y);
+    // WoW String functions
 
     /*! \brief Returns wow specific language string to id*/
     uint32_t getLanguagesIdFromString(std::string langstr);
@@ -155,6 +140,9 @@ namespace Util
     bool checkChance(int32_t val);
     // Gets random number from 1-100 and returns true if val is greater than the number
     bool checkChance(float_t val);
+
+    template <class T>
+    inline T square(T x) { return x * x; }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // C++17 filesystem dependent functions

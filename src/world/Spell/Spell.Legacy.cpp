@@ -23,21 +23,21 @@
 #include "Units/Creatures/Pet.h"
 #include "Server/Packets/SmsgClearExtraAuraInfo.h"
 #include "Spell.Legacy.h"
-#include "Definitions/SpellInFrontStatus.h"
-#include "Definitions/SpellCastTargetFlags.h"
-#include "Definitions/SpellDamageType.h"
-#include "Definitions/ProcFlags.h"
-#include "Definitions/CastInterruptFlags.h"
-#include "Definitions/AuraInterruptFlags.h"
-#include "Definitions/SpellTargetType.h"
-#include "Definitions/SpellRanged.h"
-#include "Definitions/SpellIsFlags.h"
-#include "Definitions/DiminishingGroup.h"
-#include "Definitions/SpellState.h"
-#include "Definitions/SpellMechanics.h"
-#include "Definitions/SpellEffectTarget.h"
-#include "Definitions/PowerType.h"
-#include "Definitions/SpellDidHitResult.h"
+#include "Definitions/SpellInFrontStatus.hpp"
+#include "Definitions/SpellCastTargetFlags.hpp"
+#include "Definitions/SpellDamageType.hpp"
+#include "Definitions/ProcFlags.hpp"
+#include "Definitions/CastInterruptFlags.hpp"
+#include "Definitions/AuraInterruptFlags.hpp"
+#include "Definitions/SpellTargetType.hpp"
+#include "Definitions/SpellRanged.hpp"
+#include "Definitions/SpellIsFlags.hpp"
+#include "Definitions/DiminishingGroup.hpp"
+#include "Definitions/SpellState.hpp"
+#include "Definitions/SpellMechanics.hpp"
+#include "Definitions/SpellEffectTarget.hpp"
+#include "Definitions/PowerType.hpp"
+#include "Definitions/SpellDidHitResult.hpp"
 #include "SpellHelpers.h"
 #include "StdAfx.h"
 #include "VMapFactory.h"
@@ -52,7 +52,7 @@
 #include "Map/MapMgr.h"
 #include "Map/MapScriptInterface.h"
 #include "Objects/Faction.h"
-#include "SpellMgr.h"
+#include "SpellMgr.hpp"
 #include "SpellAuras.h"
 #include "Map/WorldCreatorDefines.hpp"
 #include "Server/Packets/SmsgSpellFailure.h"
@@ -628,12 +628,6 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
         return SPELL_DID_HIT_SUCCESS;
 
     /************************************************************************/
-    /* Check if the unit is evading                                         */
-    /************************************************************************/
-    if (u_victim->isCreature() && u_victim->GetAIInterface()->isAiState(AI_STATE_EVADE))
-        return SPELL_DID_HIT_EVADE;
-
-    /************************************************************************/
     /* Check if the player target is able to deflect spells                 */
     /* Currently (3.3.5a) there is only spell doing that: Deterrence        */
     /************************************************************************/
@@ -644,6 +638,10 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 
     // APGL End
     // MIT Start
+
+    // Check if creature target is in evade mode
+    if (target->isCreature() && target->isInEvadeMode())
+        return SPELL_DID_HIT_EVADE;
 
     // Check if target can reflect this spell
     if (m_canBeReflected)
@@ -1147,7 +1145,7 @@ void Spell::AddTime(uint32 type)
             if (p_caster == nullptr)
             {
                 //then it's a Creature
-                u_caster->GetAIInterface()->AddStopTime(delay);
+                u_caster->pauseMovement(delay);
             }
             //in case cast is delayed, make sure we do not exit combat
             else
@@ -1566,7 +1564,7 @@ SpellEntry *spellInfo = sSpellStore.LookupEntry(TriggerSpellId);
 
 if (!spellInfo)
 {
-LOG_ERROR("WORLD: unknown spell id %i\n", TriggerSpellId);
+sLogger.failure("WORLD: unknown spell id %i\n", TriggerSpellId);
 return;
 }
 
@@ -2116,61 +2114,6 @@ bool Spell::hasAttributeExF(SpellAttributesExF attribute)
 bool Spell::hasAttributeExG(SpellAttributesExG attribute)
 {
     return (getSpellInfo()->getAttributesExG() & attribute) != 0;
-}
-
-void Spell::RemoveItems()
-{
-    // Item Charges & Used Item Removal
-    if (i_caster)
-    {
-        // Stackable Item -> remove 1 from stack
-        if (i_caster->getStackCount() > 1)
-        {
-            i_caster->modStackCount(-1);
-            i_caster->m_isDirty = true;
-            i_caster = nullptr;
-        }
-        else
-        {
-            for (uint8_t x = 0; x < 5; x++)
-            {
-                int32 charges = i_caster->getSpellCharges(x);
-
-                if (charges == 0)
-                    continue;
-
-                bool Removable = false;
-
-                // Items with negative charges are items that disappear when they reach 0 charge.
-                if (charges < 0)
-                    Removable = true;
-
-                i_caster->m_isDirty = true;
-
-                if (Removable)
-                {
-
-                    // If we have only 1 charge left, it's pointless to decrease the charge, we will have to remove the item anyways, so who cares ^^
-                    if (charges == -1)
-                    {
-                        i_caster->getOwner()->getItemInterface()->SafeFullRemoveItemByGuid(i_caster->getGuid());
-                    }
-                    else
-                    {
-                        i_caster->modSpellCharges(x, 1);
-                    }
-
-                }
-                else
-                {
-                    i_caster->modSpellCharges(x, -1);
-                }
-
-                i_caster = nullptr;
-                break;
-            }
-        }
-    }
 }
 
 bool Spell::HasTarget(const uint64& guid, std::vector<uint64_t>* tmpMap)
@@ -2869,7 +2812,7 @@ void Spell::HandleTeleport(float x, float y, float z, uint32 mapid, Unit* Target
     {
         if (mapid != Target->GetMapId())
         {
-            LOG_ERROR("Tried to teleport a Creature to another map.");
+            sLogger.failure("Tried to teleport a Creature to another map.");
             return;
         }
 
@@ -3212,24 +3155,50 @@ void Spell::SpellEffectJumpTarget(uint8_t effectIndex)
     }
 
     float speedZ = 0.0f;
-
-    if (getSpellInfo()->getEffectMiscValue(effectIndex))
-        speedZ = float(getSpellInfo()->getEffectMiscValue(effectIndex)) / 10;
-    else if (getSpellInfo()->getEffectMiscValueB(effectIndex))
-        speedZ = float(getSpellInfo()->getEffectMiscValueB(effectIndex)) / 10;
+    float speedXY = 0.0f;
 
     o = unitTarget->calcRadAngle(u_caster->GetPositionX(), u_caster->GetPositionY(), x, y);
-
-    if (speedZ <= 0.0f)
-        u_caster->GetAIInterface()->splineMoveJump(x, y, z, o, getSpellInfo()->getEffect(effectIndex) == 145);
-    else
-        u_caster->GetAIInterface()->splineMoveJump(x, y, z, o, speedZ, getSpellInfo()->getEffect(effectIndex) == 145);
+    calculateJumpSpeeds(u_caster, getSpellInfo() ,effectIndex, u_caster->getExactDist2d(x, y), speedXY, speedZ);
+    u_caster->getMovementManager()->moveJump(x, y, z, o, speedXY, speedZ);
 }
 
-void Spell::SpellEffectJumpBehindTarget(uint8_t /*i*/)
+void Spell::calculateJumpSpeeds(Unit* unitCaster, SpellInfo const* spellInfo, uint8_t i, float dist, float& speedXY, float& speedZ)
+{
+    float runSpeed = unitCaster->getSpeedRate(TYPE_RUN, false);
+
+    if (Creature* creature = unitCaster->ToCreature())
+        runSpeed *= creature->GetCreatureProperties()->run_speed;
+
+    float multiplier = m_spellInfo->getEffectMultipleValue(i);
+    if (multiplier <= 0.0f)
+        multiplier = 1.0f;
+
+    speedXY = std::min(runSpeed * 3.0f * multiplier, std::max(28.0f, unitCaster->getSpeedRate(TYPE_RUN, false) * 4.0f));
+
+    float duration = dist / speedXY;
+    float durationSqr = duration * duration;
+    float minHeight = spellInfo->getEffectMiscValue(i) ? spellInfo->getEffectMiscValue(i) / 10.0f : 0.5f; // Lower bound is blizzlike
+    float maxHeight = spellInfo->getEffectMiscValueB(i) ? spellInfo->getEffectMiscValueB(i) / 10.0f : 1000.0f; // Upper bound is unknown
+    float height;
+
+    if (durationSqr < minHeight * 8 / MovementNew::gravity)
+        height = minHeight;
+    else if (durationSqr > maxHeight * 8 / MovementNew::gravity)
+        height = maxHeight;
+    else
+        height = MovementNew::gravity * durationSqr / 8;
+
+    speedZ = std::sqrt(2 * MovementNew::gravity * height);
+}
+
+void Spell::SpellEffectJumpBehindTarget(uint8_t effectIndex)
 {
     if (u_caster == nullptr)
         return;
+
+    if (!m_targets.hasDestination())
+        return;
+
     if (m_targets.getTargetMask() & TARGET_FLAG_UNIT)
     {
         Object* uobj = m_caster->GetMapMgr()->_GetObject(m_targets.getUnitTarget());
@@ -3243,42 +3212,10 @@ void Spell::SpellEffectJumpBehindTarget(uint8_t /*i*/)
         float y = un->GetPositionY() + sinf(angle) * rad;
         float z = un->GetPositionZ();
         float o = un->calcRadAngle(x, y, un->GetPositionX(), un->GetPositionY());
-
-        if (u_caster->GetAIInterface() != nullptr)
-            u_caster->GetAIInterface()->splineMoveJump(x, y, z, o);
-    }
-    else if (m_targets.getTargetMask() & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
-    {
-        float x = 0.0f;
-        float y = 0.0f;
-        float z = 0.0f;
-
-        //this can also jump to a point
-        if (m_targets.hasSource())
-        {
-            auto source = m_targets.getSource();
-            x = source.x;
-            y = source.y;
-            z = source.z;
-        }
-
-        if (m_targets.hasDestination())
-        {
-            auto destination = m_targets.getDestination();
-            x = destination.x;
-            y = destination.y;
-            z = destination.z;
-        }
-
-        if (x != 0.0f && y != 0.0f && z != 0.0f)
-        {
-            if (u_caster->GetAIInterface() != nullptr)
-                u_caster->GetAIInterface()->splineMoveJump(x, y, z);
-        }
-        else
-        {
-            LogDebugFlag(LF_SPELL, "Coordinates are empty");
-        }
+       
+        float speedXY, speedZ;
+        calculateJumpSpeeds(u_caster, getSpellInfo() ,effectIndex, u_caster->getExactDist2d(un->GetPositionX(), un->GetPositionY()), speedXY, speedZ);
+        u_caster->getMovementManager()->moveJump(x, y, z, o, speedXY, speedZ, EVENT_JUMP, !m_targets.getUnitTarget());
     }
 }
 

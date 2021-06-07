@@ -22,15 +22,14 @@ void GameEvent::CreateNPCs()
         CreatureProperties const* cp = sMySQLStore.getCreatureProperties(npc.entry);
         if (cp == nullptr)
         {
-            LOG_ERROR("try to create invalid creature %u!", npc.entry);
+            sLogger.failure("try to create invalid creature %u!", npc.entry);
             continue;
         }
 
         c->Load(cp, npc.position_x, npc.position_y, npc.position_z, npc.orientation);
         if (npc.waypoint_group != 0)
         {
-            c->LoadWaypointGroup(npc.waypoint_group);
-            c->SwitchToCustomWaypoints();
+            // todo aaron02
         }
 
         // Set up spawn specific information

@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/MainServerDefines.h"
 #include "Map/MapMgr.h"
 #include "Server/Packets/SmsgTransferPending.h"
-#include "../Movement/Spline/New/Spline.h"
+#include "../Movement/Spline/Spline.h"
 
 using namespace AscEmu::Packets;
 
@@ -40,19 +40,19 @@ Transporter::~Transporter()
     _passengers.clear();
 }
 
-bool Transporter::Create(uint32_t entry, uint32_t mapid, float x, float y, float z, float ang, uint32_t animprogress)
+bool Transporter::Create(uint32_t entry, uint32_t mapid, float x, float y, float z, float ang, uint8_t animprogress)
 {
     gameobject_properties = sMySQLStore.getGameObjectProperties(entry);
     if (gameobject_properties == nullptr)
     {
-        LOG_ERROR("Something tried to create a GameObject with invalid entry %u", entry);
+        sLogger.failure("Something tried to create a GameObject with invalid entry %u", entry);
         return false;
     }
 
     TransportTemplate const* tInfo = sTransportHandler.getTransportTemplate(entry);
     if (!tInfo)
     {
-        LOG_ERROR("Transport %u will not be created, missing `transport_template` entry.", entry);
+        sLogger.failure("Transport %u will not be created, missing `transport_template` entry.", entry);
         return false;
     }
 
@@ -62,6 +62,8 @@ bool Transporter::Create(uint32_t entry, uint32_t mapid, float x, float y, float
     // Set Pathtime
     setLevel(tInfo->pathTime);
     setAnimationProgress(animprogress);
+
+    setDynamicPathProgress();
 
     _transportInfo = tInfo;
 
@@ -86,7 +88,7 @@ void Transporter::Update(unsigned long time_passed)
     uint32_t timer = mTransValues.PathProgress % getTransportPeriod();
     bool justStopped = false;
 
-    LogDebug("Transporter: current node %u and pathprogress %u \n", _currentFrame->Index, GetTimer());
+    //sLogger.debug("Transporter: current node %u and pathprogress %u \n", _currentFrame->Index, GetTimer());
 
     for (;;)
     {
@@ -144,6 +146,8 @@ void Transporter::Update(unsigned long time_passed)
         _positionChangeTimer = positionUpdateDelay;
         if (IsMoving())
         {
+            setDynamicPathProgress();
+
             // Return a Value between 0 and 1 which represents the time from 0 to 1 between current and next node.
             float t = !justStopped ? CalculateSegmentPos(float(timer) * 0.001f) : 1.0f;
             G3D::Vector3 pos, dir;
@@ -152,7 +156,10 @@ void Transporter::Update(unsigned long time_passed)
             UpdatePosition(pos.x, pos.y, pos.z, std::atan2(dir.y, dir.x) + float(M_PI));
         }
         else if (justStopped)
+        {
+            setDynamicPathProgress();
             UpdatePosition(_currentFrame->Node.x, _currentFrame->Node.y, _currentFrame->Node.z, _currentFrame->InitialOrientation);
+        }
         else // When Transport Stopped keep updating players position
             UpdatePlayerPositions(_passengers);
     }
@@ -167,6 +174,9 @@ void Transporter::AddPassenger(Player* passenger)
     {
         passenger->SetTransport(this);
         passenger->obj_movement_info.addMovementFlag(MOVEFLAG_TRANSPORT);
+
+        if(passenger->isPlayer())
+            CALL_INSTANCE_SCRIPT_EVENT(GetMapMgr(), TransportBoarded)(passenger, this);
     }
 }
 
@@ -193,6 +203,9 @@ void Transporter::RemovePassenger(Object* passenger)
     {
         passenger->SetTransport(nullptr);
         passenger->obj_movement_info.removeMovementFlag(MOVEFLAG_TRANSPORT);
+
+        if (passenger->isPlayer())
+            CALL_INSTANCE_SCRIPT_EVENT(GetMapMgr(), TransportUnboarded)(passenger->ToPlayer(), this);
     }
 }
 
@@ -219,6 +232,8 @@ Creature* Transporter::createNPCPassenger(MySQLStructure::CreatureSpawn* data)
     pCreature->SetPosition(x, y, z, o);
     pCreature->SetSpawnLocation(x, y, z, o);
     pCreature->SetTransportHomePosition(pCreature->obj_movement_info.transport_position);
+
+    pCreature->addUnitStateFlag(UNIT_STATE_IGNORE_PATHFINDING);
 
     // Create Creature
     pCreature->Create(map->GetMapId(), x, y, z, o);
@@ -293,18 +308,22 @@ void Transporter::UpdatePosition(float x, float y, float z, float o)
 
 void Transporter::LoadStaticPassengers()
 {
-    LogNotice("TransportHandler : Start populating transport %u ", getEntry());
+    // If parameter_6 (map id) is set to 0, then transport shouldn't have any passengers
+    if (GetGameObjectProperties()->mo_transport.map_id == 0)
+        return;
+
+    sLogger.info("TransportHandler : Start populating transport %u ", getEntry());
     {
         for (auto creature_spawn : sMySQLStore._creatureSpawnsStore[GetGameObjectProperties()->mo_transport.map_id])
         {
             if (createNPCPassenger(creature_spawn) == 0)
-                LOG_ERROR("Failed to add npc entry: %u to transport: %u", creature_spawn->entry, getGuid());
+                sLogger.failure("Failed to add npc entry: %u to transport: %u", creature_spawn->entry, getGuid());
         }
 
         /*for (auto go_spawn : sMySQLStore._gameobjectSpawnsStore[GetGameObjectProperties()->mo_transport.map_id])
         {
             if (createGOPassenger(go_spawn) == 0)
-                LOG_ERROR("Failed to add go entry: %u to transport: %u", go_spawn->entry, getGuid());
+                sLogger.failure("Failed to add go entry: %u to transport: %u", go_spawn->entry, getGuid());
         }*/
     }
 }
@@ -394,7 +413,7 @@ void Transporter::EnableMovement(bool enabled, MapMgr* instance)
         return;
 
     _pendingStop = !enabled;
-    UpdateForMap(instance);
+    //UpdateForMap(instance);
 }
 
 void Transporter::MoveToNextWaypoint()
@@ -576,34 +595,50 @@ void Transporter::DoEventIfAny(KeyFrame const& node, bool departure)
 {
     if (uint32_t eventid = departure ? node.Node.DepartureEventID : node.Node.ArrivalEventID)
     {
-        LOG_DETAIL("Taxi %s event %u", departure ? "departure" : "arrival", eventid);
+        sLogger.info("Taxi %s event %u", departure ? "departure" : "arrival", eventid);
 
         // Use MapScript Interface to Handle these if not handle it here
-        if (GetMapMgr()->GetScript())
-            GetMapMgr()->GetScript()->TransporterEvents(this, eventid);
-        else
+        CALL_INSTANCE_SCRIPT_EVENT(GetMapMgr(), TransporterEvents)(this, eventid);
+
+        // TODO Sort out ships and zeppelins
+        switch (eventid)
         {
-            // TODO Sort out ships and zeppelins
-            switch (eventid)
-            {
-            case 16501:
-            case 16400:
-            case 19126:
-            case 15318:
-            case 19032:
-            case 10301:
-            case 19124:
-            case 16398:
-            case 19139:
-            case 16396:
-            case 16402:
-            case 15314:
-                PlaySoundToSet(5154);   // ShipDocked         LightHouseFogHorn.wav
-                break;
-            case 16401:
-                PlaySoundToSet(11804);  // ZeppelinDocked     ZeppelinHorn.wav
-                break;
-            }
+        case 16501:
+        case 16400:
+        case 19126:
+        case 15318:
+        case 19032:
+        case 10301:
+        case 19124:
+        case 16398:
+        case 19139:
+        case 16396:
+        case 16402:
+        case 15314:
+            PlaySoundToSet(5154);   // ShipDocked         LightHouseFogHorn.wav
+            break;
+        case 16401:
+            PlaySoundToSet(11804);  // ZeppelinDocked     ZeppelinHorn.wav
+            break;
         }
     }
+}
+
+void Transporter::setDynamicPathProgress()
+{
+    uint32_t dynamicValue = 0;
+
+    uint16_t dynamicFlags = 0; // seems to always be 0
+    int16_t pathProgress = -1; // dynamic Path Progress
+
+    if (uint32_t transportPeriod = getTransportPeriod())
+    {
+        float timer = float(GetTransValues()->PathProgress % transportPeriod);
+        pathProgress = int16_t(timer / float(transportPeriod) * 65535.0f);
+    }
+
+    dynamicValue = (pathProgress << 16) + dynamicFlags;
+
+    // Set Updatemask
+    setDynamic(dynamicValue);
 }

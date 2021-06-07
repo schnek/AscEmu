@@ -10,8 +10,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "../world/Objects/ObjectMgr.h"
 #include "../world/Management/TransporterHandler.h"
 #include "../world/Objects/Transporter.h"
+#include "Movement/MovementGenerators/PointMovementGenerator.h"
 
-#if VERSION_STRING >= WotLK
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //ICC zone: 4812
@@ -59,19 +59,17 @@ public:
         // Gunship Battle
         skybreaker = nullptr;
         orgrimmar = nullptr;
-        SkybreakerBossGUID = 0;
-        OrgrimmarBossGUID = 0;
-        DeathbringerSaurfangGbGUID = 0;
-        MuradinBronzebeardGbGUID = 0;
-        DeathbringerSaurfangNotVisualGUID = 0;
-        MuradinBronzebeardNotVisualGUID = 0;
-        GbBattleMageGUID = 0;
+        SkybreakerBoss = nullptr;
+        OrgrimmarBoss = nullptr;
+        DeathbringerSaurfangGb = nullptr;
+        MuradinBronzebeardGb = nullptr;
+        GbBattleMage = nullptr;
         isPrepared = false;
         addData(DATA_GUNSHIP_EVENT, NotStarted);
 
         // Deathbringer Saurfang
         DeathbringerDoorGUID = 0;
-        DeathbringerSaurfangSpawnID = 0;
+        DeathbringerSaurfang = nullptr;
         
         // Misc Data
         setLocalData(DATA_BONED_ACHIEVEMENT, uint32_t(true));
@@ -87,33 +85,32 @@ public:
             // Deathbringer Suarfang
         case DATA_SAURFANG_DOOR:
             return DeathbringerDoorGUID;
-        case DATA_DEATHBRINGER_SAURFANG:
-            return DeathbringerSaurfangSpawnID;
+        case DATA_TEAM_IN_INSTANCE:
+            return TeamInInstance;
         }
         return 0;
     }
 
-    uint64_t getLocalData64(uint32_t type) const
+    Creature* getLocalCreatureData(uint32_t type) const
     {
         switch (type)
         {
-            // Gunship battle	
+            // Gunshipbattle
         case DATA_SKYBREAKER_BOSS:
-            return SkybreakerBossGUID;
+            return SkybreakerBoss;
         case DATA_ORGRIMMAR_HAMMER_BOSS:
-            return OrgrimmarBossGUID;
+            return OrgrimmarBoss;
         case DATA_GB_HIGH_OVERLORD_SAURFANG:
-            return DeathbringerSaurfangGbGUID;
+            return DeathbringerSaurfangGb;
         case DATA_GB_MURADIN_BRONZEBEARD:
-            return MuradinBronzebeardGbGUID;
-        case DATA_HIGH_OVERLORD_SAURFANG_NOT_VISUAL:
-            return DeathbringerSaurfangNotVisualGUID;
-        case DATA_MURADIN_BRONZEBEARD_NOT_VISUAL:
-            return MuradinBronzebeardNotVisualGUID;
+            return MuradinBronzebeardGb;
         case DATA_GB_BATTLE_MAGE:
-            return GbBattleMageGUID;
+            return GbBattleMage;
+            // Deathbringer Saurfang
+        case DATA_DEATHBRINGER_SAURFANG:
+            return DeathbringerSaurfang;
         }
-        return 0;
+        return nullptr;
     }
 
     void OnCreaturePushToWorld(Creature* pCreature) override
@@ -122,31 +119,25 @@ public:
         {
             // Gunship
         case NPC_GB_SKYBREAKER:
-            SkybreakerBossGUID = pCreature->getGuid();
+            SkybreakerBoss = pCreature;
             break;
         case NPC_GB_ORGRIMS_HAMMER:
-            OrgrimmarBossGUID = pCreature->getGuid();
+            OrgrimmarBoss = pCreature;
             break;
         case NPC_GB_HIGH_OVERLORD_SAURFANG:
-            DeathbringerSaurfangGbGUID = pCreature->getGuid();
+            DeathbringerSaurfangGb = pCreature;
             break;
         case NPC_GB_MURADIN_BRONZEBEARD:
-            MuradinBronzebeardGbGUID = pCreature->getGuid();
-            break;
-        case NPC_GB_HIGH_OVERLORD_SAURFANG_NV:
-            DeathbringerSaurfangNotVisualGUID = pCreature->getGuid();
-            break;
-        case NPC_GB_MURADIN_BRONZEBEARD_NV:
-            MuradinBronzebeardNotVisualGUID = pCreature->getGuid();
+            MuradinBronzebeardGb = pCreature;
             break;
         case NPC_GB_SKYBREAKER_SORCERERS:
         case NPC_GB_KORKRON_BATTLE_MAGE:
-            GbBattleMageGUID = pCreature->getGuid();
+            GbBattleMage = pCreature;
             break;
 
             // Deathbringer Suarfang
         case CN_DEATHBRINGER_SAURFANG:
-            DeathbringerSaurfangSpawnID = pCreature->spawnid;
+            DeathbringerSaurfang = pCreature;
             break;
         }
     }
@@ -186,45 +177,53 @@ public:
         SetGameobjectStates(pGameObject);
     }
 
-    void SetGameobjectStates(GameObject* pGameObject)
+    void SetGameobjectStates(GameObject* /*pGameObject*/)
     {
         // Gos which are not visible by killing a boss needs a second check...
         if (getData(CN_LORD_MARROWGAR) == Finished)
         {
             if (MarrowgarIcewall1GUID)
-                GetGameObjectByGuid(MarrowgarIcewall1GUID)->setState(GO_STATE_OPEN);        // Icewall 1
+                if(GetGameObjectByGuid(MarrowgarIcewall1GUID))
+                    GetGameObjectByGuid(MarrowgarIcewall1GUID)->setState(GO_STATE_OPEN);        // Icewall 1
 
             if (MarrowgarIcewall2GUID)
-                GetGameObjectByGuid(MarrowgarIcewall2GUID)->setState(GO_STATE_OPEN);        // Icewall 2
+                if(GetGameObjectByGuid(MarrowgarIcewall2GUID))
+                    GetGameObjectByGuid(MarrowgarIcewall2GUID)->setState(GO_STATE_OPEN);        // Icewall 2
 
             if (MarrowgarEntranceDoorGUID)
-                GetGameObjectByGuid(MarrowgarEntranceDoorGUID)->setState(GO_STATE_OPEN);    // Door  
+                if(GetGameObjectByGuid(MarrowgarEntranceDoorGUID))
+                    GetGameObjectByGuid(MarrowgarEntranceDoorGUID)->setState(GO_STATE_OPEN);    // Door  
         }
 
         if (getData(CN_LADY_DEATHWHISPER) == Finished)
         {
             if (LadyDeathwisperEntranceDoorGUID)
-                GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_OPEN);
+                if(GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID))
+                    GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_OPEN);
 
             if (LadyDeathwisperElevatorGUID)
+                if(GetGameObjectByGuid(LadyDeathwisperElevatorGUID))
                 GetGameObjectByGuid(LadyDeathwisperElevatorGUID)->setState(GO_STATE_OPEN);
         }
 
         if (getData(CN_LADY_DEATHWHISPER) == NotStarted)
         {
             if (LadyDeathwisperEntranceDoorGUID)
+                if(GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID))
                 GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_OPEN);
         }
 
         if (getData(CN_DEATHBRINGER_SAURFANG) == NotStarted)
         {
             if (DeathbringerDoorGUID)
+                if(GetGameObjectByGuid(DeathbringerDoorGUID))
                 GetGameObjectByGuid(DeathbringerDoorGUID)->setState(GO_STATE_CLOSED);
         }
 
         if (getData(CN_DEATHBRINGER_SAURFANG) == Finished)
         {
             if (DeathbringerDoorGUID)
+                if(GetGameObjectByGuid(DeathbringerDoorGUID))
                 GetGameObjectByGuid(DeathbringerDoorGUID)->setState(GO_STATE_OPEN);
         }
     }
@@ -237,22 +236,27 @@ public:
             if (state == InProgress)
             {
                 if (MarrowgarEntranceDoorGUID)
+                    if(GetGameObjectByGuid(MarrowgarEntranceDoorGUID))
                     GetGameObjectByGuid(MarrowgarEntranceDoorGUID)->setState(GO_STATE_CLOSED);
             }
             if (state == NotStarted)
             {
                 if (MarrowgarEntranceDoorGUID)
+                    if(GetGameObjectByGuid(MarrowgarEntranceDoorGUID))
                     GetGameObjectByGuid(MarrowgarEntranceDoorGUID)->setState(GO_STATE_OPEN);
             }
             if (state == Finished)
             {
                 if (MarrowgarIcewall1GUID)
+                    if(GetGameObjectByGuid(MarrowgarIcewall1GUID))
                     GetGameObjectByGuid(MarrowgarIcewall1GUID)->setState(GO_STATE_OPEN);        // Icewall 1
 
                 if (MarrowgarIcewall2GUID)
+                    if(GetGameObjectByGuid(MarrowgarIcewall2GUID))
                     GetGameObjectByGuid(MarrowgarIcewall2GUID)->setState(GO_STATE_OPEN);        // Icewall 2
 
                 if (MarrowgarEntranceDoorGUID)
+                    if(GetGameObjectByGuid(MarrowgarEntranceDoorGUID))
                     GetGameObjectByGuid(MarrowgarEntranceDoorGUID)->setState(GO_STATE_OPEN);    // Door  
             }
             break;
@@ -260,19 +264,23 @@ public:
             if (state == InProgress)
             {
                 if (LadyDeathwisperEntranceDoorGUID)
+                    if(GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID))
                     GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_CLOSED);
             }
             if (state == NotStarted)
             {
                 if (LadyDeathwisperEntranceDoorGUID)
+                    if(GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID))
                     GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_CLOSED);
             }
             if (state == Finished)
             {
                 if (LadyDeathwisperEntranceDoorGUID)
+                    if (GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID))
                     GetGameObjectByGuid(LadyDeathwisperEntranceDoorGUID)->setState(GO_STATE_OPEN);
 
                 if (LadyDeathwisperElevatorGUID)
+                    if (GetGameObjectByGuid(LadyDeathwisperElevatorGUID))
                     GetGameObjectByGuid(LadyDeathwisperElevatorGUID)->setState(GO_STATE_OPEN);
             }
             break;
@@ -281,42 +289,27 @@ public:
             if (state == InProgress)
             {
                 if (DeathbringerDoorGUID)
+                    if (GetGameObjectByGuid(DeathbringerDoorGUID))
+                        if(GetGameObjectByGuid(DeathbringerDoorGUID))
                     GetGameObjectByGuid(DeathbringerDoorGUID)->setState(GO_STATE_CLOSED);
             }
 
             if (state == NotStarted)
             {
                 if (DeathbringerDoorGUID)
+                    if (GetGameObjectByGuid(DeathbringerDoorGUID))
                     GetGameObjectByGuid(DeathbringerDoorGUID)->setState(GO_STATE_CLOSED);
             }
 
             if (state == Finished)
             {
                 if (DeathbringerDoorGUID)
+                    if (GetGameObjectByGuid(DeathbringerDoorGUID))
                     GetGameObjectByGuid(DeathbringerDoorGUID)->setState(GO_STATE_OPEN);
             }
                 break;
             }
         }      
-    }
-
-    void PrepareGunshipEvent(Player* player)
-    {
-        if (getData(DATA_GUNSHIP_EVENT) == Finished)
-            return;
-
-        if (!isPrepared)
-        {
-            if (TeamInInstance == TEAM_ALLIANCE)
-                skybreaker = sTransportHandler.createTransport(GO_THE_SKYBREAKER_ALLIANCE_ICC, mInstance);
-
-            if (TeamInInstance == TEAM_HORDE)
-                orgrimmar = sTransportHandler.createTransport(GO_ORGRIM_S_HAMMER_HORDE_ICC, mInstance);
-
-            isPrepared = true;
-        }
-        else
-            sTransportHandler.loadTransportForPlayers(player);
     }
 
     void SpawnEnemyGunship()
@@ -352,7 +345,10 @@ public:
             }
             setSpawnsCreated();
         }
-        PrepareGunshipEvent(player); // Spawn Gunship Event
+
+        // Spawning the Gunships at the same moment a player enters causes them to bug the npcs sometimes
+        if(!isPrepared)
+            scriptEvents.addEvent(EVENT_SPAWN_GUNSHIPS, 5000);
     }    
 
     void UpdateEvent() override
@@ -363,10 +359,27 @@ public:
         {
             switch (eventId)
             {
-            case EVENT_WIPE_CHECK:
-                if (TeamInInstance = TEAM_ALLIANCE)
+            case EVENT_SPAWN_GUNSHIPS:
+            {
+                if (getData(DATA_GUNSHIP_EVENT) == Finished)
+                    return;
+
+                if (!isPrepared)
                 {
-                    DoCheckFallingPlayer(mInstance->GetCreature(static_cast<uint32_t>(MuradinBronzebeardGbGUID)));
+                    if (TeamInInstance == TEAM_ALLIANCE)
+                        skybreaker = sTransportHandler.createTransport(GO_THE_SKYBREAKER_ALLIANCE_ICC, mInstance);
+
+                    if (TeamInInstance == TEAM_HORDE)
+                        orgrimmar = sTransportHandler.createTransport(GO_ORGRIM_S_HAMMER_HORDE_ICC, mInstance);
+
+                    isPrepared = true;
+                }
+            }
+                break;
+            case EVENT_WIPE_CHECK:
+                if (TeamInInstance == TEAM_ALLIANCE)
+                {
+                    DoCheckFallingPlayer(MuradinBronzebeardGb);
                     if (DoWipeCheck(skybreaker))
                         scriptEvents.addEvent(EVENT_WIPE_CHECK, 3000);
                     else
@@ -374,7 +387,7 @@ public:
                 }
                 else
                 {
-                    DoCheckFallingPlayer(mInstance->GetCreature(static_cast<uint32_t>(DeathbringerSaurfangGbGUID)));
+                    DoCheckFallingPlayer(DeathbringerSaurfang);
                     if (DoWipeCheck(orgrimmar))
                         scriptEvents.addEvent(EVENT_WIPE_CHECK, 3000);
                     else
@@ -392,24 +405,7 @@ public:
         }
     }
 
-    void SendMusicToPlayers(uint32 musicId) const
-    {
-        WorldPacket data(SMSG_PLAY_MUSIC, 4);
-        data << uint32(musicId);
-        SendPacketToPlayers(&data);
-    }
-
-    // Send packet to all players
-    void SendPacketToPlayers(WorldPacket* data) const
-    {
-        auto players = mInstance->m_PlayerStorage;
-        if (players.size())
-            for (auto itr = players.begin(); itr != players.end(); ++itr)
-                if (Player* player = itr->second)
-                    player->GetSession()->SendPacket(data);
-    }
-
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -419,8 +415,29 @@ public:
         case ACTION_BATTLE_EVENT:
             scriptEvents.addEvent(EVENT_WIPE_CHECK, 5000);
             setData(DATA_GUNSHIP_EVENT, InProgress);
-            SendMusicToPlayers(17289);
-            sEventMgr.AddEvent(static_cast<Object*>(skybreaker), &Object::PlaySoundToSet, (uint32_t)17289, EVENT_UNK, 41000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+            break;
+        case ACTION_BATTLE_DONE:
+            if (getData(DATA_GUNSHIP_EVENT) == Finished)
+            {
+                if (TeamInInstance == TEAM_ALLIANCE && skybreaker)
+                {
+                    skybreaker->EnableMovement(true, mInstance);
+
+                    if (orgrimmar)
+                        orgrimmar->EnableMovement(true, mInstance);
+                }
+
+                if (TeamInInstance == TEAM_HORDE && orgrimmar)
+                {
+                    orgrimmar->EnableMovement(true, mInstance);
+
+                    if (skybreaker)
+                        skybreaker->EnableMovement(true, mInstance);
+                }
+            }
+            break;
+        case ACTION_FAIL:
+            // Handle Wipe Here
             break;
         }
     }
@@ -431,11 +448,16 @@ public:
         {
         case EVENT_ENEMY_GUNSHIP_DESPAWN:
             if (getData(DATA_GUNSHIP_EVENT) == Finished)
+            {
+                transport->UnloadStaticPassengers();
                 transport->GetMapMgr()->RemoveFromMapMgr(transport, true);
+            }
             break;
         case EVENT_ENEMY_GUNSHIP_COMBAT:
-            if (Creature* captain = TeamInInstance == TEAM_HORDE ? mInstance->GetCreature(static_cast<uint32_t>(DeathbringerSaurfangGbGUID)) : mInstance->GetCreature(static_cast<uint32_t>(MuradinBronzebeardGbGUID)))
+            if (Creature* captain = getLocalData(DATA_TEAM_IN_INSTANCE) == TEAM_HORDE ? getLocalCreatureData(DATA_GB_HIGH_OVERLORD_SAURFANG) : getLocalCreatureData(DATA_GB_MURADIN_BRONZEBEARD))
                 captain->GetScript()->DoAction(ACTION_BATTLE_EVENT);
+            // Instance
+            transport->GetMapMgr()->GetScript()->DoAction(ACTION_BATTLE_EVENT);
             [[fallthrough]];
         case EVENT_PLAYERS_GUNSHIP_SPAWN:
         case EVENT_PLAYERS_GUNSHIP_COMBAT:
@@ -448,7 +470,7 @@ public:
     }
 
     //Wipe check
-    bool DoWipeCheck(Transporter* t)
+    bool DoWipeCheck(Transporter* /*t*/)
     {
         // todo
         return true;
@@ -466,6 +488,36 @@ public:
                         if (pPlayer->GetPositionZ() < 420.0f && pPlayer->IsWithinDistInMap(pCreature, 300.0f))
                             pPlayer->Teleport(pCreature->GetPosition(), mInstance);
         }
+    }
+
+    void TransportBoarded(Unit* pUnit, Transporter* transport)
+    {
+        if (transport->getEntry() == GO_THE_SKYBREAKER_ALLIANCE_ICC)
+            pUnit->castSpell(pUnit, SPELL_ON_SKYBREAKER_DECK, false);
+
+        if (transport->getEntry() == GO_THE_SKYBREAKER_HORDE_ICC)
+            pUnit->castSpell(pUnit, SPELL_ON_SKYBREAKER_DECK, false);
+
+        if (transport->getEntry() == GO_ORGRIM_S_HAMMER_HORDE_ICC)
+            pUnit->castSpell(pUnit, SPELL_ON_ORGRIMS_HAMMER_DECK, false);
+
+        if (transport->getEntry() == GO_ORGRIM_S_HAMMER_ALLIANCE_ICC)
+            pUnit->castSpell(pUnit, SPELL_ON_ORGRIMS_HAMMER_DECK, false);
+    }
+
+    void TransportUnboarded(Unit* pUnit, Transporter* transport)
+    {
+        if (transport->getEntry() == GO_THE_SKYBREAKER_ALLIANCE_ICC)
+            pUnit->RemoveAura(SPELL_ON_SKYBREAKER_DECK);
+
+        if (transport->getEntry() == GO_THE_SKYBREAKER_HORDE_ICC)
+            pUnit->RemoveAura(SPELL_ON_SKYBREAKER_DECK);
+
+        if (transport->getEntry() == GO_ORGRIM_S_HAMMER_HORDE_ICC)
+            pUnit->RemoveAura(SPELL_ON_ORGRIMS_HAMMER_DECK);
+
+        if (transport->getEntry() == GO_ORGRIM_S_HAMMER_ALLIANCE_ICC)
+            pUnit->RemoveAura(SPELL_ON_ORGRIMS_HAMMER_DECK);
     }
 
 public:
@@ -486,18 +538,16 @@ protected:
     uint32_t LadyDeathwisperEntranceDoorGUID;
 
     // Gunship Event			
-    uint64_t SkybreakerBossGUID;
-    uint64_t OrgrimmarBossGUID;
-    uint64_t DeathbringerSaurfangGbGUID;
-    uint64_t MuradinBronzebeardGbGUID;
-    uint64_t DeathbringerSaurfangNotVisualGUID;
-    uint64_t MuradinBronzebeardNotVisualGUID;
-    uint64_t GbBattleMageGUID;
+    Creature* SkybreakerBoss;
+    Creature* OrgrimmarBoss;
+    Creature* DeathbringerSaurfangGb;
+    Creature* MuradinBronzebeardGb;
+    Creature* GbBattleMage;
     bool isPrepared;
 
     // Deathbringer Saurfang
     uint32_t DeathbringerDoorGUID;
-    uint32_t DeathbringerSaurfangSpawnID;
+    Creature* DeathbringerSaurfang;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -699,11 +749,24 @@ class LordMarrowgarAI : public CreatureAIScript
                     boneStormtarget = getBestPlayerTarget(TargetFilter_Aggroed);
                 
                 if (boneStormtarget)
-                    getCreature()->GetAIInterface()->MoveTo(boneStormtarget->GetPositionX(), boneStormtarget->GetPositionY(), boneStormtarget->GetPositionZ());
+                    getCreature()->getMovementManager()->movePoint(POINT_TARGET_BONESTORM_PLAYER, boneStormtarget->GetPosition());
 
                 break;
             }
-            case EVENT_BONE_STORM_END:  
+            case EVENT_BONE_STORM_END:
+                if (MovementGenerator* movement = getCreature()->getMovementManager()->getMovementGenerator([](MovementGenerator const* a) -> bool
+                {
+                    if (a->getMovementGeneratorType() == POINT_MOTION_TYPE)
+                    {
+                        PointMovementGenerator<Creature> const* pointMovement = dynamic_cast<PointMovementGenerator<Creature> const*>(a);
+                        return pointMovement && pointMovement->getId() == POINT_TARGET_BONESTORM_PLAYER;
+                    }
+                    return false;
+                }))
+                    getCreature()->getMovementManager()->remove(movement);
+
+                getCreature()->getMovementManager()->moveChase(getCreature()->GetAIInterface()->getCurrentTarget());
+
                 getCreature()->setSpeedRate(TYPE_RUN, baseSpeed, true);
                 scriptEvents.removeEvent(EVENT_BONE_STORM_MOVE);
                 scriptEvents.addEvent(EVENT_ENABLE_BONE_SLICE, 10000);
@@ -735,6 +798,15 @@ class LordMarrowgarAI : public CreatureAIScript
             _castAISpell(boneSliceSpell);
         }
 
+    }
+
+    void OnReachWP(uint32_t type, uint32_t iWaypointId) override
+    {
+        if (type != POINT_MOTION_TYPE || iWaypointId != POINT_TARGET_BONESTORM_PLAYER)
+            return;
+
+        // lock movement
+        getCreature()->getMovementManager()->moveIdle();
     }
 
     LocationVector const* GetLastColdflamePosition() const
@@ -781,7 +853,7 @@ class LordMarrowgarAI : public CreatureAIScript
         return 0;
     }
 
-    void DoAction(int32 const action) override
+    void DoAction(int32_t const action) override
     {
         if (action != ACTION_CLEAR_SPIKE_IMMUNITIES)
             return;
@@ -899,9 +971,6 @@ protected:
     // Common
     InstanceScript* mInstance;
 
-    // Unit
-    Unit* summoner;
-
     //Spells
     CreatureAISpells* coldflameTriggerSpell;
 };
@@ -920,7 +989,7 @@ class BoneSpikeAI : public CreatureAIScript
         hasTrappedUnit = false;
         summon = nullptr;
 
-        getCreature()->GetAIInterface()->SetAllowedToEnterCombat(true);
+        getCreature()->GetAIInterface()->setAllowedToEnterCombat(true);
     }
 
     void OnSummon(Unit* summoner) override
@@ -941,7 +1010,7 @@ class BoneSpikeAI : public CreatureAIScript
         pTarget->RemoveAura(SPELL_IMPALED);
     }
 
-    void OnDied(Unit* pTarget) override
+    void OnDied(Unit* /*pTarget*/) override
     {       
         if (summon)
             summon->RemoveAura(SPELL_IMPALED);
@@ -1053,7 +1122,7 @@ public:
         }
     }
 
-    SpellCastResult onCanCast(Spell* spell, uint32_t* parameter1, uint32_t* parameter2) override
+    SpellCastResult onCanCast(Spell* spell, uint32_t* /*parameter1*/, uint32_t* /*parameter2*/) override
     {          
         if (Creature* marrowgar = static_cast<Creature*>(spell->getUnitCaster()))
 
@@ -1068,7 +1137,7 @@ public:
         Unit* target = nullptr;
         std::vector<Player*> players;
 
-        Unit* mt = caster->GetAIInterface()->GetMostHated();
+        Unit* mt = caster->GetAIInterface()->getCurrentTarget();
         if (mt == nullptr || !mt->isPlayer())
             return 0;
 
@@ -1175,7 +1244,6 @@ public:
 
         effectTargets->clear();
 
-        Unit* target = nullptr;
         std::vector<Player*> players;
         for (const auto& itr : spell->getUnitCaster()->getInRangePlayersSet())
         {
@@ -1197,7 +1265,7 @@ public:
         return true;
     }
 
-    SpellScriptExecuteState beforeSpellEffect(Spell* spell, uint8_t effectIndex) override
+    SpellScriptExecuteState beforeSpellEffect(Spell* /*spell*/, uint8_t effectIndex) override
     {
         if (effectIndex == EFF_INDEX_2)
             return SpellScriptExecuteState::EXECUTE_PREVENT;
@@ -1223,7 +1291,7 @@ public:
         return SpellScriptEffectDamage::DAMAGE_FULL_RECALCULATION;
     }
 
-    SpellCastResult onCanCast(Spell* spell, uint32_t* parameter1, uint32_t* parameter2) override
+    SpellCastResult onCanCast(Spell* spell, uint32_t* /*parameter1*/, uint32_t* /*parameter2*/) override
     {
         targetCount = 0;
         static_cast<Creature*>(spell->getUnitCaster())->GetScript()->DoAction(ACTION_CLEAR_SPIKE_IMMUNITIES);
@@ -1231,7 +1299,7 @@ public:
         return SpellCastResult::SPELL_CAST_SUCCESS;
     }
 
-    void filterEffectTargets(Spell* spell, uint8_t effectIndex, std::vector<uint64_t>* effectTargets) override
+    void filterEffectTargets(Spell* /*spell*/, uint8_t effectIndex, std::vector<uint64_t>* effectTargets) override
     {
         if (effectIndex != EFF_INDEX_0)
             return;
@@ -1326,7 +1394,7 @@ class LadyDeathwhisperAI : public CreatureAIScript
         scriptEvents.addEvent(EVENT_P1_SHADOW_BOLT, Util::getRandomUInt(5500, 6000), PHASE_ONE);
         scriptEvents.addEvent(EVENT_P1_EMPOWER_CULTIST, Util::getRandomUInt(20000, 30000), PHASE_ONE);
 
-        if (mInstance->GetDifficulty() != MODE_NORMAL_10MEN)
+        if (mInstance->GetDifficulty() != InstanceDifficulty::RAID_10MAN_NORMAL)
             scriptEvents.addEvent(EVENT_DOMINATE_MIND_H, 27000);
 
         getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
@@ -1342,48 +1410,30 @@ class LadyDeathwhisperAI : public CreatureAIScript
         Reset();
     }
 
-    ///\ todo Health Decreases visualy
-    void DamageTaken(Unit* _attacker, uint32* damage) override
+    void DoAction(int32_t const action) override
     {
-        uint32_t currentMana = getCreature()->getPower(POWER_TYPE_MANA);
-        // When Lady Deathwhsiper has her mana Barrier dont deal damage to her instead reduce her mana.      
-        if (getCreature()->HasAura(SPELL_MANA_BARRIER) && *damage < currentMana)
+        if (action == ACTION_MANABARRIER_DOWN)
         {
-            uint32_t manareduction = 0;
-            uint32_t maxHealth = getCreature()->getMaxHealth();
-
-            getCreature()->setHealth(maxHealth);
-
-            if (*damage < currentMana)
-                manareduction = (currentMana - *damage);
-
-            getCreature()->setPower(POWER_TYPE_MANA, manareduction);
-            *damage = 1; // Hackfix health reduces visualy and by setting maxhealth when it has maxhealth dont updates healthbar
-        }
-    }
-
-    void OnDamageTaken(Unit* _attacker, uint32_t damage) override
-    {
-        uint32_t currentMana = getCreature()->getPower(POWER_TYPE_MANA);
-        // When Lady Deathwhsiper has her mana Barrier dont deal damage to her instead reduce her mana.
-        // phase transition
-        if (getScriptPhase() == PHASE_ONE && damage > currentMana)
-        {
-            sendDBChatMessage(SAY_LADY_PHASE_2);
-            sendDBChatMessage(SAY_LADY_PHASE_2_EMOTE);
-            setRooted(false);
-            getCreature()->setPower(POWER_TYPE_MANA, 0);
-            getCreature()->RemoveAura(SPELL_MANA_BARRIER);
-            setScriptPhase(PHASE_TWO);
-            scriptEvents.addEvent(EVENT_P2_FROSTBOLT, Util::getRandomUInt(10000, 12000), PHASE_TWO);
-            scriptEvents.addEvent(EVENT_P2_FROSTBOLT_VOLLEY, Util::getRandomUInt(19000, 21000), PHASE_TWO);
-            scriptEvents.addEvent(EVENT_P2_TOUCH_OF_INSIGNIFICANCE, Util::getRandomUInt(6000, 9000), PHASE_TWO);
-            scriptEvents.addEvent(EVENT_P2_SUMMON_SHADE, Util::getRandomUInt(12000, 15000), PHASE_TWO);
-            // on heroic mode Lady Deathwhisper is immune to taunt effects in phase 2 and continues summoning adds
-            if (_isHeroic())
+            // When Lady Deathwhsiper has her mana Barrier dont deal damage to her instead reduce her mana.
+            // phase transition
+            if (getScriptPhase() == PHASE_ONE)
             {
-                ///\todo Add SpellImmunities
-                scriptEvents.addEvent(EVENT_P2_SUMMON_WAVE, 45000, PHASE_TWO);
+                sendDBChatMessage(SAY_LADY_PHASE_2);
+                sendDBChatMessage(SAY_LADY_PHASE_2_EMOTE);
+                setRooted(false);
+                getCreature()->setPower(POWER_TYPE_MANA, 0);
+                getCreature()->getMovementManager()->moveChase(getCreature()->GetAIInterface()->getCurrentTarget());
+                setScriptPhase(PHASE_TWO);
+                scriptEvents.addEvent(EVENT_P2_FROSTBOLT, Util::getRandomUInt(10000, 12000), PHASE_TWO);
+                scriptEvents.addEvent(EVENT_P2_FROSTBOLT_VOLLEY, Util::getRandomUInt(19000, 21000), PHASE_TWO);
+                scriptEvents.addEvent(EVENT_P2_TOUCH_OF_INSIGNIFICANCE, Util::getRandomUInt(6000, 9000), PHASE_TWO);
+                scriptEvents.addEvent(EVENT_P2_SUMMON_SHADE, Util::getRandomUInt(12000, 15000), PHASE_TWO);
+                // on heroic mode Lady Deathwhisper is immune to taunt effects in phase 2 and continues summoning adds
+                if (_isHeroic())
+                {
+                    ///\todo Add SpellImmunities
+                    scriptEvents.addEvent(EVENT_P2_SUMMON_WAVE, 45000, PHASE_TWO);
+                }
             }
         }
     }
@@ -1530,7 +1580,7 @@ class LadyDeathwhisperAI : public CreatureAIScript
         Summon(SummonEntries[addIndex2], LadyDeathwhisperSummonPositions[addIndex1 * 3 + 1]);
         Summon(SummonEntries[addIndex1], LadyDeathwhisperSummonPositions[addIndex1 * 3 + 2]);
 
-        if (mInstance->GetDifficulty() == MODE_NORMAL_25MEN || mInstance->GetDifficulty() == MODE_HEROIC_25MEN)
+        if (mInstance->GetDifficulty() == InstanceDifficulty::RAID_25MAN_NORMAL || mInstance->GetDifficulty() == InstanceDifficulty::RAID_25MAN_HEROIC)
         {
             Summon(SummonEntries[addIndex2], LadyDeathwhisperSummonPositions[addIndex2 * 3]);
             Summon(SummonEntries[addIndex1], LadyDeathwhisperSummonPositions[addIndex2 * 3 + 1]);
@@ -1543,7 +1593,7 @@ class LadyDeathwhisperAI : public CreatureAIScript
     // summoning function for second phase
     void SummonWavePhaseTwo()
     {       
-        if (mInstance->GetDifficulty() == MODE_NORMAL_25MEN || mInstance->GetDifficulty() == MODE_HEROIC_25MEN)
+        if (mInstance->GetDifficulty() == InstanceDifficulty::RAID_25MAN_NORMAL || mInstance->GetDifficulty() == InstanceDifficulty::RAID_25MAN_HEROIC)
         {
             uint8 addIndex1 = waveCounter & 1;
             Summon(SummonEntries[addIndex1], LadyDeathwhisperSummonPositions[addIndex1 * 3]);
@@ -1568,9 +1618,16 @@ class LadyDeathwhisperAI : public CreatureAIScript
 
     void DeleteSummons()
     {
-        if (summons.size())
-            for (auto itr = summons.begin(); itr != summons.end();)
-                (*itr)->Despawn(100, 0);
+        if (summons.empty())
+            return;
+
+        for (const auto& summon : summons)
+        {
+            if (summon->IsInWorld())
+                summon->Despawn(100, 0);
+        }
+
+        summons.clear();
     }
 
     void ReanimateCultist()
@@ -1656,6 +1713,52 @@ protected:
     CreatureAISpells* darkEmpowermentSpell;
 };
 
+class ManaBarrier : public SpellScript
+{
+    SpellScriptExecuteState onAuraPeriodicTick(Aura* aur, AuraEffectModifier* /*aurEff*/, float_t* /*damage*/) override
+    {
+        // Aura should periodically trigger spell every 1 sec but that spell is serverside so we don't have it in DBC
+        // Overwrite default periodic tick with converting mana to hp
+
+        const auto auraOwner = aur->getOwner();
+        // If aura owner doesn't use mana, remove aura
+        if (auraOwner->getMaxPower(POWER_TYPE_MANA) == 0)
+        {
+            aur->removeAura();
+            return SpellScriptExecuteState::EXECUTE_PREVENT;
+        }
+
+        const auto healthDelta = auraOwner->getMaxHealth() - auraOwner->getHealth();
+        if (healthDelta == 0)
+        {
+            // Unit is already at max health, so do nothing
+            return SpellScriptExecuteState::EXECUTE_PREVENT;
+        }
+
+        const auto currentMana = auraOwner->getPower(POWER_TYPE_MANA);
+        if (healthDelta < currentMana)
+        {
+            // Restore health to max and remove equal amount of mana
+            auraOwner->setPower(POWER_TYPE_MANA, currentMana - healthDelta);
+            auraOwner->setHealth(auraOwner->getMaxHealth());
+            return SpellScriptExecuteState::EXECUTE_PREVENT;
+        }
+
+        // Unit takes more damage than it has mana left => remove aura
+        aur->removeAura();
+
+        // Aura is used by Lady Deathwhisper, change phase when all mana is drained
+        if (auraOwner->isCreature())
+        {
+            const auto creatureOwner = static_cast<Creature*>(auraOwner);
+            if (creatureOwner->GetScript() != nullptr)
+                creatureOwner->GetScript()->DoAction(ACTION_MANABARRIER_DOWN);
+        }
+
+        return SpellScriptExecuteState::EXECUTE_PREVENT;
+    }
+};
+
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Misc: Cult Adherent
 class CultAdherentAI : public CreatureAIScript
@@ -1678,8 +1781,11 @@ class CultAdherentAI : public CreatureAIScript
     {
         _castAISpell(temporalVisualSpell);
         auto NewTarget = getBestPlayerTarget(TargetFilter_Closest);
-        getCreature()->GetAIInterface()->setNextTarget(NewTarget);
-        getCreature()->GetAIInterface()->AttackReaction(NewTarget, 200);
+        if (NewTarget)
+        {
+            getCreature()->GetAIInterface()->setCurrentTarget(NewTarget);
+            getCreature()->GetAIInterface()->onHostileAction(NewTarget);
+        }
     }
 
 protected:
@@ -1716,8 +1822,11 @@ class CultFanaticAI : public CreatureAIScript
     {
         _castAISpell(temporalVisualSpell);
         auto NewTarget = getBestPlayerTarget(TargetFilter_Closest);
-        getCreature()->GetAIInterface()->setNextTarget(NewTarget);
-        getCreature()->GetAIInterface()->AttackReaction(NewTarget, 200);
+        if (NewTarget)
+        {
+            getCreature()->GetAIInterface()->setCurrentTarget(NewTarget);
+            getCreature()->GetAIInterface()->onHostileAction(NewTarget);
+        }
     }
 
 protected:
@@ -1836,17 +1945,36 @@ class MuradinAI : public CreatureAIScript
                 sendDBChatMessage(SAY_INTRO_ALLIANCE_5);
                 break;
             case EVENT_INTRO_ALLIANCE_7:
-                if (Creature* pSaurfang = getNearestCreature(NPC_GB_HIGH_OVERLORD_SAURFANG))
+                if (Creature* pSaurfang = mInstance->getLocalCreatureData(DATA_GB_HIGH_OVERLORD_SAURFANG))
                     pSaurfang->GetScript()->sendDBChatMessage(SAY_BOARDING_SKYBREAKER_0);
                 break;
             case EVENT_INTRO_ALLIANCE_8:
                 sendDBChatMessage(SAY_INTRO_ALLIANCE_7);
                 break;
+            case EVENT_KEEP_PLAYER_IN_COMBAT:
+                if (mInstance->getData(DATA_GUNSHIP_EVENT) == InProgress)
+                {
+                    //SPELL_LOCK_PLAYERS_AND_TAP_CHEST maybe not needed to cast it but prepared
+                    scriptEvents.addEvent(EVENT_KEEP_PLAYER_IN_COMBAT, 5000);
+                }
+                break;
+            case EVENT_SUMMON_MAGE:
+                break;
+            case EVENT_ADDS:
+                break;
+            case EVENT_ADDS_BOARD_YELL:
+                break;
+            case EVENT_CHECK_RIFLEMAN:
+                break;
+            case EVENT_CHECK_MORTAR:
+                break;
+            case EVENT_CLEAVE:
+                break;
             }
         }
     }
 
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -1861,6 +1989,19 @@ class MuradinAI : public CreatureAIScript
         case ACTION_BATTLE_EVENT:
             scriptEvents.addEvent(EVENT_INTRO_ALLIANCE_7, 5000);
             scriptEvents.addEvent(EVENT_INTRO_ALLIANCE_8, 11000);
+            scriptEvents.addEvent(EVENT_KEEP_PLAYER_IN_COMBAT, 1);
+
+            mInstance->setZoneMusic(4812, 17289);
+
+            // Combat starts now
+            if (Creature* orgrimsHammer = mInstance->getLocalCreatureData(DATA_ORGRIMMAR_HAMMER_BOSS))
+                mInstance->sendUnitEncounter(EncounterFrameEngage, orgrimsHammer, 1);
+
+            if (Creature* skybreaker = mInstance->getLocalCreatureData(DATA_SKYBREAKER_BOSS))
+                mInstance->sendUnitEncounter(EncounterFrameEngage, skybreaker, 2);
+
+            break;
+        case ACTION_SPAWN_MAGE:
             break;
         }     
     }
@@ -1946,17 +2087,36 @@ class SaurfangAI : public CreatureAIScript
                 break;
             case EVENT_INTRO_HORDE_4:
                 sendDBChatMessage(SAY_BOARDING_SKYBREAKER_0);
-                if (Creature* pSaurfang = getNearestCreature(NPC_GB_MURADIN_BRONZEBEARD))
-                    pSaurfang->GetScript()->sendDBChatMessage(SAY_INTRO_ALLIANCE_7);
+                if (Creature* pMuradin = mInstance->getLocalCreatureData(DATA_GB_MURADIN_BRONZEBEARD))
+                    pMuradin->GetScript()->sendDBChatMessage(SAY_INTRO_ALLIANCE_7);
                 break;
             case EVENT_INTRO_HORDE_5:
                 sendDBChatMessage(SAY_INTRO_HORDE_4);
+                break;
+            case EVENT_KEEP_PLAYER_IN_COMBAT:
+                if (mInstance->getData(DATA_GUNSHIP_EVENT) == InProgress)
+                {
+                    //SPELL_LOCK_PLAYERS_AND_TAP_CHEST maybe not needed to cast it but prepared
+                    scriptEvents.addEvent(EVENT_KEEP_PLAYER_IN_COMBAT, 5000);
+                }
+                break;
+            case EVENT_SUMMON_MAGE:
+                break;
+            case EVENT_ADDS:
+                break;
+            case EVENT_ADDS_BOARD_YELL:
+                break;
+            case EVENT_CHECK_RIFLEMAN:
+                break;
+            case EVENT_CHECK_MORTAR:
+                break;
+            case EVENT_CLEAVE:
                 break;
             }
         }
     }
 
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -1969,6 +2129,18 @@ class SaurfangAI : public CreatureAIScript
             break;
         case ACTION_BATTLE_EVENT:
             scriptEvents.addEvent(EVENT_INTRO_HORDE_5, 5000);
+
+            mInstance->setZoneMusic(4812, 17289);
+
+            // Combat starts now
+            if (Creature* skybreaker = mInstance->getLocalCreatureData(DATA_SKYBREAKER_BOSS))
+                mInstance->sendUnitEncounter(EncounterFrameEngage, skybreaker, 1);
+
+            if (Creature* orgrimsHammer = mInstance->getLocalCreatureData(DATA_ORGRIMMAR_HAMMER_BOSS))
+                mInstance->sendUnitEncounter(EncounterFrameEngage, orgrimsHammer, 2);
+
+            break;
+        case ACTION_SPAWN_MAGE:
             break;
         }
     }
@@ -1976,6 +2148,223 @@ class SaurfangAI : public CreatureAIScript
 protected:
     // Common
     IceCrownCitadelScript* mInstance;
+};
+
+class ZafodBoomboxGossip : public GossipScript
+{
+public:
+    void onHello(Object* pObject, Player* plr) override
+    {
+        pInstance = (IceCrownCitadelScript*)plr->GetMapMgr()->GetScript();
+
+        GossipMenu menu(pObject->getGuid(), 14500);
+        menu.addItem(GOSSIP_ICON_CHAT, GOSSIP_OPTION_JETPACK, 1);
+        menu.sendGossipPacket(plr);
+    }
+
+    void onSelectOption(Object* /*pObject*/, Player* pPlayer, uint32_t Id, const char* /*Code*/, uint32_t /*gossipId*/) override
+    {
+        switch (Id)
+        {
+        case 1:
+            pPlayer->getItemInterface()->AddItemById(ITEM_GOBLIN_ROCKET_PACK, 1, 0);
+            break;
+        }
+        GossipMenu::senGossipComplete(pPlayer);
+    }
+
+protected:
+    IceCrownCitadelScript* pInstance;
+};
+
+class ZafodBoomboxAI : public CreatureAIScript
+{
+    ADD_CREATURE_FACTORY_FUNCTION(ZafodBoomboxAI)
+    explicit ZafodBoomboxAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Instance Script
+        mInstance = (IceCrownCitadelScript*)getInstanceScript();
+        getCreature()->setNpcFlags(UNIT_NPC_FLAG_GOSSIP);
+    }
+
+protected:
+    // Common
+    IceCrownCitadelScript* mInstance;
+};
+
+class GunshipAI : public CreatureAIScript
+{
+    ADD_CREATURE_FACTORY_FUNCTION(GunshipAI)
+    explicit GunshipAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Instance Script
+        mInstance = (IceCrownCitadelScript*)getInstanceScript();
+
+        _teamInInstance = mInstance->getLocalData(DATA_TEAM_IN_INSTANCE);
+        _summonedFirstMage = false;
+        _died = false;
+        getCreature()->setControlled(true, UNIT_STATE_ROOTED);
+    }
+
+    void DamageTaken(Unit* /*_attacker*/, uint32_t* damage) override
+    {
+        if (*damage >= getCreature()->getHealth())
+        {
+            OnDied(nullptr);
+            *damage = getCreature()->getHealth() - 1;
+            return;
+        }
+
+        if (_summonedFirstMage)
+            return;
+
+        if (getCreature()->GetTransport()->getEntry() != uint32_t(_teamInInstance == TEAM_HORDE ? GO_THE_SKYBREAKER_HORDE_ICC : GO_ORGRIM_S_HAMMER_ALLIANCE_ICC))
+            return;
+
+        if (!getCreature()->getHealthPct() > 90)
+            return;
+
+        _summonedFirstMage = true;
+        if (Creature* captain = mInstance->getLocalCreatureData(_teamInInstance == TEAM_HORDE ? DATA_GB_MURADIN_BRONZEBEARD : DATA_GB_HIGH_OVERLORD_SAURFANG))
+            captain->GetScript()->DoAction(ACTION_SPAWN_MAGE);
+    }
+
+    void OnDied(Unit* /*pTarget*/) override
+    {
+        if (_died)
+            return;
+
+        _died = true;
+
+        // Victory??
+        bool isVictory = getCreature()->GetTransport()->getEntry() == GO_THE_SKYBREAKER_HORDE_ICC || getCreature()->GetTransport()->getEntry() == GO_ORGRIM_S_HAMMER_ALLIANCE_ICC;
+        mInstance->setData(DATA_GUNSHIP_EVENT, isVictory ? Finished : InvalidState);
+
+        // Disangege
+        if (Creature* creature = mInstance->getLocalCreatureData(getCreature()->getEntry() == NPC_GB_ORGRIMS_HAMMER ? DATA_SKYBREAKER_BOSS : DATA_ORGRIMMAR_HAMMER_BOSS))
+        {
+            mInstance->sendUnitEncounter(EncounterFrameDisengaged, creature);
+        }
+
+        mInstance->sendUnitEncounter(EncounterFrameDisengaged, getCreature());
+
+        // Stopp Playing Music
+        mInstance->setZoneMusic(4812, 0);
+
+        std::list<Creature*> creatures;
+        // Eject All Passengers
+        GetCreatureListWithEntryInGrid(creatures, _teamInInstance == TEAM_HORDE ? NPC_GB_HORDE_CANON : NPC_GB_ALLIANCE_CANON, 900.0f);
+        for (auto itr = creatures.begin(); itr != creatures.end(); ++itr)
+        {
+            Creature* cannon = *itr;
+            if (isVictory)
+                cannon->GetScript()->DoAction(ACTION_BATTLE_DONE);
+            else
+                cannon->GetScript()->DoAction(ACTION_FAIL);
+        }
+        creatures.clear();
+        // Explosion
+        GetCreatureListWithEntryInGrid(creatures, NPC_GB_GUNSHIP_HULL, 900.0f);
+        for (auto itr = creatures.begin(); itr != creatures.end(); ++itr)
+        {
+            Creature* hull = *itr;
+            if (hull->GetTransport() != getCreature()->GetTransport())
+                continue;
+
+            if (isVictory)
+                hull->GetScript()->DoAction(ACTION_BATTLE_DONE);
+            else
+                hull->GetScript()->DoAction(ACTION_FAIL);
+        }
+        creatures.clear();
+
+        if (isVictory)
+            mInstance->DoAction(ACTION_BATTLE_DONE);
+        else
+            mInstance->DoAction(ACTION_FAIL);
+    }
+
+private:
+    uint32_t _teamInInstance;
+    std::map<uint64_t, uint32_t> _shipVisits;
+    bool _summonedFirstMage;
+    bool _died;
+
+protected:
+    // Common
+    IceCrownCitadelScript* mInstance;
+};
+
+class GunshipHullAI : public CreatureAIScript
+{
+    ADD_CREATURE_FACTORY_FUNCTION(GunshipHullAI)
+    explicit GunshipHullAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Instance Script
+        mInstance = (IceCrownCitadelScript*)getInstanceScript();
+        getCreature()->setControlled(true, UNIT_STATE_ROOTED);
+
+        // Scripted Spells not autocastet
+        ExplosionVictory = addAISpell(SPELL_EXPLOSION_VICTORY, 0.0f, TARGET_SELF);
+        ExplosionWipe = addAISpell(SPELL_EXPLOSION_WIPE, 0.0f, TARGET_SELF);
+    }
+
+    void DoAction(int32_t const action) override
+    {
+        switch (action)
+        {
+        case ACTION_BATTLE_DONE:    // Enemy Ship Explodes
+            _castAISpell(ExplosionVictory);
+            break;
+        case ACTION_FAIL:   // Our Ship Explodes
+            _castAISpell(ExplosionWipe);
+            break;
+        }
+    }
+
+protected:
+    // Common
+    IceCrownCitadelScript* mInstance;
+
+    // Spells
+    CreatureAISpells* ExplosionVictory;
+    CreatureAISpells* ExplosionWipe;
+};
+
+class GunshipCanonAI : public CreatureAIScript
+{
+    ADD_CREATURE_FACTORY_FUNCTION(GunshipCanonAI)
+    explicit GunshipCanonAI(Creature* pCreature) : CreatureAIScript(pCreature)
+    {
+        // Instance Script
+        mInstance = (IceCrownCitadelScript*)getInstanceScript();
+
+        getCreature()->setControlled(true, UNIT_STATE_ROOTED);
+
+        EjectBelowZero = addAISpell(SPELL_EJECT_ALL_PASSENGERS_BELOW_ZERO, 0.0f, TARGET_SELF, 0, 0, 0, true);
+        EcectWipe = addAISpell(SPELL_EJECT_ALL_PASSENGERS_WIPE, 0.0f, TARGET_SELF, 0, 0, 0, true);
+    }
+
+    void DoAction(int32_t const action) override
+    {
+        switch (action)
+        {
+        case ACTION_BATTLE_DONE:    // Enemy Ship Explodes
+            _castAISpell(EjectBelowZero);
+            break;
+        case ACTION_FAIL:   // Our Ship Explodes
+            _castAISpell(EcectWipe);
+            break;
+        }
+    }
+
+protected:
+    // Common
+    IceCrownCitadelScript* mInstance;
+
+    // Spells
+    CreatureAISpells* EjectBelowZero;
+    CreatureAISpells* EcectWipe;
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -2020,11 +2409,6 @@ class MuradinSaurfangEvent : public CreatureAIScript
         mInstance = (IceCrownCitadelScript*)getInstanceScript();
         
         getCreature()->setNpcFlags(UNIT_NPC_FLAG_GOSSIP);
- 
-        AddWaypoint(CreateWaypoint(POINT_FIRST_STEP, 0, Movement::WP_MOVE_TYPE_WALK, firstStepPos));
-        AddWaypoint(CreateWaypoint(POINT_CHARGE, 0, Movement::WP_MOVE_TYPE_RUN, chargePos[0]));
-        AddWaypoint(CreateWaypoint(POINT_CHOKE, 0, Movement::WP_MOVE_TYPE_FLY, chokePos[0]));
-        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
     }
 
     void AIUpdate() override
@@ -2037,20 +2421,15 @@ class MuradinSaurfangEvent : public CreatureAIScript
             {
             case EVENT_INTRO_ALLIANCE_4_SE:
             {
-                getCreature()->GetAIInterface()->StopMovement(0);
-
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(POINT_FIRST_STEP);
-
-                getCreature()->GetAIInterface()->setCreatureState(MOVING);
+                getCreature()->getMovementManager()->movePoint(POINT_FIRST_STEP, firstStepPos.getPositionX(), firstStepPos.getPositionY(), firstStepPos.getPositionZ());
             break;
             }
             case EVENT_INTRO_ALLIANCE_5_SE:
             {
                 sendDBChatMessage(SAY_INTRO_ALLIANCE_5_SE);
-                
-                SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHARGE);   
+
+                // Charge
+                getCreature()->getMovementManager()->moveCharge(chargePos[0].getPositionX(), chargePos[0].getPositionY(), chargePos[0].getPositionZ(), 8.5f, POINT_CHARGE); 
 
                 for (auto itr = _guardList.begin(); itr != _guardList.end(); ++itr)
                     (*itr)->GetScript()->DoAction(ACTION_CHARGE);
@@ -2060,34 +2439,29 @@ class MuradinSaurfangEvent : public CreatureAIScript
         }
     }
 
-    void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
+    void OnReachWP(uint32_t type, uint32_t iWaypointId) override
     {
-        switch (iWaypointId)
-        {
-        case POINT_FIRST_STEP:
+        if (type == POINT_MOTION_TYPE && iWaypointId == POINT_FIRST_STEP)
         {
             sendDBChatMessage(SAY_INTRO_ALLIANCE_4_SE);
 
             scriptEvents.addEvent(EVENT_INTRO_ALLIANCE_5_SE, 5000, PHASE_INTRO_A);
 
-            if (Creature* deathbringer = mInstance->getCreatureBySpawnId(mInstance->getLocalData(DATA_DEATHBRINGER_SAURFANG)))
+            if (Creature* deathbringer = mInstance->getLocalCreatureData(DATA_DEATHBRINGER_SAURFANG))
                 deathbringer->GetScript()->DoAction(ACTION_CONTINUE_INTRO);
-            break;
-        }
         }
     }
 
-    void OnHitBySpell(uint32_t _spellId, Unit* _caster) override
+    void OnHitBySpell(uint32_t _spellId, Unit* /*_caster*/) override
     {
         if (_spellId == SPELL_GRIP_OF_AGONY)
         {
             getCreature()->setMoveDisableGravity(true);
-            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
-            getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHOKE);
+            getCreature()->getMovementManager()->movePoint(POINT_CHOKE, chokePos[0]);
         }
     }
 
-    void DoAction(int32 const action) override
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -2115,12 +2489,12 @@ class MuradinSaurfangEvent : public CreatureAIScript
                 Door->setState(GO_STATE_OPEN);
 
             // Start Intro on Suarfang        
-            if (Creature* deathbringer = mInstance->getCreatureBySpawnId(mInstance->getLocalData(DATA_DEATHBRINGER_SAURFANG)))
+            if (Creature* deathbringer = mInstance->getLocalCreatureData(DATA_DEATHBRINGER_SAURFANG))
                 deathbringer->GetScript()->DoAction(PHASE_INTRO_A);
 
             // Clear NPC FLAGS
             getCreature()->removeNpcFlags(UNIT_NPC_FLAG_GOSSIP);
-            getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
+            getCreature()->GetAIInterface()->setAllowedToEnterCombat(false);
             break;
         }
         case ACTION_START_OUTRO:
@@ -2179,11 +2553,6 @@ class OverlordSaurfangEvent : public CreatureAIScript
 
         getCreature()->setNpcFlags(UNIT_NPC_FLAG_GOSSIP);
         getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
-
-        AddWaypoint(CreateWaypoint(POINT_FIRST_STEP, 0, Movement::WP_MOVE_TYPE_WALK, firstStepPos));
-        AddWaypoint(CreateWaypoint(POINT_CHARGE, 0, Movement::WP_MOVE_TYPE_RUN, chargePos[0]));
-        AddWaypoint(CreateWaypoint(POINT_CHOKE, 0, Movement::WP_MOVE_TYPE_FLY, chokePos[0]));
-        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
     }
 
     void AIUpdate() override
@@ -2195,12 +2564,7 @@ class OverlordSaurfangEvent : public CreatureAIScript
             switch (eventId)
             {
             case EVENT_INTRO_HORDE_3_SE:
-                getCreature()->GetAIInterface()->StopMovement(0);
-
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(POINT_FIRST_STEP);
-
-                getCreature()->GetAIInterface()->setCreatureState(MOVING);
+                getCreature()->getMovementManager()->movePoint(POINT_FIRST_STEP, firstStepPos.getPositionX(), firstStepPos.getPositionY(), firstStepPos.getPositionZ());
                 break;
             case EVENT_INTRO_HORDE_5_SE:
                 sendDBChatMessage(SAY_INTRO_HORDE_5_SE);
@@ -2215,8 +2579,7 @@ class OverlordSaurfangEvent : public CreatureAIScript
                 sendDBChatMessage(SAY_INTRO_HORDE_8_SE);
 
                 // Charge
-                SetWaypointMoveType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHARGE);
+                getCreature()->getMovementManager()->moveCharge(chargePos[0].getPositionX(), chargePos[0].getPositionY(), chargePos[0].getPositionZ(), 8.5f, POINT_CHARGE);
                 break;
             case EVENT_OUTRO_HORDE_2_SE:   // say
                 sendDBChatMessage(SAY_OUTRO_HORDE_2_SE);
@@ -2235,11 +2598,9 @@ class OverlordSaurfangEvent : public CreatureAIScript
         }
     }
 
-    void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
+    void OnReachWP(uint32_t type, uint32_t iWaypointId) override
     {
-        switch (iWaypointId)
-        {
-        case POINT_FIRST_STEP:
+        if (type == POINT_MOTION_TYPE && iWaypointId == POINT_FIRST_STEP)
         {
             sendDBChatMessage(SAY_INTRO_HORDE_3_SE);
             scriptEvents.addEvent(EVENT_INTRO_HORDE_5_SE, 15500, PHASE_INTRO_H);
@@ -2247,24 +2608,21 @@ class OverlordSaurfangEvent : public CreatureAIScript
             scriptEvents.addEvent(EVENT_INTRO_HORDE_7_SE, 43800, PHASE_INTRO_H);
             scriptEvents.addEvent(EVENT_INTRO_HORDE_8_SE, 47000, PHASE_INTRO_H);
 
-            if (Creature* deathbringer = mInstance->getCreatureBySpawnId(mInstance->getLocalData(DATA_DEATHBRINGER_SAURFANG)))
+            if (Creature* deathbringer = mInstance->getLocalCreatureData(DATA_DEATHBRINGER_SAURFANG))
                 deathbringer->GetScript()->DoAction(ACTION_CONTINUE_INTRO);
-            break;
-        }
         }
     }
 
-    void OnHitBySpell(uint32_t _spellId, Unit* _caster) override
+    void OnHitBySpell(uint32_t _spellId, Unit* /*_caster*/) override
     {
         if (_spellId == SPELL_GRIP_OF_AGONY)
         {
             getCreature()->setMoveDisableGravity(true);
-            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
-            getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHOKE);
+            getCreature()->getMovementManager()->movePoint(POINT_CHOKE, chokePos[0]);
         }
     }
 
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -2292,12 +2650,12 @@ class OverlordSaurfangEvent : public CreatureAIScript
                 Door->setState(GO_STATE_OPEN);
 
             // Start Intro on Suarfang        
-            if (Creature* deathbringer = mInstance->getCreatureBySpawnId(mInstance->getLocalData(DATA_DEATHBRINGER_SAURFANG)))
+            if (Creature* deathbringer = mInstance->getLocalCreatureData(DATA_DEATHBRINGER_SAURFANG))
                 deathbringer->GetScript()->DoAction(PHASE_INTRO_H);
 
             // Clear NPC FLAGS
             getCreature()->removeUnitFlags(UNIT_NPC_FLAG_GOSSIP);
-            getCreature()->GetAIInterface()->SetAllowedToEnterCombat(false);
+            getCreature()->GetAIInterface()->setAllowedToEnterCombat(false);
 
             break;
         }
@@ -2334,9 +2692,6 @@ class DeathbringerSaurfangAI : public CreatureAIScript
         getCreature()->EnableAI();
         getCreature()->GetAIInterface()->setAiState(AI_STATE_IDLE);
 
-        AddWaypoint(CreateWaypoint(POINT_SAURFANG, 0, Movement::WP_MOVE_TYPE_WALK, deathbringerPos));
-        AddWaypoint(CreateWaypoint(POINT_FIRST_STEP, 0, Movement::WP_MOVE_TYPE_WALK, deathbringerPos));
-        getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
         _introDone = false;
 
         // Scripted Spells not autocastet
@@ -2393,21 +2748,17 @@ class DeathbringerSaurfangAI : public CreatureAIScript
         }
     }
 
-    void OnReachWP(uint32_t iWaypointId, bool /*bForwards*/) override
+    void OnReachWP(uint32_t type, uint32_t iWaypointId) override
     {
-        switch (iWaypointId)
-        {
-        case POINT_SAURFANG:
-        {
-            // Close Suarfangs Door
-            if (GameObject* Door = mInstance->GetGameObjectByGuid(mInstance->getLocalData(DATA_SAURFANG_DOOR)))
-                Door->setState(GO_STATE_CLOSED);
-            break;
-        }
-        }
+        if (type != POINT_MOTION_TYPE && iWaypointId != POINT_SAURFANG)
+            return;
+
+        // Close Suarfangs Door
+        if (GameObject* Door = mInstance->GetGameObjectByGuid(mInstance->getLocalData(DATA_SAURFANG_DOOR)))
+            Door->setState(GO_STATE_CLOSED);
     }
 
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -2417,12 +2768,7 @@ class DeathbringerSaurfangAI : public CreatureAIScript
             setScriptPhase(uint32(action));
 
             // Move
-            getCreature()->GetAIInterface()->StopMovement(0);
-
-            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-            getCreature()->GetAIInterface()->setWayPointToMove(POINT_SAURFANG);
-
-            getCreature()->GetAIInterface()->setCreatureState(MOVING);
+            getCreature()->getMovementManager()->movePoint(POINT_SAURFANG, deathbringerPos.getPositionX(), deathbringerPos.getPositionY(), deathbringerPos.getPositionZ());
 
             scriptEvents.addEvent(EVENT_INTRO_ALLIANCE_2_SE, 2500, PHASE_INTRO_A);
             scriptEvents.addEvent(EVENT_INTRO_ALLIANCE_3_SE, 20000, PHASE_INTRO_A);
@@ -2472,22 +2818,18 @@ class NpcSaurfangEventAI : public CreatureAIScript
         if (!(!type && data && data < 6))
             return;
         _index = data;
-
-        AddWaypoint(CreateWaypoint(POINT_CHARGE, 0, Movement::WP_MOVE_TYPE_RUN, chargePos[_index]));
-        AddWaypoint(CreateWaypoint(POINT_CHOKE, 0, Movement::WP_MOVE_TYPE_FLY, chokePos[_index]));
     }
 
-    void OnHitBySpell(uint32_t _spellId, Unit* _caster) override
+    void OnHitBySpell(uint32_t _spellId, Unit* /*_caster*/) override
     {
         if (_spellId == SPELL_GRIP_OF_AGONY)
         {
             getCreature()->setMoveDisableGravity(true);
-            getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_FORWARDTHENSTOP);
-            getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHOKE);
+            getCreature()->getMovementManager()->movePoint(POINT_CHOKE, chokePos[_index]);
         }
     }
 
-    void DoAction(int32 const action)
+    void DoAction(int32_t const action) override
     {
         switch (action)
         {
@@ -2495,10 +2837,7 @@ class NpcSaurfangEventAI : public CreatureAIScript
         {
             if (action == ACTION_CHARGE && _index)
             {
-                getCreature()->GetAIInterface()->StopMovement(0);
-                getCreature()->GetAIInterface()->setWaypointScriptType(Movement::WP_MOVEMENT_SCRIPT_WANTEDWP);
-                getCreature()->GetAIInterface()->setWayPointToMove(POINT_CHARGE);
-                getCreature()->GetAIInterface()->setCreatureState(MOVING);
+                getCreature()->getMovementManager()->moveCharge(chargePos[_index].getPositionX(), chargePos[_index].getPositionY(), chargePos[_index].getPositionZ(), 8.5f, POINT_CHARGE);
             }
             else if (action == ACTION_DESPAWN)
                 getCreature()->Despawn(100, 0);
@@ -2530,17 +2869,14 @@ public:
             float distance = spell->getUnitCaster()->CalcDistance(itr);
             if (itr->isCreature() && itr->getEntry() != CN_DEATHBRINGER_SAURFANG && distance <= 100.0f)
             {
-                auto target = static_cast<Creature*>(itr);
-
                 effectTargets->push_back(itr->getGuid());
             }
         }
     }
 };
-#endif
+
 void SetupICC(ScriptMgr* mgr)
 {
-#if VERSION_STRING >= WotLK
     //Instance
     mgr->register_instance_script(MAP_ICECROWNCITADEL, &IceCrownCitadelScript::Create);
 
@@ -2569,6 +2905,7 @@ void SetupICC(ScriptMgr* mgr)
     mgr->register_creature_script(NPC_SE_HIGH_OVERLORD_SAURFANG, &OverlordSaurfangEvent::Create);
     mgr->register_creature_script(CN_DEATHBRINGER_SAURFANG, &DeathbringerSaurfangAI::Create);
     //mgr->register_creature_script(CN_VALITHRIA_DREAMWALKER, &ValithriaDreamwalkerAI::Create);
+    mgr->register_creature_script(gunshipIds, &GunshipAI::Create);
 
     //Spell Bone Storm
     mgr->register_spell_script(boneStormIds, new BoneStormDamage);
@@ -2585,6 +2922,9 @@ void SetupICC(ScriptMgr* mgr)
     // Spell Bone Slice
     mgr->register_spell_script(SPELL_BONE_SLICE, new BoneSlice);
 
+    // Spell Mana Barrier
+    mgr->register_spell_script(SPELL_MANA_BARRIER, new ManaBarrier);
+
     // Spell Cultist Dark Martyrdom
     mgr->register_spell_script(SPELL_DARK_MARTYRDOM_ADHERENT, new DarkMartyrdom);
 
@@ -2600,6 +2940,8 @@ void SetupICC(ScriptMgr* mgr)
     mgr->register_creature_gossip(NPC_SE_MURADIN_BRONZEBEARD, MuradinSaurfangEventGossipScript);
     GossipScript* OverlordSaurfangEventGossipScript = new OverlordSeGossip();
     mgr->register_creature_gossip(NPC_SE_HIGH_OVERLORD_SAURFANG, OverlordSaurfangEventGossipScript);
+    GossipScript* ZafodBoomboxGossipScript = new ZafodBoomboxGossip();
+    mgr->register_creature_gossip(NPC_GB_ZAFOD_BOOMBOX, ZafodBoomboxGossipScript);
 
     //Misc
     mgr->register_creature_script(NPC_COLDFLAME, &ColdflameAI::Create);
@@ -2610,5 +2952,10 @@ void SetupICC(ScriptMgr* mgr)
 
     mgr->register_creature_script(NPC_SE_SKYBREAKER_MARINE, NpcSaurfangEventAI::Create);
     mgr->register_creature_script(NPC_SE_KOR_KRON_REAVER, NpcSaurfangEventAI::Create);
-#endif
+
+    mgr->register_creature_script(NPC_GB_ZAFOD_BOOMBOX, ZafodBoomboxAI::Create);
+
+    mgr->register_creature_script(NPC_GB_GUNSHIP_HULL, GunshipHullAI::Create);
+
+    mgr->register_creature_script(canonIds, GunshipCanonAI::Create);
 }

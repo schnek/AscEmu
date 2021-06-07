@@ -22,6 +22,7 @@
 #include "StdAfx.h"
 #include "Storage/MySQLDataStore.hpp"
 #include "Server/MainServerDefines.h"
+#include "InstanceDefines.hpp"
 #include "MapMgr.h"
 #include "WorldCreator.h"
 #include "Server/Packets/SmsgUpdateLastInstance.h"
@@ -63,7 +64,7 @@ void InstanceMgr::SaveInstanceToDB(Instance* instance)
 {
     if (instance != nullptr)
     {
-        if (instance->m_mapInfo->type == INSTANCE_NONRAID || instance->m_isBattleground)
+        if (instance->m_mapInfo->isDungeon() || instance->m_isBattleground)
             return;
 
         CharacterDatabase.Execute("DELETE FROM instances WHERE id = %u;", instance->m_instanceId);
@@ -141,7 +142,7 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
         return INSTANCE_ABORT_NOT_FOUND;
 
     // main continent check.
-    if (mapInfo->type == INSTANCE_NULL)
+    if (mapInfo->isNonInstanceMap())
     {
         // this will be useful when clustering comes into play.
         // we can check if the destination world server is online or not and then cancel them before they load.
@@ -149,7 +150,7 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
     }
 
     // shouldn't happen
-    if (mapInfo->type == INSTANCE_BATTLEGROUND)
+    if (mapInfo->isBattleground())
         return INSTANCE_ABORT_NOT_FOUND;
 
     Group* pGroup = plr->getGroup();
@@ -157,33 +158,33 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
     // players without groups cannot enter raids and heroic instances
 
     if (pGroup == nullptr &&
-        mapInfo->type == INSTANCE_RAID &&
+        mapInfo->isRaid() &&
         !plr->m_cheats.hasTriggerpassCheat)
         return INSTANCE_ABORT_NOT_IN_RAID_GROUP;
 
     if (pGroup == nullptr &&
-        (mapInfo->type == INSTANCE_NONRAID && plr->getDungeonDifficulty() == MODE_HEROIC) &&
+        (mapInfo->isDungeon() && plr->getDungeonDifficulty() == InstanceDifficulty::DUNGEON_HEROIC) &&
         !plr->m_cheats.hasTriggerpassCheat)
         return INSTANCE_ABORT_NOT_IN_RAID_GROUP;
 
 
     // players without raid groups cannot enter raid instances
-    if (pGroup != nullptr && pGroup->getGroupType() != GROUP_TYPE_RAID && mapInfo->type == INSTANCE_RAID && !plr->m_cheats.hasTriggerpassCheat)
+    if (pGroup != nullptr && pGroup->getGroupType() != GROUP_TYPE_RAID && mapInfo->isRaid() && !plr->m_cheats.hasTriggerpassCheat)
         return INSTANCE_ABORT_NOT_IN_RAID_GROUP;
 
     // We deny transfer if we requested a heroic instance of a map that has no heroic mode
     // We are trying to enter into a non-multi instance with a heroic group, downscaling
-    if (mapInfo->type == INSTANCE_NONRAID && plr->getDungeonDifficulty() == MODE_HEROIC)
+    if (mapInfo->isDungeon() && plr->getDungeonDifficulty() == InstanceDifficulty::DUNGEON_HEROIC)
     {
-        plr->setDungeonDifficulty(MODE_NORMAL);
+        plr->setDungeonDifficulty(InstanceDifficulty::DUNGEON_NORMAL);
         plr->sendDungeonDifficultyPacket();
 
         if (pGroup != nullptr)
-            pGroup->SetDungeonDifficulty(MODE_NORMAL);
+            pGroup->SetDungeonDifficulty(InstanceDifficulty::DUNGEON_NORMAL);
     }
 
     // if it's not a normal / 10men normal then check if we even have this mode
-    if (mapInfo->type == INSTANCE_RAID && plr->getRaidDifficulty() != MODE_NORMAL_10MEN)
+    if (mapInfo->isRaid() && plr->getRaidDifficulty() != InstanceDifficulty::RAID_10MAN_NORMAL)
     {
         uint8_t newtype = 0;
 
@@ -196,15 +197,15 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
             //
             switch (plr->getRaidDifficulty())
             {
-                case MODE_NORMAL_25MEN:
-                case MODE_HEROIC_10MEN:
+                case InstanceDifficulty::RAID_25MAN_NORMAL:
+                case InstanceDifficulty::RAID_10MAN_HEROIC:
                 {
-                    newtype = MODE_NORMAL_10MEN;
+                    newtype = InstanceDifficulty::RAID_10MAN_NORMAL;
                     break;
                 }
-                case MODE_HEROIC_25MEN:
+                case InstanceDifficulty::RAID_25MAN_HEROIC:
                 {
-                    newtype = MODE_NORMAL_25MEN;
+                    newtype = InstanceDifficulty::RAID_25MAN_NORMAL;
                     break;
                 }
             }
@@ -215,7 +216,7 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
             {
                 //appearantly we don't so we set to 10men normal, which is the default for old raids too
                 //regardless of their playerlimit
-                newtype = MODE_NORMAL_10MEN;
+                newtype = InstanceDifficulty::RAID_10MAN_NORMAL;
             }
 
             // Setting the new mode on us and our group
@@ -298,12 +299,12 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
                 uint8_t grpdiff;
 
                 // We want to use the raid difficulty for raids, and dungeon difficulty for dungeons
-                if (mapInfo->type == INSTANCE_RAID)
+                if (mapInfo->isRaid())
                     grpdiff = pGroup->m_raiddifficulty;
                 else
                     grpdiff = pGroup->m_difficulty;
 
-                if ((mapInfo->type == INSTANCE_MULTIMODE && grpdiff == MODE_HEROIC) || mapInfo->type == INSTANCE_RAID)
+                if ((mapInfo->isMultimodeDungeon() && grpdiff == InstanceDifficulty::DUNGEON_HEROIC) || mapInfo->isRaid())
                 {
                     // This is the case when we don't have this map on this difficulty saved yet for the player entering
                     if (plr->GetPersistentInstanceId(mapid, grpdiff) == 0)
@@ -349,7 +350,7 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
             {
                 uint32_t diff;
 
-                if (mapInfo->type == INSTANCE_RAID)
+                if (mapInfo->isRaid())
                     diff = plr->getRaidDifficulty();
                 else
                     diff = plr->getDungeonDifficulty();
@@ -409,7 +410,7 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
 
     switch (mapInfo->type)
     {
-        case INSTANCE_NONRAID:
+        case INSTANCE_DUNGEON:
         case INSTANCE_MULTIMODE:
             in->m_difficulty = plr->getDungeonDifficulty();
             break;
@@ -436,14 +437,14 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
 
     if (worldConfig.instance.isRelativeExpirationEnabled)
     {
-        if (mapInfo->type == INSTANCE_MULTIMODE && in->m_difficulty == MODE_HEROIC)
+        if (mapInfo->isMultimodeDungeon() && in->m_difficulty == InstanceDifficulty::DUNGEON_HEROIC)
             in->m_expiration = UNIXTIME + TimeVars::Day;
         else
-            in->m_expiration = (mapInfo->type == INSTANCE_NONRAID || (mapInfo->type == INSTANCE_MULTIMODE && in->m_difficulty == MODE_NORMAL)) ? 0 : UNIXTIME + mapInfo->cooldown;
+            in->m_expiration = (mapInfo->isDungeon() || (mapInfo->isMultimodeDungeon() && in->m_difficulty == InstanceDifficulty::DUNGEON_NORMAL)) ? 0 : UNIXTIME + mapInfo->cooldown;
     }
     else
     {
-        if (mapInfo->type == INSTANCE_MULTIMODE && in->m_difficulty >= MODE_HEROIC)
+        if (mapInfo->isMultimodeDungeon() && in->m_difficulty >= InstanceDifficulty::DUNGEON_HEROIC)
         {
             in->m_expiration = UNIXTIME - (UNIXTIME % TimeVars::Day) + ((UNIXTIME % TimeVars::Day) > (worldConfig.instance.relativeDailyHeroicInstanceResetHour * TimeVars::Hour) ? 82800 : -3600) + ((worldConfig.instance.relativeDailyHeroicInstanceResetHour - worldConfig.server.gmtTimeZone) * TimeVars::Hour);
         }
@@ -471,12 +472,12 @@ uint32_t InstanceMgr::PreTeleport(uint32_t mapid, Player* plr, uint32_t instance
         }
         else
         {
-            in->m_expiration = (mapInfo->type == INSTANCE_NONRAID || (mapInfo->type == INSTANCE_MULTIMODE && in->m_difficulty == MODE_NORMAL)) ? 0 : UNIXTIME + mapInfo->cooldown;
+            in->m_expiration = (mapInfo->isDungeon() || (mapInfo->isMultimodeDungeon() && in->m_difficulty == InstanceDifficulty::DUNGEON_NORMAL)) ? 0 : UNIXTIME + mapInfo->cooldown;
         }
     }
 
     plr->SetInstanceID(in->m_instanceId);
-    LOG_DEBUG("Creating instance for player %u and group %u on map %u. (%u)", in->m_creatorGuid, in->m_creatorGroup, in->m_mapId, in->m_instanceId);
+    sLogger.debug("Creating instance for player %u and group %u on map %u. (%u)", in->m_creatorGuid, in->m_creatorGroup, in->m_mapId, in->m_instanceId);
 
     // save our new instance to the database.
     SaveInstanceToDB(in);
@@ -540,7 +541,7 @@ MapMgr* InstanceMgr::GetInstance(Object* obj)
         if (auto player = dynamic_cast<Player*>(obj))
         {
             // single-instance maps never go into the instance set.
-            if (mapInfo->type == INSTANCE_NULL)
+            if (mapInfo->isNonInstanceMap())
                 return m_singleMaps[player->GetMapId()];
 
             m_mapLock.Acquire();
@@ -571,7 +572,7 @@ MapMgr* InstanceMgr::GetInstance(Object* obj)
 
                     uint32_t difficulty;
 
-                    if (in->m_mapInfo->type == INSTANCE_RAID)
+                    if (in->m_mapInfo->isRaid())
                         difficulty = player->getRaidDifficulty();
                     else
                         difficulty = player->getDungeonDifficulty();
@@ -612,7 +613,7 @@ MapMgr* InstanceMgr::GetInstance(Object* obj)
     else
     {
         // units are *always* limited to their set instance ids.
-        if (mapInfo->type == INSTANCE_NULL)
+        if (mapInfo->isNonInstanceMap())
             return m_singleMaps[obj->GetMapId()];
 
         m_mapLock.Acquire();
@@ -639,10 +640,10 @@ MapMgr* InstanceMgr::_CreateInstance(uint32_t mapid, uint32_t instanceid)
 {
     const auto mapInfo = sMySQLStore.getWorldMapInfo(mapid);
 
-    ARCEMU_ASSERT(mapInfo != nullptr && mapInfo->type == INSTANCE_NULL);
+    ARCEMU_ASSERT(mapInfo != nullptr && mapInfo->isNonInstanceMap());
     ARCEMU_ASSERT(mapid < MAX_NUM_MAPS && m_maps[mapid] != nullptr);
 
-    LogNotice("InstanceMgr : Creating continent %s.", m_maps[mapid]->GetMapName().c_str());
+    sLogger.info("InstanceMgr : Creating continent %s.", m_maps[mapid]->GetMapName().c_str());
 
     const auto newMap = new MapMgr(m_maps[mapid], mapid, instanceid);
 
@@ -660,7 +661,7 @@ MapMgr* InstanceMgr::_CreateInstance(Instance* in)
     if (m_maps[in->m_mapId] == nullptr)
         return nullptr;
 
-    LogNotice("InstanceMgr : Creating saved instance %u (%s)", in->m_instanceId, m_maps[in->m_mapId]->GetMapName().c_str());
+    sLogger.info("InstanceMgr : Creating saved instance %u (%s)", in->m_instanceId, m_maps[in->m_mapId]->GetMapName().c_str());
     ARCEMU_ASSERT(in->m_mapMgr == NULL);
 
     // we don't have to check for world map info here, since the instance wouldn't have been saved if it didn't have any.
@@ -686,7 +687,7 @@ void InstanceMgr::_CreateMap(uint32_t mapid)
         return;
 
     m_maps[mapid] = new Map(mapid, mapInfo);
-    if (mapInfo->type == INSTANCE_NULL)
+    if (mapInfo->isNonInstanceMap())
     {
         // we're a continent, create the instance.
         _CreateInstance(mapid, getNextInstanceId());
@@ -695,7 +696,7 @@ void InstanceMgr::_CreateMap(uint32_t mapid)
 
 void InstanceMgr::ResetSavedInstances(Player* plr)
 {
-    if (!plr->IsInWorld() || plr->GetMapMgr()->GetMapInfo()->type != INSTANCE_NULL)
+    if (!plr->IsInWorld() || !plr->GetMapMgr()->GetMapInfo()->isNonInstanceMap())
         return;
 
     m_mapLock.Acquire();
@@ -834,7 +835,7 @@ void InstanceMgr::CheckForExpiredInstances()
                 ++itr;
 
                 // use a "soft" delete here.
-                if (instance->m_mapInfo->type != INSTANCE_NONRAID && !(instance->m_mapInfo->type == INSTANCE_MULTIMODE && instance->m_difficulty == MODE_NORMAL) && HasInstanceExpired(instance))
+                if (!instance->m_mapInfo->isDungeon() && !(instance->m_mapInfo->isMultimodeDungeon() && instance->m_difficulty == InstanceDifficulty::DUNGEON_NORMAL) && HasInstanceExpired(instance))
                     _DeleteInstance(instance, false);
             }
 
@@ -845,7 +846,7 @@ void InstanceMgr::CheckForExpiredInstances()
 
 void InstanceMgr::BuildSavedInstancesForPlayer(Player* plr)
 {
-    if (!plr->IsInWorld() || plr->GetMapMgr()->GetMapInfo()->type != INSTANCE_NULL)
+    if (!plr->IsInWorld() || !plr->GetMapMgr()->GetMapInfo()->isNonInstanceMap())
     {
         m_mapLock.Acquire();
         for (uint32_t i = 0; i < MAX_NUM_MAPS; ++i)
@@ -858,7 +859,7 @@ void InstanceMgr::BuildSavedInstancesForPlayer(Player* plr)
                     const auto instance = itr->second;
                     ++itr;
 
-                    if (PlayerOwnsInstance(instance, plr) && instance->m_mapInfo->type == INSTANCE_NONRAID)
+                    if (PlayerOwnsInstance(instance, plr) && instance->m_mapInfo->isDungeon())
                     {
                         m_mapLock.Release();
 
@@ -1104,7 +1105,7 @@ void InstanceMgr::DeleteBattlegroundInstance(uint32_t mapid, uint32_t instanceid
     const auto itr = m_instances[mapid]->find(instanceid);
     if (itr == m_instances[mapid]->end())
     {
-        LOG_ERROR("Could not delete battleground instance!");
+        sLogger.failure("Could not delete battleground instance!");
         m_mapLock.Release();
         return;
     }

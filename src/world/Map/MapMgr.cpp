@@ -197,7 +197,7 @@ MapMgr::~MapMgr()
 
     MMAP::MMapFactory::createOrGetMMapManager()->unloadMapInstance(GetMapId(), m_instanceID);
 
-    LogDebugFlag(LF_MAP, "MapMgr : Instance %u shut down. (%s)", m_instanceID, GetBaseMap()->GetMapName().c_str());
+    sLogger.debug("MapMgr : Instance %u shut down. (%s)", m_instanceID, GetBaseMap()->GetMapName().c_str());
 }
 
 void MapMgr::PushObject(Object* obj)
@@ -245,9 +245,16 @@ void MapMgr::PushObject(Object* obj)
     if (objCell == nullptr)
     {
         objCell = Create(x, y);
-        objCell->Init(x, y, this);
+        if (objCell != nullptr)
+        {
+            objCell->Init(x, y, this);
+        }
+        else
+        {
+            sLogger.fatal("MapCell for x f% and y f% seems to be invalid!", x, y);
+            return;
+        }
     }
-    ARCEMU_ASSERT(objCell != nullptr);
 
     // Build update-block for player
     ByteBuffer* buf = 0;
@@ -258,7 +265,7 @@ void MapMgr::PushObject(Object* obj)
     {
         plObj = static_cast<Player*>(obj);
 
-        LogDebugFlag(LF_MAP, "Creating player " I64FMT " for himself.", obj->getGuid());
+        sLogger.debug("Creating player " I64FMT " for himself.", obj->getGuid());
         ByteBuffer pbuf(10000);
         count = plObj->buildCreateUpdateBlockForPlayer(&pbuf, plObj);
         plObj->getUpdateMgr().pushCreationData(&pbuf, count);
@@ -388,7 +395,7 @@ void MapMgr::PushStaticObject(Object* obj)
             break;
 
         default:
-            LogDebugFlag(LF_MAP, "MapMgr::PushStaticObject called for invalid type %u.", obj->GetTypeFromGUID());
+            sLogger.debug("MapMgr::PushStaticObject called for invalid type %u.", obj->GetTypeFromGUID());
             break;
     }
 }
@@ -461,7 +468,7 @@ void MapMgr::RemoveObject(Object* obj, bool free_guid)
         }
         default:
         {
-            LogDebugFlag(LF_MAP, "MapMgr::RemoveObject called for invalid type %u.", obj->GetTypeFromGUID());
+            sLogger.debug("MapMgr::RemoveObject called for invalid type %u.", obj->GetTypeFromGUID());
             break;
         }
     }
@@ -557,10 +564,10 @@ void MapMgr::RemoveObject(Object* obj, bool free_guid)
         if (this->pInstance != nullptr && this->pInstance->m_persistent)
             this->pInstance->m_creatorGroup = 0;
 
-        if (!InactiveMoveTime && !forced_expire && GetMapInfo()->type != INSTANCE_NULL)
+        if (!InactiveMoveTime && !forced_expire && !GetMapInfo()->isNonInstanceMap())
         {
             InactiveMoveTime = UNIXTIME + (30 * 60); //mapmgr inactive move time 30
-            LogDebugFlag(LF_MAP, "MapMgr : Instance %u is now idle. (%s)", m_instanceID, GetBaseMap()->GetMapName().c_str());
+            sLogger.debug("MapMgr : Instance %u is now idle. (%s)", m_instanceID, GetBaseMap()->GetMapName().c_str());
         }
     }
 }
@@ -749,6 +756,10 @@ void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuf
     auto iter = cell->Begin();
     while (iter != cell->End())
     {
+        // Prevent undefined behaviour (related to transports) -Appled
+        if (cell->_objects.empty())
+            break;
+
         Object* curObj = *iter;
         ++iter;
 
@@ -883,6 +894,10 @@ void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuf
 float MapMgr::GetUpdateDistance(Object* curObj, Object* obj, Player* plObj)
 {
     static float no_distance = 0.0f;
+
+    // had a crash because this was nullptr just send default update distance
+    if (!plObj)
+        return m_UpdateDistance;
 
     // unlimited distance for people on same boat
     if (curObj->isPlayer() && obj->isPlayer() && plObj != nullptr && plObj->obj_movement_info.hasMovementFlag(MOVEFLAG_TRANSPORT) && plObj->obj_movement_info.transport_guid == static_cast< Player* >(curObj)->obj_movement_info.transport_guid)
@@ -1020,14 +1035,14 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
                     objCell = Create(posX, posY);
                     objCell->Init(posX, posY, this);
 
-                    LogDebugFlag(LF_MAP_CELL, "MapMgr : Cell [%u,%u] on map %u (instance %u) is now active.", posX, posY, this->_mapId, m_instanceID);
+                    sLogger.debug("MapMgr : Cell [%u,%u] on map %u (instance %u) is now active.", posX, posY, this->_mapId, m_instanceID);
                     objCell->SetActivity(true);
 
                     _terrain->LoadTile((int32)posX / 8, (int32)posY / 8);
 
                     ARCEMU_ASSERT(!objCell->IsLoaded());
 
-                    LogDebugFlag(LF_MAP_CELL, "MapMgr : Loading objects for Cell [%u][%u] on map %u (instance %u)...", posX, posY, this->_mapId, m_instanceID);
+                    sLogger.debug("MapMgr : Loading objects for Cell [%u][%u] on map %u (instance %u)...", posX, posY, this->_mapId, m_instanceID);
 
                     sp = _map->GetSpawnsList(posX, posY);
                     if (sp)
@@ -1039,14 +1054,14 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
                 //Cell is now active
                 if (_CellActive(posX, posY) && !objCell->IsActive())
                 {
-                    LogDebugFlag(LF_MAP_CELL, "Cell [%u,%u] on map %u (instance %u) is now active.", posX, posY, this->_mapId, m_instanceID);
+                    sLogger.debug("Cell [%u,%u] on map %u (instance %u) is now active.", posX, posY, this->_mapId, m_instanceID);
 
                     _terrain->LoadTile((int32)posX / 8, (int32)posY / 8);
                     objCell->SetActivity(true);
 
                     if (!objCell->IsLoaded())
                     {
-                        LogDebugFlag(LF_MAP_CELL, "Loading objects for Cell [%u][%u] on map %u (instance %u)...", posX, posY, this->_mapId, m_instanceID);
+                        sLogger.debug("Loading objects for Cell [%u][%u] on map %u (instance %u)...", posX, posY, this->_mapId, m_instanceID);
                         sp = _map->GetSpawnsList(posX, posY);
                         if (sp)
                             objCell->LoadObjects(sp);
@@ -1055,7 +1070,7 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
                 //Cell is no longer active
                 else if (!_CellActive(posX, posY) && objCell->IsActive())
                 {
-                    LogDebugFlag(LF_MAP_CELL, "Cell [%u,%u] on map %u (instance %u) is now idle.", posX, posY, _mapId, m_instanceID);
+                    sLogger.debug("Cell [%u,%u] on map %u (instance %u) is now idle.", posX, posY, _mapId, m_instanceID);
                     objCell->SetActivity(false);
 
                     _terrain->UnloadTile((int32)posX / 8, (int32)posY / 8);
@@ -1067,15 +1082,56 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
 
 float MapMgr::GetLandHeight(float x, float y, float z)
 {
-    float adtheight = GetADTLandHeight(x, y);
+    if (worldConfig.terrainCollision.isCollisionEnabled)
+    {
+        float adtheight = GetADTLandHeight(x, y);
 
-    VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
-    float vmapheight = vmgr->getHeight(_mapId, x, y, z + 0.5f, 10000.0f);
+        VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
+        float vmapheight = vmgr->getHeight(_mapId, x, y, z + 0.5f, 10000.0f);
 
-    if (adtheight > z && vmapheight > -1000)
-        return vmapheight; //underground
+        if (adtheight > z && vmapheight > -1000)
+            return vmapheight; //underground
 
-    return std::max(vmapheight, adtheight);
+        return std::max(vmapheight, adtheight);
+    }
+    else
+        return z;
+}
+
+float MapMgr::getWaterOrGroundLevel(uint32 phasemask, float x, float y, float z, float* ground /*= nullptr*/, bool /*swim = false*/, float collisionHeight /*= DEFAULT_COLLISION_HEIGHT*/)
+{
+    if (TerrainTile* tile = _terrain->GetTile(x, y))
+    {
+        // we need ground level (including grid height version) for proper return water level in point
+        float ground_z = GetLandHeight(x, y, z + collisionHeight);
+        if (ground)
+            *ground = ground_z;
+
+        LiquidData liquid_status;
+
+        ZLiquidStatus res = getLiquidStatus(phasemask, x, y, ground_z, MAP_ALL_LIQUIDS, &liquid_status, collisionHeight);
+        switch (res)
+        {
+        case LIQUID_MAP_ABOVE_WATER:
+            return std::max<float>(liquid_status.level, ground_z);
+        case LIQUID_MAP_NO_WATER:
+            return ground_z;
+        default:
+            return liquid_status.level;
+        }
+    }
+
+    return VMAP_INVALID_HEIGHT_VALUE;
+}
+
+bool MapMgr::isUnderWater(float x, float y, float z)
+{
+    float watermark = GetLiquidHeight(x, y);
+
+    if (watermark > (z + 0.5f))
+        return true;
+
+    return false;
 }
 
 float MapMgr::GetADTLandHeight(float x, float y)
@@ -1134,6 +1190,101 @@ uint8 MapMgr::GetLiquidType(float x, float y)
     tile->DecRef();
 
     return rv;
+}
+
+static inline bool isInWMOInterior(uint32 mogpFlags)
+{
+    return (mogpFlags & 0x2000) != 0;
+}
+
+ZLiquidStatus MapMgr::getLiquidStatus(uint32 /*phaseMask*/, float x, float y, float z, uint8 ReqLiquidType, LiquidData* data, float collisionHeight)
+{
+    ZLiquidStatus result = LIQUID_MAP_NO_WATER;
+    VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
+    float liquid_level = INVALID_HEIGHT;
+    float ground_level = INVALID_HEIGHT;
+    uint32 liquid_type = 0;
+    uint32 mogpFlags = 0;
+    bool useGridLiquid = true;
+    if (vmgr->GetLiquidLevel(_mapId, x, y, z, ReqLiquidType, liquid_level, ground_level, liquid_type))
+    {
+        useGridLiquid = !isInWMOInterior(mogpFlags);
+        // Check water level and ground level
+        if (liquid_level > ground_level && G3D::fuzzyGe(z, ground_level - GROUND_HEIGHT_TOLERANCE))
+        {
+            // All ok in water -> store data
+            if (data)
+            {
+                // hardcoded in client like this
+                if (_mapId == 530 && liquid_type == 2)
+                    liquid_type = 15;
+
+                uint32 liquidFlagType = 0;
+                if (::DBC::Structures::LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(liquid_type))
+                    liquidFlagType = liq->Type;
+
+                if (liquid_type && liquid_type < 21)
+                {
+                    if (auto const* area = GetArea(x, y, z))
+                    {
+                        uint32 overrideLiquid = area->liquid_type_override[liquidFlagType];
+                        if (!overrideLiquid && area->zone)
+                        {
+                            area = MapManagement::AreaManagement::AreaStorage::GetAreaById(area->zone);
+                            if (area)
+                                overrideLiquid = area->liquid_type_override[liquidFlagType];
+                        }
+
+                        if (::DBC::Structures::LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(overrideLiquid))
+                        {
+                            liquid_type = overrideLiquid;
+                            liquidFlagType = liq->Type;
+                        }
+                    }
+                }
+
+                data->level = liquid_level;
+                data->depth_level = ground_level;
+
+                data->entry = liquid_type;
+                data->type_flags = 1 << liquidFlagType;
+            }
+
+            float delta = liquid_level - z;
+
+            // Get position delta
+            if (delta > collisionHeight)                   // Under water
+                return LIQUID_MAP_UNDER_WATER;
+            if (delta > 0.0f)                   // In water
+                return LIQUID_MAP_IN_WATER;
+            if (delta > -0.1f)                   // Walk on water
+                return LIQUID_MAP_WATER_WALK;
+            result = LIQUID_MAP_ABOVE_WATER;
+        }
+    }
+
+    /*if (useGridLiquid)
+    {
+        if (GridMap* gmap = const_cast<Map*>(this)->GetGrid(x, y))
+        {
+            LiquidData map_data;
+            ZLiquidStatus map_result = gmap->getLiquidStatus(x, y, z, ReqLiquidType, &map_data, collisionHeight);
+            // Not override LIQUID_MAP_ABOVE_WATER with LIQUID_MAP_NO_WATER:
+            if (map_result != LIQUID_MAP_NO_WATER && (map_data.level > ground_level))
+            {
+                if (data)
+                {
+                    // hardcoded in client like this
+                    if (_mapId == 530 && map_data.entry == 2)
+                        map_data.entry = 15;
+
+                    *data = map_data;
+                }
+                return map_result;
+            }
+        }
+    }*/
+    return result;
 }
 
 const ::DBC::Structures::AreaTableEntry* MapMgr::GetArea(float x, float y, float z)
@@ -1362,7 +1513,7 @@ bool MapMgr::Do()
     if (pInstance != nullptr)
     {
         // check for a non-raid instance, these expire after 10 minutes.
-        if (GetMapInfo()->type == INSTANCE_NONRAID || pInstance->m_isBattleground)
+        if (GetMapInfo()->isDungeon() || pInstance->m_isBattleground)
         {
             pInstance->m_mapMgr = nullptr;
             sInstanceMgr._DeleteInstance(pInstance, true);
@@ -1374,7 +1525,7 @@ bool MapMgr::Do()
             pInstance->m_mapMgr = nullptr;
         }
     }
-    else if (GetMapInfo()->type == INSTANCE_NULL)
+    else if (GetMapInfo()->isNonInstanceMap())
     {
         sInstanceMgr.m_singleMaps[GetMapId()] = nullptr;
     }
@@ -1497,7 +1648,7 @@ void MapMgr::_PerformObjectDuties()
             Transporter* trans = *itr;
             ++itr;
 
-            if (!trans->IsInWorld())
+            if (!trans || !trans->IsInWorld())
                 continue;
 
             trans->Update(difftime);
@@ -1668,7 +1819,7 @@ void MapMgr::UnloadCell(uint32 x, uint32 y)
     if (c == nullptr || c->HasPlayers() || _CellActive(x, y) || !c->IsUnloadPending())
         return;
 
-    LogDebugFlag(LF_MAP, "Unloading Cell [%u][%u] on map %u (instance %u)...", x, y, _mapId, m_instanceID);
+    sLogger.debug("Unloading Cell [%u][%u] on map %u (instance %u)...", x, y, _mapId, m_instanceID);
 
     c->Unload();
 }
@@ -1849,11 +2000,11 @@ GameObject* MapMgr::CreateAndSpawnGameObject(uint32 entryID, float x, float y, f
     auto gameobject_info = sMySQLStore.getGameObjectProperties(entryID);
     if (gameobject_info == nullptr)
     {
-        LogDebugFlag(LF_MAP, "Error looking up entry in CreateAndSpawnGameObject");
+        sLogger.debug("Error looking up entry in CreateAndSpawnGameObject");
         return nullptr;
     }
 
-    LogDebugFlag(LF_MAP, "CreateAndSpawnGameObject: By Entry '%u'", entryID);
+    sLogger.debug("CreateAndSpawnGameObject: By Entry '%u'", entryID);
 
     GameObject* go = CreateGameObject(entryID);
 
@@ -2120,50 +2271,18 @@ void MapMgr::onWorldStateUpdate(uint32 zone, uint32 field, uint32 value)
 
 bool MapMgr::AddToMapMgr(Transporter* obj)
 {
-    //if (obj->IsInWorld())
-    //    return true;
-
     m_TransportStorage.insert(obj);
-
-    // Broadcast creation to players
-    if (HasPlayers())
-    {
-        for (auto itr = m_PlayerStorage.begin(); itr != m_PlayerStorage.end(); ++itr)
-        {
-            if (static_cast<Object*>(itr->second)->GetTransport() != obj)
-            {
-                ByteBuffer buf(500);
-                uint32_t cnt = obj->Object::buildCreateUpdateBlockForPlayer(&buf, itr->second);
-                itr->second->getUpdateMgr().pushUpdateData(&buf, cnt);
-            }
-        }
-    }
 
     return true;
 }
 
 void MapMgr::RemoveFromMapMgr(Transporter* obj, bool remove)
 {
-    RemoveObject(obj, true);
-
-    if (HasPlayers())
-    {
-        for (auto itr = m_PlayerStorage.begin(); itr != m_PlayerStorage.end(); ++itr)
-        {
-            if (static_cast<Object*>(itr->second)->GetTransport() != obj)
-            {
-                ByteBuffer buf(500);
-                uint32_t cnt = obj->Object::buildCreateUpdateBlockForPlayer(&buf, itr->second);
-                itr->second->getUpdateMgr().pushUpdateData(&buf, cnt);
-            }
-        }
-    }
-
     m_TransportStorage.erase(obj);
+    sTransportHandler.removeInstancedTransport(obj, this->GetInstanceID());
+
+    RemoveObject(obj, false);
 
     if (remove)
-    {
         obj->RemoveFromWorld(true);
-        obj->ExpireAndDelete();
-    }
 }

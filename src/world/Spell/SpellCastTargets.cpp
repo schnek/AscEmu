@@ -3,8 +3,8 @@ Copyright (c) 2014-2021 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Definitions/SpellCastTargetFlags.h"
-#include "SpellCastTargets.h"
+#include "Definitions/SpellCastTargetFlags.hpp"
+#include "SpellCastTargets.hpp"
 
 #include "Objects/ObjectMgr.h"
 #include <Server/WorldSocket.h>
@@ -109,10 +109,17 @@ void SpellCastTargets::read(WorldPacket& data, uint64_t caster)
         data >> destinationGuid;
         unkuint64_2 = destinationGuid.getRawGuid();
 
+        auto transporter = sTransportHandler.getTransporter(destinationGuid.getGuidLow());
+
         LocationVector lv;
         data >> lv.x;
         data >> lv.y;
         data >> lv.z;
+
+        if (transporter)
+        {
+            transporter->CalculatePassengerPosition(lv.x, lv.y, lv.z);
+        }
 
         setDestination(lv);
     }

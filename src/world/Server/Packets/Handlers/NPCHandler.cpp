@@ -31,7 +31,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/MsgListStabledPets.h"
 #include "Server/Packets/CmsgNpcTextQuery.h"
 #include "Storage/MySQLDataStore.hpp"
-#include "Spell/SpellMgr.h"
+#include "Spell/SpellMgr.hpp"
 #include "Server/Packets/CmsgBuyBankSlot.h"
 #include "Server/Packets/SmsgBuyBankSlotResult.h"
 #include "Server/Packets/SmsgGossipComplete.h"
@@ -45,7 +45,7 @@ void WorldSession::handleTabardVendorActivateOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received MSG_TABARDVENDOR_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received MSG_TABARDVENDOR_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -69,7 +69,7 @@ void WorldSession::handleBankerActivateOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_BANKER_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received CMSG_BANKER_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -93,7 +93,7 @@ void WorldSession::handleAuctionHelloOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received MSG_AUCTION_HELLO: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received MSG_AUCTION_HELLO: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -127,7 +127,7 @@ void WorldSession::handleTrainerBuySpellOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise((recvPacket)))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_TRAINER_BUY_SPELL: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received CMSG_TRAINER_BUY_SPELL: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -222,7 +222,7 @@ void WorldSession::handleCharterShowListOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_CHARTER_SHOW_LIST: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received CMSG_CHARTER_SHOW_LIST: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -246,13 +246,14 @@ void WorldSession::handleGossipHelloOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_GOSSIP_HELLO: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received CMSG_GOSSIP_HELLO: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature != nullptr)
     {
-        if (creature->GetAIInterface())
-            creature->GetAIInterface()->StopMovement(30000);
+        // makes npc stop when for example on its waypoint path // aaron02
+        creature->pauseMovement(30000);
+        creature->SetSpawnLocation(creature->GetPosition());
 
         if (_player->isStealthed())
             _player->RemoveAllAuraType(SPELL_AURA_MOD_STEALTH);
@@ -271,7 +272,7 @@ void WorldSession::handleGossipSelectOptionOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_GOSSIP_SELECT_OPTION: %u (gossipId), %i (option), %u (guidLow)",
+    sLogger.debug("Received CMSG_GOSSIP_SELECT_OPTION: %u (gossipId), %i (option), %u (guidLow)",
         srlPacket.gossip_id, srlPacket.option, srlPacket.guid.getGuidLow());
 
 
@@ -323,7 +324,7 @@ void WorldSession::handleBinderActivateOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_BINDER_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
+    sLogger.debug("Received CMSG_BINDER_ACTIVATE: %u (guidLowPart)", srlPacket.guid.getGuidLowPart());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLowPart());
     if (creature == nullptr)
@@ -687,7 +688,7 @@ void WorldSession::handleNpcTextQueryOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received: CMSG_NPC_TEXT_QUERY: %u (textId)", srlPacket.text_id);
+    sLogger.debug("Received: CMSG_NPC_TEXT_QUERY: %u (textId)", srlPacket.text_id);
 
     _player->setTargetGuid(srlPacket.guid);
 
@@ -773,7 +774,7 @@ void WorldSession::handleBuyBankSlotOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    LogDebugFlag(LF_OPCODE, "Received CMSG_BUY_BANK_SLOT: %u (guidLow)", srlPacket.guid.getGuidLow());
+    sLogger.debug("Received CMSG_BUY_BANK_SLOT: %u (guidLow)", srlPacket.guid.getGuidLow());
 
     const auto creature = _player->GetMapMgr()->GetCreature(srlPacket.guid.getGuidLow());
     if (creature == nullptr || !creature->isBanker())
