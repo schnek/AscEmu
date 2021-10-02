@@ -36,8 +36,8 @@ div.hr_blue hr { display:none; }
 /* ------ styles for docs|manuals|howto ------ */
 /* -- lists -- */
 ul  { 
- margin:     0px 4px 16px 16px;
- padding:    0px;
+ margin:     0 4px 16px 16px;
+ padding:    0;
  list-style: url("/images/li-blue.png"); 
 }
 ul li { 
@@ -46,7 +46,7 @@ ul li {
 ul ul	{ 
  list-style-type:  none; 
  list-style-image: none; 
- margin-left:      0px; 
+ margin-left:      0; 
 }
 
 /* header / footer nav tables */
@@ -70,5 +70,5 @@ div.literallayout, pre.programlisting, pre.screen {
  background: #eeeeee;
  border:     1px solid #626262;
  background-color: #eeeeee;
- margin: 4px 0px 4px 0px; 
+ margin: 4px 0; 
 }
