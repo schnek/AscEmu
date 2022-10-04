@@ -1992,7 +1992,7 @@ void AchievementMgr::GiveAchievementReward(DBC::Structures::AchievementEntry con
         Creature* pCreature = GetPlayer()->getWorldMap()->createCreature(Reward->sender);
         if (pCreature == nullptr)
         {
-            sLogger.failure("can not create sender for achievement {}", entry);
+            sLogger.failure("can not create sender for achievement {}", entry->ID);
             return;
         }
 
@@ -2193,8 +2193,8 @@ bool AchievementMgr::UpdateAchievementCriteria(Player* player, int32_t criteriaI
     if (achievement->flags & ACHIEVEMENT_FLAG_COUNTER)
     {
         // can't complete this type of achivement (counter)
-        sLogger.debug("AchievementMgr Referred achievement ({}) |Hachievement:{}:" I64FMT ":0:0:0:-1:0:0:0:0|h[{}]|h is a counter and cannot be completed.",
-            achievement->ID, achievement->ID, player->getGuid(), achievement->name);
+        sLogger.debug("AchievementMgr Referred achievement ({}) |Hachievement:{}:{}:0:0:0:-1:0:0:0:0|h[{}]|h is a counter and cannot be completed.",
+            achievement->ID, achievement->ID, player->getGuid(), achievement->name[0]);
         return false;
     }
 
