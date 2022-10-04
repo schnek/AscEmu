@@ -39,7 +39,7 @@ void GameEventMgr::StartArenaEvents()
         auto gameEvent = GetEventById(i);
         if (gameEvent == nullptr)
         {
-            sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Missing arena event (id: %u)", i);
+            sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Missing arena event (id: {})", i);
             continue;
         }
 
@@ -91,16 +91,16 @@ void GameEventMgr::LoadFromDB()
             //if (gameEvent.isValid())
             //{
                 mGameEvents.insert(std::make_pair(dbResult.entry, new GameEvent(dbResult)));
-                sLogger.debug("GameEventMgr : %s, Entry: %u, State: %u, Holiday: %u loaded", dbResult.description.c_str(), dbResult.entry, dbResult.world_event, dbResult.holiday_id);
+                sLogger.debug("GameEventMgr : {}, Entry: {}, State: {}, Holiday: {} loaded", dbResult.description, dbResult.entry, dbResult.world_event, dbResult.holiday_id);
                 ++pCount;
             //}
             //else
             //{
-            //    sLogger.debug("%s game event Entry: %u isn't a world event and has length = 0, thus it can't be used.", dbResult.description.c_str(), dbResult.entry);
+            //    sLogger.debug("{} game event Entry: {} isn't a world event and has length = 0, thus it can't be used.", dbResult.description, dbResult.entry);
             //}
         } while (result->NextRow());
         delete result;
-        sLogger.info("GameEventMgr : %u events loaded from table event_properties", pCount);
+        sLogger.info("GameEventMgr : {} events loaded from table event_properties", pCount);
     }
     // Loading event_saves from CharacterDB
     sLogger.info("GameEventMgr : Start loading gameevent_save");
@@ -111,7 +111,7 @@ void GameEventMgr::LoadFromDB()
 
         if (!success)
         {
-            sLogger.failure("Query failed: %s", loadEventSaveQuery);
+            sLogger.failure("Query failed: {}", loadEventSaveQuery);
             return;
         }
 
@@ -127,7 +127,7 @@ void GameEventMgr::LoadFromDB()
                 if (gameEvent == nullptr)
                 {
                     CharacterDatabase.Query("DELETE FROM gameevent_save WHERE event_entry=%u", event_id);
-                    sLogger.info("Deleted invalid gameevent_save with entry %u", event_id);
+                    sLogger.info("Deleted invalid gameevent_save with entry {}", event_id);
                     continue;
                 }
 
@@ -140,7 +140,7 @@ void GameEventMgr::LoadFromDB()
             delete result;
         }
 
-        sLogger.info("GameEventMgr : Loaded %u saved events loaded from table gameevent_saves", pCount);
+        sLogger.info("GameEventMgr : Loaded {} saved events loaded from table gameevent_saves", pCount);
     }
     // Loading event_creature from WorldDB
     sLogger.info("GameEventMgr : Start loading game event creature spawns");
@@ -155,7 +155,7 @@ void GameEventMgr::LoadFromDB()
         QueryResult* result = WorldDatabase.Query(&success, loadEventCreatureSpawnsQuery, VERSION_STRING, VERSION_STRING);
         if (!success)
         {
-            sLogger.failure("Query failed: %s", loadEventCreatureSpawnsQuery);
+            sLogger.failure("Query failed: {}", loadEventCreatureSpawnsQuery);
             return;
         }
 
@@ -171,7 +171,7 @@ void GameEventMgr::LoadFromDB()
                 auto gameEvent = GetEventById(event_id);
                 if (gameEvent == nullptr)
                 {
-                    sLogger.failure("Could not find event for creature_spawns entry %u", event_id);
+                    sLogger.failure("Could not find event for creature_spawns entry {}", event_id);
                     continue;
                 }
 
@@ -182,7 +182,7 @@ void GameEventMgr::LoadFromDB()
                 auto creature_properties = sMySQLStore.getCreatureProperties(dbResult.entry);
                 if (creature_properties == nullptr)
                 {
-                    sLogger.failure("Could not create CreatureSpawn for invalid entry %u (missing in table creature_properties)", dbResult.entry);
+                    sLogger.failure("Could not create CreatureSpawn for invalid entry {} (missing in table creature_properties)", dbResult.entry);
                     continue;
                 }
                 dbResult.map_id = field[2].GetUInt16();
@@ -221,7 +221,7 @@ void GameEventMgr::LoadFromDB()
             } while (result->NextRow());
             delete result;
         }
-        sLogger.info("GameEventMgr : %u creature spawns for %u events from table event_creature_spawns loaded.", pCount, static_cast<uint32_t>(mGameEvents.size()));
+        sLogger.info("GameEventMgr : {} creature spawns for {} events from table event_creature_spawns loaded.", pCount, static_cast<uint32_t>(mGameEvents.size()));
     }
     // Loading event_gameobject from WorldDB
     sLogger.info("GameEventMgr : Start loading game event gameobject spawns");
@@ -234,7 +234,7 @@ void GameEventMgr::LoadFromDB()
         QueryResult* result = WorldDatabase.Query(&success, loadEventGameobjectSpawnsQuery, VERSION_STRING, VERSION_STRING);
         if (!success)
         {
-            sLogger.failure("Query failed: %s", loadEventGameobjectSpawnsQuery);
+            sLogger.failure("Query failed: {}", loadEventGameobjectSpawnsQuery);
             return;
         }
 
@@ -249,7 +249,7 @@ void GameEventMgr::LoadFromDB()
                 auto gameEvent = GetEventById(event_id);
                 if (gameEvent == nullptr)
                 {
-                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Could not find event for gameobject_spawns entry %u", event_id);
+                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Could not find event for gameobject_spawns entry {}", event_id);
                     continue;
                 }
 
@@ -260,7 +260,7 @@ void GameEventMgr::LoadFromDB()
                 auto gameobject_info = sMySQLStore.getGameObjectProperties(dbResult.entry);
                 if (gameobject_info == nullptr)
                 {
-                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Could not create GameobjectSpawn for invalid entry %u (missing in table gameobject_properties)", dbResult.entry);
+                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Could not create GameobjectSpawn for invalid entry {} (missing in table gameobject_properties)", dbResult.entry);
                     continue;
                 }
                 dbResult.map_id = field[2].GetUInt32();
@@ -285,7 +285,7 @@ void GameEventMgr::LoadFromDB()
             } while (result->NextRow());
             delete result;
         }
-        sLogger.info("GameEventMgr : %u gameobject spawns for %u events from table gameobject_spawns loaded.", pCount, mGameEvents.size());
+        sLogger.info("GameEventMgr : {} gameobject spawns for {} events from table gameobject_spawns loaded.", pCount, mGameEvents.size());
     }
 
     StartArenaEvents();

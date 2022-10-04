@@ -3403,7 +3403,7 @@ void Object::AddToWorld()
 
     if (mapMgr == nullptr)
     {
-        sLogger.failure("AddToWorld() failed for Object with GUID " I64FMT " MapId %u InstanceId %u", getGuid(), GetMapId(), GetInstanceID());
+        sLogger.failure("AddToWorld() failed for Object with GUID " I64FMT " MapId {} InstanceId {}", getGuid(), GetMapId(), GetInstanceID());
         return;
     }
 
@@ -3695,7 +3695,7 @@ bool Object::inArc(float Position1X, float Position1Y, float FOV, float Orientat
     float angle = calcAngle(Position1X, Position1Y, Position2X, Position2Y);
     float lborder = getEasyAngle((Orientation - (FOV * 0.5f/*/2*/)));
     float rborder = getEasyAngle((Orientation + (FOV * 0.5f/*/2*/)));
-    //sLogger.debug("Orientation: %f Angle: %f LeftBorder: %f RightBorder %f",Orientation,angle,lborder,rborder);
+    //sLogger.debug("Orientation: {} Angle: {} LeftBorder: {} RightBorder {}",Orientation,angle,lborder,rborder);
     if (((angle >= lborder) && (angle <= rborder)) || ((lborder > rborder) && ((angle < rborder) || (angle > lborder))))
     {
         return true;
@@ -3792,7 +3792,7 @@ void Object::setServersideFaction()
     {
         faction_template = sFactionTemplateStore.LookupEntry(static_cast<Unit*>(this)->getFactionTemplate());
         if (faction_template == nullptr)
-            sLogger.failure("Unit does not have a valid faction. Faction: %u set to Entry: %u", static_cast<Unit*>(this)->getFactionTemplate(), getEntry());
+            sLogger.failure("Unit does not have a valid faction. Faction: {} set to Entry: {}", static_cast<Unit*>(this)->getFactionTemplate(), getEntry());
     }
     else if (isGameObject())
     {
@@ -3802,7 +3802,7 @@ void Object::setServersideFaction()
         {
             if (faction_template == nullptr)
             {
-                sLogger.failure("GameObject does not have a valid faction. Faction: %u set to Entry: %u", static_cast<GameObject*>(this)->getFactionTemplate(), getEntry());
+                sLogger.failure("GameObject does not have a valid faction. Faction: {} set to Entry: {}", static_cast<GameObject*>(this)->getFactionTemplate(), getEntry());
             }
         }
     }
@@ -3967,7 +3967,7 @@ void Object::Phase(uint8 command, uint32 newphase)
         m_phase = 1;
         break;
     default:
-        sLogger.failure("Object::Phase called with invalid command %u", command);
+        sLogger.failure("Object::Phase called with invalid command {}", command);
         break;
     }
 }
@@ -4032,7 +4032,7 @@ void Object::SendCreatureChatMessageInRange(Creature* creature, uint32_t textId,
                 MySQLStructure::NpcScriptText const* npcScriptText = sMySQLStore.getNpcScriptText(textId);
                 if (npcScriptText == nullptr)
                 {
-                    sLogger.failure("Invalid textId: %u. This text is send by a script but not in table npc_script_text!", textId);
+                    sLogger.failure("Invalid textId: {}. This text is send by a script but not in table npc_script_text!", textId);
                     return;
                 }
 
@@ -4564,7 +4564,7 @@ GameObject* Object::summonGameObject(uint32_t entryID, LocationVector pos, Quate
         return nullptr;
     }
 
-    sLogger.debug("CreateAndSpawnGameObject: By Entry '%u'", entryID);
+    sLogger.debug("CreateAndSpawnGameObject: By Entry '{}'", entryID);
 
     WorldMap* map = getWorldMap();
     if (!map)
@@ -4630,7 +4630,7 @@ void MovementInfo::readMovementInfo(ByteBuffer& data, [[maybe_unused]]uint16_t o
 
     data >> guid >> flags >> flags2 >> update_time >> position >> position.o;
 
-    sLogger.debug("guid: %u, flags: %u, flags2: %u, updatetime: %u, position: (%f, %f, %f, %f)",
+    sLogger.debug("guid: {}, flags: {}, flags2: {}, updatetime: {}, position: ({}, {}, {}, {})",
         guid.getGuidLow(), flags, flags2, update_time, position.x, position.y, position.z, position.o);
 
     if (hasMovementFlag(MOVEFLAG_TRANSPORT))
@@ -4643,7 +4643,7 @@ void MovementInfo::readMovementInfo(ByteBuffer& data, [[maybe_unused]]uint16_t o
         if (hasMovementFlag2(MOVEFLAG2_INTERPOLATED_MOVE))
             data >> transport_time2;
 
-        sLogger.debug("tguid: %u, tposition: (%f, %f, %f, %f)", transport_guid, transport_position.x, transport_position.y, transport_position.z, transport_position.o);
+        sLogger.debug("tguid: {}, tposition: ({}, {}, {}, {})", transport_guid, transport_position.x, transport_position.y, transport_position.z, transport_position.o);
     }
 
     if (hasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_FLYING)) || hasMovementFlag2(MOVEFLAG2_ALLOW_PITCHING))
@@ -4733,7 +4733,7 @@ void MovementInfo::readMovementInfo(ByteBuffer& data, [[maybe_unused]]uint16_t o
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(sOpcodeTables.getInternalIdForHex(opcode));
     if (!sequence)
     {
-        sLogger.failure("Unsupported MovementInfo::Read for 0x%X (%u)!", opcode);
+        sLogger.failure("Unsupported MovementInfo::Read for 0x{:X} ({})!", opcode);
         return;
     }
 
@@ -4935,7 +4935,7 @@ void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]]uint16_t 
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(opcode);
     if (!sequence)
     {
-        sLogger.failure("Unsupported MovementInfo::Write for 0x%X!", opcode);
+        sLogger.failure("Unsupported MovementInfo::Write for 0x{:X}!", opcode);
         return;
     }
 

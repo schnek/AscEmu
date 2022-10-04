@@ -61,7 +61,7 @@ bool ChatHandler::HandleWayPointAddCommand(const char* args, WorldSession* m_ses
 
     if (waypoint.moveType >= WAYPOINT_MOVE_TYPE_MAX)
     {
-        sLogger.failure("Waypoint %u has invalid move_type, setting default", waypoint.id);
+        sLogger.failure("Waypoint {} has invalid move_type, setting default", waypoint.id);
         waypoint.moveType = WAYPOINT_MOVE_TYPE_WALK;
     }
 

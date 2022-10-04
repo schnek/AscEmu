@@ -49,7 +49,7 @@ void Item::LoadFromDB(Field* fields, Player* plr, bool light)
     m_itemProperties = sMySQLStore.getItemProperties(itemid);
     if (!m_itemProperties)
     {
-        sLogger.failure("Item::LoadFromDB: Can't load item %u missing properties!", itemid);
+        sLogger.failure("Item::LoadFromDB: Can't load item {} missing properties!", itemid);
         return;
     }
 
@@ -455,7 +455,7 @@ void Item::ApplyEnchantmentBonus(EnchantmentSlot Slot, bool Apply)
     }
     else if (Apply)
     {
-        sLogger.failure("Item::ApplyEnchantmentBonus : Tried to apply visual enchantment but equipment slot %i is invalid", ItemSlot);
+        sLogger.failure("Item::ApplyEnchantmentBonus : Tried to apply visual enchantment but equipment slot {} is invalid", ItemSlot);
     }
 
 #if VERSION_STRING >= Cata
@@ -626,7 +626,7 @@ void Item::ApplyEnchantmentBonus(EnchantmentSlot Slot, bool Apply)
                 }
 
                 default:
-                    sLogger.failure("Unknown enchantment type: %u (%u)", Entry->type[c], Entry->Id);
+                    sLogger.failure("Unknown enchantment type: {} ({})", Entry->type[c], Entry->Id);
                 break;
             }
         }
@@ -793,14 +793,14 @@ uint32 Item::RepairItemCost()
     auto durability_costs = sDurabilityCostsStore.LookupEntry(m_itemProperties->ItemLevel);
     if (durability_costs == nullptr)
     {
-        sLogger.failure("Repair: Unknown item level (%u)", durability_costs);
+        sLogger.failure("Repair: Unknown item level ({})", durability_costs);
         return 0;
     }
 
     auto durability_quality = sDurabilityQualityStore.LookupEntry((m_itemProperties->Quality + 1) * 2);
     if (durability_quality == nullptr)
     {
-        sLogger.failure("Repair: Unknown item quality (%u)", durability_quality);
+        sLogger.failure("Repair: Unknown item quality ({})", durability_quality);
         return 0;
     }
 

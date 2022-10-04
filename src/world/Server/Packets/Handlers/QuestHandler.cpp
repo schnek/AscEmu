@@ -368,7 +368,7 @@ void WorldSession::handleQuestQueryOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        sLogger.debug("Invalid quest Id %u.", srlPacket.questId);
+        sLogger.debug("Invalid quest Id {}.", srlPacket.questId);
     }
 }
 
@@ -422,7 +422,7 @@ void WorldSession::handleQuestgiverHelloOpcode(WorldPacket& recvPacket)
     {
         if (!questGiver->isQuestGiver())
         {
-            sLogger.debug("Creature with guid %u is not a questgiver.", srlPacket.questGiverGuid.getGuidLowPart());
+            sLogger.debug("Creature with guid {} is not a questgiver.", srlPacket.questGiverGuid.getGuidLowPart());
             return;
         }
 
@@ -430,7 +430,7 @@ void WorldSession::handleQuestgiverHelloOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        sLogger.debug("Invalid questgiver guid %u.", srlPacket.questGiverGuid.getGuidLowPart());
+        sLogger.debug("Invalid questgiver guid {}.", srlPacket.questGiverGuid.getGuidLowPart());
     }
 }
 
@@ -505,7 +505,7 @@ void WorldSession::handleQuestGiverQueryQuestOpcode(WorldPacket& recvPacket)
     QuestProperties const* qst = sMySQLStore.getQuestProperties(srlPacket.questId);
     if (!qst)
     {
-        sLogger.debug("Invalid quest with id %u", srlPacket.questId);
+        sLogger.debug("Invalid quest with id {}", srlPacket.questId);
         return;
     }
 
@@ -606,7 +606,7 @@ void WorldSession::handleQuestlogRemoveQuestOpcode(WorldPacket& recvPacket)
     QuestLogEntry* qEntry = _player->getQuestLogBySlotId(srlPacket.questLogSlot);
     if (!qEntry)
     {
-        sLogger.debug(" No quest in slot %d.", srlPacket.questLogSlot);
+        sLogger.debug(" No quest in slot {}.", srlPacket.questLogSlot);
         return;
     }
     QuestProperties const* qPtr = qEntry->getQuestProperties();
@@ -672,7 +672,7 @@ void WorldSession::handleQuestgiverRequestRewardOpcode(WorldPacket& recvPacket)
 
             if (!qst)
             {
-                sLogger.debug("Cannot get reward for quest %u, as it doesn't exist at Unit %u.", srlPacket.questId, quest_giver->getEntry());
+                sLogger.debug("Cannot get reward for quest {}, as it doesn't exist at Unit {}.", srlPacket.questId, quest_giver->getEntry());
                 return;
             }
             status = sQuestMgr.CalcQuestStatus(qst_giver, _player, qst, static_cast<uint8_t>(quest_giver->GetQuestRelation(qst->id)), false);
@@ -694,7 +694,7 @@ void WorldSession::handleQuestgiverRequestRewardOpcode(WorldPacket& recvPacket)
             qst = go_quest_giver->FindQuest(srlPacket.questId, QUESTGIVER_QUEST_END);
             if (!qst)
             {
-                sLogger.debug("Cannot get reward for quest %u, as it doesn't exist at GO %u.", srlPacket.questId, quest_giver->getEntry());
+                sLogger.debug("Cannot get reward for quest {}, as it doesn't exist at GO {}.", srlPacket.questId, quest_giver->getEntry());
                 return;
             }
             status = sQuestMgr.CalcQuestStatus(qst_giver, _player, qst, static_cast<uint8_t>(go_quest_giver->GetQuestRelation(qst->id)), false);
@@ -749,7 +749,7 @@ void WorldSession::handleQuestgiverCompleteQuestOpcode(WorldPacket& recvPacket)
             qst = quest_giver->FindQuest(srlPacket.questId, QUESTGIVER_QUEST_END);
             if (!qst)
             {
-                sLogger.debug("Cannot complete quest %u, as it doesn't exist at Unit %u.", srlPacket.questId, quest_giver->getEntry());
+                sLogger.debug("Cannot complete quest {}, as it doesn't exist at Unit {}.", srlPacket.questId, quest_giver->getEntry());
                 return;
             }
             status = sQuestMgr.CalcQuestStatus(qst_giver, _player, qst, static_cast<uint8_t>(quest_giver->GetQuestRelation(qst->id)), false);
@@ -769,7 +769,7 @@ void WorldSession::handleQuestgiverCompleteQuestOpcode(WorldPacket& recvPacket)
             qst = go_quest_giver->FindQuest(srlPacket.questId, QUESTGIVER_QUEST_END);
             if (!qst)
             {
-                sLogger.debug("Cannot complete quest %u, as it doesn't exist at GO %u.", srlPacket.questId, quest_giver->getEntry());
+                sLogger.debug("Cannot complete quest {}, as it doesn't exist at GO {}.", srlPacket.questId, quest_giver->getEntry());
                 return;
             }
             status = sQuestMgr.CalcQuestStatus(qst_giver, _player, qst, static_cast<uint8_t>(go_quest_giver->GetQuestRelation(qst->id)), false);

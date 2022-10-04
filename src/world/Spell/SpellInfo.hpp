@@ -186,7 +186,7 @@ public:
     {
         if (idx >= MAX_SPELL_TOTEMS)
         {
-            sLogger.failure("Totem index id %u is invalid!", idx);
+            sLogger.failure("Totem index id {} is invalid!", idx);
             return 0;
         }
 
@@ -197,7 +197,7 @@ public:
     {
         if (idx >= MAX_SPELL_REAGENTS)
         {
-            sLogger.failure("Reagent index id %u is invalid!", idx);
+            sLogger.failure("Reagent index id {} is invalid!", idx);
             return 0;
         }
 
@@ -208,7 +208,7 @@ public:
     {
         if (idx >= MAX_SPELL_REAGENTS)
         {
-            sLogger.failure("ReagentCount index id %u is invalid!", idx);
+            sLogger.failure("ReagentCount index id {} is invalid!", idx);
             return 0;
         }
 
@@ -223,7 +223,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -234,7 +234,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -245,7 +245,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0.f;
         }
 
@@ -256,7 +256,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -267,7 +267,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -278,7 +278,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -289,7 +289,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -300,7 +300,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -311,7 +311,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -322,7 +322,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -333,7 +333,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -344,7 +344,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -355,7 +355,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -366,7 +366,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -377,7 +377,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -388,7 +388,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -399,7 +399,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -410,7 +410,7 @@ public:
     {
         if (idx1 >= MAX_SPELL_EFFECTS || idx2 >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Totem index id %u or effect index %u is invalid!", idx1, idx2);
+            sLogger.failure("Totem index id {} or effect index {} is invalid!", idx1, idx2);
             return 0;
         }
 
@@ -421,7 +421,7 @@ public:
     {
         if (idx1 >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx1);
+            sLogger.failure("Effect index id {} is invalid!", idx1);
             return 0;
         }
 
@@ -444,7 +444,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -461,7 +461,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -473,7 +473,7 @@ public:
     {
         if (idx >= MAX_SPELL_TOTEM_CATEGORIES)
         {
-            sLogger.failure("TotemCategory index id %u is invalid!", idx);
+            sLogger.failure("TotemCategory index id {} is invalid!", idx);
             return 0;
         }
 
@@ -489,7 +489,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -519,7 +519,7 @@ public:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return 0;
         }
 
@@ -600,7 +600,7 @@ private:
     {
         if (idx >= MAX_SPELL_TOTEMS)
         {
-            sLogger.failure("Totem index id %u is invalid!", idx);
+            sLogger.failure("Totem index id {} is invalid!", idx);
             return;
         }
 
@@ -611,7 +611,7 @@ private:
     {
         if (idx >= MAX_SPELL_REAGENTS)
         {
-            sLogger.failure("Spellreagents index id %u is invalid!", idx);
+            sLogger.failure("Spellreagents index id {} is invalid!", idx);
             return;
         }
 
@@ -622,7 +622,7 @@ private:
     {
         if (idx >= MAX_SPELL_REAGENTS)
         {
-            sLogger.failure("Reagentcount index id %u is invalid!", idx);
+            sLogger.failure("Reagentcount index id {} is invalid!", idx);
             return;
         }
 
@@ -637,7 +637,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -648,7 +648,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -659,7 +659,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -670,7 +670,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -681,7 +681,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -692,7 +692,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -703,7 +703,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -714,7 +714,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -725,7 +725,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -736,7 +736,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -747,7 +747,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -758,7 +758,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -769,7 +769,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -780,7 +780,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -791,7 +791,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -802,7 +802,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -813,7 +813,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -824,7 +824,7 @@ private:
     {
         if (idx1 >= MAX_SPELL_EFFECTS || idx2 >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id1 %u or id2 %u is invalid!", idx1, idx2);
+            sLogger.failure("Effect index id1 {} or id2 {} is invalid!", idx1, idx2);
             return;
         }
 
@@ -847,7 +847,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -862,7 +862,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -874,7 +874,7 @@ private:
     {
         if (idx >= MAX_SPELL_TOTEM_CATEGORIES)
         {
-            sLogger.failure("TotemCategory index id %u is invalid!", idx);
+            sLogger.failure("TotemCategory index id {} is invalid!", idx);
             return;
         }
 
@@ -890,7 +890,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -904,7 +904,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -915,7 +915,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 
@@ -926,7 +926,7 @@ private:
     {
         if (idx >= MAX_SPELL_EFFECTS)
         {
-            sLogger.failure("Effect index id %u is invalid!", idx);
+            sLogger.failure("Effect index id {} is invalid!", idx);
             return;
         }
 

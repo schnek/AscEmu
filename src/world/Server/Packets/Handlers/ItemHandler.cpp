@@ -287,7 +287,7 @@ void WorldSession::handleUseItemOpcode(WorldPacket& recvPacket)
     const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
     if (spellInfo == nullptr)
     {
-        sLogger.failure("WORLD: Unknown spell id %i in ::handleUseItemOpcode() from item id %i", spellId, itemProto->ItemId);
+        sLogger.failure("WORLD: Unknown spell id {} in ::handleUseItemOpcode() from item id {}", spellId, itemProto->ItemId);
         return;
     }
 
@@ -373,7 +373,7 @@ void WorldSession::handleSwapItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SWAP_ITEM: destInventorySlot %i destSlot %i srcInventorySlot %i srcInventorySlot %i",
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SWAP_ITEM: destInventorySlot {} destSlot {} srcInventorySlot {} srcInventorySlot {}",
         srlPacket.destInventorySlot, srlPacket.destSlot, srlPacket.srcInventorySlot, srlPacket.srcSlot);
 
     _player->getItemInterface()->SwapItems(srlPacket.destInventorySlot,
@@ -512,7 +512,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
 
     if (count >= EQUIPMENT_SLOT_END)
     {
-        sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) sent a wrong count (%u) when transmogrifying items.", player->getGuidLow(), player->getName().c_str(), count);
+        sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) sent a wrong count ({}) when transmogrifying items.", player->getGuidLow(), player->getName(), count);
         recvData.rfinish();
         return;
     }
@@ -573,14 +573,14 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
     {
-        sLogger.debug("handleTransmogrifyItems - Unit (GUID: %u) not found.", uint64_t(npcGuid));
+        sLogger.debug("handleTransmogrifyItems - Unit (GUID: {}) not found.", uint64_t(npcGuid));
         return;
     }
 
     // Validate
     if (!creature->isTransmog() && creature->getDistance(player) > 5.0f)
     {
-        sLogger.debug("handleTransmogrifyItems - Unit (GUID: %u) can't interact with it or is no Transmogrifier.", uint64_t(npcGuid));
+        sLogger.debug("handleTransmogrifyItems - Unit (GUID: {}) can't interact with it or is no Transmogrifier.", uint64_t(npcGuid));
         return;
     }
 
@@ -590,7 +590,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
         // slot of the transmogrified item
         if (slots[i] >= EQUIPMENT_SLOT_END)
         {
-            sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) tried to transmogrify an item (lowguid: %u) with a wrong slot (%u) when transmogrifying items.", player->getGuidLow(), player->getName().c_str(), uint64_t(itemGuids[i]), slots[i]);
+            sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) tried to transmogrify an item (lowguid: {}) with a wrong slot ({}) when transmogrifying items.", player->getGuidLow(), player->getName(), uint64_t(itemGuids[i]), slots[i]);
             return;
         }
 
@@ -600,7 +600,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
             ItemProperties const* proto = sMySQLStore.getItemProperties(newEntries[i]);
             if (!proto)
             {
-                sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) tried to transmogrify to an invalid item (entry: %u).", player->getGuidLow(), player->getName().c_str(), newEntries[i]);
+                sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) tried to transmogrify to an invalid item (entry: {}).", player->getGuidLow(), player->getName(), newEntries[i]);
                 return;
             }
         }
@@ -612,7 +612,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
             itemTransmogrifier = player->getItemInterface()->GetItemByGUID(itemGuids[i]);
             if (!itemTransmogrifier)
             {
-                sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) tried to transmogrify with an invalid item (lowguid: %u).", player->getGuidLow(), player->getName().c_str(), uint64_t(itemGuids[i]));
+                sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) tried to transmogrify with an invalid item (lowguid: {}).", player->getGuidLow(), player->getName(), uint64_t(itemGuids[i]));
                 return;
             }
         }
@@ -621,7 +621,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
         Item* itemTransmogrified = player->getItemInterface()->GetInventoryItem(slots[i]);
         if (!itemTransmogrified)
         {
-            sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) tried to transmogrify an invalid item in a valid slot (slot: %u).", player->getGuidLow(), player->getName().c_str(), slots[i]);
+            sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) tried to transmogrify an invalid item in a valid slot (slot: {}).", player->getGuidLow(), player->getName(), slots[i]);
             return;
         }
 
@@ -634,7 +634,7 @@ void WorldSession::handleTransmogrifyItems(WorldPacket& recvData)
         {
             if (!Item::canTransmogrifyItemWithItem(itemTransmogrified, itemTransmogrifier))
             {
-                sLogger.debug("handleTransmogrifyItems - Player (GUID: %u, name: %s) failed CanTransmogrifyItemWithItem (%u with %u).", player->getGuidLow(), player->getName().c_str(), itemTransmogrified->getEntry(), itemTransmogrifier->getEntry());
+                sLogger.debug("handleTransmogrifyItems - Player (GUID: {}, name: {}) failed CanTransmogrifyItemWithItem ({} with {}).", player->getGuidLow(), player->getName(), itemTransmogrified->getEntry(), itemTransmogrifier->getEntry());
                 return;
             }
 
@@ -689,7 +689,7 @@ void WorldSession::handleReforgeItemOpcode(WorldPacket& recvData)
     Creature* creature = player->getWorldMapCreature(guid);
     if (!creature)
     {
-        sLogger.debug("handleReforgeItemOpcode - Unit (GUID: %u) not found.", uint64_t(guid));
+        sLogger.debug("handleReforgeItemOpcode - Unit (GUID: {}) not found.", uint64_t(guid));
         sendReforgeResult(false);
         return;
     }
@@ -697,7 +697,7 @@ void WorldSession::handleReforgeItemOpcode(WorldPacket& recvData)
     // Validate
     if (!creature->isReforger() && creature->getDistance(player) > 5.0f)
     {
-        sLogger.debug("handleReforgeItemOpcode - Unit (GUID: %u) can't interact with it or is no Reforger.", uint64_t(guid));
+        sLogger.debug("handleReforgeItemOpcode - Unit (GUID: {}) can't interact with it or is no Reforger.", uint64_t(guid));
         sendReforgeResult(false);
         return;
     }
@@ -706,7 +706,7 @@ void WorldSession::handleReforgeItemOpcode(WorldPacket& recvData)
 
     if (!item)
     {
-        sLogger.debug("handleReforgeItemOpcode - Player (Guid: %u Name: %s) tried to reforge an invalid/non-existant item.", player->getGuidLow(), player->getName().c_str());
+        sLogger.debug("handleReforgeItemOpcode - Player (Guid: {} Name: {}) tried to reforge an invalid/non-existant item.", player->getGuidLow(), player->getName());
         sendReforgeResult(false);
         return;
     }
@@ -722,7 +722,7 @@ void WorldSession::handleReforgeItemOpcode(WorldPacket& recvData)
     DBC::Structures::ItemReforgeEntry const* stats = sItemReforgeStore.LookupEntry(reforgeEntry);
     if (!stats)
     {
-        sLogger.debug("handleReforgeItemOpcode - Player (Guid: %u Name: %s) tried to reforge an item with invalid reforge entry (%u).", player->getGuidLow(), player->getName().c_str(), reforgeEntry);
+        sLogger.debug("handleReforgeItemOpcode - Player (Guid: {} Name: {}) tried to reforge an item with invalid reforge entry ({}).", player->getGuidLow(), player->getName(), reforgeEntry);
         sendReforgeResult(false);
         return;
     }
@@ -997,7 +997,7 @@ void WorldSession::handleSwapInvItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SWAP_INV_ITEM src slot: %u dst slot: %u",
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SWAP_INV_ITEM src slot: {} dst slot: {}",
         static_cast<uint32_t>(srlPacket.srcSlot), static_cast<uint32_t>(srlPacket.destSlot));
 
     // player trying to add item to the same slot
@@ -1149,7 +1149,7 @@ void WorldSession::handleDestroyItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_DESTROYITEM SrcInv Slot: %i Src slot: %i", srlPacket.srcInventorySlot, srlPacket.srcSlot);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_DESTROYITEM SrcInv Slot: {} Src slot: {}", srlPacket.srcInventorySlot, srlPacket.srcSlot);
 
     if (Item* srcItem = _player->getItemInterface()->GetInventoryItem(srlPacket.srcInventorySlot, srlPacket.srcSlot))
     {
@@ -1232,7 +1232,7 @@ void WorldSession::handleAutoEquipItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTOEQUIP_ITEM Inventory slot: %i Source Slot: %i", srlPacket.srcInventorySlot, srlPacket.srcSlot);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTOEQUIP_ITEM Inventory slot: {} Source Slot: {}", srlPacket.srcInventorySlot, srlPacket.srcSlot);
 
     Item* eitem = _player->getItemInterface()->GetInventoryItem(srlPacket.srcInventorySlot, srlPacket.srcSlot);
 
@@ -1432,7 +1432,7 @@ void WorldSession::handleAutoEquipItemSlotOpcode(WorldPacket& recvPacket)
     int8_t slotType = _player->getItemInterface()->GetItemSlotByType(item->getItemProperties()->InventoryType);
     bool hasDualWield2H = false;
 
-    sLogger.debug("CMSG_AUTOEQUIP_ITEM_SLOT ItemGUID: %u, SrcSlot: %i, DestSlot: %i, SlotType: %i",
+    sLogger.debug("CMSG_AUTOEQUIP_ITEM_SLOT ItemGUID: {}, SrcSlot: {}, DestSlot: {}, SlotType: {}",
         srlPacket.itemGuid, srcSlot, srlPacket.destSlot, slotType);
 
     if (srcSlot == srlPacket.destSlot)
@@ -1510,7 +1510,7 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     ItemProperties const* itemProto = sMySQLStore.getItemProperties(srlPacket.item_id);
     if (!itemProto)
     {
-        sLogger.failure("Unknown item id %u", srlPacket.item_id);
+        sLogger.failure("Unknown item id {}", srlPacket.item_id);
         return;
     }
 
@@ -1651,7 +1651,7 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     auto itemProperties = sMySQLStore.getItemProperties(srlPacket.item_id);
     if (!itemProperties)
     {
-        sLogger.failure("Unknown item id %u", srlPacket.item_id);
+        sLogger.failure("Unknown item id {}", srlPacket.item_id);
         return;
     }
 
@@ -2328,8 +2328,8 @@ void WorldSession::sendInventoryList(Creature* unit)
         sChatHandler.BlueSystemMessage(_player->getSession(),
             "No sell template found. Report this to database's devs: %d (%s)",
             unit->getEntry(), unit->GetCreatureProperties()->Name.c_str());
-        sLogger.failure("'%s' discovered that a creature with entry %u (%s) has no sell template.",
-            _player->getName().c_str(), unit->getEntry(), unit->GetCreatureProperties()->Name.c_str());
+        sLogger.failure("'{}' discovered that a creature with entry {} ({}) has no sell template.",
+            _player->getName(), unit->getEntry(), unit->GetCreatureProperties()->Name);
         GossipMenu::senGossipComplete(_player);
         return;
     }
@@ -2575,7 +2575,7 @@ void WorldSession::handleReadItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_READ_ITEM %d", srlPacket.srcSlot);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_READ_ITEM {}", srlPacket.srcSlot);
 
     Item* item = _player->getItemInterface()->GetInventoryItem(srlPacket.srcContainerSlot, srlPacket.srcSlot);
     if (item)
@@ -2658,7 +2658,7 @@ void WorldSession::handleRepairItemOpcode(WorldPacket& recvPacket)
             }
         }
     }
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REPAIR_ITEM %d", srlPacket.itemGuid);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REPAIR_ITEM {}", srlPacket.itemGuid);
 }
 
 void WorldSession::handleAutoBankItemOpcode(WorldPacket& recvPacket)
@@ -2667,7 +2667,7 @@ void WorldSession::handleAutoBankItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTO_BANK_ITEM Inventory slot: %u Source Slot: %u",
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTO_BANK_ITEM Inventory slot: {} Source Slot: {}",
         static_cast<uint32_t>(srlPacket.srcInventorySlot), static_cast<uint32_t>(srlPacket.srcSlot));
 
     Item* eitem = _player->getItemInterface()->GetInventoryItem(srlPacket.srcInventorySlot, srlPacket.srcSlot);
@@ -2704,7 +2704,7 @@ void WorldSession::handleAutoStoreBankItemOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTOSTORE_BANK_ITEM Inventory slot: %u Source Slot: %u",
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AUTOSTORE_BANK_ITEM Inventory slot: {} Source Slot: {}",
         static_cast<uint32_t>(srlPacket.srcInventorySlot), static_cast<uint32_t>(srlPacket.srcSlot));
 
     Item* eitem = _player->getItemInterface()->GetInventoryItem(srlPacket.srcInventorySlot, srlPacket.srcSlot);
@@ -3107,7 +3107,7 @@ void WorldSession::handleEquipmentSetUse(WorldPacket& data)
                     const auto addItemResult = _player->getItemInterface()->SafeAddItem(item, SrcBagID, SrcSlotID);
                     if (!addItemResult)
                     {
-                        sLogger.failure("handleEquipmentSetUse", "Error while adding item %u to player %s twice", item->getEntry(), _player->getName().c_str());
+                        sLogger.failure("handleEquipmentSetUse", "Error while adding item {} to player {} twice", item->getEntry(), _player->getName());
                         result = 0;
                     }
                     else
@@ -3164,12 +3164,12 @@ void WorldSession::handleEquipmentSetSave(WorldPacket& data)
 
     if (_player->getItemInterface()->m_EquipmentSets.AddEquipmentSet(equipmentSet->SetGUID, equipmentSet))
     {
-        sLogger.debug("Player %u successfully stored equipment set %u at slot %u ", _player->getGuidLow(), equipmentSet->SetGUID, equipmentSet->SetID);
+        sLogger.debug("Player {} successfully stored equipment set {} at slot {} ", _player->getGuidLow(), equipmentSet->SetGUID, equipmentSet->SetID);
         _player->sendEquipmentSetSaved(equipmentSet->SetID, equipmentSet->SetGUID);
     }
     else
     {
-        sLogger.debug("Player %u couldn't store equipment set %u at slot %u ", _player->getGuidLow(), equipmentSet->SetGUID, equipmentSet->SetID);
+        sLogger.debug("Player {} couldn't store equipment set {} at slot {} ", _player->getGuidLow(), equipmentSet->SetGUID, equipmentSet->SetID);
     }
 }
 
@@ -3184,9 +3184,9 @@ void WorldSession::handleEquipmentSetDelete(WorldPacket& data)
     data >> guid;
 
     if (_player->getItemInterface()->m_EquipmentSets.DeleteEquipmentSet(guid.getGuidLowPart()))
-        sLogger.debug("Equipmentset with GUID %u was successfully deleted.", guid.getGuidLowPart());
+        sLogger.debug("Equipmentset with GUID {} was successfully deleted.", guid.getGuidLowPart());
     else
-        sLogger.debug("Equipmentset with GUID %u couldn't be deleted.", guid.getGuidLowPart());
+        sLogger.debug("Equipmentset with GUID {} couldn't be deleted.", guid.getGuidLowPart());
 
 }
 #endif

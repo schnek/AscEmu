@@ -366,7 +366,7 @@ bool ChatHandler::HandleQuestFinishCommand(const char* args, WorldSession* m_ses
                     ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_item[i]);
                     if (!proto)
                     {
-                        sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_item[i], qst->id);
+                        sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_item[i], qst->id);
                     }
                     else
                     {
@@ -405,7 +405,7 @@ bool ChatHandler::HandleQuestFinishCommand(const char* args, WorldSession* m_ses
                 ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_choiceitem[reward_slot]);
                 if (!proto)
                 {
-                    sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_choiceitem[reward_slot], qst->id);
+                    sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_choiceitem[reward_slot], qst->id);
                 }
                 else
                 {
@@ -1531,7 +1531,7 @@ bool ChatHandler::HandleQuestRewardCommand(const char* args, WorldSession* m_ses
     else
     {
         recout << "Quest ID " << qu_id << " not found.\n";
-        sLogger.failure("Quest ID %lu not found.", qu_id);
+        sLogger.failure("Quest ID {} not found.", qu_id);
     }
 
     SendMultilineMessage(m_session, recout.str().data());

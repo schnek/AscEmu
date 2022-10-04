@@ -86,7 +86,7 @@ public:
         else
         {
             auto error = abs(min) + abs(max);
-            sLogger.failure("We run out of Available Unique Ids will return %i \n", error);
+            sLogger.failure("We run out of Available Unique Ids will return {} \n", error);
             return error;
         }
     }
@@ -95,7 +95,7 @@ public:
     {
         if (id < min || id > max)
         {
-            sLogger.failure("Tried to free Id %i but is not in range of min %i and max %i \n", id, min, max);
+            sLogger.failure("Tried to free Id {} but is not in range of min {} and max {} \n", id, min, max);
             return;
         }
 

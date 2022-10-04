@@ -229,7 +229,7 @@ class SERVER_DECL WorldSession
                 return &sAccountData[index];
             }
 
-            sLogger.failure("GetAccountData tried to get invalid index %u", index);
+            sLogger.failure("GetAccountData tried to get invalid index {}", index);
             return nullptr;
         }
 

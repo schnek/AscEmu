@@ -118,7 +118,7 @@ Unit::~Unit()
     for (auto extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
     {
         ExtraStrike* extraStrike = *extraStrikeTarget;
-        sLogger.failure("ExtraStrike added to Unit %u by Spell ID %u wasn't removed when removing the Aura", getGuid(), extraStrike->spell_info->getId());
+        sLogger.failure("ExtraStrike added to Unit {} by Spell ID {} wasn't removed when removing the Aura", getGuid(), extraStrike->spell_info->getId());
         delete extraStrike;
     }
     m_extraStrikeTargets.clear();
@@ -196,7 +196,7 @@ uint8_t Unit::getBytes0ByOffset(uint32_t offset) const
         case 3:
             return static_cast<uint8_t>(getPowerType());
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_0 data (max 3). Returning 0", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_0 data (max 3). Returning 0", offset);
             return 0;
     }
 }
@@ -218,7 +218,7 @@ void Unit::setBytes0ForOffset(uint32_t offset, uint8_t value)
             setPowerType(value);
             break;
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_0 data (max 3)", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_0 data (max 3)", offset);
             break;
     }
 }
@@ -894,7 +894,7 @@ uint8_t Unit::getBytes1ByOffset(uint32_t offset) const
         case 3:
             return getAnimationFlags();
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_1 data (max 3). Returning 0", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_1 data (max 3). Returning 0", offset);
             return 0;
     }
 }
@@ -916,7 +916,7 @@ void Unit::setBytes1ForOffset(uint32_t offset, uint8_t value)
             setAnimationFlags(value);
             break;
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_1 data (max 3)", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_1 data (max 3)", offset);
             break;
     }
 }
@@ -1028,7 +1028,7 @@ uint8_t Unit::getBytes2ByOffset(uint32_t offset) const
         case 3:
             return getShapeShiftForm();
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_2 data (max 3). Returning 0", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_2 data (max 3). Returning 0", offset);
             return 0;
     }
 }
@@ -1050,7 +1050,7 @@ void Unit::setBytes2ForOffset(uint32_t offset, uint8_t value)
             setShapeShiftForm(value);
             break;
         default:
-            sLogger.failure("Offset %u is not a valid offset value for byte_2 data (max 3)", offset);
+            sLogger.failure("Offset {} is not a valid offset value for byte_2 data (max 3)", offset);
             break;
     }
 }
@@ -2322,7 +2322,7 @@ void Unit::setSpeedRate(UnitSpeedType type, float value, bool current)
         data.WriteByteSeq(guid[4]);
         break;
     default:
-        sLogger.failure("Unit::setSpeedRate: Unsupported move type (%d), data not sent to client.", type);
+        sLogger.failure("Unit::setSpeedRate: Unsupported move type ({}), data not sent to client.", type);
         return;
     }
 
@@ -3182,7 +3182,7 @@ SpellProc* Unit::addProcTriggerSpell(SpellInfo const* spellInfo, SpellInfo const
     if (spellProc == nullptr)
     {
         if (originalSpellInfo != nullptr)
-            sLogger.failure("Unit::addProcTriggerSpell : Spell id %u tried to add a non-existent spell to Unit %p as SpellProc", originalSpellInfo->getId(), this);
+            sLogger.failure("Unit::addProcTriggerSpell : Spell id {} tried to add a non-existent spell to Unit %p as SpellProc", originalSpellInfo->getId(), this);
         else
             sLogger.failure("Unit::addProcTriggerSpell : Something tried to add a non-existent spell to Unit %p as SpellProc", this);
         return nullptr;
@@ -3787,7 +3787,7 @@ void Unit::sendAttackerStateUpdate(const WoWGuid& attackerGuid, const WoWGuid& v
 #else
 void Unit::sendAttackerStateUpdate(const WoWGuid& attackerGuid, const WoWGuid& victimGuid, HitStatus hitStatus, uint32_t damage, [[maybe_unused]] uint32_t overKill, DamageInfo damageInfo, uint32_t absorbedDamage, VisualState visualState, uint32_t blockedDamage, [[maybe_unused]] uint32_t rageGain)
 {
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Status %u, damage %u", uint32_t(hitStatus), damage);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Status {}, damage {}", uint32_t(hitStatus), damage);
 
     WorldPacket data(SMSG_ATTACKERSTATEUPDATE, (4 + 8 + 8 + 4) + 1 + (1 * (4 + 4 + 4 + 4 + 4)) + (4 + 4 + 4 + 4));
 
@@ -5048,7 +5048,7 @@ void Unit::sendFullAuraUpdate()
     }
 
     sendMessageToSet(packetData.serialise().get(), true);
-    sLogger.debug("Unit::sendFullAuraUpdate : Updated %u auras for guid %u", updates, getGuid());
+    sLogger.debug("Unit::sendFullAuraUpdate : Updated {} auras for guid {}", updates, getGuid());
 #endif
 }
 
@@ -7461,7 +7461,7 @@ void Unit::handleSpellClick(Unit* clicker, int8_t seatId /*= -1*/)
 
                 if (!valid)
                 {
-                    sLogger.failure("Spell %u specified in npc_spellclick_spells is not a valid vehicle enter aura!", clickPair.spellId);
+                    sLogger.failure("Spell {} specified in npc_spellclick_spells is not a valid vehicle enter aura!", clickPair.spellId);
                     continue;
                 }
 

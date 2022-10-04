@@ -323,7 +323,7 @@ void TotemSummon::SetupSpells()
     const auto totemSpell = sSpellMgr.getSpellInfo(creature_properties->AISpells[0]);
     if (totemSpell == nullptr)
     {
-        sLogger.debug("Totem %u does not have any spells to cast", creature_properties->Id);
+        sLogger.debug("Totem {} does not have any spells to cast", creature_properties->Id);
         return;
     }
 

@@ -271,7 +271,7 @@ uint32 QuestMgr::CalcStatus(Object* quest_giver, Player* plr)
     if (!bValid)
     {
         //annoying message that is not needed since all objects don't exactly have quests
-        //sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for CalcStatus. TypeId: %d.", quest_giver->getGuid(), quest_giver->getObjectTypeId());
+        //sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for CalcStatus. TypeId: {}.", quest_giver->getGuid(), quest_giver->getObjectTypeId());
         return status;
     }
 
@@ -341,7 +341,7 @@ uint32 QuestMgr::ActiveQuestsCount(Object* quest_giver, Player* plr)
 
     if (!bValid)
     {
-        sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for ActiveQuestsCount. TypeId: %d.", quest_giver->getGuid(), quest_giver->getObjectTypeId());
+        sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for ActiveQuestsCount. TypeId: {}.", quest_giver->getGuid(), quest_giver->getObjectTypeId());
         return 0;
     }
 
@@ -1563,7 +1563,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                 ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_item[i]);
                 if (!proto)
                 {
-                    sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_item[i], qst->id);
+                    sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_item[i], qst->id);
                 }
                 else
                 {
@@ -1601,7 +1601,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
             ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_choiceitem[reward_slot]);
             if (!proto)
             {
-                sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_choiceitem[reward_slot], qst->id);
+                sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_choiceitem[reward_slot], qst->id);
             }
             else
             {
@@ -1675,7 +1675,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                 ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_item[i]);
                 if (!proto)
                 {
-                    sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_item[i], qst->id);
+                    sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_item[i], qst->id);
                 }
                 else
                 {
@@ -1713,7 +1713,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
             ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_choiceitem[reward_slot]);
             if (!proto)
             {
-                sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_choiceitem[reward_slot], qst->id);
+                sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_choiceitem[reward_slot], qst->id);
             }
             else
             {
@@ -2156,7 +2156,7 @@ void QuestMgr::SetGameObjectLootQuest(uint32 GO_Entry, uint32 Item_Entry)
     }
 
     /*if (QuestID == 0)
-        sLogger.debug("QuestMgr : No corresponding quest was found for loot_gameobjects entryid %u quest item %d", GO_Entry, Item_Entry);*/
+        sLogger.debug("QuestMgr : No corresponding quest was found for loot_gameobjects entryid {} quest item {}", GO_Entry, Item_Entry);*/
 }
 
 bool QuestMgr::OnActivateQuestGiver(Object* qst_giver, Player* plr)
@@ -2220,7 +2220,7 @@ bool QuestMgr::OnActivateQuestGiver(Object* qst_giver, Player* plr)
 
         if (!bValid)
         {
-            sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for OnActivateQuestGiver. TypeId: %d.", qst_giver->getGuid(), qst_giver->getObjectTypeId());
+            sLogger.debug("QUESTS: Warning, invalid NPC " I64FMT " specified for OnActivateQuestGiver. TypeId: {}.", qst_giver->getGuid(), qst_giver->getObjectTypeId());
             return false;
         }
 
@@ -2351,7 +2351,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32 r
             slotsrequired++;
             ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_item[i]);
             if (!proto)
-                sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_item[i], qst->id);
+                sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_item[i], qst->id);
             else if (plyr->getItemInterface()->CanReceiveItem(proto, qst->reward_itemcount[i]))
                 return false;
         }
@@ -2363,7 +2363,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32 r
         slotsrequired++;
         ItemProperties const* proto = sMySQLStore.getItemProperties(qst->reward_choiceitem[reward_slot]);
         if (!proto)
-            sLogger.failure("Invalid item prototype in quest reward! ID %d, quest %d", qst->reward_choiceitem[reward_slot], qst->id);
+            sLogger.failure("Invalid item prototype in quest reward! ID {}, quest {}", qst->reward_choiceitem[reward_slot], qst->id);
         else if (plyr->getItemInterface()->CanReceiveItem(proto, qst->reward_choiceitemcount[reward_slot]))
             return false;
     }
@@ -2439,7 +2439,7 @@ void QuestMgr::LoadExtraQuestStuff()
                     else
                     {
                         // if quest has neither valid gameobject, log it.
-                        sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Quest %lu has required_mobtype[%d]==%lu, it's not a valid GameObject.", qst->id, i, qst->required_mob_or_go[i]);
+                        sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Quest {} has required_mobtype[{}]=={}, it's not a valid GameObject.", qst->id, i, qst->required_mob_or_go[i]);
                     }
                 }
                 else
@@ -2450,7 +2450,7 @@ void QuestMgr::LoadExtraQuestStuff()
                     else
                     {
                         // if quest has neither valid creature, log it.
-                        sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Quest %lu has required_mobtype[%d]==%lu, it's not a valid Creature.", qst->id, i, qst->required_mob_or_go[i]);
+                        sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "Quest {} has required_mobtype[{}]=={}, it's not a valid Creature.", qst->id, i, qst->required_mob_or_go[i]);
                     }
                 }
 
@@ -2499,7 +2499,7 @@ void QuestMgr::LoadExtraQuestStuff()
             auto qst = sMySQLStore.getQuestProperties(quest);
             if (qst == nullptr)
             {
-                sLogger.debug("Tried to add starter to npc %d for non-existent quest %u in table creature_quest_starter.", creature, quest);
+                sLogger.debug("Tried to add starter to npc {} for non-existent quest {} in table creature_quest_starter.", creature, quest);
             }
             else
             {
@@ -2521,7 +2521,7 @@ void QuestMgr::LoadExtraQuestStuff()
             auto qst = sMySQLStore.getQuestProperties(quest);
             if (qst == nullptr)
             {
-                sLogger.debug("Tried to add finisher to npc %d for non-existent quest %u in table creature_quest_finisher.", creature, quest);
+                sLogger.debug("Tried to add finisher to npc {} for non-existent quest {} in table creature_quest_finisher.", creature, quest);
             }
             else
             {
@@ -2543,7 +2543,7 @@ void QuestMgr::LoadExtraQuestStuff()
             auto qst = sMySQLStore.getQuestProperties(quest);
             if (qst == nullptr)
             {
-                sLogger.debug("Tried to add starter to go %d for non-existent quest %u in table gameobject_quest_starter.", creature, quest);
+                sLogger.debug("Tried to add starter to go {} for non-existent quest {} in table gameobject_quest_starter.", creature, quest);
             }
             else
             {
@@ -2565,7 +2565,7 @@ void QuestMgr::LoadExtraQuestStuff()
             auto qst = sMySQLStore.getQuestProperties(quest);
             if (qst == nullptr)
             {
-                sLogger.debug("Tried to add finisher to go %d for non-existent quest %u in table gameobject_quest_finisher.", creature, quest);
+                sLogger.debug("Tried to add finisher to go {} for non-existent quest {} in table gameobject_quest_finisher.", creature, quest);
             }
             else
             {
@@ -2594,7 +2594,7 @@ void QuestMgr::LoadExtraQuestStuff()
             auto qst = sMySQLStore.getQuestProperties(quest);
             if (qst == nullptr)
             {
-                sLogger.debug("Tried to add association to item %d for non-existent quest %d.", item, quest);
+                sLogger.debug("Tried to add association to item {} for non-existent quest {}.", item, quest);
             }
             else
             {
@@ -2637,7 +2637,7 @@ void QuestMgr::LoadExtraQuestStuff()
 
         delete result;
 
-        sLogger.info("QuestMgr : Point Of Interest (POI) data loaded for %u quests.", count);
+        sLogger.info("QuestMgr : Point Of Interest (POI) data loaded for {} quests.", count);
 
 
 
@@ -2677,7 +2677,7 @@ void QuestMgr::LoadExtraQuestStuff()
             while (points->NextRow());
 
             delete points;
-            sLogger.info("QuestMgr : %u quest Point Of Interest points loaded.", count);
+            sLogger.info("QuestMgr : {} quest Point Of Interest points loaded.", count);
         }
 
     }
@@ -2729,7 +2729,7 @@ void QuestMgr::AddItemQuestAssociation(uint32 itemId, QuestProperties const* qst
     {
         // yep, update the QuestAssociation with the new item_count information
         ptr->item_count = item_count;
-        sLogger.debug("WARNING: Duplicate entries found in item_quest_association, updating item #%d with new item_count: %d.", itemId, item_count);
+        sLogger.debug("WARNING: Duplicate entries found in item_quest_association, updating item #{} with new item_count: {}.", itemId, item_count);
     }
 }
 

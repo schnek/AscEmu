@@ -40,7 +40,7 @@ uint8_t CreatureProperties::generateRandomDisplayIdAndReturnGender(uint32_t* dis
     if (!models[0] && !models[1] && !models[2] && !models[3])
     {
         // All models are invalid
-        sLogger.failure("CreatureProperties : All display IDs are invalid for creature entry %u", Id);
+        sLogger.failure("CreatureProperties : All display IDs are invalid for creature entry {}", Id);
         return 0;
     }
 
@@ -76,7 +76,7 @@ uint32_t CreatureProperties::getRandomModelId() const
 
     if (modelIds.empty())
     {
-        sLogger.failure("CreatureProperties : All display IDs are invalid for creature entry %u", Id);
+        sLogger.failure("CreatureProperties : All display IDs are invalid for creature entry {}", Id);
         return 0;
     }
 
@@ -1483,7 +1483,7 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     uint32 health;
     if (creature_properties->MinHealth > creature_properties->MaxHealth)
     {
-        sLogger.failure("MinHealth is bigger than MaxHealt! Using MaxHealth value. You should fix this in creature_proto table for entry: %u!", creature_properties->Id);
+        sLogger.failure("MinHealth is bigger than MaxHealt! Using MaxHealth value. You should fix this in creature_proto table for entry: {}!", creature_properties->Id);
         health = creature_properties->MaxHealth - Util::getRandomUInt(10);
     }
     else
@@ -1925,7 +1925,7 @@ void Creature::OnPushToWorld()
 {
     if (creature_properties == nullptr)
     {
-        sLogger.failure("Something tried to push Creature with entry %u with invalid creature_properties!", getEntry());
+        sLogger.failure("Something tried to push Creature with entry {} with invalid creature_properties!", getEntry());
         return;
     }
 
@@ -2012,7 +2012,7 @@ void Creature::respawn(bool force)
 
         if (getDeathState() == DEAD)
         {
-            sLogger.debug("Respawning creature %s (%s)", GetCreatureProperties()->Name.c_str(), getGuid());
+            sLogger.debug("Respawning creature {} ({})", GetCreatureProperties()->Name, getGuid());
             m_respawnTime = 0;
             loot.clear();
 
@@ -2048,7 +2048,7 @@ void Creature::respawn(bool force)
         }
     }
 
-    sLogger.debug("Respawning creature %s (%s)", GetCreatureProperties()->Name.c_str(), getGuid());
+    sLogger.debug("Respawning creature {} ({})", GetCreatureProperties()->Name, getGuid());
 }
 
 void Creature::Despawn(uint32 delay, uint32 respawntime)
@@ -2621,7 +2621,7 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
     }
     else
     {
-        sLogger.debug("no loot owner found loot will not be filled for creature %u", getEntry());
+        sLogger.debug("no loot owner found loot will not be filled for creature {}", getEntry());
     }
 
     if (getCharmedByGuid())

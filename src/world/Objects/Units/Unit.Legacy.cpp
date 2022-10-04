@@ -7937,7 +7937,7 @@ AuraCheckResponse Unit::AuraCheck(SpellInfo const* proto, Object* /*caster*/)
             }
         }
     }
-    //sLogger.debug("resp = %i", resp.Error);
+    //sLogger.debug("resp = {}", resp.Error);
     // return it back to our caller
     return resp;
 }

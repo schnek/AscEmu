@@ -433,7 +433,7 @@ void AchievementMgr::LoadFromDB(QueryResult* achievementResult, QueryResult* cri
             if (m_completedAchievements[id] == 0)
                 m_completedAchievements[id] = fields[1].GetUInt32();
             else
-                sLogger.failure("Duplicate completed achievement %u for player %u, skipping", id, (uint32_t)m_player->getGuid());
+                sLogger.failure("Duplicate completed achievement {} for player {}, skipping", id, (uint32_t)m_player->getGuid());
         }
         while (achievementResult->NextRow());
     }
@@ -450,7 +450,7 @@ void AchievementMgr::LoadFromDB(QueryResult* achievementResult, QueryResult* cri
                 m_criteriaProgress[progress_id] = progress;
             }
             else
-                sLogger.failure("Duplicate criteria progress %u for player %u, skipping", progress_id, (uint32_t)m_player->getGuid());
+                sLogger.failure("Duplicate criteria progress {} for player {}, skipping", progress_id, (uint32_t)m_player->getGuid());
 
         }
         while (criteriaResult->NextRow());
@@ -1992,7 +1992,7 @@ void AchievementMgr::GiveAchievementReward(DBC::Structures::AchievementEntry con
         Creature* pCreature = GetPlayer()->getWorldMap()->createCreature(Reward->sender);
         if (pCreature == nullptr)
         {
-            sLogger.failure("can not create sender for achievement %u", entry);
+            sLogger.failure("can not create sender for achievement {}", entry);
             return;
         }
 
@@ -2107,7 +2107,7 @@ bool AchievementMgr::GMCompleteCriteria(WorldSession* gmSession, uint32_t criter
             crt = sAchievementCriteriaStore.LookupEntry(i);
             if (crt == nullptr)
             {
-                sLogger.failure("Achievement Criteria %lu entry not found.", i);
+                sLogger.failure("Achievement Criteria {} entry not found.", i);
                 continue;
             }
             ++j;
@@ -2175,25 +2175,25 @@ bool AchievementMgr::UpdateAchievementCriteria(Player* player, int32_t criteriaI
     auto criteria = sAchievementCriteriaStore.LookupEntry(criteriaID);
     if (!criteria)
     {
-        sLogger.debug("Achievement ID %u is Invalid", criteriaID);
+        sLogger.debug("Achievement ID {} is Invalid", criteriaID);
         return false;
     }
     if (IsCompletedCriteria(criteria))
     {
-        sLogger.debug("Achievement criteria %lu already completed.", criteriaID);
+        sLogger.debug("Achievement criteria {} already completed.", criteriaID);
         return false;
     }
     auto* achievement = sAchievementStore.LookupEntry(criteria->referredAchievement);
     if (!achievement)
     {
         // achievement not found
-        sLogger.debug("Referred achievement (%lu) entry not found.", criteria->referredAchievement);
+        sLogger.debug("Referred achievement ({}) entry not found.", criteria->referredAchievement);
         return false;
     }
     if (achievement->flags & ACHIEVEMENT_FLAG_COUNTER)
     {
         // can't complete this type of achivement (counter)
-        sLogger.debug("AchievementMgr Referred achievement (%u) |Hachievement:%u:" I64FMT ":0:0:0:-1:0:0:0:0|h[%s]|h is a counter and cannot be completed.",
+        sLogger.debug("AchievementMgr Referred achievement ({}) |Hachievement:{}:" I64FMT ":0:0:0:-1:0:0:0:0|h[{}]|h is a counter and cannot be completed.",
             achievement->ID, achievement->ID, player->getGuid(), achievement->name);
         return false;
     }

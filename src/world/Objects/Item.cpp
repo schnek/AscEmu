@@ -106,7 +106,7 @@ void Item::create(uint32_t itemId, Player* owner)
     m_itemProperties = sMySQLStore.getItemProperties(itemId);
     if (!m_itemProperties)
     {
-        sLogger.failure("Item::create: Can't create item %u missing properties!", itemId);
+        sLogger.failure("Item::create: Can't create item {} missing properties!", itemId);
         return;
     }
 

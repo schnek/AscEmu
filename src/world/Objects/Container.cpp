@@ -77,7 +77,7 @@ void Container::LoadFromDB(Field* fields)
 
     if (!m_itemProperties)
     {
-        sLogger.failure("Container::LoadFromDB: Can't load item %u missing properties!", itemid);
+        sLogger.failure("Container::LoadFromDB: Can't load item {} missing properties!", itemid);
         return;
     }
 
@@ -105,7 +105,7 @@ void Container::Create(uint32 itemid, Player* owner)
     m_itemProperties = sMySQLStore.getItemProperties(itemid);
     if (!m_itemProperties)
     {
-        sLogger.failure("Container::Create: Can't create item %u missing properties!", itemid);
+        sLogger.failure("Container::Create: Can't create item {} missing properties!", itemid);
         return;
     }
 
@@ -160,7 +160,7 @@ bool Container::AddItem(int16 slot, Item* item)
 
     if (m_Slot[slot] != NULL)
     {
-        sLogger.failure("Bad container item %u slot %d", item->getGuidLow(), slot);
+        sLogger.failure("Bad container item {} slot {}", item->getGuidLow(), slot);
         return false;
     }
 

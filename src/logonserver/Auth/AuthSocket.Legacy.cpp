@@ -101,7 +101,7 @@ void AuthSocket::HandleChallenge()
 
     uint16 full_size = *(uint16*)&ReceiveBuffer[2];
 
-    sLogger.info("[AuthChallenge] got header, body is %u bytes", full_size);
+    sLogger.info("[AuthChallenge] got header, body is {} bytes", full_size);
 
     if (readBuffer.GetSize() < uint32(full_size + 4))
     {
@@ -132,11 +132,11 @@ void AuthSocket::HandleChallenge()
         case 15595:
         case 18414:
         {
-            sLogger.debug("Client with valid build %u connected", (uint32)client_build);
+            sLogger.debug("Client with valid build {} connected", (uint32)client_build);
         }break;
         default:
         {
-            sLogger.debug("Client %s has unsupported game version. Clientbuild: %u", GetRemoteIP().c_str(), (uint32)client_build);
+            sLogger.debug("Client {} has unsupported game version. Clientbuild: {}", GetRemoteIP(), (uint32)client_build);
             SendChallengeError(CE_WRONG_BUILD_NUMBER);
         }break;
     }
@@ -155,7 +155,7 @@ void AuthSocket::HandleChallenge()
         if(m_patch == NULL)
         {
             // could not find a valid patch
-            sLogger.info("[AuthChallenge] Client %s has wrong version. More out of date than server. Server: %u, Client: %u", GetRemoteIP().c_str(), LogonServer::getSingleton().min_build, m_challenge.build);
+            sLogger.info("[AuthChallenge] Client {} has wrong version. More out of date than server. Server: {}, Client: {}", GetRemoteIP(), LogonServer::getSingleton().min_build, m_challenge.build);
             SendChallengeError(CE_WRONG_BUILD_NUMBER);
             return;
         }
@@ -181,7 +181,7 @@ void AuthSocket::HandleChallenge()
     IpBanStatus ipb = sIpBanMgr.getBanStatus(GetRemoteAddress());
 
     if (ipb != BAN_STATUS_NOT_BANNED)
-        sLogger.info("[AuthChallenge] Client %s is banned, refusing to continue.", GetRemoteIP().c_str());
+        sLogger.info("[AuthChallenge] Client {} is banned, refusing to continue.", GetRemoteIP());
 
     switch (ipb)
     {
@@ -212,7 +212,7 @@ void AuthSocket::HandleChallenge()
     }
 
     // Look up the account information
-    sLogger.debug("[AuthChallenge] Account Name: \"%s\"", AccountName.c_str());
+    sLogger.debug("[AuthChallenge] Account Name: \"{}\"", AccountName);
 
     m_account = sAccountMgr.getAccountByName(AccountName);
     if (m_account == nullptr)
@@ -224,7 +224,7 @@ void AuthSocket::HandleChallenge()
         return;
     }
 
-    sLogger.debug("[AuthChallenge] Account banned state = %u", m_account->Banned);
+    sLogger.debug("[AuthChallenge] Account banned state = {}", m_account->Banned);
 
     // Check that the account isn't banned.
     if (m_account->Banned == 1)
@@ -563,12 +563,12 @@ void AuthSocket::OnRead()
     last_recv = UNIXTIME;
     if (Command < MAX_AUTH_CMD && Handlers[Command] != NULL)
     {
-        sLogger.debug("Handler %u called", Command);
+        sLogger.debug("Handler {} called", Command);
         (this->*Handlers[Command])();
     }
     else
     {
-        sLogger.debug("Unknown handler %u called", Command);
+        sLogger.debug("Unknown handler {} called", Command);
     }
 }
 
@@ -586,7 +586,7 @@ void AuthSocket::HandleReconnectChallenge()
     // Check the rest of the packet is complete.
     uint8* ReceiveBuffer = /*GetReadBuffer(0)*/(uint8*)readBuffer.GetBufferStart();
     uint16 full_size = *(uint16*)&ReceiveBuffer[2];
-    sLogger.info("[AuthChallenge] got header, body is %u bytes", full_size);
+    sLogger.info("[AuthChallenge] got header, body is {} bytes", full_size);
 
     if (readBuffer.GetSize() < (uint32)full_size + 4)
         return;
@@ -651,7 +651,7 @@ void AuthSocket::HandleReconnectChallenge()
 
     // Look up the account information
     std::string AccountName = (char*)&m_challenge.I;
-    sLogger.debug("[AuthChallenge] Account Name: \"%s\"", AccountName.c_str());
+    sLogger.debug("[AuthChallenge] Account Name: \"{}\"", AccountName);
 
     m_account = sAccountMgr.getAccountByName(AccountName);
     if (m_account == nullptr)
@@ -663,7 +663,7 @@ void AuthSocket::HandleReconnectChallenge()
         return;
     }
 
-    sLogger.debug("[AuthChallenge] Account banned state = %u", m_account->Banned);
+    sLogger.debug("[AuthChallenge] Account banned state = {}", m_account->Banned);
 
     // Check that the account isn't banned.
     if (m_account->Banned == 1)

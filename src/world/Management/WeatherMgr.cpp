@@ -133,7 +133,7 @@ void WeatherMgr::LoadFromDB()
         wi->_GenerateWeather();
     }
     while (result->NextRow());
-    sLogger.info("WeatherMgr : Loaded weather information for %u zones.", result->GetRowCount());
+    sLogger.info("WeatherMgr : Loaded weather information for {} zones.", result->GetRowCount());
 
     delete result;
 }
@@ -214,7 +214,7 @@ void WeatherInfo::_GenerateWeather()
     SendUpdate();
 
     sEventMgr.AddEvent(this, &WeatherInfo::BuildUp, EVENT_WEATHER_UPDATE, (uint32)(m_totalTime / ceil(m_maxDensity / WEATHER_DENSITY_UPDATE) * 2), 0, 0);
-    sLogger.debugFlag(AscEmu::Logging::LF_MAP, "Forecast for zone:%d new type:%d new interval:%d ms", m_zoneId, m_currentEffect, (uint32)(m_totalTime / ceil(m_maxDensity / WEATHER_DENSITY_UPDATE) * 2));
+    sLogger.debugFlag(AscEmu::Logging::LF_MAP, "Forecast for zone:{} new type:{} new interval:{} ms", m_zoneId, m_currentEffect, (uint32)(m_totalTime / ceil(m_maxDensity / WEATHER_DENSITY_UPDATE) * 2));
 }
 
 void WeatherInfo::BuildUp()
@@ -224,12 +224,12 @@ void WeatherInfo::BuildUp()
     {
         sEventMgr.RemoveEvents(this, EVENT_WEATHER_UPDATE);
         sEventMgr.AddEvent(this, &WeatherInfo::Update, EVENT_WEATHER_UPDATE, (uint32)(m_totalTime / ceil(m_maxDensity / WEATHER_DENSITY_UPDATE) * 4), 0, 0);
-        //        sLogger.debug("Weather starting random for zone:%d type:%d new interval:%d ms",m_zoneId,m_currentEffect,(uint32)(m_totalTime/ceil(m_maxDensity/WEATHER_DENSITY_UPDATE)*4));
+        //        sLogger.debug("Weather starting random for zone:{} type:{} new interval:{} ms",m_zoneId,m_currentEffect,(uint32)(m_totalTime/ceil(m_maxDensity/WEATHER_DENSITY_UPDATE)*4));
     }
     else
     {
         m_currentDensity += WEATHER_DENSITY_UPDATE;
-        //        sLogger.debug("Weather increased for zone:%d type:%d density:%f",m_zoneId,m_currentEffect,m_currentDensity);
+        //        sLogger.debug("Weather increased for zone:{} type:{} density:{}",m_zoneId,m_currentEffect,m_currentDensity);
         SendUpdate();
     }
 }
@@ -259,7 +259,7 @@ void WeatherInfo::Update()
         }
     }
     SendUpdate();
-    //    sLogger.debug("Weather Updated,zoneId:%d type:%d density:%f", m_zoneId, m_currentEffect, m_currentDensity);
+    //    sLogger.debug("Weather Updated,zoneId:{} type:{} density:{}", m_zoneId, m_currentEffect, m_currentDensity);
 }
 
 void WeatherInfo::SendUpdate()

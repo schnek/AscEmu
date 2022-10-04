@@ -39,7 +39,7 @@ void MapMgr::initialize()
     {
         if (mapInfo->second.mapid >= MAX_NUM_MAPS)
         {
-            sLogger.failure("InstanceMgr : One or more of your worldmap_info rows specifies an invalid map: %u", mapInfo->second.mapid);
+            sLogger.failure("InstanceMgr : One or more of your worldmap_info rows specifies an invalid map: {}", mapInfo->second.mapid);
             continue;
         }
 
@@ -165,7 +165,7 @@ WorldMap* MapMgr::createWorldMap(uint32_t mapId, uint32_t unloadTime)
     if (baseMap == nullptr)
         return nullptr;
 
-    sLogger.debug("MapMgr::createWorldMap Create Continent %s for Map %u", baseMap->getMapName().c_str(), mapId);
+    sLogger.debug("MapMgr::createWorldMap Create Continent {} for Map {}", baseMap->getMapName(), mapId);
 
     WorldMap* map = new WorldMap(baseMap, mapId, unloadTime, 0, InstanceDifficulty::Difficulties::DUNGEON_NORMAL);
 
@@ -289,7 +289,7 @@ WorldMap* MapMgr::createInstanceForPlayer(uint32_t mapId, Player* player, uint32
     }
 
     if (map)
-        sLogger.debug("MapMgr::createInstanceForPlayer Create Instance %s for Map %u", baseMap->getMapName().c_str(), mapId);
+        sLogger.debug("MapMgr::createInstanceForPlayer Create Instance {} for Map {}", baseMap->getMapName(), mapId);
 
     return map;
 }
@@ -303,7 +303,7 @@ InstanceMap* MapMgr::createInstance(uint32_t mapId, uint32_t InstanceId, Instanc
     const auto& baseMap = findBaseMap(mapId);
     if (!baseMap)
     {
-        sLogger.failure("MapMgr::createInstance: no BaseMap for map %u", mapId);
+        sLogger.failure("MapMgr::createInstance: no BaseMap for map {}", mapId);
         return nullptr;
     }
 
@@ -311,14 +311,14 @@ InstanceMap* MapMgr::createInstance(uint32_t mapId, uint32_t InstanceId, Instanc
     DBC::Structures::MapEntry const* entry = sMapStore.LookupEntry(mapId);
     if (!entry)
     {
-        sLogger.failure("MapMgr::createInstance: no entry for map %u", mapId);
+        sLogger.failure("MapMgr::createInstance: no entry for map {}", mapId);
         return nullptr;
     }
 
     const auto mapInfo = sMySQLStore.getWorldMapInfo(mapId);
     if (mapInfo == nullptr)
     {
-        sLogger.failure("MapMgr::createInstance: no WorldMapInfo for map %u", mapId);
+        sLogger.failure("MapMgr::createInstance: no WorldMapInfo for map {}", mapId);
         return nullptr;
     }
 
@@ -326,7 +326,7 @@ InstanceMap* MapMgr::createInstance(uint32_t mapId, uint32_t InstanceId, Instanc
 #if VERSION_STRING > TBC
     getDownscaledMapDifficultyData(mapId, difficulty);
 #endif
-    sLogger.debug("MapMgr::createInstance Create %s map instance %d for %u created with difficulty %s", save ? "" : "new ", InstanceId, mapId, difficulty ? "heroic" : "normal");
+    sLogger.debug("MapMgr::createInstance Create {} map instance {} for {} created with difficulty {}", save ? "" : "new ", InstanceId, mapId, difficulty ? "heroic" : "normal");
 
     InstanceMap* map = new InstanceMap(baseMap, mapId, worldConfig.server.mapUnloadTime * 1000, InstanceId, difficulty, InstanceTeam);
 
@@ -364,7 +364,7 @@ BattlegroundMap* MapMgr::createBattleground(uint32_t mapId)
     const auto& baseMap = findBaseMap(mapId);
     if (!baseMap)
     {
-        sLogger.failure("MapMgr::createInstance: no BaseMap for map %u", mapId);
+        sLogger.failure("MapMgr::createInstance: no BaseMap for map {}", mapId);
         return nullptr;
     }
 

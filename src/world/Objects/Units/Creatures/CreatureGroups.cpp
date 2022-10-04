@@ -27,7 +27,7 @@ void FormationMgr::addCreatureToGroup(uint32_t leaderSpawnId, Creature* creature
     if (itr != map->CreatureGroupHolder.end())
     {
         //Add member to an existing group
-        sLogger.debug("FormationMgr : Group found: %u, inserting creature %u, Group InstanceID %u", leaderSpawnId, creature->getGuid(), creature->GetInstanceID());
+        sLogger.debug("FormationMgr : Group found: {}, inserting creature {}, Group InstanceID {}", leaderSpawnId, creature->getGuid(), creature->GetInstanceID());
 
         // With dynamic spawn the creature may have just respawned
         // we need to find previous instance of creature and delete it from the formation, as it'll be invalidated
@@ -47,7 +47,7 @@ void FormationMgr::addCreatureToGroup(uint32_t leaderSpawnId, Creature* creature
     else
     {
         //Create new group
-        sLogger.debug("FormationMgr : Group not found: %u. Creating new group.", leaderSpawnId);
+        sLogger.debug("FormationMgr : Group not found: {}. Creating new group.", leaderSpawnId);
         CreatureGroup* group = new CreatureGroup(leaderSpawnId);
         std::tie(itr, std::ignore) = map->CreatureGroupHolder.emplace(leaderSpawnId, group);
     }
@@ -57,14 +57,14 @@ void FormationMgr::addCreatureToGroup(uint32_t leaderSpawnId, Creature* creature
 
 void FormationMgr::removeCreatureFromGroup(CreatureGroup* group, Creature* member)
 {
-    sLogger.debug("FormationMgr : Deleting member pointer to GUID: %u from group %u", group->getLeaderSpawnId(), member->getSpawnId());
+    sLogger.debug("FormationMgr : Deleting member pointer to GUID: {} from group {}", group->getLeaderSpawnId(), member->getSpawnId());
     group->removeMember(member);
 
     if (group->isEmpty())
     {
         WorldMap* map = member->getWorldMap();
 
-        sLogger.debug("FormationMgr : Deleting group with InstanceID %u", member->GetInstanceID());
+        sLogger.debug("FormationMgr : Deleting group with InstanceID {}", member->GetInstanceID());
         auto itr = map->CreatureGroupHolder.find(group->getLeaderSpawnId());
         ASSERT(itr != map->CreatureGroupHolder.end() && "Not registered group in map");
         map->CreatureGroupHolder.erase(itr);
@@ -114,7 +114,7 @@ void FormationMgr::loadCreatureFormations()
             spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", member.LeaderSpawnId);
             if (spawnResult == nullptr)
             {
-                sLogger.failure("FormationMgr : creature_formations table leader guid %u incorrect (not exist)", member.LeaderSpawnId);
+                sLogger.failure("FormationMgr : creature_formations table leader guid {} incorrect (not exist)", member.LeaderSpawnId);
                 continue;
             }
 
@@ -122,7 +122,7 @@ void FormationMgr::loadCreatureFormations()
             spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", memberSpawnId);
             if (spawnResult == nullptr)
             {
-                sLogger.failure("FormationMgr : creature_formations table member guid %u incorrect (not exist)", memberSpawnId);
+                sLogger.failure("FormationMgr : creature_formations table member guid {} incorrect (not exist)", memberSpawnId);
                 continue;
             }
 
@@ -137,7 +137,7 @@ void FormationMgr::loadCreatureFormations()
     {
         if (!_creatureGroupMap.count(leaderSpawnId))
         {
-            sLogger.failure("FormationMgr : creature_formation contains leader spawn %u which is not included on its formation, removing", leaderSpawnId);
+            sLogger.failure("FormationMgr : creature_formation contains leader spawn {} which is not included on its formation, removing", leaderSpawnId);
             for (auto itr = _creatureGroupMap.begin(); itr != _creatureGroupMap.end();)
             {
                 if (itr->second.LeaderSpawnId == leaderSpawnId)
@@ -151,7 +151,7 @@ void FormationMgr::loadCreatureFormations()
         }
     }
 
-    sLogger.debug("FormationMgr : Loaded %u creatures in formations in %u ms", count, Util::GetTimeDifferenceToNow(oldMSTime));
+    sLogger.debug("FormationMgr : Loaded {} creatures in formations in {} ms", count, Util::GetTimeDifferenceToNow(oldMSTime));
 }
 
 FormationInfo* FormationMgr::getFormationInfo(uint32_t spawnId)
@@ -181,12 +181,12 @@ CreatureGroup::CreatureGroup(uint32_t leaderSpawnId) : _leader(nullptr), _member
 
 void CreatureGroup::addMember(Creature* member)
 {
-    sLogger.debug("FormationMgr : CreatureGroup::AddMember: Adding unit %u.", member->getGuid());
+    sLogger.debug("FormationMgr : CreatureGroup::AddMember: Adding unit {}.", member->getGuid());
 
     //Check if it is a leader
     if (member->getSpawnId() == _leaderSpawnId)
     {
-        sLogger.debug("FormationMgr : Unit %u is formation leader. Adding group.", member->getGuid());
+        sLogger.debug("FormationMgr : Unit {} is formation leader. Adding group.", member->getGuid());
         _leader = member;
     }
 
@@ -251,7 +251,7 @@ void CreatureGroup::formationReset(bool dismiss)
                 pair.first->getMovementManager()->initialize();
             else
                 pair.first->getMovementManager()->moveIdle();
-            sLogger.debug("FormationMgr : CreatureGroup::FormationReset: Set %s movement for member %u", dismiss ? "default" : "idle", pair.first->getGuid());
+            sLogger.debug("FormationMgr : CreatureGroup::FormationReset: Set {} movement for member {}", dismiss ? "default" : "idle", pair.first->getGuid());
         }
     }
 

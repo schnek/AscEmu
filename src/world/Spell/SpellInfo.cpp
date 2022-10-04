@@ -200,7 +200,7 @@ bool SpellInfo::isDamagingEffect(uint8_t effIndex) const
     }
     else
     {
-        sLogger.failure("SpellInfo::isDamagingEffect called with invalid effIndex %u", static_cast<uint32_t>(effIndex));
+        sLogger.failure("SpellInfo::isDamagingEffect called with invalid effIndex {}", static_cast<uint32_t>(effIndex));
         return false;
     }
 }
@@ -242,7 +242,7 @@ bool SpellInfo::isHealingEffect(uint8_t effIndex) const
     }
     else
     {
-        sLogger.failure("SpellInfo::isHealingEffect called with invalid effIndex %u", static_cast<uint32_t>(effIndex));
+        sLogger.failure("SpellInfo::isHealingEffect called with invalid effIndex {}", static_cast<uint32_t>(effIndex));
         return false;
     }
 }
@@ -337,7 +337,7 @@ int32_t SpellInfo::getBasePowerCost(Unit* caster) const
     {
         if (!hasValidPowerType())
         {
-            sLogger.failure("SpellInfo::getBasePowerCost : Unknown power type %u for spell id %u", getPowerType(), getId());
+            sLogger.failure("SpellInfo::getBasePowerCost : Unknown power type {} for spell id {}", getPowerType(), getId());
             return 0;
         }
 
@@ -373,7 +373,7 @@ int32_t SpellInfo::getBasePowerCost(Unit* caster) const
                     break;
 #endif
                 default:
-                    sLogger.failure("SpellInfo::getBasePowerCost() : Unknown power type %u for spell id %u", getPowerType(), getId());
+                    sLogger.failure("SpellInfo::getBasePowerCost() : Unknown power type {} for spell id {}", getPowerType(), getId());
                     return 0;
             }
         }

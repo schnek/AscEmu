@@ -448,7 +448,7 @@ void Arena::HookOnAreaTrigger(Player* plr, uint32 id)
                 SpellInfo const* sp = sSpellMgr.getSpellInfo(m_buffs[buffslot]->GetGameObjectProperties()->raw.parameter_3);
                 if (sp == nullptr)
                 {
-                    sLogger.failure("Arena::HookOnAreaTrigger: tried to use invalid spell %u for gameobject %u", m_buffs[buffslot]->GetGameObjectProperties()->raw.parameter_3, m_buffs[buffslot]->GetGameObjectProperties()->entry);
+                    sLogger.failure("Arena::HookOnAreaTrigger: tried to use invalid spell {} for gameobject {}", m_buffs[buffslot]->GetGameObjectProperties()->raw.parameter_3, m_buffs[buffslot]->GetGameObjectProperties()->entry);
                 }
 
                 Spell* s = sSpellMgr.newSpell(plr, sp, true, 0);

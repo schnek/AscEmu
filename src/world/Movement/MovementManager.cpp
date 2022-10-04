@@ -299,7 +299,7 @@ void MovementManager::update(uint32_t diff)
 
     if (empty())
     {
-        sLogger.failure("MovementManager: update called without Initializing! (%u)", _owner->getGuid());
+        sLogger.failure("MovementManager: update called without Initializing! ({})", _owner->getGuid());
         return;
     }
 

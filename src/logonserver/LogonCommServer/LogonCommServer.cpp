@@ -42,7 +42,7 @@ LogonCommServerSocket::LogonCommServerSocket(SOCKET fd) : Socket(fd, 65536, 5242
     authenticated = 0;
     seed = 0;
 
-    sLogger.info("Created LogonCommServerSocket %u", m_fd);
+    sLogger.info("Created LogonCommServerSocket {}", m_fd);
 }
 
 LogonCommServerSocket::~LogonCommServerSocket()
@@ -68,7 +68,7 @@ void LogonCommServerSocket::OnConnect()
 {
     if (!sMasterLogon.IsServerAllowed(GetRemoteAddress().s_addr))
     {
-        sLogger.failure("Server connection from %s:%u DENIED, not an allowed IP.", GetRemoteIP().c_str(), GetRemotePort());
+        sLogger.failure("Server connection from {}:{} DENIED, not an allowed IP.", GetRemoteIP(), GetRemotePort());
         Disconnect();
         return;
     }
@@ -165,7 +165,7 @@ void LogonCommServerSocket::HandlePacket(WorldPacket & recvData)
 
     if (recvData.GetOpcode() >= LRMSG_MAX_OPCODES || Handlers[recvData.GetOpcode()] == 0)
     {
-        sLogger.failure("Got unknwon packet from logoncomm: %u", recvData.GetOpcode());
+        sLogger.failure("Got unknwon packet from logoncomm: {}", recvData.GetOpcode());
         return;
     }
 
@@ -180,7 +180,7 @@ void LogonCommServerSocket::HandleRegister(WorldPacket & recvData)
     recvData >> realmId;
     recvData >> realmName;
 
-    sLogger.info("Registering realm `%s` with ID %u.", realmName.c_str(), realmId);
+    sLogger.info("Registering realm `{}` with ID {}.", realmName, realmId);
 
     // check Realms if realmId is valid! Otherwise send back error.
     auto realm = sRealmManager.getRealmById(realmId);
@@ -317,7 +317,7 @@ void LogonCommServerSocket::HandleAuthChallenge(WorldPacket & recvData)
     const auto realm = sRealmManager.getRealmById(realmId);
     if (realm == nullptr)
     {
-        sLogger.failure("Realm %u is missing in  table realms. Please add the server to your realms table.", static_cast<uint32_t>(realmId));
+        sLogger.failure("Realm {} is missing in  table realms. Please add the server to your realms table.", static_cast<uint32_t>(realmId));
         return;
     }
 
@@ -331,7 +331,7 @@ void LogonCommServerSocket::HandleAuthChallenge(WorldPacket & recvData)
     if (memcmp(key, hash.GetDigest(), 20) != 0)
         result = 0;
 
-    sLogger.info("Authentication request from %s, id %u - result %s.", GetRemoteIP().c_str(), uint32_t(realmId), result ? "OK" : "FAIL");
+    sLogger.info("Authentication request from {}, id {} - result {}.", GetRemoteIP(), uint32_t(realmId), result ? "OK" : "FAIL");
 
     std::stringstream sstext;
     sstext << "Key: ";
@@ -341,7 +341,7 @@ void LogonCommServerSocket::HandleAuthChallenge(WorldPacket & recvData)
         snprintf(buf, 3, "%.2X", key[i]);
         sstext << buf;
     }
-    sLogger.info(sstext.str().c_str());
+    sLogger.info(sstext.str());
 
     recvCrypto.Setup(key, 20);
     sendCrypto.Setup(key, 20);
@@ -388,7 +388,7 @@ void LogonCommServerSocket::HandleMappingReply(WorldPacket & recvData)
 
     std::unordered_map<uint32, uint8>::iterator itr;
     buf >> count;
-    sLogger.info("Got mapping packet for realm %u, total of %u entries.", (unsigned int)realm_id, (unsigned int)count);
+    sLogger.info("Got mapping packet for realm {}, total of {} entries.", (unsigned int)realm_id, (unsigned int)count);
     for (uint32 i = 0; i < count; ++i)
     {
         buf >> account_id >> number_of_characters;

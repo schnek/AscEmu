@@ -238,10 +238,10 @@ bool Player::Create(CharCreate& charCreateContent)
         m_session->Disconnect();
 #if VERSION_STRING > TBC
         if (charCreateContent._class == DEATHKNIGHT)
-            sLogger.failure("Account Name: %s tried to create a deathknight, however your playercreateinfo table does not support this class, please update your database.", m_session->GetAccountName().c_str());
+            sLogger.failure("Account Name: {} tried to create a deathknight, however your playercreateinfo table does not support this class, please update your database.", m_session->GetAccountName());
         else
 #endif
-            sLogger.failure("Account Name: %s tried to create an invalid character with race %u and class %u, if this is intended please update your playercreateinfo table inside your database.", m_session->GetAccountName().c_str(), charCreateContent._race, charCreateContent._class);
+            sLogger.failure("Account Name: {} tried to create an invalid character with race {} and class {}, if this is intended please update your playercreateinfo table inside your database.", m_session->GetAccountName(), charCreateContent._race, charCreateContent._class);
         return false;
     }
 
@@ -260,7 +260,7 @@ bool Player::Create(CharCreate& charCreateContent)
     // check that the account can create deathknights, if we're making one
     if (charCreateContent._class == DEATHKNIGHT && !(m_session->_accountFlags & ACCOUNT_FLAG_XPACK_02))
     {
-        sLogger.failure("Account %s tried to create a DeathKnight, but Account flag is %u!", m_session->GetAccountName().c_str(), m_session->_accountFlags);
+        sLogger.failure("Account {} tried to create a DeathKnight, but Account flag is {}!", m_session->GetAccountName(), m_session->_accountFlags);
         m_session->Disconnect();
         return false;
     }
@@ -373,7 +373,7 @@ bool Player::Create(CharCreate& charCreateContent)
             const auto itemProperties = sMySQLStore.getItemProperties(itemId);
             if (!itemProperties)
             {
-                sLogger.debug("StartOutfit - Item with entry %u not in item_properties table but in CharStartOutfit.dbc!", itemId);
+                sLogger.debug("StartOutfit - Item with entry {} not in item_properties table but in CharStartOutfit.dbc!", itemId);
                 continue;
             }
 
@@ -400,7 +400,7 @@ bool Player::Create(CharCreate& charCreateContent)
                 {
                     if (!getItemInterface()->SafeAddItem(item, INVENTORY_SLOT_NOT_SET, itemSlot))
                     {
-                        sLogger.debug("StartOutfit - Item with entry %u can not be added safe to slot %u!", itemId, static_cast<uint32_t>(itemSlot));
+                        sLogger.debug("StartOutfit - Item with entry {} can not be added safe to slot {}!", itemId, static_cast<uint32_t>(itemSlot));
                         item->DeleteMe();
                     }
                 }
@@ -409,7 +409,7 @@ bool Player::Create(CharCreate& charCreateContent)
                     item->setStackCount(itemProperties->MaxCount);
                     if (!getItemInterface()->AddItemToFreeSlot(item))
                     {
-                        sLogger.debug("StartOutfit - Item with entry %u can not be added to a free slot!", itemId);
+                        sLogger.debug("StartOutfit - Item with entry {} can not be added to a free slot!", itemId);
                         item->DeleteMe();
                     }
                 }
@@ -852,7 +852,7 @@ void Player::smsg_InitialSpells()
             continue;
         }
 
-        sLogger.debug("InitialSpells sending spell cooldown for spell %u to %u ms", itr2->first, itr2->second.ExpireTime - mstime);
+        sLogger.debug("InitialSpells sending spell cooldown for spell {} to {} ms", itr2->first, itr2->second.ExpireTime - mstime);
 
         smsgInitialSpells.addSpellCooldown(itr2->first, itr2->second.ItemId, 0, itr2->second.ExpireTime - mstime, 0);
     }
@@ -867,7 +867,7 @@ void Player::smsg_InitialSpells()
             continue;
         }
 
-        sLogger.debug("InitialSpells sending category cooldown for cat %u to %u ms", itr2->first, itr2->second.ExpireTime - mstime);
+        sLogger.debug("InitialSpells sending category cooldown for cat {} to {} ms", itr2->first, itr2->second.ExpireTime - mstime);
 
         smsgInitialSpells.addSpellCooldown(itr2->first, itr2->second.ItemId, static_cast<uint16_t>(itr2->first), 0, itr2->second.ExpireTime - mstime);
     }
@@ -1564,7 +1564,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
     QueryResult* result = results[PlayerQuery::LoginFlags].result;
     if (!result)
     {
-        sLogger.failure("Player login query failed! guid = %u", getGuidLow());
+        sLogger.failure("Player login query failed! guid = {}", getGuidLow());
         removePendingPlayer();
         return;
     }
@@ -1572,7 +1572,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
     const uint32 fieldcount = 96;
     if (result->GetFieldCount() != fieldcount)
     {
-        sLogger.failure("Expected %u fields from the database, but received %u!  You may need to update your character database.", fieldcount, uint32(result->GetFieldCount()));
+        sLogger.failure("Expected {} fields from the database, but received {}!  You may need to update your character database.", fieldcount, uint32(result->GetFieldCount()));
         removePendingPlayer();
         return;
     }
@@ -1608,7 +1608,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
     if (!m_dbcClass || !m_dbcRace)
     {
         // bad character
-        sLogger.failure("guid %u failed to login, no race or class dbc found. (race %u class %u)", getGuidLow(), (unsigned int)getRace(), (unsigned int)getClass());
+        sLogger.failure("guid {} failed to login, no race or class dbc found. (race {} class {})", getGuidLow(), (unsigned int)getRace(), (unsigned int)getClass());
         removePendingPlayer();
         return;
     }
@@ -1627,7 +1627,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
     m_playerCreateInfo = sMySQLStore.getPlayerCreateInfo(getRace(), getClass());
     if (m_playerCreateInfo == nullptr)
     {
-        sLogger.failure("player guid %u has no playerCreateInfo!", getGuidLow());
+        sLogger.failure("player guid {} has no playerCreateInfo!", getGuidLow());
         removePendingPlayer();
         return;
     }
@@ -1640,7 +1640,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 
     if (!m_levelInfo)
     {
-        sLogger.failure("guid %u level %u class %u race %u levelinfo not found!", getGuidLow(), getLevel(), (unsigned int)getClass(), (unsigned int)getRace());
+        sLogger.failure("guid {} level {} class {} race {} levelinfo not found!", getGuidLow(), getLevel(), (unsigned int)getClass(), (unsigned int)getRace());
         removePendingPlayer();
         return;
     }
@@ -1714,7 +1714,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
     m_loadMana = field[20].GetUInt32();
     setHealth(m_loadHealth);
 
-    sLogger.debug("Player level %u, health %u, mana %u loaded from db!", getLevel(), m_loadHealth, m_loadMana);
+    sLogger.debug("Player level {}, health {}, mana {} loaded from db!", getLevel(), m_loadHealth, m_loadMana);
 
     setPvpRank(field[21].GetUInt8());
 
@@ -2268,7 +2268,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 #endif
 
     auto timeToNow = Util::GetTimeDifferenceToNow(startTime);
-    sLogger.info("Time for playerloading: %u ms", static_cast<uint32_t>(timeToNow));
+    sLogger.info("Time for playerloading: {} ms", static_cast<uint32_t>(timeToNow));
 }
 
 void Player::_LoadQuestLogEntry(QueryResult* result)
@@ -4528,7 +4528,7 @@ void Player::AddCategoryCooldown(uint32 category_id, uint32 time, uint32 SpellId
         m_cooldownMap[COOLDOWN_TYPE_CATEGORY].insert(std::make_pair(category_id, cd));
     }
 
-    sLogger.debug("Player::AddCategoryCooldown added cooldown for COOLDOWN_TYPE_CATEGORY category_type %u time %u item %u spell %u", category_id, time - Util::getMSTime(), ItemId, SpellId);
+    sLogger.debug("Player::AddCategoryCooldown added cooldown for COOLDOWN_TYPE_CATEGORY category_type {} time {} item {} spell {}", category_id, time - Util::getMSTime(), ItemId, SpellId);
 }
 
 void Player::_Cooldown_Add(uint32 Type, uint32 Misc, uint32 Time, uint32 SpellId, uint32 ItemId)
@@ -4554,7 +4554,7 @@ void Player::_Cooldown_Add(uint32 Type, uint32 Misc, uint32 Time, uint32 SpellId
         m_cooldownMap[Type].insert(std::make_pair(Misc, cd));
     }
 
-    sLogger.debug("Cooldown added cooldown for type %u misc %u time %u item %u spell %u", Type, Misc, Time - Util::getMSTime(), ItemId, SpellId);
+    sLogger.debug("Cooldown added cooldown for type {} misc {} time {} item {} spell {}", Type, Misc, Time - Util::getMSTime(), ItemId, SpellId);
 }
 
 void Player::Cooldown_AddItem(ItemProperties const* pProto, uint32 x)
@@ -4720,7 +4720,7 @@ uint32 Player::GetMaxPersonalRating()
                 }
                 else
                 {
-                    sLogger.failure("%s: GetMemberByGuid returned NULL for player guid = %u", __FUNCTION__, m_playerInfo->guid);
+                    sLogger.failure("{}: GetMemberByGuid returned NULL for player guid = {}", __FUNCTION__, m_playerInfo->guid);
                 }
             }
         }
@@ -5192,7 +5192,7 @@ void Player::processPendingUpdates()
 
 void Player::SendInitialLogonPackets()
 {
-    sLogger.debug("Player %s gets prepared for login.", getName().c_str());
+    sLogger.debug("Player {} gets prepared for login.", getName());
 
 #if VERSION_STRING == Mop
     m_session->SendPacket(SmsgBindPointUpdate(getBindPosition(), getBindMapId(), getBindZoneId()).serialise().get());
@@ -5286,6 +5286,6 @@ void Player::SendInitialLogonPackets()
 #endif
 #endif
 
-    sLogger.info("WORLD: Sent initial logon packets for %s.", getName().c_str());
+    sLogger.info("WORLD: Sent initial logon packets for {}.", getName());
 }
 // end L15420 12/11/2018 Zyres

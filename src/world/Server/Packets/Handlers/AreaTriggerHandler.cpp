@@ -27,7 +27,7 @@ void WorldSession::handleAreaTriggerOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AREATRIGGER: %u (triggerId)", srlPacket.triggerId);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_AREATRIGGER: {} (triggerId)", srlPacket.triggerId);
 
     if (!_player->IsInWorld())
         return;
@@ -37,7 +37,7 @@ void WorldSession::handleAreaTriggerOpcode(WorldPacket& recvPacket)
     const auto areaTriggerEntry = sAreaTriggerStore.LookupEntry(srlPacket.triggerId);
     if (areaTriggerEntry == nullptr)
     {
-        sLogger.debug("%u is not part of AreaTrigger.dbc", srlPacket.triggerId);
+        sLogger.debug("{} is not part of AreaTrigger.dbc", srlPacket.triggerId);
         return;
     }
 

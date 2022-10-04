@@ -152,7 +152,7 @@ void CommandTableStorage::Override(const char* command, const char* level)
                 if (!curr_table.compare(main_command))
                 {
                     p->CommandGroup = level[0];
-                    sLogger.debug("Changing command level of .`%s` to %c.", main_command.c_str(), level[0]);
+                    sLogger.debug("Changing command level of .`{}` to %c.", main_command, level[0]);
                     break;
                 }
                 ++p;
@@ -173,7 +173,7 @@ void CommandTableStorage::Override(const char* command, const char* level)
                         if (!curr_subcommand.compare(sub_command))
                         {
                             p2->CommandGroup = level[0];
-                            sLogger.debug("Changing command level of .`%s %s` to %c.", main_command.c_str(), sub_command.c_str(), level[0]);
+                            sLogger.debug("Changing command level of .`{} {}` to %c.", main_command, sub_command, level[0]);
                             break;
                         }
                         ++p2;
@@ -232,7 +232,7 @@ void CommandTableStorage::Override(const char* command, const char* level)
                             if (!curr_sec_subcommand.compare(sec_sub_command))
                             {
                                 p3->CommandGroup = level[0];
-                                sLogger.debug("Changing command level of .`%s %s %s` to %c.", main_command.c_str(), sub_command.c_str(), sec_sub_command.c_str(), level[0]);
+                                sLogger.debug("Changing command level of .`{} {} {}` to %c.", main_command, sub_command, sec_sub_command, level[0]);
                                 break;
                             }
                             ++p3;
@@ -382,7 +382,7 @@ void CommandTableStorage::Init()
         { "featherfall",        'd', &ChatHandler::HandleDebugFeatherFall,          "Toggles featherfall move for unit",                        nullptr },
         { "speed",              'd', &ChatHandler::HandleDebugSpeed,                "Sets move speed for unit. Usage: .debug speed <value>",    nullptr },
         { "castspell",          'd', &ChatHandler::HandleCastSpellCommand,          "Casts spell on target.",                                   nullptr },
-        { "castself",           'd', &ChatHandler::HandleCastSelfCommand,           "Target casts spell <spellId> on itself.",                  nullptr },
+        { "castself",           'd', &ChatHandler::HandleCastSelfCommand,           "Target casts spell <spellId>ï¿½on itself.",                  nullptr },
         { "castspellne",        'd', &ChatHandler::HandleCastSpellNECommand,        "Casts spell by spellid on target (only plays animations)", nullptr },
         { "aggrorange",         'd', &ChatHandler::HandleAggroRangeCommand,         "Shows aggro Range of the selected Creature.",              nullptr },
         { "knockback",          'd', &ChatHandler::HandleKnockBackCommand,          "Knocks you back by <value>.",                              nullptr },

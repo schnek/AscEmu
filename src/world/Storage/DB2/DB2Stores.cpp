@@ -21,7 +21,7 @@ uint32_t DB2_Count = 0;
 
 static bool LoadDB2_assert_print(uint32_t fsize, uint32_t rsize, const std::string& filename)
 {
-    sLogger.failure("LoadDB2_assert_print : Size of '%s' setted by format string (%u) not equal size of C++ structure (%u).", filename.c_str(), fsize, rsize);
+    sLogger.failure("LoadDB2_assert_print : Size of '{}' setted by format string ({}) not equal size of C++ structure ({}).", filename, fsize, rsize);
 
     return false;
 }
@@ -81,7 +81,7 @@ void LoadDB2Stores()
 
     if (bad_db2_files.size() >= DB2_Count)
     {
-        sLogger.failure("LoadDB2Stores : Incorrect DataDir value in world.conf or ALL required *.db2 files (%d) not found", DB2_Count);
+        sLogger.failure("LoadDB2Stores : Incorrect DataDir value in world.conf or ALL required *.db2 files ({}) not found", DB2_Count);
         exit(1);
     }
     else if (!bad_db2_files.empty())
@@ -90,7 +90,7 @@ void LoadDB2Stores()
         for (StoreProblemList1::iterator i = bad_db2_files.begin(); i != bad_db2_files.end(); ++i)
             str += *i + "\n";
 
-        sLogger.failure("LoadDB2Stores : Some required *.db2 files (%u from %d) not found or not compatible:%s", (uint32)bad_db2_files.size(), DB2_Count, str.c_str());
+        sLogger.failure("LoadDB2Stores : Some required *.db2 files ({} from {}) not found or not compatible:{}", (uint32)bad_db2_files.size(), DB2_Count, str);
         exit(1);
     }
 
@@ -100,5 +100,5 @@ void LoadDB2Stores()
         exit(1);
     }
 
-    sLogger.info("LoadDB2Stores : Initialized %u db2 stores", DB2_Count);
+    sLogger.info("LoadDB2Stores : Initialized {} db2 stores", DB2_Count);
 }

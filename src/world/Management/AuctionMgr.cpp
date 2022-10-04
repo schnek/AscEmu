@@ -56,7 +56,7 @@ void AuctionMgr::LoadAuctionHouses()
             auctionHouses.push_back(ah);
             tempmap.insert(std::make_pair(res->Fetch()[0].GetUInt32(), ah));
             if (!((++c) % period))
-                sLogger.info("AuctionHouse : Done %u/%u, %u%% complete.", c, res->GetRowCount(), c * 100 / res->GetRowCount());
+                sLogger.info("AuctionHouse : Done {}/{}, {}% complete.", c, res->GetRowCount(), c * 100 / res->GetRowCount());
 
         }
         while (res->NextRow());

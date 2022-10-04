@@ -60,7 +60,7 @@ bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const ch
     mPassword = std::string(Password);
     mDatabaseName = std::string(DatabaseName);
 
-    sLogger.info("MySQLDatabase : Connecting to `%s`, database `%s`...", Hostname, DatabaseName);
+    sLogger.info("MySQLDatabase : Connecting to `{}`, database `{}`...", Hostname, DatabaseName);
 
     conns = new MySQLDatabaseConnection*[ConnectionCount];
     Connections = ((DatabaseConnection**)conns);
@@ -79,7 +79,7 @@ bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const ch
         temp2 = mysql_real_connect(temp, Hostname, Username, Password, DatabaseName, port, NULL, 0);
         if(temp2 == NULL)
         {
-            sLogger.failure("Connection failed due to: `%s`", mysql_error(temp));
+            sLogger.failure("Connection failed due to: `{}`", mysql_error(temp));
             mysql_close(temp);
             return false;
         }
@@ -154,7 +154,7 @@ bool MySQLDatabase::_SendQuery(DatabaseConnection* con, const char* Sql, bool Se
             result = _SendQuery(con, Sql, true);
         }
         else
-            sLogger.failure("Sql query failed due to [%s], Query: [%s]", mysql_error(static_cast<MySQLDatabaseConnection*>(con)->MySql), Sql);
+            sLogger.failure("Sql query failed due to [{}], Query: [{}]", mysql_error(static_cast<MySQLDatabaseConnection*>(con)->MySql), Sql);
     }
 
     return (result == 0 ? true : false);
@@ -232,7 +232,7 @@ bool MySQLDatabase::_Reconnect(MySQLDatabaseConnection* conn)
     temp2 = mysql_real_connect(temp, mHostname.c_str(), mUsername.c_str(), mPassword.c_str(), mDatabaseName.c_str(), mPort, NULL , 0);
     if(temp2 == NULL)
     {
-        sLogger.failure("Could not reconnect to database because of `%s`", mysql_error(temp));
+        sLogger.failure("Could not reconnect to database because of `{}`", mysql_error(temp));
         mysql_close(temp);
         return false;
     }
