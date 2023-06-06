@@ -1,4 +1,4 @@
-.aps
+*.aps
 .idea
 .TMP
 .DS_Store
