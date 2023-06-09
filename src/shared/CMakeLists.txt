@@ -16,7 +16,8 @@ file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.h Threading/*.hpp)
 file(GLOB SRC_UTILITIES_FILES Utilities/*.cpp Utilities/*.h Utilities/*.hpp)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
-set(SHARED_SRCS
+# create target.
+add_executable(${PROJECT_NAME}
     ${SRC_CONFIG_FILES}
     ${SRC_CRYPTOGRAPHY_FILES}
     ${SRC_DATABASE_FILES}
@@ -27,14 +28,6 @@ set(SHARED_SRCS
     ${SRC_THREADING_FILES}
     ${SRC_UTILITIES_FILES}
     ${SRC_LOCAL_DIR}
-)
-
-include_directories(
-    ${OPENSSL_INCLUDE_DIR}
-    ${ZLIB_INCLUDE_DIRS}
-    ${MYSQL_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
 # source group.
@@ -48,7 +41,15 @@ source_group(Network FILES ${SRC_NETWORK_FILES})
 source_group(Threading FILES ${SRC_THREADING_FILES})
 source_group(Utilities FILES ${SRC_UTILITIES_FILES})
 
-add_library(${PROJECT_NAME} STATIC ${SHARED_SRCS})
+# include dependencies.
+target_include_directories(${PROJECT_NAME}
+  PUBLIC 
+    ${CMAKE_SOURCE_DIR}/dep/utf8cpp
+    ${OPENSSL_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIRS}
+    ${MYSQL_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
@@ -58,9 +59,6 @@ target_link_libraries(${PROJECT_NAME}
     ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBS}
 )
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
 if (APPLE)
     target_link_libraries(${PROJECT_NAME} c++)
@@ -74,4 +72,5 @@ if (USE_PCH)
     target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchShared.hpp)
 endif ()
 
-unset(SHARED_SRCS)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)

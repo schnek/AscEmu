@@ -8,14 +8,17 @@ file(GLOB SRC_MAPS Maps/*.cpp Maps/*.h)
 file(GLOB SRC_MODELS Models/*.cpp Models/*.h)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h)
 
-set(COLLISION_SRCS
+# create target.
+add_executable(${PROJECT_NAME}
     ${SRC_MANAGEMENT}
     ${SRC_MAPS}
     ${SRC_MODELS}
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
+# include dependencies.
+target_include_directories(${PROJECT_NAME}
+  PUBLIC 
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
@@ -29,13 +32,10 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} STATIC ${COLLISION_SRCS})
-
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     g3dlite
-    shared
 )
 
 # generate precompiled header.

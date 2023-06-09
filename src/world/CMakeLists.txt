@@ -61,7 +61,8 @@ if (WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 endif ()
 
-set(WORLD_SRCS
+# create target.
+add_executable(${PROJECT_NAME}
     ${SRC_CHAT_FILES}
     ${SRC_COMMAND_FILES}
     ${SRC_DATA_FILES}
@@ -100,6 +101,7 @@ set(WORLD_SRCS
     ${SRC_STORAGE_FILES}
     ${SRC_STORAGE_DBC_FILES}
     ${SRC_LOCAL_DIR}
+    ${APP_ICON_RESOURCE_WINDOWS}
 )
 
 # version-specific includes.
@@ -131,22 +133,6 @@ set(WORLD_SRCS
     ${SRC_STORAGE_DB2_FILES}
 )
 endif ()
-
-include_directories(
-    ${OPENSSL_INCLUDE_DIR}
-    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
-    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
-    ${CMAKE_SOURCE_DIR}/src/collision
-    ${CMAKE_SOURCE_DIR}/src/collision/Management
-    ${CMAKE_SOURCE_DIR}/src/collision/Maps
-    ${CMAKE_SOURCE_DIR}/src/collision/Models
-    ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
-    ${CMAKE_SOURCE_DIR}/dep/lualib/src
-    ${CMAKE_SOURCE_DIR}/src/shared
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${ZLIB_INCLUDE_DIRS}
-)
 
 # source group.
 source_group(Chat FILES ${SRC_CHAT_FILES})
@@ -202,28 +188,27 @@ source_group(GameMop\\Storage FILES ${SRC_GAMEMOP_STORAGE_FILES})
 source_group(Storage\\DB2 FILES ${SRC_STORAGE_DB2_FILES})
 endif ()
 
-add_executable(${PROJECT_NAME} ${WORLD_SRCS} ${APP_ICON_RESOURCE_WINDOWS})
-
-if (WIN32 AND NOT USE_PCH)
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO")
-endif ()
-
-if (APPLE)
-    target_link_libraries(${PROJECT_NAME} c++)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${PROJECT_NAME} c++experimental)
-endif ()
-
-set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS TRUE)
-
-add_dependencies(${PROJECT_NAME} shared g3dlite Detour Recast)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h)
+# include dependencies.
+target_include_directories(${PROJECT_NAME}
+  PUBLIC 
+    ${OPENSSL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
+    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
+    ${CMAKE_SOURCE_DIR}/src/collision
+    ${CMAKE_SOURCE_DIR}/src/collision/Management
+    ${CMAKE_SOURCE_DIR}/src/collision/Maps
+    ${CMAKE_SOURCE_DIR}/src/collision/Models
+    ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
+    ${CMAKE_SOURCE_DIR}/dep/lualib/src
+    ${CMAKE_SOURCE_DIR}/src/shared
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${ZLIB_INCLUDE_DIRS}
+)
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    shared
     lualib
     collision
     g3dlite
@@ -231,12 +216,22 @@ target_link_libraries(${PROJECT_NAME}
     Recast
 )
 
+if (APPLE)
+    target_link_libraries(${PROJECT_NAME} c++)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+    target_link_libraries(${PROJECT_NAME} c++experimental)
+endif ()
+
+if (WIN32 AND NOT USE_PCH)
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO")
+endif ()
+
 # generate precompiled header.
 if (USE_PCH)
     message(STATUS "Generate PCH for ${PROJECT_NAME}")
     target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchWorld.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h)
 
-unset(WORLD_SRCS)
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)

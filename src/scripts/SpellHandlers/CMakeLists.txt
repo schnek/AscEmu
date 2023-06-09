@@ -6,23 +6,15 @@ project(SpellHandlers CXX)
 include(Scripts/CMakeLists.txt)
 include(LegacyFiles/CMakeLists.txt)
 
-# sources - contains source files for our library.
-set(sources
+# create target.
+add_executable(${PROJECT_NAME}
     ${SRC_SPELL_SCRIPTS_FILES}
     ${SRC_SPELL_SCRIPTS_LEGACY_FILES}
-
-    Setup.cpp
-    # required for linker
-    ../../world/Server/ServerState.cpp
-    ../../world/Spell/SpellCastTargets.cpp
-    ../../shared/Utilities/Util.cpp
 )
 
-set(headers
-    Setup.h
-)
-
-include_directories(
+# include dependencies.
+target_include_directories(${PROJECT_NAME}
+  PUBLIC 
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
     ${CMAKE_SOURCE_DIR}/src/collision
@@ -36,15 +28,6 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
-add_library(${PROJECT_NAME} SHARED ${sources} ${headers})
-
-add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    world
-)
 
 # generate precompiled header.
 if (USE_PCH)
@@ -53,6 +36,3 @@ if (USE_PCH)
 endif ()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH} )
-
-unset(sources)
-unset(headers)

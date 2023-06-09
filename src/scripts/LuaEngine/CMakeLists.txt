@@ -41,11 +41,11 @@ include_directories(
 add_library(${PROJECT_NAME} SHARED ${LUAENGINE_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    world
-    lualib
-)
+#target_link_libraries(${PROJECT_NAME}
+#  PUBLIC
+#    world
+#    lualib
+#)
 
 # generate precompiled header.
 if (USE_PCH)

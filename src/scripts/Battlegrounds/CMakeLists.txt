@@ -16,13 +16,8 @@ file(GLOB SRC_STRAND_OF_THE_ANCIENT StrandOfTheAncient/*.cpp StrandOfTheAncient/
 file(GLOB SRC_WARSONG_GULCH WarsongGulch/*.cpp WarsongGulch/*.h)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
-# required for linker.
-set(SRC_BATTLEGROUNDS
-    ../../world/Server/ServerState.cpp
-    ../../world/Spell/SpellCastTargets.cpp
-)
-
-set(BATTLEGROUNDS_SRCS
+# create target.
+add_executable(${PROJECT_NAME}
     ${SRC_ALTERAC_VALLEY}
     ${SRC_ARATHI_BASIN}
     ${SRC_CIRCLE_OF_BLOOD}
@@ -38,20 +33,6 @@ set(BATTLEGROUNDS_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
-    ${OPENSSL_INCLUDE_DIR}
-    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
-    ${CMAKE_SOURCE_DIR}/src/collision
-    ${CMAKE_SOURCE_DIR}/src/collision/Management
-    ${CMAKE_SOURCE_DIR}/src/collision/Maps
-    ${CMAKE_SOURCE_DIR}/src/collision/Models
-    ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
-    ${CMAKE_SOURCE_DIR}/src/shared
-    ${CMAKE_SOURCE_DIR}/src/world
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${ZLIB_INCLUDE_DIRS}
-)
-
 # source group.
 source_group(AlteracValley FILES ${SRC_ALTERAC_VALLEY})
 source_group(ArathiBasin FILES ${SRC_ARATHI_BASIN})
@@ -65,12 +46,20 @@ source_group(RuinsOfLordaeron FILES ${SRC_RUINS_OF_LORDAERON})
 source_group(StrandOfTheAncient FILES ${SRC_STRAND_OF_THE_ANCIENT})
 source_group(WarsongGulch FILES ${SRC_WARSONG_GULCH})
 
-add_library(${PROJECT_NAME} SHARED ${BATTLEGROUNDS_SRCS})
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    world
+# include dependencies.
+target_include_directories(${PROJECT_NAME}
+  PUBLIC 
+    ${OPENSSL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
+    ${CMAKE_SOURCE_DIR}/src/collision
+    ${CMAKE_SOURCE_DIR}/src/collision/Management
+    ${CMAKE_SOURCE_DIR}/src/collision/Maps
+    ${CMAKE_SOURCE_DIR}/src/collision/Models
+    ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
+    ${CMAKE_SOURCE_DIR}/src/shared
+    ${CMAKE_SOURCE_DIR}/src/world
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${ZLIB_INCLUDE_DIRS}
 )
 
 # generate precompiled header.
@@ -80,5 +69,3 @@ if (USE_PCH)
 endif ()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
-
-unset(BATTLEGROUNDS_SRCS)
