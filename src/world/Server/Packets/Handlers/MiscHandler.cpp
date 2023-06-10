@@ -2286,7 +2286,7 @@ void WorldSession::handleReportPlayerOpcode(WorldPacket& recvPacket)
     uint32_t length = recvPacket.readBits(9);    // length * 2
     recvPacket >> unk3;                          // type
     recvPacket >> unk4;                          // guid - 1?
-    message = recvPacket.ReadString(length / 2);   // message
+    message = recvPacket.ReadString(length / 2); // message
     recvPacket >> unk5;                          // unk
     recvPacket >> unk6;                          // unk
     recvPacket >> unk7;                          // unk

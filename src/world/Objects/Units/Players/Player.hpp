@@ -87,8 +87,8 @@ public:
 
     void Update(unsigned long time_passed);             // hides function Unit::Update
     void AddToWorld();                                  // hides virtual function Object::AddToWorld
-    void AddToWorld(WorldMap* pMapMgr);                   // hides virtual function Object::AddToWorld
-    // void PushToWorld(WorldMap*);                       // not used
+    void AddToWorld(WorldMap* pMapMgr);                 // hides virtual function Object::AddToWorld
+    // void PushToWorld(WorldMap*);                     // not used
     // void RemoveFromWorld(bool free_guid);            // not used
     void OnPrePushToWorld() override;                   // overrides virtual function  Object::OnPrePushToWorld
     void OnPushToWorld() override;                      // overrides virtual function  Object::OnPushToWorld
