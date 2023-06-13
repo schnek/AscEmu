@@ -25,14 +25,14 @@ include_directories(
 add_executable(${PROJECT_NAME} ${MMAPS_EXTRACTOR_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    shared
-    g3dlite
-    collision
-    Detour
-    Recast
-)
+#target_link_libraries(${PROJECT_NAME}
+#  PUBLIC
+#    shared
+#    g3dlite
+#    collision
+#    Detour
+#    Recast
+#)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
 

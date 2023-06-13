@@ -22,12 +22,12 @@ include_directories(
 add_executable(${PROJECT_NAME} ${VMAPS_EXTRACTOR_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    collision
-    g3dlite
-    ${ZLIB_LIBRARIES}
-)
+#target_link_libraries(${PROJECT_NAME}
+#  PUBLIC
+#    collision
+#    g3dlite
+#    ${ZLIB_LIBRARIES}
+#)
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
 
