@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <cstdint>
 
-enum PlayerSkills : uint16_t
+enum PlayerSkills
 {
 #if VERSION_STRING <= Cata
     SKILL_FROST                         = 6,
@@ -273,7 +273,7 @@ enum PlayerSkills : uint16_t
 #endif
 };
 
-enum SkillTypes : uint8_t
+enum SkillTypes
 {
     SKILL_TYPE_UNK                      = 5,
     SKILL_TYPE_WEAPON                   = 6,  // Weapon skills
