@@ -5,9 +5,6 @@ if (NOT BUILD_GOSSIPSCRIPTS)
     return()
 endif ()
 
-# set up our project name.
-project(GossipScripts CXX)
-
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
 # required for linker.
@@ -33,20 +30,21 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
 )
-add_library(${PROJECT_NAME} SHARED ${GOSSIPSCRIPTS_SRCS})
+add_library(GossipScripts SHARED ${GOSSIPSCRIPTS_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(GossipScripts
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchGossipScripts.hpp)
+    message(STATUS "Generate PCH for GossipScripts")
+    target_precompile_headers(GossipScripts PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchGossipScripts.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS GossipScripts RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(GOSSIPSCRIPTS_SRCS)

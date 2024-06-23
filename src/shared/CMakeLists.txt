@@ -1,8 +1,5 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-# set up our project name.
-project(shared CXX)
-
 file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.h Config/*.hpp)
 file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.h Cryptography/*.hpp)
 file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.h Database/*.hpp)
@@ -22,28 +19,6 @@ endif ()
 file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.h Threading/*.hpp)
 file(GLOB SRC_UTILITIES_FILES Utilities/*.cpp Utilities/*.h Utilities/*.hpp)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
-
-set(SHARED_SRCS
-    ${SRC_CONFIG_FILES}
-    ${SRC_CRYPTOGRAPHY_FILES}
-    ${SRC_DATABASE_FILES}
-    ${SRC_DEBUGGING_FILES}
-    ${SRC_EXCEPTIONS_FILES}
-    ${SRC_LOGGING_FILES}
-    ${SRC_NETWORK_FILES}
-    ${SRC_NETWORK_FILES_PLATFORM}
-    ${SRC_THREADING_FILES}
-    ${SRC_UTILITIES_FILES}
-    ${SRC_LOCAL_DIR}
-)
-
-include_directories(
-    ${OPENSSL_INCLUDE_DIR}
-    ${ZLIB_INCLUDE_DIRS}
-    ${MYSQL_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/dep/utf8cpp
-)
 
 # source group.
 source_group(Config FILES ${SRC_CONFIG_FILES})
@@ -65,10 +40,34 @@ endif ()
 source_group(Threading FILES ${SRC_THREADING_FILES})
 source_group(Utilities FILES ${SRC_UTILITIES_FILES})
 
-add_library(${PROJECT_NAME} STATIC ${SHARED_SRCS})
+if (USE_PCH)
+  set(PRIVATE_PCH_HEADER pchShared.hpp)
+endif ()
+
+add_library(shared
+    ${SRC_CONFIG_FILES}
+    ${SRC_CRYPTOGRAPHY_FILES}
+    ${SRC_DATABASE_FILES}
+    ${SRC_DEBUGGING_FILES}
+    ${SRC_EXCEPTIONS_FILES}
+    ${SRC_LOGGING_FILES}
+    ${SRC_NETWORK_FILES}
+    ${SRC_NETWORK_FILES_PLATFORM}
+    ${SRC_THREADING_FILES}
+    ${SRC_UTILITIES_FILES}
+    ${SRC_LOCAL_DIR}
+)
+
+include_directories(
+    ${OPENSSL_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIRS}
+    ${MYSQL_INCLUDE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/utf8cpp
+)
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(shared
   PUBLIC
     ${ZLIB_LIBRARIES}
     ${MYSQL_LIBRARY}
@@ -81,15 +80,14 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
 if (APPLE)
-    target_link_libraries(${PROJECT_NAME} c++)
+    target_link_libraries(shared c++)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${PROJECT_NAME} c++experimental)
+    target_link_libraries(shared c++experimental)
 endif ()
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchShared.hpp)
+    message(STATUS "Generate PCH for shared")
+    target_precompile_headers(shared PRIVATE ${PRIVATE_PCH_HEADER})
 endif ()
 
-unset(SHARED_SRCS)

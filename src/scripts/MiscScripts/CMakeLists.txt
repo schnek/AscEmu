@@ -5,9 +5,6 @@ if (NOT BUILD_MISCSCRIPTS)
     return()
 endif ()
 
-# set up our project name.
-project(MiscScripts CXX)
-
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
 # required for linker.
@@ -33,20 +30,21 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
 )
-add_library(${PROJECT_NAME} SHARED ${MISCSCRIPTS_SRCS})
+add_library(MiscScripts SHARED ${MISCSCRIPTS_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(MiscScripts
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchMiscScripts.hpp)
+    message(STATUS "Generate PCH for MiscScripts")
+    target_precompile_headers(MiscScripts PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchMiscScripts.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS MiscScripts RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(MISCSCRIPTS_SRCS)

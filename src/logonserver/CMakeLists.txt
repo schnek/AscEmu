@@ -1,8 +1,5 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-# set up our project name.
-project(logon CXX)
-
 file(GLOB SRC_AUTH_FILES Auth/*.cpp Auth/*.h Auth/*.hpp)
 file(GLOB SRC_CONSOLE_FILES Console/*.cpp Console/*.h Console/*.hpp)
 file(GLOB SRC_LOGON_COMM_SERVER_FILES LogonCommServer/*.cpp LogonCommServer/*.h LogonCommServer/*.hpp)
@@ -14,7 +11,18 @@ if (WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 endif ()
 
-set(LOGON_SRCS
+# source group.
+source_group(Auth FILES ${SRC_AUTH_FILES})
+source_group(Console FILES ${SRC_CONSOLE_FILES})
+source_group(LogonCommServer FILES ${SRC_LOGON_COMM_SERVER_FILES})
+source_group(Realm FILES ${SRC_REALM_FILES})
+source_group(Server FILES ${SRC_SERVER_FILES})
+
+if (USE_PCH)
+  set(PRIVATE_PCH_HEADER pchLogon.hpp)
+endif ()
+
+add_executable(logon
     ${SRC_AUTH_FILES}
     ${SRC_CONSOLE_FILES}
     ${SRC_LOGON_COMM_SERVER_FILES}
@@ -23,7 +31,19 @@ set(LOGON_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
+# include library dependencies.
+target_link_libraries(logon
+  INTERFACE
+    ${ZLIB_LIBRARIES}
+    ${MYSQL_LIBRARY}
+    ${OPENSSL_LIBRARIES}
+    ${EXTRA_LIBS}
+    fmt
+    shared
+)
+
+target_include_directories(logon
+  PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Opcodes
     ${CMAKE_SOURCE_DIR}/src/shared
     ${ZLIB_INCLUDE_DIRS}
@@ -32,37 +52,20 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# source group.
-source_group(Auth FILES ${SRC_AUTH_FILES})
-source_group(Console FILES ${SRC_CONSOLE_FILES})
-source_group(LogonCommServer FILES ${SRC_LOGON_COMM_SERVER_FILES})
-source_group(Realm FILES ${SRC_REALM_FILES})
-source_group(Server FILES ${SRC_SERVER_FILES})
-
-add_executable(${PROJECT_NAME} ${LOGON_SRCS} ${APP_ICON_RESOURCE_WINDOWS})
-
 if (APPLE)
-    target_link_libraries(${PROJECT_NAME} c++)
+    target_link_libraries(logon c++)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${PROJECT_NAME} c++experimental)
+    target_link_libraries(logon c++experimental)
 endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp)
 
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    shared
-    ${ZLIB_LIBRARIES}
-)
-
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchLogon.hpp)
+    message(STATUS "Generate PCH for logon")
+    target_precompile_headers(logon PRIVATE ${PRIVATE_PCH_HEADER})
 endif ()
 
 # provide make install rules.
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
+install(TARGETS logon RUNTIME DESTINATION .)
 
-unset(LOGON_SRCS)

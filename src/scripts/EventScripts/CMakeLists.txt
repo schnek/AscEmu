@@ -5,9 +5,6 @@ if (NOT BUILD_EVENTSCRIPTS)
     return()
 endif ()
 
-# set up our project name.
-project(EventScripts CXX)
-
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
 # required for linker.
@@ -37,20 +34,21 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
-add_library(${PROJECT_NAME} SHARED ${EVENTSCRIPTS_SRCS})
+add_library(EventScripts SHARED ${EVENTSCRIPTS_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(EventScripts
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchEventScripts.hpp)
+    message(STATUS "Generate PCH for EventScripts")
+    target_precompile_headers(EventScripts PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchEventScripts.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS EventScripts RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(EVENTSCRIPTS_SRCS)

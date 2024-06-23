@@ -1,8 +1,5 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-# set up our project name.
-project(world CXX)
-
 file(GLOB SRC_CHAT_FILES Chat/*.cpp Chat/*.h Chat/*.hpp)
 file(GLOB SRC_COMMAND_FILES Chat/Commands/*.cpp Chat/Commands/*.h Chat/Commands/*.hpp)
 file(GLOB SRC_DATA_FILES Data/*.cpp Data/*.h Data/*.hpp)
@@ -47,7 +44,51 @@ if (WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 endif ()
 
-set(WORLD_SRCS
+# source group.
+source_group(Chat FILES ${SRC_CHAT_FILES})
+source_group(Chat\\Commands FILES ${SRC_COMMAND_FILES})
+source_group(Data FILES ${SRC_DATA_FILES})
+source_group(Macros FILES ${SRC_MACROS_FILES})
+source_group(Management FILES ${SRC_MANAGEMENT_FILES})
+source_group(Management\\Battleground FILES ${SRC_MANAGEMENT_BATTLEGROUND_FILES})
+source_group(Management\\Gossip FILES ${SRC_MANAGEMENT_GOSSIP_FILES})
+source_group(Management\\Guild FILES ${SRC_MANAGEMENT_GUILD_FILES})
+source_group(Management\\LFG FILES ${SRC_MANAGEMENT_LFG_FILES})
+source_group(Management\\Loot FILES ${SRC_MANAGEMENT_LOOT_FILES})
+source_group(Management\\ObjectUpdates FILES ${SRC_MANAGEMENT_OBJECTUPDATES_FILES})
+source_group(Management\\Tickets FILES ${SRC_MANAGEMENT_TICKETS_FILES})
+source_group(Map FILES ${SRC_MAP_FILES})
+source_group(Map\\Area FILES ${SRC_MAP_AREA_FILES})
+source_group(Map\\Cells FILES ${SRC_MAP_CELLS_FILES})
+source_group(Map\\Management FILES ${SRC_MAP_MANAGEMENT_FILES})
+source_group(Map\\Maps FILES ${SRC_MAP_MAPS_FILES})
+source_group(Movement FILES ${SRC_MOVEMENT_FILES})
+source_group(Movement\\MovementGenerators FILES ${SRC_MOVEMENT_MOVEMENTGENERATOR_FILES})
+source_group(Movement\\Spline FILES ${SRC_MOVEMENT_SPLINE_FILES})
+source_group(Objects FILES ${SRC_OBJECTS_FILES})
+source_group(Objects\\Units FILES ${SRC_UNITS_FILES})
+source_group(Objects\\Units\\Creatures FILES ${SRC_UNITS_CREATURES_FILES})
+source_group(Objects\\Units\\Creatures\\Summons FILES ${SRC_UNITS_SUMMONS_FILES})
+source_group(Objects\\Units\\Players FILES ${SRC_UNITS_PLAYERS_FILES})
+source_group(Server FILES ${SRC_SERVER_FILES})
+source_group(Server\\Console FILES ${SRC_SERVER_CONSOLE_FILES})
+source_group(Server\\LogonCommClient FILES ${SRC_LOGON_COMMUNICATION_CLIENT_FILES})
+source_group(Server\\Packets FILES ${SRC_PACKET_FILES})
+source_group(Server\\Packets\\Handlers FILES ${SRC_PACKET_HANDLER_FILES})
+source_group(Server\\Packets\\Movement FILES ${SRC_PACKET_MOVEMENT_FILES})
+source_group(Server\\Script FILES ${SRC_SERVER_SCRIPT_FILES})
+source_group(Server\\Warden FILES ${SRC_SERVER_WARDEN_FILES})
+source_group(Spell FILES ${SRC_SPELL_FILES})
+source_group(Spell\\Customization FILES ${SRC_SPELL_CUSTOM_FILES})
+source_group(Spell\\Definitions FILES ${SRC_SPELL_DEFINITIONS_FILES})
+source_group(Storage FILES ${SRC_STORAGE_FILES})
+source_group(Storage\\WDB FILES ${SRC_STORAGE_WDB_FILES})
+
+if (USE_PCH)
+  set(PRIVATE_PCH_HEADER pchWorld.hpp)
+endif ()
+
+add_executable(world
     ${SRC_CHAT_FILES}
     ${SRC_COMMAND_FILES}
     ${SRC_DATA_FILES}
@@ -89,8 +130,48 @@ set(WORLD_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
+target_compile_options(world
+  INTERFACE
+    -W
+    -Wall
+    -Wextra
+    -Winit-self
+    -Winvalid-pch
+    -Wfatal-errors
+    -Woverloaded-virtual
+    -fPIC
+    -Wno-attributes
+    -fvisibility=hidden
+    -g3
+    -msse2
+    -mfpmath=sse
+)
+
+target_compile_definitions(world
+  INTERFACE
+    DHAVE_SSE2
+    -D__SSE2__
+)
+
+# include library dependencies.
+target_link_libraries(world
+  PUBLIC
+    ${WORLD_LINK_EXTRA_LIBS}
+    shared
+    #collision
+    g3dlite
+    Detour
+    Recast
+    fmt
+)
+
+target_include_directories(world
+  PUBLIC
     ${OPENSSL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/src/world/
+    ${CMAKE_SOURCE_DIR}/src/world/Chat
+    ${CMAKE_SOURCE_DIR}/src/world/Chat/Commands
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
     ${CMAKE_SOURCE_DIR}/src/collision
@@ -100,55 +181,12 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
     ${CMAKE_SOURCE_DIR}/dep/lualib/src
     ${CMAKE_SOURCE_DIR}/src/shared
-    ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
 )
 
-# source group.
-source_group(Chat FILES ${SRC_CHAT_FILES})
-source_group(Chat\\Commands FILES ${SRC_COMMAND_FILES})
-source_group(Data FILES ${SRC_DATA_FILES})
-source_group(Macros FILES ${SRC_MACROS_FILES})
-source_group(Management FILES ${SRC_MANAGEMENT_FILES})
-source_group(Management\\Battleground FILES ${SRC_MANAGEMENT_BATTLEGROUND_FILES})
-source_group(Management\\Gossip FILES ${SRC_MANAGEMENT_GOSSIP_FILES})
-source_group(Management\\Guild FILES ${SRC_MANAGEMENT_GUILD_FILES})
-source_group(Management\\LFG FILES ${SRC_MANAGEMENT_LFG_FILES})
-source_group(Management\\Loot FILES ${SRC_MANAGEMENT_LOOT_FILES})
-source_group(Management\\ObjectUpdates FILES ${SRC_MANAGEMENT_OBJECTUPDATES_FILES})
-source_group(Management\\Tickets FILES ${SRC_MANAGEMENT_TICKETS_FILES})
-source_group(Map FILES ${SRC_MAP_FILES})
-source_group(Map\\Area FILES ${SRC_MAP_AREA_FILES})
-source_group(Map\\Cells FILES ${SRC_MAP_CELLS_FILES})
-source_group(Map\\Management FILES ${SRC_MAP_MANAGEMENT_FILES})
-source_group(Map\\Maps FILES ${SRC_MAP_MAPS_FILES})
-source_group(Movement FILES ${SRC_MOVEMENT_FILES})
-source_group(Movement\\MovementGenerators FILES ${SRC_MOVEMENT_MOVEMENTGENERATOR_FILES})
-source_group(Movement\\Spline FILES ${SRC_MOVEMENT_SPLINE_FILES})
-source_group(Objects FILES ${SRC_OBJECTS_FILES})
-source_group(Objects\\Units FILES ${SRC_UNITS_FILES})
-source_group(Objects\\Units\\Creatures FILES ${SRC_UNITS_CREATURES_FILES})
-source_group(Objects\\Units\\Creatures\\Summons FILES ${SRC_UNITS_SUMMONS_FILES})
-source_group(Objects\\Units\\Players FILES ${SRC_UNITS_PLAYERS_FILES})
-source_group(Server FILES ${SRC_SERVER_FILES})
-source_group(Server\\Console FILES ${SRC_SERVER_CONSOLE_FILES})
-source_group(Server\\LogonCommClient FILES ${SRC_LOGON_COMMUNICATION_CLIENT_FILES})
-source_group(Server\\Packets FILES ${SRC_PACKET_FILES})
-source_group(Server\\Packets\\Handlers FILES ${SRC_PACKET_HANDLER_FILES})
-source_group(Server\\Packets\\Movement FILES ${SRC_PACKET_MOVEMENT_FILES})
-source_group(Server\\Script FILES ${SRC_SERVER_SCRIPT_FILES})
-source_group(Server\\Warden FILES ${SRC_SERVER_WARDEN_FILES})
-source_group(Spell FILES ${SRC_SPELL_FILES})
-source_group(Spell\\Customization FILES ${SRC_SPELL_CUSTOM_FILES})
-source_group(Spell\\Definitions FILES ${SRC_SPELL_DEFINITIONS_FILES})
-source_group(Storage FILES ${SRC_STORAGE_FILES})
-source_group(Storage\\WDB FILES ${SRC_STORAGE_WDB_FILES})
-
-add_executable(${PROJECT_NAME} ${WORLD_SRCS} ${APP_ICON_RESOURCE_WINDOWS})
-
 if (WIN32 AND NOT USE_PCH)
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/INCREMENTAL:NO")
+   # set_target_properties(world PROPERTIES LINK_FLAGS "/INCREMENTAL:NO")
 endif ()
 
 if (APPLE)
@@ -161,31 +199,19 @@ if (BUILD_LUAENGINE)
     LIST(APPEND WORLD_LINK_EXTRA_LIBS lualib)
 endif()
 
-set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS TRUE)
+#set_target_properties(world PROPERTIES ENABLE_EXPORTS TRUE)
 
-add_dependencies(${PROJECT_NAME} shared g3dlite Detour Recast)
+#add_dependencies(world shared g3dlite Detour Recast)
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h)
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    ${WORLD_LINK_EXTRA_LIBS}
-    shared
-    collision
-    g3dlite
-    Detour
-    Recast
-)
 
 unset(WORLD_LINK_EXTRA_LIBS)
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchWorld.hpp)
+    message(STATUS "Generate PCH for world")
+    target_precompile_headers(world PRIVATE ${PRIVATE_PCH_HEADER})
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
+install(TARGETS world RUNTIME DESTINATION .)
 
-unset(WORLD_SRCS)

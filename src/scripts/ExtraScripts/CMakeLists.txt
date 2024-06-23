@@ -5,9 +5,6 @@ if (NOT BUILD_EXTRASCRIPTS)
     return()
 endif ()
 
-# set up our project name.
-project(ExtraScripts CXX)
-
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
 # required for linker.
@@ -34,20 +31,21 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
 )
 
-add_library(${PROJECT_NAME} SHARED ${EXTRASCRIPTS_SRCS})
+add_library(ExtraScripts SHARED ${EXTRASCRIPTS_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(ExtraScripts
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchExtraScripts.hpp)
+    message(STATUS "Generate PCH for ExtraScripts")
+    target_precompile_headers(ExtraScripts PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchExtraScripts.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS ExtraScripts RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(EXTRASCRIPTS_SRCS)

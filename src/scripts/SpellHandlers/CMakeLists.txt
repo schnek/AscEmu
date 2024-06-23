@@ -1,8 +1,5 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-# set up our project name.
-project(SpellHandlers CXX)
-
 include(Scripts/CMakeLists.txt)
 include(LegacyFiles/CMakeLists.txt)
 
@@ -37,23 +34,24 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
-add_library(${PROJECT_NAME} SHARED ${sources} ${headers})
+add_library(SpellHandlers SHARED ${sources} ${headers})
 
 add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(SpellHandlers
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchSpellHandlers.hpp)
+    message(STATUS "Generate PCH for SpellHandlers")
+    target_precompile_headers(SpellHandlers PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchSpellHandlers.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH} )
+install(TARGETS SpellHandlers RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH} )
 
 unset(sources)
 unset(headers)

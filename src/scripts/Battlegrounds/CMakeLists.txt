@@ -1,8 +1,5 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-# set up our project name.
-project(Battlegrounds CXX)
-
 file(GLOB SRC_ALTERAC_VALLEY AlteracValley/*.cpp AlteracValley/*.h)
 file(GLOB SRC_ARATHI_BASIN ArathiBasin/*.cpp ArathiBasin/*.h)
 file(GLOB SRC_CIRCLE_OF_BLOOD CircleOfBlood/*.cpp CircleOfBlood/*.h)
@@ -65,20 +62,21 @@ source_group(RuinsOfLordaeron FILES ${SRC_RUINS_OF_LORDAERON})
 source_group(StrandOfTheAncient FILES ${SRC_STRAND_OF_THE_ANCIENT})
 source_group(WarsongGulch FILES ${SRC_WARSONG_GULCH})
 
-add_library(${PROJECT_NAME} SHARED ${BATTLEGROUNDS_SRCS})
+add_library(Battlegrounds SHARED ${BATTLEGROUNDS_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(Battlegrounds
+  INTERFACE
     world
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchBattleGrounds.hpp)
+    message(STATUS "Generate PCH for Battlegrounds")
+    target_precompile_headers(Battlegrounds PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchBattleGrounds.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS Battlegrounds RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(BATTLEGROUNDS_SRCS)

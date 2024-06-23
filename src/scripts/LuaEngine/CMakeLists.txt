@@ -5,9 +5,6 @@ if (NOT BUILD_LUAENGINE)
     return()
 endif ()
 
-# set up our project name.
-project(LuaEngine CXX)
-
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
 # required for linker.
@@ -38,21 +35,21 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
-add_library(${PROJECT_NAME} SHARED ${LUAENGINE_SRCS})
+add_library(LuaEngine SHARED ${LUAENGINE_SRCS})
 
 # include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
+target_link_libraries(LuaEngine
+  INTERFACE
     world
     lualib
+    fmt
 )
 
 # generate precompiled header.
 if (USE_PCH)
-    message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchLuaEngine.hpp)
+    target_precompile_headers(LuaEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchLuaEngine.hpp)
 endif ()
 
-install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
+install(TARGETS LuaEngine RUNTIME DESTINATION ${ASCEMU_SCRIPTLIB_PATH} LIBRARY DESTINATION ${ASCEMU_SCRIPTLIB_PATH})
 
 unset(LUAENGINE_SRCS)
