@@ -93,6 +93,40 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
+    ${CMAKE_SOURCE_DIR}/src/world
+    ${CMAKE_SOURCE_DIR}/src/world/Chat
+    ${CMAKE_SOURCE_DIR}/src/world/Chat/Commands
+    ${CMAKE_SOURCE_DIR}/src/world/Data
+    ${CMAKE_SOURCE_DIR}/src/world/Macros
+    ${CMAKE_SOURCE_DIR}/src/world/Management
+    ${CMAKE_SOURCE_DIR}/src/world/Management/Battleground
+    ${CMAKE_SOURCE_DIR}/src/world/Management/Gossip
+    ${CMAKE_SOURCE_DIR}/src/world/Management/Guild
+    ${CMAKE_SOURCE_DIR}/src/world/Management/LFG
+    ${CMAKE_SOURCE_DIR}/src/world/Management/Loot
+    ${CMAKE_SOURCE_DIR}/src/world/Management/ObjectUpdates
+    ${CMAKE_SOURCE_DIR}/src/world/Management/Tickets
+    ${CMAKE_SOURCE_DIR}/src/world/Map
+    ${CMAKE_SOURCE_DIR}/src/world/Map/Area
+    ${CMAKE_SOURCE_DIR}/src/world/Map/Cells
+    ${CMAKE_SOURCE_DIR}/src/world/Map/Management
+    ${CMAKE_SOURCE_DIR}/src/world/Map/Maps
+    ${CMAKE_SOURCE_DIR}/src/world/Movement
+    ${CMAKE_SOURCE_DIR}/src/world/Movement/MovementGenerators
+    ${CMAKE_SOURCE_DIR}/src/world/Movement/Spline
+    ${CMAKE_SOURCE_DIR}/src/world/Objects
+    ${CMAKE_SOURCE_DIR}/src/world/Objects/Units
+    ${CMAKE_SOURCE_DIR}/src/world/Server
+    ${CMAKE_SOURCE_DIR}/src/world/Server/Console
+    ${CMAKE_SOURCE_DIR}/src/world/Server/LogonCommClient
+    ${CMAKE_SOURCE_DIR}/src/world/Server/Packets
+    ${CMAKE_SOURCE_DIR}/src/world/Server/Script
+    ${CMAKE_SOURCE_DIR}/src/world/Server/Warden
+    ${CMAKE_SOURCE_DIR}/src/world/Spell
+    ${CMAKE_SOURCE_DIR}/src/world/Spell/Customization
+    ${CMAKE_SOURCE_DIR}/src/world/Spell/Definitions
+    ${CMAKE_SOURCE_DIR}/src/world/Storage
+    ${CMAKE_SOURCE_DIR}/src/world/Storage/WDB
     ${CMAKE_SOURCE_DIR}/src/collision
     ${CMAKE_SOURCE_DIR}/src/collision/Management
     ${CMAKE_SOURCE_DIR}/src/collision/Maps
