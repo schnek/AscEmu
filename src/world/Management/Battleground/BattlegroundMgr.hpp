@@ -8,6 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "BattlegroundDefines.hpp"
 #include "Server/EventableObject.h"
 #include <deque>
+#include <vector>
 
 class WorldSession;
 class WorldPacket;

@@ -6,7 +6,6 @@ mark_as_advanced(
     git_commit
     git_tag
     git_time
-    BUILD_HOSTNAME
 )
 
 # extract git revision
@@ -32,7 +31,6 @@ execute_process(
 )
 
 set(ascemu_tag ${git_tag})
-site_name(BUILD_HOSTNAME)
 set(BUILD_USERNAME $ENV{USERNAME})
 
 configure_file(

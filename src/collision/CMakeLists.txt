@@ -15,28 +15,42 @@ set(COLLISION_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
+# create target.
+add_library(${PROJECT_NAME} STATIC ${COLLISION_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${COLLISION_SRCS})
+
+# include library dependencies.
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    Threads::Threads
+  PUBLIC
+    g3dlite
+    shared
+    ${ZLIB_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${MYSQL_LIBRARY}
+    utf8cpp
+    fmt
+)
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
+    ${ZLIB_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIR}
+    ${MYSQL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/src/shared
+    ${CMAKE_SOURCE_DIR}/src/world
     ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
-    ${CMAKE_SOURCE_DIR}/src/shared
-    ${CMAKE_SOURCE_DIR}/src/world
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Management
     ${CMAKE_CURRENT_SOURCE_DIR}/Maps
     ${CMAKE_CURRENT_SOURCE_DIR}/Models
-    ${ZLIB_INCLUDE_DIRS}
-)
-
-add_library(${PROJECT_NAME} STATIC ${COLLISION_SRCS})
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    g3dlite
-    shared
-)
+)    
 
 # generate precompiled header.
 if (USE_PCH)

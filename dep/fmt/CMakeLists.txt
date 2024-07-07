@@ -1,5 +1,8 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
+# set up our project name.
+project(fmt CXX)
+
 include(CheckSymbolExists)
 
 set(strtod_l_headers stdlib.h)
@@ -16,39 +19,28 @@ function(add_headers VAR)
     set(${VAR} ${headers} PARENT_SCOPE)
 endfunction()
 
-# Define the fmt library, its includes and the needed defines.
-add_headers(FMT_HEADERS
-    args.h
-    chrono.h
-    color.h
-    compile.h
-    core.h
-    format.h
-    format-inl.h
-    os.h
-    ostream.h
-    printf.h
-    ranges.h
-    std.h
-    xchar.h)
+# define the fmt library, its includes and the needed defines.
+file(GLOB FMT_HEADERS *.h)
 
 set(FMT_SOURCES
     src/format.cc
     src/os.cc)
 
-add_library(fmt STATIC ${FMT_SOURCES} ${FMT_HEADERS})
+# create target.
+add_library(${PROJECT_NAME} STATIC ${FMT_SOURCES} ${FMT_HEADERS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 if (HAVE_STRTOD_L)
-    target_compile_definitions(fmt
+    target_compile_definitions(${PROJECT_NAME}
         PUBLIC
             FMT_LOCALE)
 endif()
 
-# Define FMT_CONSTEVAL for current using in c++20
-target_compile_definitions(fmt
+# define FMT_CONSTEVAL for current using in c++20
+target_compile_definitions(${PROJECT_NAME}
     PUBLIC
         FMT_CONSTEVAL=)
 
-target_include_directories(fmt
+target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include)

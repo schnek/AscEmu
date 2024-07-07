@@ -19,6 +19,7 @@ set(SRC_SPELL_SCRIPTS_LEGACY_FILES
     ${PATH_PREFIX}/MiscSpells.cpp
 )
 
-source_group(LegacyFiles FILES ${SRC_SPELL_SCRIPTS_LEGACY_FILES})
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_SPELL_SCRIPTS_LEGACY_FILES})
 
 unset(PATH_PREFIX)

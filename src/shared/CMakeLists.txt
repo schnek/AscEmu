@@ -37,48 +37,33 @@ set(SHARED_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-include_directories(
+# create target.
+add_library(${PROJECT_NAME} STATIC ${SHARED_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SHARED_SRCS})
+
+# include library dependencies.
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    Threads::Threads
+  PUBLIC
+    ${ZLIB_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${MYSQL_LIBRARY}
+    ${EXTRA_LIBS}
+    fmt
+)
+
+target_include_directories(${PROJECT_NAME}
+  PRIVATE
     ${OPENSSL_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIRS}
     ${MYSQL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
-
-# source group.
-source_group(Config FILES ${SRC_CONFIG_FILES})
-source_group(Cryptography FILES ${SRC_CRYPTOGRAPHY_FILES})
-source_group(Database FILES ${SRC_DATABASE_FILES})
-source_group(Debugging FILES ${SRC_DEBUGGING_FILES})
-source_group(Exceptions FILES ${SRC_EXCEPTIONS_FILES})
-source_group(Logging FILES ${SRC_LOGGING_FILES})
-source_group(Network FILES ${SRC_NETWORK_FILES})
-
-if (WIN32)
-    source_group(Network/IOCP FILES ${SRC_NETWORK_FILES_PLATFORM})
-elseif ((CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD") OR APPLE)
-    source_group(Network/KQUEUE FILES ${SRC_NETWORK_FILES_PLATFORM})
-else ()
-    source_group(Network/EPOLL FILES ${SRC_NETWORK_FILES_PLATFORM})
-endif ()
-
-source_group(Threading FILES ${SRC_THREADING_FILES})
-source_group(Utilities FILES ${SRC_UTILITIES_FILES})
-
-add_library(${PROJECT_NAME} STATIC ${SHARED_SRCS})
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    ${ZLIB_LIBRARIES}
-    ${MYSQL_LIBRARY}
-    ${OPENSSL_LIBRARIES}
-    ${EXTRA_LIBS}
-    fmt
-)
-
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
 if (APPLE)
     target_link_libraries(${PROJECT_NAME} c++)
@@ -92,4 +77,5 @@ if (USE_PCH)
     target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchShared.hpp)
 endif ()
 
-unset(SHARED_SRCS)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)

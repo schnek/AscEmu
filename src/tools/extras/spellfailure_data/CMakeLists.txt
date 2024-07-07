@@ -9,10 +9,14 @@ set(SPELLFAILURE_DATA_SRCS
     ${SRC_SPELLFAILURE_DATA}
 )
 
+# create target.
 add_executable(${PROJECT_NAME} ${SPELLFAILURE_DATA_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    Threads::Threads
   PUBLIC
     ${ZLIB_LIBRARIES}
 )
