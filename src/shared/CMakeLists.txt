@@ -43,6 +43,7 @@ include_directories(
     ${MYSQL_INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
+    ${EXTRA_INCLUDES}
 )
 
 # source group.

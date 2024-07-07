@@ -137,6 +137,7 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
+    ${EXTRA_INCLUDES}
 )
 
 # source group.
@@ -204,6 +205,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
+    ${EXTRA_LIBS}
     ${WORLD_LINK_EXTRA_LIBS}
     shared
     collision
