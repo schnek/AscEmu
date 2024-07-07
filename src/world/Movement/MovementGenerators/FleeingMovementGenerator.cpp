@@ -88,11 +88,6 @@ void FleeingMovementGenerator<T>::doDeactivate(T* owner)
     owner->removeUnitStateFlag(UNIT_STATE_FLEEING_MOVE);
 }
 
-template<class T>
-void FleeingMovementGenerator<T>::doFinalize(T*, bool, bool)
-{
-}
-
 template<>
 void FleeingMovementGenerator<Player>::doFinalize(Player* owner, bool active, bool/* movementInform*/)
 {

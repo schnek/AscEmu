@@ -8,6 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Utilities/Util.hpp"
 #include "Movement/MovementGenerator.h"
 
+class Player;
 class Creature;
 class PathGenerator;
 class LocationVector;
@@ -24,7 +25,9 @@ public:
     void doReset(T*);
     bool doUpdate(T*, uint32_t);
     void doDeactivate(T*);
-    void doFinalize(T*, bool, bool);
+
+    void doFinalize(Player* owner, bool active, bool);
+    void doFinalize(Creature* owner, bool active, bool);
 
     void unitSpeedChanged() override { FleeingMovementGenerator<T>::addFlag(MOVEMENTGENERATOR_FLAG_SPEED_UPDATE_PENDING); }
 

@@ -17,7 +17,8 @@ set(LUALIB_SRCS
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-# lua static library
+# create target.
 add_library (${PROJECT_NAME} STATIC ${LUALIB_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 unset(LUALIB_SRCS)

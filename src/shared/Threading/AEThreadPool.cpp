@@ -53,9 +53,9 @@ namespace AscEmu::Threading
         lock_guard<mutex> guard(m_mtx);
         auto task_obj = make_unique<Task>(task, taskName, repeatDelay);
         if (highPriority)
-            m_tasks.push_back(move(task_obj));
+            m_tasks.push_back(std::move(task_obj));
         else
-            m_highPriorityTasks.push_back(move(task_obj));
+            m_highPriorityTasks.push_back(std::move(task_obj));
     }
 
     void AEThreadPool::pulse(AEThread& pulseThread)

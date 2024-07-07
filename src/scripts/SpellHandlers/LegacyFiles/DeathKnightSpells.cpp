@@ -278,17 +278,17 @@ bool DeathCoil(uint8_t /*effectIndex*/, Spell* s)
 
 bool BladedArmor(uint8_t /*effectIndex*/, Spell* /*s*/)
 {
-    /********************************************************************************************************
-    /* SPELL_EFFECT_DUMMY is used in this spell, in DBC, only to store data for in-game tooltip output.
-    /* Description: Increases your attack power by $s2 for every ${$m1*$m2} armor value you have.
-    /* Where $s2 is base points of Effect 1 and $m1*$m2 I guess it's a mod.
-    /* So for example spell id 49393: Increases your attack power by 5 for every 180 armor value you have.
-    /* Effect 0: Base Points/mod->m_amount = 36; Effect 1: Base Points = 5;
-    /* $s2 = 5 and ${$m1*$m2} = 36*5 = 180.
-    /* Calculations are already done by Blizzard and set into BasePoints field,
-    /* and passed to SpellAuraModAttackPowerOfArmor, so there is no need to do handle this here.
-    /* Either way Blizzard has some weird Chinese developers or they are smoking some really good stuff.
-    ********************************************************************************************************/
+    // *******************************************************************************************************
+    // SPELL_EFFECT_DUMMY is used in this spell, in DBC, only to store data for in-game tooltip output.
+    // Description: Increases your attack power by $s2 for every ${$m1*$m2} armor value you have.
+    // Where $s2 is base points of Effect 1 and $m1*$m2 I guess it's a mod.
+    // So for example spell id 49393: Increases your attack power by 5 for every 180 armor value you have.
+    // Effect 0: Base Points/mod->m_amount = 36; Effect 1: Base Points = 5;
+    // $s2 = 5 and ${$m1*$m2} = 36*5 = 180.
+    // Calculations are already done by Blizzard and set into BasePoints field,
+    // and passed to SpellAuraModAttackPowerOfArmor, so there is no need to do handle this here.
+    // Either way Blizzard has some weird Chinese developers or they are smoking some really good stuff.
+    // *******************************************************************************************************
     return true;
 }
 
