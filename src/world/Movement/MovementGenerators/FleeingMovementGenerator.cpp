@@ -101,6 +101,20 @@ void FleeingMovementGenerator<Player>::doFinalize(Player* owner, bool active, bo
     }
 }
 
+template<>
+void FleeingMovementGenerator<Creature>::doFinalize(Creature* owner, bool active, bool/* movementInform*/)
+{
+    addFlag(MOVEMENTGENERATOR_FLAG_FINALIZED);
+
+    if (active)
+    {
+        owner->removeUnitFlags(UNIT_FLAG_FLEEING);
+        owner->removeUnitStateFlag(UNIT_STATE_FLEEING_MOVE);
+        if (owner->getAIInterface()->getCurrentTarget())
+            owner->setTargetGuid(owner->getGuid());
+    }
+}
+
 template<class T>
 void FleeingMovementGenerator<T>::setTargetLocation(T* owner)
 {
