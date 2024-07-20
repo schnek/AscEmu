@@ -8,6 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Utilities/Util.hpp"
 #include "Movement/MovementGenerator.h"
 
+class Player;
 class Creature;
 class PathGenerator;
 class LocationVector;

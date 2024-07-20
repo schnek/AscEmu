@@ -4473,7 +4473,7 @@ void MySQLDataStore::loadCreatureSpawns()
                 cspawn->origine = fields[32].GetString();
 
                 //\todo add flag to declare a spawn as static. E.g. gameobject_spawns
-                /*if (!stricmp((*tableiterator).c_str(), "creature_staticspawns"))
+                /*if (!_stricmp((*tableiterator).c_str(), "creature_staticspawns"))
                 {
                     staticSpawns.CreatureSpawns.push_back(cspawn);
                     ++CreatureSpawnCount;
