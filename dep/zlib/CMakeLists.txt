@@ -3,28 +3,13 @@
 # set up our project name.
 project(zlib C)
 
-set(SRC_ZLIB
-    adler32.c
-    compress.c
-    crc32.c
-    deflate.c
-    infback.c
-    inffast.c
-    gzclose.c
-    gzlib.c
-    gzread.c
-    gzwrite.c
-    inflate.c
-    infback.c
-    inftrees.c
-    inffast.c
-    trees.c
-    uncompr.c
-    zutil.c
-)
+file(GLOB SRC_ZLIB *.c)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+# create target.
 add_library(${PROJECT_NAME} STATIC ${SRC_ZLIB})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 #set it to the project name.
 set(ZLIB_LIBRARIES ${PROJECT_NAME} CACHE INTERNAL "Zlib Libraries")

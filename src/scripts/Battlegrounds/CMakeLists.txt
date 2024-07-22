@@ -65,7 +65,12 @@ source_group(RuinsOfLordaeron FILES ${SRC_RUINS_OF_LORDAERON})
 source_group(StrandOfTheAncient FILES ${SRC_STRAND_OF_THE_ANCIENT})
 source_group(WarsongGulch FILES ${SRC_WARSONG_GULCH})
 
+# create target.
 add_library(${PROJECT_NAME} SHARED ${BATTLEGROUNDS_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+
+# source group.
+#source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${BATTLEGROUNDS_SRCS})
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}

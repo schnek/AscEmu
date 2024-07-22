@@ -10,10 +10,6 @@ file(GLOB SRC_REALM_FILES Realm/*.cpp Realm/*.h Realm/*.hpp)
 file(GLOB SRC_SERVER_FILES Server/*.cpp Server/*.h Server/*.hpp)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
-if (WIN32)
-    set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
-endif ()
-
 set(LOGON_SRCS
     ${SRC_AUTH_FILES}
     ${SRC_CONSOLE_FILES}
@@ -32,14 +28,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# source group.
-source_group(Auth FILES ${SRC_AUTH_FILES})
-source_group(Console FILES ${SRC_CONSOLE_FILES})
-source_group(LogonCommServer FILES ${SRC_LOGON_COMM_SERVER_FILES})
-source_group(Realm FILES ${SRC_REALM_FILES})
-source_group(Server FILES ${SRC_SERVER_FILES})
+# create target.
+add_executable(${PROJECT_NAME} ${LOGON_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
-add_executable(${PROJECT_NAME} ${LOGON_SRCS} ${APP_ICON_RESOURCE_WINDOWS})
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LOGON_SRCS})
 
 if (APPLE)
     target_link_libraries(${PROJECT_NAME} c++)

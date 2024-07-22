@@ -20,6 +20,7 @@ set(SRC_SPELL_SCRIPTS_FILES
     ${PATH_PREFIX}/Warrior.cpp
 )
 
-source_group(Scripts FILES ${SRC_SPELL_SCRIPTS_FILES})
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SRC_SPELL_SCRIPTS_FILES})
 
 unset(PATH_PREFIX)

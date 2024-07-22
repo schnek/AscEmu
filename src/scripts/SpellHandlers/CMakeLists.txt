@@ -37,7 +37,10 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
+
+# create target.
 add_library(${PROJECT_NAME} SHARED ${sources} ${headers})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 

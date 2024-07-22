@@ -29,7 +29,12 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
 )
 
+# create target.
 add_library(${PROJECT_NAME} STATIC ${COLLISION_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+
+# source group.
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${COLLISION_SRCS})
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}

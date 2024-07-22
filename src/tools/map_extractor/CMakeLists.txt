@@ -18,7 +18,9 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+# create target.
 add_executable(${PROJECT_NAME} ${MAPS_EXTRACTOR_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}

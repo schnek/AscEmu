@@ -33,7 +33,10 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
 )
+
+# create target.
 add_library(${PROJECT_NAME} SHARED ${GOSSIPSCRIPTS_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}

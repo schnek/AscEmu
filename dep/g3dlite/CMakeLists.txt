@@ -54,7 +54,9 @@ include_directories(
     ${ZLIB_INCLUDE_DIRS}
 )
 
+# create target.
 add_library(${PROJECT_NAME} STATIC ${SRC_G3DLITE})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}

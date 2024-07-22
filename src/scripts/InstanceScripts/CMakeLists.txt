@@ -282,7 +282,12 @@ source_group(Wotlk/VioletHold FILES ${SRC_WOTLK_VIOLETHOLD_SCRIPTS_FILES})
 
 source_group(Cata FILES ${SRC_CATA_SCRIPTS_FILES})
 
+# create target.
 add_library(${PROJECT_NAME} SHARED ${INSTANCESCRIPTS_SRCS})
+set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+
+# source group.
+# source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${INSTANCESCRIPTS_SRCS})
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
