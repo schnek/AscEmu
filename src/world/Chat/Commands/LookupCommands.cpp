@@ -3,23 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Management/AchievementMgr.h"
-#include "Management/QuestProperties.hpp"
-#include "Objects/GameObjectProperties.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/WorldSession.h"
-#include "Spell/SpellInfo.hpp"
-#include "Spell/SpellMgr.hpp"
-#include "Storage/MySQLDataStore.hpp"
-#include "Storage/MySQLStructures.h"
-#include "Storage/WDB/WDBStores.hpp"
-#include "Storage/WDB/WDBStructures.hpp"
-#include "Utilities/Strings.hpp"
-
-#if VERSION_STRING < Cata
-#include "Server/World.h"
-#endif
+#include "pchWorld.hpp"
 
 //.lookup achievement
 //////////////////////////////////////////////////////////////////////////////////////////

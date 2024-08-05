@@ -3,13 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Map/Maps/WorldMap.hpp"
-#include "Objects/Units/Creatures/Creature.h"
-#include "Objects/Units/Creatures/Vehicle.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/WorldSession.h"
-#include "Storage/MySQLDataStore.hpp"
+#include "pchWorld.hpp"
 
 #ifdef FT_VEHICLES
 //.vehicle ejectpassenger

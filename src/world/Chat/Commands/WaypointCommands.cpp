@@ -3,15 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Logging/Logger.hpp"
-#include "Movement/MovementManager.h"
-#include "Movement/WaypointManager.h"
-#include "Objects/Units/Creatures/AIInterface.h"
-#include "Objects/Units/Creatures/Creature.h"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/WorldSession.h"
+#include "pchWorld.hpp"
 
 //.waypoint add
 bool ChatHandler::HandleWayPointAddCommand(const char* args, WorldSession* m_session)

@@ -3,16 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Management/Charter.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Management/Guild/Guild.hpp"
-#include "Management/Guild/GuildMgr.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
+#include "pchWorld.hpp"
 
 //.guild create
 bool ChatHandler::HandleGuildCreateCommand(const char* args, WorldSession* m_session)

@@ -3,12 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "CommandTableStorage.hpp"
-#include "ChatCommand.hpp"
-#include "ChatHandler.hpp"
-#include "Logging/Logger.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Utilities/Strings.hpp"
+#include "pchWorld.hpp"
 
 CommandTableStorage& CommandTableStorage::getInstance()
 {

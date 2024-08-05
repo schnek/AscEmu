@@ -3,14 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Objects/Units/Creatures/Pet.h"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Spell/SpellMgr.hpp"
-#include "Storage/MySQLDataStore.hpp"
+#include "pchWorld.hpp"
 
 //.pet create
 bool ChatHandler::HandlePetCreateCommand(const char* args, WorldSession* m_session)

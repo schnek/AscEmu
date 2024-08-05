@@ -3,19 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "ChannelMgr.hpp"
-#include "Channel.hpp"
-#include "Map/Area/AreaManagementGlobals.hpp"
-#include "Map/Area/AreaStorage.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/World.h"
-#include "Server/Packets/SmsgChannelNotify.h"
-#include "Storage/WDB/WDBStructures.hpp"
-#include "Utilities/Strings.hpp"
-
-#if VERSION_STRING < Cata
-#include "Server/World.h"
-#endif
+#include "pchWorld.hpp"
 
 using namespace AscEmu::Packets;
 

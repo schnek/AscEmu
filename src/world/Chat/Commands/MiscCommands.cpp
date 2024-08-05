@@ -3,27 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
-#include "Logging/Logger.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Management/Battleground/Battleground.hpp"
-#include "Map/Maps/WorldMap.hpp"
-#include "Objects/Units/Creatures/Creature.h"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/EventMgr.h"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/WorldSocket.h"
-#include "Server/LogonCommClient/LogonCommHandler.h"
-#include "Spell/Spell.hpp"
-#include "Spell/SpellMgr.hpp"
-#include "Storage/MySQLDataStore.hpp"
-#include "Storage/WDB/WDBStores.hpp"
-#include "Storage/WDB/WDBStructures.hpp"
-#include "Utilities/Strings.hpp"
+#include "pchWorld.hpp"
 
 //.mount
 bool ChatHandler::HandleMountCommand(const char* args, WorldSession* m_session)

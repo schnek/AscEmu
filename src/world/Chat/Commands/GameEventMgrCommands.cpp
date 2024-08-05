@@ -3,10 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Management/GameEvent.hpp"
-#include "Management/GameEventMgr.hpp"
-#include "Utilities/Util.hpp"
+#include "pchWorld.hpp"
 
 //.event list
 bool ChatHandler::HandleEventListEvents(const char* /*args*/, WorldSession* m_session)

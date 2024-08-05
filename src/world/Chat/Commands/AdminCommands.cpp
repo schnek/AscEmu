@@ -3,20 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
-#include "Logging/Log.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/EventMgr.h"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Spell/Spell.hpp"
-#include "Spell/SpellAura.hpp"
-#include "Spell/SpellInfo.hpp"
-#include "Spell/SpellMgr.hpp"
-#include "Spell/Definitions/SpellEffects.hpp"
+#include "pchWorld.hpp"
 
 //.admin castall
 bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_session)

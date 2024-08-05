@@ -3,19 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
-#include "Logging/Logger.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Map/Management/MapMgr.hpp"
-#include "Map/Maps/InstanceDefines.hpp"
-#include "Map/Maps/InstanceMap.hpp"
-#include "Map/Maps/InstanceMgr.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/Packets/SmsgInstanceReset.h"
-#include "Storage/MySQLStructures.h"
+#include "pchWorld.hpp"
 
 using namespace AscEmu::Packets;
 
