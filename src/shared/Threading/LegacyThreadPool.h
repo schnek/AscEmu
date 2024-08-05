@@ -187,7 +187,7 @@ struct SERVER_DECL Thread
 class SERVER_DECL CThreadPool
 {
     typedef std::set<Thread*> ThreadSet;
-    int GetNumCpus();
+    //int GetNumCpus();
 
     uint32 _threadsRequestedSinceLastCheck;
     uint32 _threadsFreedSinceLastCheck;

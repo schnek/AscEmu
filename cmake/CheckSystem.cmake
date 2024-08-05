@@ -32,7 +32,7 @@ if (UNIX)
 endif ()
 
 # enable folder structure.
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_property(GLOBAL PROPERTY USE_FOLDERS OFF)
 
 # set RPATH-handing (CMake parameters)
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
