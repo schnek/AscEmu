@@ -2,7 +2,7 @@ name: AscEmu CI
 
 on:
   push:
-    branches: [ master, cmake_n ]
+    branches: [ master, cmake_m ]
   pull_request:
     branches: [ develop ]
 

@@ -1,25 +1,20 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
 # set up our project name.
-project(bzip2 C)
-
-set(SRC_BZIP2
-    blocksort.c
-    bzlib.c
-    compress.c
-    crctable.c
-    decompress.c
-    huffman.c
-    randtable.c
-)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+set(LIBRARY_NAME bzip2)
 
 # create target.
-add_library(${PROJECT_NAME} STATIC ${SRC_BZIP2})
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+add_library(${LIBRARY_NAME} STATIC
+  blocksort.c
+  bzlib.c
+  compress.c
+  crctable.c
+  decompress.c
+  huffman.c
+  randtable.c
+  bzlib.h
+)
 
-set(BZIP2_LIBRARIES ${PROJECT_NAME} CACHE INTERNAL "Bzip2 libraries." FORCE)
-set(BZIP2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "Bzip2 include dirs." FORCE)
+set_property(TARGET ${LIBRARY_NAME} PROPERTY FOLDER "${LIBRARY_NAME}")
 
-unset(SRC_BZIP2)
+target_link_libraries(${LIBRARY_NAME} PRIVATE Threads::Threads)

@@ -10,6 +10,7 @@ set(DETOUR_SRCS
 )
 
 include_directories(
+    ${CMAKE_SOURCE_DIR}/dep/bzip2
     ${CMAKE_CURRENT_SOURCE_DIR}/Include
     ${ZLIB_INCLUDE_DIRS}
 )

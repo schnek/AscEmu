@@ -10,46 +10,36 @@ file(GLOB SRC_REALM_FILES Realm/*.cpp Realm/*.h Realm/*.hpp)
 file(GLOB SRC_SERVER_FILES Server/*.cpp Server/*.h Server/*.hpp)
 file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
 
-set(LOGON_SRCS
-    ${SRC_AUTH_FILES}
-    ${SRC_CONSOLE_FILES}
-    ${SRC_LOGON_COMM_SERVER_FILES}
-    ${SRC_REALM_FILES}
-    ${SRC_SERVER_FILES}
-    ${SRC_LOCAL_DIR}
+set(SRC_LOGON_PROJECT
+  ${CMAKE_CURRENT_SOURCE_DIR}/pchLogon.hpp
 )
 
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/Opcodes
-    ${CMAKE_SOURCE_DIR}/src/shared
-    ${ZLIB_INCLUDE_DIRS}
-    ${OPENSSL_INCLUDE_DIR}
-    ${MYSQL_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
+add_executable(${PROJECT_NAME}
+  ${SRC_AUTH_FILES}
+  ${SRC_CONSOLE_FILES}
+  ${SRC_LOGON_COMM_SERVER_FILES}
+  ${SRC_REALM_FILES}
+  ${SRC_SERVER_FILES}
+  ${SRC_LOCAL_DIR}
+  ${SRC_LOGON_PROJECT}
 )
 
-# create target.
-add_executable(${PROJECT_NAME} ${LOGON_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
-
-# source group.
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${LOGON_SRCS})
-
-if (APPLE)
-    target_link_libraries(${PROJECT_NAME} c++)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${PROJECT_NAME} c++experimental)
-endif ()
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp)
 
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    Threads::Threads
-  PUBLIC
-    shared
-    ${ZLIB_LIBRARIES}
+# include dependencies.
+target_include_directories(${PROJECT_NAME} PUBLIC 
+  ${CMAKE_SOURCE_DIR}/dep/zlib
+  ${CMAKE_SOURCE_DIR}/src/shared
+  ${CMAKE_SOURCE_DIR}/src/logonserver
+  ${OPENSSL_INCLUDE_DIR}
+)
+
+# link dependencies.
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  shared
+  ${ZLIB_LIBRARIES}
 )
 
 # generate precompiled header.
@@ -60,5 +50,3 @@ endif ()
 
 # provide make install rules.
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
-
-unset(LOGON_SRCS)

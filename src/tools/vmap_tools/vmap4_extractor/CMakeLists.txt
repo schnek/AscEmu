@@ -14,13 +14,11 @@ if (UNIX AND NOT IS_64BIT)
 endif ()
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/dep/loadlib
-    ${CMAKE_SOURCE_DIR}/dep/dbcfile 
     ${CMAKE_SOURCE_DIR}/dep/libmpq/libmpq
+    ${CMAKE_SOURCE_DIR}/dep/loadlib
+    ${CMAKE_SOURCE_DIR}/dep/dbcfile
     ${CMAKE_SOURCE_DIR}/src/shared
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${BZIP2_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIRS}
 )
 
 # create target.
@@ -39,5 +37,3 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
-
-unset(VMAPS_EXTRACTOR_SRCS)

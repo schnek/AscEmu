@@ -1,43 +1,26 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
 # set up our project name.
-project(libmpq C)
+set(LIBRARY_NAME libmpq)
 
 file(GLOB LIBMPQ_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/libmpq/*.c ${CMAKE_CURRENT_SOURCE_DIR}/libmpq/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/libmpq/*.h)
 
-if (WIN32)
-set(LIBMPQ_SRCS
-    ${LIBMPQ_SRCS}
-    win/winvs_config.h
-    win/winvs_dirent.h
-    win/winvs_stdint.h
-)
-endif ()
-
-if (UNIX AND NOT IS_64BIT)
-    add_definitions(-D_FILE_OFFSET_BITS=64)
-endif ()
-
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/win
-    ${CMAKE_CURRENT_SOURCE_DIR}/libmpq
-    ${CMAKE_SOURCE_DIR}/dep/loadlib
-    ${BZIP2_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIRS}
-)
-
 # create target.
-add_library(${PROJECT_NAME} STATIC ${LIBMPQ_SRCS})
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    Threads::Threads
-  PUBLIC
-    loadlib
-    ${ZLIB_LIBRARIES}
-    ${BZIP2_LIBRARIES}
+add_library(${LIBRARY_NAME} STATIC
+  ${LIBMPQ_SRCS}
+  win/winvs_config.h
+  win/winvs_dirent.h
+  win/winvs_stdint.h
 )
 
-unset(LIBMPQ_SRCS)
+target_include_directories(${LIBRARY_NAME}
+  PRIVATE
+    ${CMAKE_SOURCE_DIR}/dep/bzip2
+    ${CMAKE_SOURCE_DIR}/dep/loadlib
+    ${CMAKE_SOURCE_DIR}/dep/libmpq/win
+    ${CMAKE_SOURCE_DIR}/dep/zlib
+)
+
+set_property(TARGET ${LIBRARY_NAME} PROPERTY FOLDER "${LIBRARY_NAME}")
+
+target_link_libraries(${LIBRARY_NAME} PRIVATE Threads::Threads)
