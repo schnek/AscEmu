@@ -223,7 +223,7 @@ public:
 
     inline uint8 getGroupType() const { return m_GroupType; }
     inline uint32 GetID() { return m_Id; }
-    uint64 GetGUID() const;
+    //uint64 GetGUID() const;
 
     void UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket* Packet);
     void UpdateAllOutOfRangePlayersFor(Player* pPlayer);

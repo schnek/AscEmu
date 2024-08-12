@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # correctly switches from -std=gnu++2a to -std=c++2a.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# enable folder structure.
+set_property(GLOBAL PROPERTY USE_FOLDERS OFF)
+
 # set runtime binary where all compiled (before install) binary will compiled in
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CMAKE_BINARY_DIR}/bin)
@@ -31,16 +34,10 @@ if (UNIX)
     endif ()
 endif ()
 
-# enable folder structure.
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
 # set RPATH-handing (CMake parameters)
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 
 # get git information
 include(${CMAKE_MODULE_PATH}/AEGitRevision.cmake)
@@ -56,7 +53,6 @@ include(${CMAKE_MODULE_PATH}/AEConfigureArch.cmake)
 add_definitions(-DHAVE_CONFIG_H)
 
 mark_as_advanced(
-    PCRE_INCLUDE_DIR
     OPENSSL_INCLUDE_DIR
     MYSQL_LIBRARY
     MYSQL_INCLUDE_DIR
