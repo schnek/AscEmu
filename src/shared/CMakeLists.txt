@@ -46,13 +46,12 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SHARED_SRCS})
 
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    threads
+  PUBLIC
     fmt
+    threads
     ${ZLIB_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${MYSQL_LIBRARY}
-    ${EXTRA_LIBS}
 )
 
 target_include_directories(${PROJECT_NAME}
