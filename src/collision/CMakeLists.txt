@@ -31,7 +31,7 @@ target_link_libraries(${PROJECT_NAME}
     g3dlite
     shared
     utf8cpp
-    fmt    
+    fmt
     threads
 )
 

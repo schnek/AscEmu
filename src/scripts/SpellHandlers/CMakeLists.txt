@@ -48,6 +48,7 @@ add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     world
+    fmt
     threads
 )
 

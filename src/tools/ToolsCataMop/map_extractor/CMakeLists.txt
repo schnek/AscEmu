@@ -21,8 +21,6 @@ include_directories(
 add_executable(${PROJECT_NAME} ${MAPS_EXTRACTOR_SRCS})
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
-add_dependencies(${PROJECT_NAME} storm)
-
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
