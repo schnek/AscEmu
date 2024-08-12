@@ -24,7 +24,6 @@ target_link_libraries(${PROJECT_NAME}
     Threads::Threads
   PUBLIC
     ${ZLIB_LIBRARIES}
-    fmt
 )
 
 unset(RECAST_SRCS)

@@ -55,7 +55,7 @@
 #include "Threading/LegacyThreading.h"
 #include "Threading/ConditionVariable.h"
 
-// current compiler (old)
+// current compiler
 #define COMPILER_MICROSOFT 0
 #define COMPILER_GNU       1
 #define COMPILER_BORLAND   2
@@ -69,6 +69,7 @@
 #  define COMPILER COMPILER_INTEL
 #elif defined( __GNUC__ )
 #  define COMPILER COMPILER_GNU
+#  define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #else
 #  pragma error "FATAL ERROR: Unknown compiler."
 #endif
@@ -102,6 +103,7 @@
 #endif
 
 #if COMPILER == COMPILER_MICROSOFT
+    #define strnicmp _strnicmp
 #else
     #define strnicmp strncasecmp
 #endif

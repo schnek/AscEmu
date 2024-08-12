@@ -169,15 +169,12 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     Threads::Threads
   PUBLIC
-    ${EXTRA_LIBS}
     ${WORLD_LINK_EXTRA_LIBS}
-    ${CMAKE_THREAD_LIBS_INIT}
     shared
     collision
     g3dlite
     Detour
     Recast
-    fmt
 )
 
 unset(WORLD_LINK_EXTRA_LIBS)
