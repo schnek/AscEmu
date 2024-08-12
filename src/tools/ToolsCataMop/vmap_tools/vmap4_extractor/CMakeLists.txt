@@ -28,9 +28,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
     storm
+    threads
     ${BZIP2_LIBRARIES}
     ${ZLIB_LIBRARIES}
 )

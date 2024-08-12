@@ -26,9 +26,8 @@ add_dependencies(${PROJECT_NAME} storm)
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
     storm
+    threads
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})

@@ -19,6 +19,7 @@ add_subdirectory(g3dlite)
 add_subdirectory(utf8cpp)
 add_subdirectory(openssl)
 add_subdirectory(fmt)
+add_subdirectory(threads)
 
 if (BUILD_ASCEMUSCRIPTS AND BUILD_LUAENGINE)
     add_subdirectory(lualib/src)

@@ -47,7 +47,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SHARED_SRCS})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
+    threads
   PUBLIC
     ${ZLIB_LIBRARIES}
     ${OPENSSL_LIBRARIES}
