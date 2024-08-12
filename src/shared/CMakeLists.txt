@@ -48,12 +48,11 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SHARED_SRCS})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     threads
-  PUBLIC
+    fmt
     ${ZLIB_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${MYSQL_LIBRARY}
     ${EXTRA_LIBS}
-    fmt
 )
 
 target_include_directories(${PROJECT_NAME}

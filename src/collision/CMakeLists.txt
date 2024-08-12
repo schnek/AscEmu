@@ -25,15 +25,14 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${COLLISION_SRCS})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
-    g3dlite
-    shared
     ${ZLIB_LIBRARIES}
     ${OPENSSL_LIBRARIES}
     ${MYSQL_LIBRARY}
+    g3dlite
+    shared
     utf8cpp
-    fmt
+    fmt    
+    threads
 )
 
 target_include_directories(${PROJECT_NAME}

@@ -1,8 +1,11 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-add_library(openssl INTERFACE)
+# set up our project name.
+set(PROJECT_NAME openssl)
 
-target_link_libraries(openssl
+add_library(${PROJECT_NAME} INTERFACE)
+
+target_link_libraries(${PROJECT_NAME}
   INTERFACE
     OpenSSL::Crypto
     OpenSSL::SSL

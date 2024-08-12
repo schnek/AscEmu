@@ -34,7 +34,6 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     threads
-  PUBLIC
     loadlib
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
