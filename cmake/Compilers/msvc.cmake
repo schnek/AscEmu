@@ -16,9 +16,7 @@ add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 # windows math include does not define constants by default.
 # set this definition so it does.
 # also set NOMINMAX so the min and max functions are not overwritten with macros.
-add_definitions(-DWIN32_LEAN_AND_MEAN)
-add_definitions(-D_USE_MATH_DEFINES)
-add_definitions(-DNOMINMAX)
+add_compile_definitions(WIN32_LEAN_AND_MEAN NOMINMAX _USE_MATH_DEFINES)
 
 # set defines for MSVC
 add_compile_options(/std:c++20 /EHa /MP /bigobj)
