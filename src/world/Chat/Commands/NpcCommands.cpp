@@ -3,22 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Movement/MovementManager.h"
-#include "Objects/Units/Creatures/Creature.h"
-#include "Objects/Units/Creatures/Summons/Summon.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/EventMgr.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/Script/CreatureAIScript.hpp"
-#include "Spell/SpellInfo.hpp"
-#include "Spell/SpellMgr.hpp"
-#include "Storage/MySQLDataStore.hpp"
-#include "Storage/WDB/WDBStores.hpp"
-#include "Storage/WDB/WDBStructures.hpp"
+#include "pchWorld.hpp"
 
 //.npc addagent
 bool ChatHandler::HandleNpcAddAgentCommand(const char* args, WorldSession* m_session)

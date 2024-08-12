@@ -3,21 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "git_version.h"
-#include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
-#include "Chat/CommandTableStorage.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/Master.h"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/WorldSocket.h"
-#include "Server/Packets/SmsgServerMessage.h"
-#include "Server/Script/ScriptMgr.hpp"
-#include "Storage/MySQLDataStore.hpp"
+#include "pchWorld.hpp"
 
 //.server info
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/, WorldSession* m_session)

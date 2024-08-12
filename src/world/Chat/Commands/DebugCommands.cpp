@@ -3,29 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "VMapFactory.h"
-#include "Chat/ChatHandler.hpp"
-#include "Logging/Logger.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Management/WeatherMgr.hpp"
-#include "Map/Area/AreaStorage.hpp"
-#include "Movement/MovementManager.h"
-#include "Movement/Spline/MoveSplineInit.h"
-#include "Objects/Units/ThreatHandler.h"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/DatabaseDefinition.hpp"
-#include "Server/ServerState.h"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/Packets/SmsgMoveKnockBack.h"
-#include "Server/Script/CreatureAIScript.hpp"
-#include "Spell/Spell.hpp"
-#include "Spell/SpellAura.hpp"
-#include "Spell/SpellInfo.hpp"
-#include "Spell/Definitions/SpellCastTargetFlags.hpp"
-#include "Spell/Definitions/SpellFailure.hpp"
-#include "Storage/MySQLDataStore.hpp"
+#include "pchWorld.hpp"
 
 bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldSession* session)
 {

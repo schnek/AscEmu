@@ -5,14 +5,6 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "CommonTypes.hpp"
-
-#include <map>
-#include <mutex>
-#include <set>
-#include <string>
-#include <memory>
-
 class CachedCharacterInfo;
 class Player;
 class WorldPacket;

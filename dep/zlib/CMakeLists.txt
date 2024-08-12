@@ -1,18 +1,15 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
 # set up our project name.
-project(zlib C)
+set(LIBRARY_NAME zlib)
 
-file(GLOB SRC_ZLIB *.c)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+file(GLOB SRC_ZLIB *.c *.h)
 
 # create target.
-add_library(${PROJECT_NAME} STATIC ${SRC_ZLIB})
-set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
+add_library(${LIBRARY_NAME} STATIC
+  ${SRC_ZLIB}
+)
 
-#set it to the project name.
-set(ZLIB_LIBRARIES ${PROJECT_NAME} CACHE INTERNAL "Zlib Libraries")
-set(ZLIB_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "Zlib include dir" FORCE)
+set_property(TARGET ${LIBRARY_NAME} PROPERTY FOLDER "${LIBRARY_NAME}")
 
-unset(SRC_ZLIB)
+set_target_properties(${LIBRARY_NAME} PROPERTIES FOLDER "dep")

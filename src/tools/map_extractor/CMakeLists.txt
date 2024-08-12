@@ -28,9 +28,9 @@ target_link_libraries(${PROJECT_NAME}
     Threads::Threads
   PUBLIC
     dbcfile
+    loadlib
     libmpq
+    fmt
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
-
-unset(MAPS_EXTRACTOR_SRCS)

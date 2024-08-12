@@ -5,8 +5,6 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include <cstdint>
-
 enum ChannelMemberFlags : uint8_t
 {
     CHANNEL_MEMBER_FLAG_NONE            = 0x00,

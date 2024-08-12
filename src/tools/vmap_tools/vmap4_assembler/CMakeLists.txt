@@ -30,6 +30,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     collision
     g3dlite
+    loadlib
     ${ZLIB_LIBRARIES}
 )
 

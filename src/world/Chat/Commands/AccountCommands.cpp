@@ -3,12 +3,7 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
-#include "Server/WorldSessionLog.hpp"
-#include "Server/LogonCommClient/LogonCommHandler.h"
-#include "Storage/MySQLDataStore.hpp"
+#include "pchWorld.hpp"
 
 bool ChatHandler::HandleAccountCreate(const char* args, WorldSession* m_session)
 {

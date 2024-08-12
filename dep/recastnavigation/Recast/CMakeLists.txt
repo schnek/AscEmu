@@ -23,6 +23,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     Threads::Threads
   PUBLIC
+    bzip2
     ${ZLIB_LIBRARIES}
     fmt
 )

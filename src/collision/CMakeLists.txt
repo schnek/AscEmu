@@ -22,25 +22,13 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 # source group.
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${COLLISION_SRCS})
 
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    Threads::Threads
-  PUBLIC
-    g3dlite
-    shared
-    ${ZLIB_LIBRARIES}
-    ${OPENSSL_LIBRARIES}
-    ${MYSQL_LIBRARY}
-    utf8cpp
-    fmt
-)
-
 target_include_directories(${PROJECT_NAME}
   PRIVATE
     ${ZLIB_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIR}
     ${MYSQL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/zlib
+    ${CMAKE_SOURCE_DIR}/dep/libmpq/libmpq
     ${CMAKE_SOURCE_DIR}/src/shared
     ${CMAKE_SOURCE_DIR}/src/world
     ${CMAKE_SOURCE_DIR}/dep/g3dlite/include
@@ -51,6 +39,20 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/Maps
     ${CMAKE_CURRENT_SOURCE_DIR}/Models
 )    
+
+# include library dependencies.
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    Threads::Threads
+  PUBLIC
+    g3dlite
+    shared
+    zlib
+    ${OPENSSL_LIBRARIES}
+    ${MYSQL_LIBRARY}
+    utf8cpp
+    fmt
+)
 
 # generate precompiled header.
 if (USE_PCH)

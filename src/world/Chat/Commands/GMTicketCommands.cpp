@@ -3,14 +3,8 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/Channel.hpp"
-#include "Chat/ChannelMgr.hpp"
-#include "Chat/ChatHandler.hpp"
-#include "Management/ObjectMgr.hpp"
-#include "Management/Tickets/TicketMgr.hpp"
-#include "Objects/Units/Players/Player.hpp"
-#include "Server/World.h"
-#include "Server/WorldSession.h"
+#include "pchWorld.hpp"
+
 #include "Server/Packets/SmsgGmTicketDeleteTicket.h"
 #include "Server/Packets/SmsgGmTicketStatusUpdate.h"
 
