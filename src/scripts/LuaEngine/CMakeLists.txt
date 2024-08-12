@@ -47,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     world
     lualib
+    fmt
     threads
 )
 
