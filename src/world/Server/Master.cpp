@@ -719,6 +719,7 @@ void OnCrash(bool Terminate)
 void Master::PrintBanner()
 {
     sLogger.info("<< AscEmu {}/{}-{} {} :: World Server >>", BUILD_HASH_STR, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+    sLogger.info("Using SSL version: {} (library: {})", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
     sLogger.info("========================================================");
 }
 

@@ -9,6 +9,15 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
+#if WIN32 // WIN32
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#pragma comment(lib, "Ws2_32.lib")
+
+#include <winsock2.h>
+
+#endif // WIN32
+
 #include "SocketDefines.h"
 #include "NetworkIncludes.hpp"
 #include "CircularBuffer.h"
