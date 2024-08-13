@@ -15,12 +15,10 @@ endif ()
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/dep/loadlib
-    ${CMAKE_SOURCE_DIR}/dep/dbcfile 
+    ${CMAKE_SOURCE_DIR}/dep/dbcfile
     ${CMAKE_SOURCE_DIR}/dep/libmpq/libmpq
     ${CMAKE_SOURCE_DIR}/src/shared
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${BZIP2_INCLUDE_DIRS}
-    ${ZLIB_INCLUDE_DIRS}
 )
 
 # create target.
@@ -30,10 +28,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
     dbcfile
     loadlib
+    threads
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}
 )

@@ -32,7 +32,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/src/world
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${ZLIB_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
 # create target.
@@ -42,9 +41,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
     world
+    threads
 )
 
 # generate precompiled header.

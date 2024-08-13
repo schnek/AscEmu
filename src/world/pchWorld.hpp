@@ -5,6 +5,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
+// #include "pchWorld.hpp"
+
+#include <atomic>
+#include <memory>
 #include <cstdint>
 #include <mutex>
 #include <string>
@@ -15,6 +19,10 @@ This file is released under the MIT license. See README-MIT for more information
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <deque>
+#include <unordered_map>
+
+#include "git_version.h"
 #include "AEVersion.hpp"
 #include "CommonDefines.hpp"
 #include "CommonTypes.hpp"
@@ -27,6 +35,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "ByteBuffer.h"
 #include "Config/Config.h"
 #include "LocationVector.h"
+#include "Utilities/utf8.hpp"
 #include "Utilities/Strings.hpp"
 #include "Utilities/Util.hpp"
 #include "Cryptography/BigNumber.h"

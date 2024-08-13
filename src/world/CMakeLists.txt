@@ -139,7 +139,16 @@ include_directories(
 add_executable(${PROJECT_NAME} ${WORLD_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
-target_link_libraries( ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT} )
+# include library dependencies.
+target_link_libraries(${PROJECT_NAME}
+  PRIVATE
+    shared
+    collision
+    g3dlite
+    Detour
+    Recast
+    threads
+)
 
 # source group.
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${WORLD_SRCS})
@@ -160,25 +169,7 @@ endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS TRUE)
 
-add_dependencies(${PROJECT_NAME} shared g3dlite Detour Recast)
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h)
-
-# include library dependencies.
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    Threads::Threads
-  PUBLIC
-    ${EXTRA_LIBS}
-    ${WORLD_LINK_EXTRA_LIBS}
-    ${CMAKE_THREAD_LIBS_INIT}
-    shared
-    collision
-    g3dlite
-    Detour
-    Recast
-    fmt
-)
 
 unset(WORLD_LINK_EXTRA_LIBS)
 

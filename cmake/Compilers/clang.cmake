@@ -21,8 +21,6 @@ if (IS_64BIT)
     add_compile_options(-fPIC)
 endif ()
 
-add_compile_options(-pthread)
-
 if (BUILD_WITH_WARNINGS)
     add_compile_options(-Wall -Wextra)
 else ()

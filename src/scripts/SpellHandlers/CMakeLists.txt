@@ -47,9 +47,9 @@ add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    Threads::Threads
-  PUBLIC
     world
+    fmt
+    threads
 )
 
 # generate precompiled header.
