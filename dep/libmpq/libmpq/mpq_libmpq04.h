@@ -20,7 +20,8 @@
 #ifndef MPQ_H
 #define MPQ_H
 
-#include "loadlib.h"
+#include "../../dep/dbcfile/dbcfile.h"
+
 #include "mpq.h"
 #include <string.h>
 #include <string>
