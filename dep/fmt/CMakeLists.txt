@@ -8,29 +8,8 @@ if (APPLE)
     set(strtod_l_headers ${strtod_l_headers} xlocale.h)
 endif ()
 
-function(add_headers VAR)
-    set(headers ${${VAR}})
-    foreach (header ${ARGN})
-        set(headers ${headers} include/fmt/${header})
-    endforeach()
-    set(${VAR} ${headers} PARENT_SCOPE)
-endfunction()
-
 # Define the fmt library, its includes and the needed defines.
-add_headers(FMT_HEADERS
-    args.h
-    chrono.h
-    color.h
-    compile.h
-    core.h
-    format.h
-    format-inl.h
-    os.h
-    ostream.h
-    printf.h
-    ranges.h
-    std.h
-    xchar.h)
+file(GLOB FMT_HEADERS include/fmt/*.h)
 
 set(FMT_SOURCES
     src/format.cc
