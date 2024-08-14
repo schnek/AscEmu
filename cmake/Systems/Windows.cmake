@@ -9,6 +9,7 @@ endif ()
 
 find_package(MySQL REQUIRED)
 find_package(OpenSSL REQUIRED)
+find_package(Threads REQUIRED)
 
 # needed for socket stuff and crash handler
 set(EXTRA_LIBS

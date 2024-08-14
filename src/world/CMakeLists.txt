@@ -87,6 +87,7 @@ set(WORLD_SRCS
 
 include_directories(
     ${OPENSSL_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}/dep/zlib
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Recast/Include
     ${CMAKE_SOURCE_DIR}/src/world
@@ -169,6 +170,7 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
     Threads::Threads
   PUBLIC
+    ${ZLIB_LIBRARIES}
     ${EXTRA_LIBS}
     ${WORLD_LINK_EXTRA_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}

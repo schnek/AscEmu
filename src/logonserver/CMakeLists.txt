@@ -14,7 +14,7 @@ set(SRC_LOGON_PROJECT
   ${CMAKE_CURRENT_SOURCE_DIR}/pchLogon.hpp
 )
 
-add_executable(${PROJECT_NAME}
+include_directories(
   ${SRC_AUTH_FILES}
   ${SRC_CONSOLE_FILES}
   ${SRC_LOGON_COMM_SERVER_FILES}
@@ -24,6 +24,8 @@ add_executable(${PROJECT_NAME}
   ${SRC_LOGON_PROJECT}
 )
 
+# create target.
+add_executable(${PROJECT_NAME} ${LOGON_SRCS} "${CMAKE_CURRENT_SOURCE_DIR}/resources.rc")
 set_property(TARGET ${PROJECT_NAME} PROPERTY FOLDER "${PROJECT_NAME}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp)
@@ -50,3 +52,5 @@ endif ()
 
 # provide make install rules.
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)
+
+unset(LOGON_SRCS)
