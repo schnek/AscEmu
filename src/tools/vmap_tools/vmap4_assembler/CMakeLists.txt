@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     collision
     g3dlite
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})

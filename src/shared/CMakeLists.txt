@@ -70,10 +70,10 @@ add_library(${PROJECT_NAME} STATIC ${SHARED_SRCS})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${ZLIB_LIBRARIES}
     ${MYSQL_LIBRARY}
     ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBS}
+    zlib
     fmt
 )
 

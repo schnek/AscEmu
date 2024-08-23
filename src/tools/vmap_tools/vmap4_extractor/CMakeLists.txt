@@ -30,8 +30,8 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     dbcfile
     loadlib
-    ${ZLIB_LIBRARIES}
-    ${BZIP2_LIBRARIES}
+    zlib
+    bzip2
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})

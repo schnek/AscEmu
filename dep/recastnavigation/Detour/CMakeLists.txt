@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME} STATIC ${DETOUR_SRCS})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 unset(SRC_DETOUR)

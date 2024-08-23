@@ -59,7 +59,7 @@ add_library(${PROJECT_NAME} STATIC ${SRC_G3DLITE})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 unset(SRC_G3DLITE)

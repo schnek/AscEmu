@@ -53,7 +53,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp.in ${CMAKE_CURRENT_SOUR
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     shared
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 # generate precompiled header.

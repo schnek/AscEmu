@@ -22,7 +22,7 @@ add_executable(${PROJECT_NAME} ${TAXI_PATH_DATA_SRCS})
 # include library dependencies.
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})

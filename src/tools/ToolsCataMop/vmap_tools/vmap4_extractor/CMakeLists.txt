@@ -27,8 +27,8 @@ add_executable(${PROJECT_NAME} ${VMAPS_EXTRACTOR_SRCS})
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     storm
-    ${BZIP2_LIBRARIES}
-    ${ZLIB_LIBRARIES}
+    bzip2
+    zlib
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})

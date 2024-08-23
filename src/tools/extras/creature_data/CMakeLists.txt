@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME} ${CREATURE_DATA_SRCS})
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     dbcfile
-    ${ZLIB_LIBRARIES}
+    zlib
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
