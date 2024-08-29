@@ -25,6 +25,8 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     dbcfile
     libmpq
+    bzip2
+    zlib
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
