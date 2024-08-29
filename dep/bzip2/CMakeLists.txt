@@ -7,4 +7,4 @@ file(GLOB SRC_BZIP2 *.c *.h)
 
 add_library(${LIBRARY_NAME} STATIC ${SRC_BZIP2})
 
-set_target_properties(${LIBRARY_NAME} PROPERTIES FOLDER "dependencies")
+set_target_properties(${LIBRARY_NAME} PROPERTIES FOLDER "dep")
