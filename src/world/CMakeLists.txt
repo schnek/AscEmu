@@ -3,6 +3,7 @@
 # set up our project name.
 project(world CXX)
 
+# find header files in the directory.
 file(GLOB SRC_CHAT_FILES Chat/*.cpp Chat/*.h Chat/*.hpp)
 file(GLOB SRC_COMMAND_FILES Chat/Commands/*.cpp Chat/Commands/*.h Chat/Commands/*.hpp)
 file(GLOB SRC_COMMAND_ACCOUNT_FILES Chat/Commands/Account/*.cpp Chat/Commands/Account/*.hpp)
@@ -91,6 +92,11 @@ add_executable(${PROJECT_NAME}
     ${SRC_LOCAL_DIR}
     ${APP_ICON_RESOURCE_WINDOWS}
 )
+
+# workaround.
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE "/FI${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}.dir/$<CONFIG>/cmake_pch.hxx")
+endif()
 
 include_directories(
     ${OPENSSL_INCLUDE_DIR}
@@ -185,7 +191,7 @@ unset(WORLD_LINK_EXTRA_LIBS)
 # generate precompiled header.
 if (USE_PCH)
     message(STATUS "Generate PCH for ${PROJECT_NAME}")
-    target_precompile_headers(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchWorld.hpp)
+    target_precompile_headers(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/pchWorld.hpp)
 endif ()
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION .)

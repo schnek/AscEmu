@@ -3,7 +3,11 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#pragma once
+// Not using #pragma once here
+// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56549
+
+#ifndef PCH_LUA_ENGINE
+#define PCH_LUA_ENGINE
 
 #include "LUAEngine.hpp"
 #include "LuaGlobal.hpp"
@@ -40,3 +44,5 @@ This file is released under the MIT license. See README-MIT for more information
 #include <lua/lua.h>
 #include <cstdlib>
 #include <string>
+
+#endif // PCH_LUA_ENGINE

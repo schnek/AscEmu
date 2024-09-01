@@ -3,7 +3,11 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#pragma once
+// Not using #pragma once here
+// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56549
+
+#ifndef PCH_BATTLE_GROUNDS
+#define PCH_BATTLE_GROUNDS
 
 #include "Management/HonorHandler.h"
 #include "Management/WorldStates.hpp"
@@ -17,5 +21,5 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/Units/Creatures/Creature.h"
 #include "Objects/GameObject.h"
 #include "CommonTime.hpp"
-#include "Utilities/Util.hpp"
-#include "Utilities/Random.hpp"
+
+#endif // PCH_BATTLE_GROUNDS

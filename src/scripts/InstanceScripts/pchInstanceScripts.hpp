@@ -3,7 +3,11 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#pragma once
+// Not using #pragma once here
+// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56549
+
+#ifndef PCH_INSTANCE_SCRIPTS
+#define PCH_INSTANCE_SCRIPTS
 
 #include "Setup.h"
 #include "Server/EventMgr.h"
@@ -19,6 +23,5 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/GameObject.h"
 #include "Management/ObjectMgr.hpp"
 #include "CommonTime.hpp"
-#include "Utilities/Narrow.hpp"
-#include "Utilities/Util.hpp"
-#include "Utilities/Random.hpp"
+
+#endif // PCH_INSTANCE_SCRIPTS
