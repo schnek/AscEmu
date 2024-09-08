@@ -11,6 +11,11 @@ endif ()
 
 message(STATUS "Applying settings for ${CMAKE_CXX_COMPILER}")
 
+# CMake usually adds a pragma system_header to the precompiled header. We don't
+# want that as we suppresses warnings from system headers.
+set(CMAKE_PCH_PROLOGUE "#pragma GCC system_header")
+add_compile_options(-Winvalid-pch) # -isystem and -idirafter
+
 # check support for unordered_map/set
 add_definitions(-DHAS_CXX0X)
 
