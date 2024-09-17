@@ -17,5 +17,3 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/GameObject.h"
 #include "Management/ObjectMgr.hpp"
 #include "CommonTime.hpp"
-
-#endif // PCH_INSTANCE_SCRIPTS
