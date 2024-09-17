@@ -3,12 +3,6 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-// Not using #pragma once here
-// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56549
-
-#ifndef PCH_WORLD
-#define PCH_WORLD
-
 #include <string>
 #include <map>
 #include <vector>
@@ -137,5 +131,3 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/WDB/WDBDefines.hpp"
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
-
-#endif // PCH_WORLD

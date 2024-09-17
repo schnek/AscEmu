@@ -93,11 +93,6 @@ add_executable(${PROJECT_NAME}
     ${APP_ICON_RESOURCE_WINDOWS}
 )
 
-# workaround.
-if(MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE "/FI${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}.dir/$<CONFIG>/cmake_pch.hxx")
-endif()
-
 include_directories(
     ${OPENSSL_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/recastnavigation/Detour/Include

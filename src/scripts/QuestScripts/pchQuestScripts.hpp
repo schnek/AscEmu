@@ -3,12 +3,6 @@ Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org"
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-// Not using #pragma once here
-// see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56549
-
-#ifndef PCH_QUEST_SCRIPTS
-#define PCH_QUEST_SCRIPTS
-
 #include "Setup.h"
 #include "Server/EventMgr.h"
 #include "Server/Script/CreatureAIScript.hpp"
@@ -22,5 +16,3 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/GameObject.h"
 #include "Management/ObjectMgr.hpp"
 #include "Spell/SpellScript.hpp"
-
-#endif // PCH_QUEST_SCRIPTS
