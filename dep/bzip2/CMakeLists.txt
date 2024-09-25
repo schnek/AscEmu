@@ -15,7 +15,7 @@ add_library(${PROJECT_NAME} STATIC
     bzlib_private.h
 )
 
-add_library(BZip2::BZip2 ALIAS bzip2)
+add_library(BZip2::BZip2 ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC
