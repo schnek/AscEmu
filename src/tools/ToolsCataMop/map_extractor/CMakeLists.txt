@@ -5,7 +5,9 @@ project(map_extractor CXX)
 
 file(GLOB SRC_MAPS_EXTRACTOR *.cpp *.h)
 
-add_executable(${PROJECT_NAME} ${SRC_MAPS_EXTRACTOR})
+add_executable(${PROJECT_NAME}
+    ${SRC_MAPS_EXTRACTOR}
+)
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}

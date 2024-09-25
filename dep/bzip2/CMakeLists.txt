@@ -3,7 +3,7 @@
 # set up our project name.
 project(bzip2 C)
 
-set(SRC_BZIP2
+add_library(${PROJECT_NAME} STATIC
     blocksort.c
     bzlib.c
     compress.c
@@ -11,12 +11,13 @@ set(SRC_BZIP2
     decompress.c
     huffman.c
     randtable.c
+    bzlib.h
+    bzlib_private.h
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-add_library(${PROJECT_NAME} STATIC ${SRC_BZIP2})
+add_library(BZip2::BZip2 ALIAS bzip2)
 
-set(BZIP2_LIBRARIES ${PROJECT_NAME} CACHE INTERNAL "Bzip2 libraries." FORCE)
-set(BZIP2_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL "Bzip2 include dirs." FORCE)
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR})
 
-unset(SRC_BZIP2)
