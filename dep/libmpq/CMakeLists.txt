@@ -22,7 +22,6 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/win
     ${CMAKE_CURRENT_SOURCE_DIR}/libmpq
     ${CMAKE_SOURCE_DIR}/dep/loadlib
-    ${BZIP2_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
 )
 
@@ -33,7 +32,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
     loadlib
     ${ZLIB_LIBRARIES}
-    ${BZIP2_LIBRARIES}
+    bzip2
 )
 
 unset(LIBMPQ_SRCS)

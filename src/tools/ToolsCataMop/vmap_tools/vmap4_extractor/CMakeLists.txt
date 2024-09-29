@@ -15,7 +15,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dep/StormLib/src
     ${CMAKE_SOURCE_DIR}/src/shared
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${BZIP2_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
 )
 
@@ -23,7 +22,7 @@ include_directories(
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     storm
-    ${BZIP2_LIBRARIES}
+    bzip2
     ${ZLIB_LIBRARIES}
 )
 

@@ -17,7 +17,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dep/libmpq/libmpq
     ${CMAKE_SOURCE_DIR}/src/shared
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${BZIP2_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
 )
 
@@ -27,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}
     dbcfile
     loadlib
     ${ZLIB_LIBRARIES}
-    ${BZIP2_LIBRARIES}
+    bzip2
 )
 
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${ASCEMU_TOOLS_PATH})
