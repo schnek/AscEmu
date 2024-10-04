@@ -23,7 +23,7 @@ include_directories(
 # include library dependencies.
 target_link_libraries(${EXECUTABLE_NAME}
   PUBLIC
-    #dbcfile
+    dbcfile
     loadlib
     ${ZLIB_LIBRARIES}
     ${BZIP2_LIBRARIES}

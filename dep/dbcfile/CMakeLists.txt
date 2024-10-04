@@ -1,6 +1,6 @@
 # Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
 
-set(EXECUTABLE_NAME dbcfileX)
+set(EXECUTABLE_NAME dbcfile)
 
 set(SRC_DBCFILE
     dbcfile.cpp
