@@ -7,7 +7,7 @@ else ()
     add_definitions(-w)
 endif ()
 
-# add zlib and pcre for windows compile
+# add zlib and bzip2 for windows compile
 if (WIN32)
     add_subdirectory(bzip2)
     add_subdirectory(zlib)
