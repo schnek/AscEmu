@@ -162,10 +162,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFre
     LIST(APPEND WORLD_LINK_EXTRA_LIBS c++experimental)
 endif ()
 
-if (BUILD_LUAENGINE)
-    LIST(APPEND WORLD_LINK_EXTRA_LIBS lualib)
-endif()
-
 set_target_properties(${EXECUTABLE_NAME} PROPERTIES ENABLE_EXPORTS TRUE)
 
 add_dependencies(${EXECUTABLE_NAME} shared g3dlite Detour Recast)
@@ -174,16 +170,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/WorldConf.h.in ${CMAKE_CURRENT_SOURCE
 
 # include library dependencies.
 target_link_libraries(${EXECUTABLE_NAME}
-  PUBLIC
-    ${WORLD_LINK_EXTRA_LIBS}
+  PRIVATE
     shared
     collision
     g3dlite
     Detour
     Recast
 )
-
-unset(WORLD_LINK_EXTRA_LIBS)
 
 # generate precompiled header.
 if (AE_USE_PCH)

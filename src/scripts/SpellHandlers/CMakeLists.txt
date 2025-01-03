@@ -44,7 +44,8 @@ add_compile_options(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 
 # include library dependencies.
 target_link_libraries(${LIBRARY_NAME}
-  PUBLIC
+  PRIVATE
+    shared
     world
 )
 

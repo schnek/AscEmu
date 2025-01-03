@@ -59,11 +59,11 @@ source_group(Utilities FILES ${SRC_UTILITIES_FILES})
 
 add_library(${LIBRARY_NAME} STATIC ${SHARED_SRCS})
 
-target_include_directories(${LIBRARY_NAME} PUBLIC 
+target_include_directories(${LIBRARY_NAME} PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
     ${OPENSSL_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIRS}
     ${MYSQL_INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
