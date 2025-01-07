@@ -1,11 +1,10 @@
-/**
- * Summit MMORPG Server Software
- * Copyright (c) 2008 Summit Server Team
- * See COPYING for license details.
- */
+/*
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
-#include <StdAfx.h>
-
+#include "Setup.h"
+/*
 //DELETE FROM gameobject_spawns WHERE `Map` = 530 AND `entry` in (183104, 183411, 182301, 183412, 183413, 183414);
 
 enum
@@ -458,10 +457,10 @@ void TFSpawnObjects(shared_ptr<MapMgr> pmgr)
 
         pGo->GetScript()->OnSpawn();
     }
-}
+}*/
 
 void SetupPvPTerokkarForest(ScriptMgr* mgr)
-{
+{/*
     // register instance hooker
     mgr->register_hook(SERVER_HOOK_EVENT_ON_ZONE, (void*)&TFZoneHook);
     mgr->register_hook(SERVER_HOOK_EVENT_ON_CONTINENT_CREATE, (void*)&TFSpawnObjects);
@@ -477,5 +476,5 @@ void SetupPvPTerokkarForest(ScriptMgr* mgr)
     TFg_towerOwners[TOWER_2] = atoi(Tower2.c_str());
     TFg_towerOwners[TOWER_3] = atoi(Tower3.c_str());
     TFg_towerOwners[TOWER_4] = atoi(Tower4.c_str());
-    TFg_towerOwners[TOWER_5] = atoi(Tower5.c_str());
+    TFg_towerOwners[TOWER_5] = atoi(Tower5.c_str());*/
 }

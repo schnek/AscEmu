@@ -1,11 +1,10 @@
-/**
- * Summit MMORPG Server Software
- * Copyright (c) 2008 Summit Server Team
- * See COPYING for license details.
- */
+/*
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
-#include <StdAfx.h>
-
+#include "Setup.h"
+/*
 enum
 {
     // Some customizable defines.
@@ -473,9 +472,9 @@ void SpawnObjects(shared_ptr<MapMgr> pmgr)
         printf("Spawned gameobject entry %u for world pvp on hellfire.\n", p->entry);
     }
 }
-
+*/
 void SetupPvPHellfirePeninsula(ScriptMgr* mgr)
-{
+{/*
     // register instance hooker
     mgr->register_hook(SERVER_HOOK_EVENT_ON_ZONE, (void*)&ZoneHook);
     mgr->register_hook(SERVER_HOOK_EVENT_ON_CONTINENT_CREATE, (void*)&SpawnObjects);
@@ -487,5 +486,5 @@ void SetupPvPHellfirePeninsula(ScriptMgr* mgr)
 
     g_towerOwners[TOWER_STADIUM] = atoi(tstadium.c_str());
     g_towerOwners[TOWER_OVERLOOK] = atoi(toverlook.c_str());
-    g_towerOwners[TOWER_BROKENHILL] = atoi(tbrokenhill.c_str());
+    g_towerOwners[TOWER_BROKENHILL] = atoi(tbrokenhill.c_str());*/
 }
