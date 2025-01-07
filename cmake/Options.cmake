@@ -18,6 +18,7 @@ option(BUILD_INSTANCESCRIPTS    "Build ascInstanceScripts."                     
 option(BUILD_GOSSIPSCRIPTS      "Build ascGossipScripts."                                                   ON)
 option(BUILD_QUESTSCRIPTS       "Build ascQuestScripts."                                                    ON)
 option(BUILD_MISCSCRIPTS        "Build ascMiscScripts."                                                     ON)
+option(BUILD_WORLD_PVP_SCRIPTS  "Build ascWorldPvpScripts."                                                 OFF)
 option(BUILD_LUAENGINE          "Build LuaEngine."                                                          ON)
 set(ASCEMU_TOOLS_PATH           "tools"                                                                     CACHE PATH "The directory where you want the tools installed.")
 option(BUILD_WITH_WARNINGS      "Enable/Disable warnings on compilation"                                    ON)

@@ -1,11 +1,10 @@
-/**
- * Summit MMORPG Server Software
- * Copyright (c) 2008 Summit Server Team
- * See COPYING for license details.
- */
+/*
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
-#include <StdAfx.h>
-
+#include "Setup.h"
+/*
 enum
 {
     // general defs
@@ -86,7 +85,7 @@ void AreatriggerHook(PlayerPointer pPlayer, uint32_t triggerID)
         {
             pPlayer->RemoveAura(SILITHYST_SPELL);
 
-            /* Rewards */
+            // Rewards
             pPlayer->CastSpell(pPlayer, TRACES_OF_SILITHYST, true);
             pPlayer->m_honorPoints += REWARD_HONOR;
             pPlayer->ModStanding(REWARD_REPUTATION_FACTION, REWARD_REPUTATION_VALUE);
@@ -148,9 +147,9 @@ void DropFlag(PlayerPointer  pPlayer, uint32_t spellID)
         };
     }
 }
-
+*/
 void SetupPvPSilithus(ScriptMgr* mgr)
-{
+{/*
     mgr->register_gameobject_script(SILITHYST_GEYSER, &SilithystPickup::Create);
     mgr->register_gameobject_script(SILITHYST_MOUND, &SilithystPickup::Create);
 
@@ -161,5 +160,5 @@ void SetupPvPSilithus(ScriptMgr* mgr)
 
     SpellEntry* sp = dbcSpell.LookupEntryForced(SILITHYST_SPELL);
     if(sp != NULL)
-        sp->AuraInterruptFlags = AURA_INTERRUPT_ON_ANY_DAMAGE_TAKEN | AURA_INTERRUPT_ON_MOUNT;
+        sp->AuraInterruptFlags = AURA_INTERRUPT_ON_ANY_DAMAGE_TAKEN | AURA_INTERRUPT_ON_MOUNT;*/
 }
