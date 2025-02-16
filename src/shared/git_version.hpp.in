@@ -1,4 +1,4 @@
 #pragma once 
 
-#define BUILD_BRANCH "@git_branch@"
+#define AE_BUILD_BRANCH "@git_branch@"
 #define AE_BUILD_HASH "@git_commit@"
