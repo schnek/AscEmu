@@ -79,7 +79,8 @@ namespace AscEmu::Logging
     void Logger::log(Severity severity, MessageType messageType, std::string_view message)
     {
 #if defined(_MSC_VER)
-        SetConsoleOutputCP(65001);
+        SetConsoleOutputCP(CP_UTF8); // set the UTF-8 code page to handle national-specific names
+        SetConsoleCP(CP_UTF8);
 #endif
         if (this->minimumMessageType > messageType)
             return;
