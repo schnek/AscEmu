@@ -29,15 +29,19 @@ Worldsocket      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: 
 Char Enum        | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
 Log into world   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:
 
+Click on the "⭐ Star" button to help us gain more visibility on Github!
+Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
 ## Reporting issues
 
-...
+Issues can be reported via the [Github issue tracker](https://github.com/AscEmu/AscEmu/issues).
 
-Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
+Please take the time to review existing issues before submitting your own to prevent duplicates.
+
+In addition, thoroughly read through the issue tracker guide to ensure your report contains the required information. Incorrect or poorly formed reports are wasteful and are subject to deletion.
 
 ## Submitting fixes
 
-...
+C++ fixes are submitted as pull requests via Github. For more information on how to properly submit a pull request, read the how-to: maintain a remote fork. For SQL only fixes, open a ticket; if a bug report exists for the bug, post on an existing ticket.
 
 ## Install
 HowTo install - detailed guides on our wiki.
@@ -60,9 +64,6 @@ HowTo install - detailed guides on our wiki.
 
 ## SAST Tools
 [PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - Static analyzer for C, C++, C#, and Java code.
-
-> [!IMPORTANT]
-> **Click on the "⭐ Star" button to help us gain more visibility on Github!**
 
 <!-- Undercover:start:status -->
 [AscEmuGccBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml/badge.svg
