@@ -5,7 +5,7 @@ Be patient with us and give us details.
  1. How to reproduce the issue
  2. How should it work
  3. Images will help us a lot
-
+ 4. Addon to help you with ids: https://www.curseforge.com/wow/addons/idtip/files/436536
 
 ## Contributing
 Feel free to contribute any corrections but make sure it is useful and tested before opening PRs.
@@ -19,6 +19,4 @@ What are "useful" commits?
 We strive to make all in-game content to be blizzlike!
 
 Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
-
-Click on the "⭐ Star" button to help us gain more visibility on Github!
 
