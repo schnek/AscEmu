@@ -29,12 +29,11 @@ Worldsocket      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: 
 Char Enum        | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
 Log into world   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:
 
-> [!IMPORTANT]
-> **Click on the "⭐ Star" button to help us gain more visibility on Github!**
-
 ## Reporting issues
 
 ...
+
+Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
 
 ## Submitting fixes
 
@@ -61,6 +60,9 @@ HowTo install - detailed guides on our wiki.
 
 ## SAST Tools
 [PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - Static analyzer for C, C++, C#, and Java code.
+
+> [!IMPORTANT]
+> **Click on the "⭐ Star" button to help us gain more visibility on Github!**
 
 <!-- Undercover:start:status -->
 [AscEmuGccBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml/badge.svg
