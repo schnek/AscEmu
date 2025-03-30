@@ -29,6 +29,17 @@ Worldsocket      | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: 
 Char Enum        | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:
 Log into world   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :x:
 
+> [!NOTE]
+> Click on the "⭐ Star" button to help us gain more visibility on Github!
+
+## Reporting issues
+
+...
+
+## Submitting fixes
+
+...
+
 ## Install
 HowTo install - detailed guides on our wiki.
 * [Linux](https://ascemu.github.io/Wiki/docs/installation/linux/)
