@@ -180,9 +180,10 @@ void CreatureAIFunctionScheduler::update(unsigned long time_passed)
     Util::randomShuffleVector(&mCreatureAIFunctions);
 
     // Delete functions marked for removal
-    mCreatureAIFunctions.erase(std::remove_if(mCreatureAIFunctions.begin(), mCreatureAIFunctions.end(), [](const auto& function) {
+    std::erase_if(mCreatureAIFunctions, [](const auto& function)
+    {
         return function->mGarbage;
-        }), mCreatureAIFunctions.end());
+    });
 
     for (auto functions_iterator = mCreatureAIFunctions.begin(); functions_iterator != mCreatureAIFunctions.end(); ++functions_iterator)
     {

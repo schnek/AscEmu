@@ -9160,10 +9160,10 @@ void Player::removeFromFriendList(uint32_t guid)
         CharacterDatabase.Execute("DELETE FROM social_friends WHERE character_guid = %u AND friend_guid = %u", getGuidLow(), guid);
 
         std::lock_guard<std::mutex> guard(m_mutexFriendList);
-        m_socialIFriends.erase(std::remove_if(m_socialIFriends.begin(), m_socialIFriends.end(), [&](SocialFriends const& friends) {
-                return friends.friendGuid == guid;
-            }),
-            m_socialIFriends.end());
+        std::erase_if(m_socialIFriends, [&](SocialFriends const& friends)
+        {
+            return friends.friendGuid == guid;
+        });
     }
     else
     {
