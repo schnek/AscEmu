@@ -53,7 +53,7 @@ We strive to make all in-game content to be blizzlike!
 
 Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
 
-Click on the "⭐ Star" button to help us gain more visibility on Github!
+To morally and mentally support the project, make sure to leave a "⭐ Star"! To help us gain more visibility on Github!
 
 ## Links
 * [Web](http://www.ascemu.org)
