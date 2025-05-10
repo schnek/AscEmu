@@ -2,7 +2,7 @@ name: AscEmu CI (clang)
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, yml ]
   pull_request:
     branches: [ develop ]
 
