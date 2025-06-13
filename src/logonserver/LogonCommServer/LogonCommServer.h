@@ -20,6 +20,8 @@
 #ifndef __LOGON_COMM_SERVER_H
 #define __LOGON_COMM_SERVER_H
 
+#include <cstdint>
+
 #include "Cryptography/RC4.hpp"
 #include "Network/Socket.h"
 #include "zlib.h"
