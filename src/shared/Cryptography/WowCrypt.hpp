@@ -1,19 +1,12 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #pragma once
 
-#include "BigNumber.h"
-#include "CommonTypes.hpp"
-
-#include <cstdlib>
 #include <vector>
-#include <openssl/sha.h>
-#include <openssl/rc4.h>
-
-#include "Cryptography/Sha1.h"
+#include "RC4.hpp"
 
 class WowCrypt
 {
@@ -37,8 +30,11 @@ public:
     void encryptWotlkSend(uint8_t* data, size_t length);
 
 private:
-    RC4_KEY m_clientWotlkDecryptKey;
-    RC4_KEY m_serverWotlkEncryptKey;
+    AscEmu::RC4StreamCipher::KeyStruct m_clientWotlkDecryptKey;
+    AscEmu::RC4StreamCipher::KeyStruct m_serverWotlkEncryptKey;
+
+    AscEmu::RC4Engine m_clientWotlkDecrypt;
+    AscEmu::RC4Engine m_servertWotlkEncrypt;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Legacy

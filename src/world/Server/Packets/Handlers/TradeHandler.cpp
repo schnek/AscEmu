@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -116,14 +116,14 @@ void WorldSession::handleInitiateTradeOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (playerTarget->getTeam() != _player->getTeam() && GetPermissionCount() == 0 && !worldConfig.player.isInterfactionTradeEnabled)
+    if (playerTarget->getTeam() != _player->getTeam() && !hasPermissions() && !worldConfig.player.isInterfactionTradeEnabled)
     {
         sendTradeResult(TRADE_STATUS_WRONG_FACTION);
         return;
     }
 
-    _player->m_TradeData = new TradeData(_player, playerTarget);
-    playerTarget->m_TradeData = new TradeData(playerTarget, _player);
+    _player->m_TradeData = std::make_unique<TradeData>(_player, playerTarget);
+    playerTarget->m_TradeData = std::make_unique<TradeData>(playerTarget, _player);
 
 #if VERSION_STRING < Cata
     playerTarget->m_session->sendTradeResult(TRADE_STATUS_PROPOSED, _player->getGuid());
@@ -308,14 +308,6 @@ void WorldSession::handleAcceptTrade(WorldPacket& /*recvPacket*/)
     }
 
     // Both parties have accepted, proceed
-    Item* tradeItems[TRADE_SLOT_TRADED_COUNT];
-    Item* targetTradeItems[TRADE_SLOT_TRADED_COUNT];
-    for (uint8_t i = 0; i < TRADE_SLOT_TRADED_COUNT; ++i)
-    {
-        tradeItems[i] = tradeData->getTradeItem(TradeSlots(i));
-        targetTradeItems[i] = targetTradeData->getTradeItem(TradeSlots(i));
-    }
-
     tradeTarget->getSession()->sendTradeResult(TRADE_STATUS_ACCEPTED);
 
     // Check player's spell on the lowest item
@@ -386,28 +378,32 @@ void WorldSession::handleAcceptTrade(WorldPacket& /*recvPacket*/)
         }
     }
 
+    std::array<std::unique_ptr<Item>, TRADE_SLOT_TRADED_COUNT> tradeItems = { nullptr };
+    std::array<std::unique_ptr<Item>, TRADE_SLOT_TRADED_COUNT> targetTradeItems = { nullptr };
+
     // Remove items
     for (uint8_t i = 0; i < TRADE_SLOT_TRADED_COUNT; ++i)
     {
-        if (tradeItems[i] != nullptr)
+        if (auto* const tradeItem = tradeData->getTradeItem(static_cast<TradeSlots>(i)))
         {
-            tradeItems[i]->setGiftCreatorGuid(_player->getGuid());
-            _player->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(tradeItems[i]->getGuid(), true);
-
+            tradeItem->setGiftCreatorGuid(_player->getGuid());
+            // TODO: what about temp enchantments and refundable items since old owner has pointers to the item
 #if VERSION_STRING >= WotLK
-            if (tradeItems[i]->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
-                _player->getItemInterface()->removeTradeableItem(tradeItems[i]);
+            if (tradeItem->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
+                _player->getItemInterface()->removeTradeableItem(tradeItem);
 #endif
+
+            tradeItems[i] = _player->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(tradeItem->getGuid(), true);
         }
-        if (targetTradeItems[i] != nullptr)
+        if (auto* const targetTradeItem = targetTradeData->getTradeItem(static_cast<TradeSlots>(i)))
         {
-            targetTradeItems[i]->setGiftCreatorGuid(tradeTarget->getGuid());
-            tradeTarget->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(targetTradeItems[i]->getGuid(), true);
-
+            targetTradeItem->setGiftCreatorGuid(tradeTarget->getGuid());
 #if VERSION_STRING >= WotLK
-            if (targetTradeItems[i]->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
-                tradeTarget->getItemInterface()->removeTradeableItem(targetTradeItems[i]);
+            if (targetTradeItem->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
+                tradeTarget->getItemInterface()->removeTradeableItem(targetTradeItem);
 #endif
+
+            targetTradeItems[i] = tradeTarget->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(targetTradeItem->getGuid(), true);
         }
     }
 
@@ -417,24 +413,22 @@ void WorldSession::handleAcceptTrade(WorldPacket& /*recvPacket*/)
         if (tradeItems[i] != nullptr)
         {
             tradeItems[i]->setOwner(tradeTarget);
-            if (!tradeTarget->getItemInterface()->AddItemToFreeSlot(tradeItems[i]))
-                tradeItems[i]->deleteMe();
-
 #if VERSION_STRING >= WotLK
             if (tradeItems[i]->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
-                tradeTarget->getItemInterface()->addTradeableItem(tradeItems[i]);
+                tradeTarget->getItemInterface()->addTradeableItem(tradeItems[i].get());
 #endif
+
+            tradeTarget->getItemInterface()->AddItemToFreeSlot(std::move(tradeItems[i]));
         }
         if (targetTradeItems[i] != nullptr)
         {
             targetTradeItems[i]->setOwner(_player);
-            if (!_player->getItemInterface()->AddItemToFreeSlot(targetTradeItems[i]))
-                targetTradeItems[i]->deleteMe();
-
 #if VERSION_STRING >= WotLK
             if (targetTradeItems[i]->hasFlags(ITEM_FLAG_BOP_TRADEABLE))
-                _player->getItemInterface()->addTradeableItem(targetTradeItems[i]);
+                _player->getItemInterface()->addTradeableItem(targetTradeItems[i].get());
 #endif
+
+            _player->getItemInterface()->AddItemToFreeSlot(std::move(targetTradeItems[i]));
         }
     }
 
@@ -468,10 +462,7 @@ void WorldSession::handleAcceptTrade(WorldPacket& /*recvPacket*/)
     if (traderSpell != nullptr)
         traderSpell->prepare(&traderSpellTargets);
 
-    delete _player->m_TradeData;
     _player->m_TradeData = nullptr;
-
-    delete tradeTarget->m_TradeData;
     tradeTarget->m_TradeData = nullptr;
 
     _player->getSession()->sendTradeResult(TRADE_STATUS_COMPLETE);
@@ -572,9 +563,9 @@ void WorldSession::handleClearTradeItem(WorldPacket& recvPacket)
     tradeData->setTradeItem(TradeSlots(srlPacket.tradeSlot), nullptr);
 }
 
-#if VERSION_STRING < Cata
 void WorldSession::handleBusyTrade(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING < Cata
     const auto tradeData = _player->getTradeData();
     if (tradeData == nullptr)
     {
@@ -586,10 +577,12 @@ void WorldSession::handleBusyTrade(WorldPacket& /*recvPacket*/)
     tradeData->getTradeTarget()->getSession()->sendTradeResult(TRADE_STATUS_PLAYER_BUSY);
 
     _player->cancelTrade(false, true);
+#endif
 }
 
 void WorldSession::handleIgnoreTrade(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING < Cata
     const auto tradeData = _player->getTradeData();
     if (tradeData == nullptr)
     {
@@ -602,10 +595,12 @@ void WorldSession::handleIgnoreTrade(WorldPacket& /*recvPacket*/)
 
     // Client sends this opcode after trade is created so TradeData must be cleaned
     _player->cancelTrade(false, true);
+#endif
 }
 
 void WorldSession::handleUnacceptTrade(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING < Cata
     const auto tradeData = _player->getTradeData();
     if (tradeData == nullptr)
         return;
@@ -614,8 +609,8 @@ void WorldSession::handleUnacceptTrade(WorldPacket& /*recvPacket*/)
     tradeData->getTradeTarget()->getSession()->sendTradeResult(TRADE_STATUS_UNACCEPTED);
 
     _player->getTradeData()->setTradeAccepted(false, true);
-}
 #endif
+}
 
 #if VERSION_STRING < Cata
 void WorldSession::sendTradeResult(TradeStatus result, uint64_t guid /*= 0*/)

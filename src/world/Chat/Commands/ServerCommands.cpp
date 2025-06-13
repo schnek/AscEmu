@@ -1,11 +1,15 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "git_version.h"
+#include <sstream>
+
+#include "Common.hpp"
+#include "git_version.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Chat/ChatHandler.hpp"
+#include "Chat/CommandRegistry.hpp"
 #include "Chat/CommandTableStorage.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Objects/Units/Players/Player.hpp"
@@ -18,6 +22,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgServerMessage.h"
 #include "Server/Script/ScriptMgr.hpp"
 #include "Storage/MySQLDataStore.hpp"
+#include "Threading/LegacyThreading.h"
+#include "Utilities/Util.hpp"
+
+#include <openssl/opensslv.h>
+#include <openssl/crypto.h>
 
 //.server info
 bool ChatHandler::HandleServerInfoCommand(const char* /*args*/, WorldSession* m_session)
@@ -34,7 +43,7 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/, WorldSession* m_
         {
             online_count++;
             latency_avg += player->getSession()->GetLatency();
-            if (player->getSession()->GetPermissionCount())
+            if (player->getSession()->hasPermissions())
             {
                 if (!worldConfig.gm.listOnlyActiveGms)
                     online_gm++;
@@ -47,8 +56,10 @@ bool ChatHandler::HandleServerInfoCommand(const char* /*args*/, WorldSession* m_
 
     uint32_t active_sessions = uint32_t(sWorld.getSessionCount());
 
-    GreenSystemMessage(m_session, "Info: |r%sAscEmu %s/%s-%s-%s %s(www.ascemu.org)", MSG_COLOR_WHITE, BUILD_HASH_STR, CONFIG, AE_PLATFORM, AE_ARCHITECTURE, MSG_COLOR_LIGHTBLUE);
+    GreenSystemMessage(m_session, "Info: |r%sAscEmu %s/%s-%s-%s %s(www.ascemu.org)", MSG_COLOR_WHITE, AE_BUILD_HASH, CONFIG, AE_PLATFORM, AE_ARCHITECTURE, MSG_COLOR_LIGHTBLUE);
+    GreenSystemMessage(m_session, "Using %s/Library %s", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
     GreenSystemMessage(m_session, "Uptime: |r%s", sWorld.getWorldUptimeString().c_str());
+    GreenSystemMessage(m_session, "Active Branch: |r%s", AE_BUILD_BRANCH);
     GreenSystemMessage(m_session, "Active Sessions: |r%u", active_sessions);
     GreenSystemMessage(m_session, "Current GMs: |r%u GMs", online_gm);
     GreenSystemMessage(m_session, "Current Players: |r%u (%u Peak)", online_gm > 0 ? (online_count - online_gm) : online_count, sWorld.getPeakSessionCount());
@@ -103,7 +114,6 @@ bool ChatHandler::HandleServerSaveCommand(const char* args, WorldSession* m_sess
             return true;
         }
     }
-
 
     if (player_target->m_nextSave < 180000)
     {
@@ -171,7 +181,7 @@ bool ChatHandler::HandleServerShutdownCommand(const char* args, WorldSession* m_
     if (!args)
         shutdowntime = 30;
     else
-        shutdowntime = atol(args);
+        shutdowntime = std::stoul(args);
 
     if (shutdowntime < 30)
         shutdowntime = 30;
@@ -238,7 +248,7 @@ bool ChatHandler::HandleServerRestartCommand(const char* args, WorldSession* m_s
     if (!args)
         shutdowntime = 30;
     else
-        shutdowntime = atol(args);
+        shutdowntime = std::stoul(args);
 
     if (shutdowntime < 30)
         shutdowntime = 30;
@@ -299,7 +309,9 @@ bool ChatHandler::HandleReloadCommandOverridesCommand(const char* /*args*/, Worl
     auto startTime = Util::TimeNow();
     sCommandTableStorage.Dealloc();
     sCommandTableStorage.Init();
+    sCommandTableStorage.registerCommands();
     sCommandTableStorage.Load();
+
     GreenSystemMessage(m_session, "CharactersDB 'command_overrides' table reloaded in %u ms", static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
     return true;
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -62,7 +62,7 @@ LocationVector const SinclariPositions[] =
 LocationVector const GuardsMovePosition = { 1802.099f, 803.7724f, 44.36466f, 0.0f };
 
 // 3 Bosses out of Total 9
-uint32 const EncounterCount = 3 + 6;
+uint32_t const EncounterCount = 3 + 6;
 
 // Waypoints
 LocationVector const FirstPortalWPs[] =
@@ -686,7 +686,7 @@ public:
 
     void AIUpdate(unsigned long /*time_passed*/) override;
 
-    void waypointReached(uint32 waypointId, uint32 /*pathId*/) override;
+    void waypointReached(uint32_t waypointId, uint32_t /*pathId*/) override;
 
     void SetCreatureData(uint32_t /*type*/, uint32_t /*data*/) override;
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -11,6 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Management/Skill.hpp"
 #include "Management/Battleground/Battleground.hpp"
 #include "Management/Loot/LootMgr.hpp"
+#include "Management/Loot/LootRoll.hpp"
 #include "Objects/Units/Stats.h"
 #include "Storage/MySQLDataStore.hpp"
 #include "Map/Cells/MapCell.hpp"
@@ -42,6 +43,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
 #include "Summons/SummonHandler.hpp"
+#include "Utilities/Random.hpp"
 
 uint8_t CreatureProperties::generateRandomDisplayIdAndReturnGender(uint32_t* displayId) const
 {
@@ -144,6 +146,11 @@ uint32_t CreatureProperties::getVisibleModelForTriggerNpc() const
     return 17519;
 }
 
+bool CreatureProperties::isExotic() const
+{
+    return (typeFlags & CREATURE_FLAG1_EXOTIC) != 0;
+}
+
 Creature::Creature(uint64_t guid)
 {
     //////////////////////////////////////////////////////////////////////////
@@ -193,8 +200,8 @@ bool Creature::isClassTrainer() const { return getNpcFlags() & UNIT_NPC_FLAG_TRA
 bool Creature::isProfessionTrainer() const { return getNpcFlags() & UNIT_NPC_FLAG_TRAINER_PROFESSION; }
 bool Creature::isQuestGiver() const { return getNpcFlags() & UNIT_NPC_FLAG_QUESTGIVER; }
 bool Creature::isGossip() const{ return getNpcFlags() & UNIT_NPC_FLAG_GOSSIP; }
-bool Creature::isTaxi() const { return getNpcFlags() & UNIT_NPC_FLAG_FLIGHTMASTER; }
-bool Creature::isCharterGiver() const { return getNpcFlags() & UNIT_NPC_FLAG_PETITIONER; }
+bool Creature::isTaxi() const { return getNpcFlags() & UNIT_NPC_FLAG_TAXI; }
+bool Creature::isCharterGiver() const { return getNpcFlags() & UNIT_NPC_FLAG_CHARTERGIVER; }
 bool Creature::isGuildBank() const { return getNpcFlags() & UNIT_NPC_FLAG_GUILD_BANKER; }
 bool Creature::isBattleMaster() const { return getNpcFlags() & UNIT_NPC_FLAG_BATTLEMASTER; }
 bool Creature::isBanker() const { return getNpcFlags() & UNIT_NPC_FLAG_BANKER; }
@@ -203,11 +210,11 @@ bool Creature::isSpiritHealer() const { return getNpcFlags() & UNIT_NPC_FLAG_SPI
 bool Creature::isTabardDesigner() const { return getNpcFlags() & UNIT_NPC_FLAG_TABARDDESIGNER; }
 bool Creature::isAuctioneer() const { return getNpcFlags() & UNIT_NPC_FLAG_AUCTIONEER; }
 bool Creature::isStableMaster() const { return getNpcFlags() & UNIT_NPC_FLAG_STABLEMASTER; }
-bool Creature::isArmorer() const { return getNpcFlags() & UNIT_NPC_FLAG_REPAIR; }
+bool Creature::isArmorer() const { return getNpcFlags() & UNIT_NPC_FLAG_ARMORER; }
 #if VERSION_STRING >= Cata
 bool Creature::isTransmog() const { return getNpcFlags() & UNIT_NPC_FLAG_TRANSMOGRIFIER; }
 bool Creature::isReforger() const { return getNpcFlags() & UNIT_NPC_FLAG_REFORGER; }
-bool Creature::isVoidStorage() const { return getNpcFlags() & UNIT_NPC_FLAG_VAULTKEEPER; }
+bool Creature::isVoidStorage() const { return getNpcFlags() & UNIT_NPC_FLAG_VOID_STORAGE; }
 #endif
 
 bool Creature::isVehicle() const
@@ -220,60 +227,96 @@ bool Creature::isTrainingDummy()
     return creature_properties->isTrainingDummy;
 }
 
-bool Creature::isPvpFlagSet()
+bool Creature::isPvpFlagSet() const
 {
-    return getPvpFlags() & U_FIELD_BYTES_FLAG_PVP;
+#if VERSION_STRING > TBC
+    return getPvpFlags() & PVP_STATE_FLAG_PVP;
+#else
+    return getUnitFlags() & UNIT_FLAG_PVP;
+#endif
 }
 
 void Creature::setPvpFlag()
 {
-    addPvpFlags(U_FIELD_BYTES_FLAG_PVP);
+#if VERSION_STRING > TBC
+    addPvpFlags(PVP_STATE_FLAG_PVP);
+#else
+    addUnitFlags(UNIT_FLAG_PVP);
+#endif
     getSummonInterface()->setPvPFlags(true);
 }
 
 void Creature::removePvpFlag()
 {
-    removePvpFlags(U_FIELD_BYTES_FLAG_PVP);
+#if VERSION_STRING > TBC
+    removePvpFlags(PVP_STATE_FLAG_PVP);
+#else
+    removeUnitFlags(UNIT_FLAG_PVP);
+#endif
     getSummonInterface()->setPvPFlags(false);
 }
 
-bool Creature::isFfaPvpFlagSet()
+bool Creature::isFfaPvpFlagSet() const
 {
-    return getPvpFlags() & U_FIELD_BYTES_FLAG_FFA_PVP;
+#if VERSION_STRING > TBC
+    return getPvpFlags() & PVP_STATE_FLAG_FFA_PVP;
+#else
+    return false;
+#endif
 }
 
 void Creature::setFfaPvpFlag()
 {
-    addPvpFlags(U_FIELD_BYTES_FLAG_FFA_PVP);
+#if VERSION_STRING > TBC
+    addPvpFlags(PVP_STATE_FLAG_FFA_PVP);
+#endif
     getSummonInterface()->setFFAPvPFlags(true);
 }
 
 void Creature::removeFfaPvpFlag()
 {
-    removePvpFlags(U_FIELD_BYTES_FLAG_FFA_PVP);
+#if VERSION_STRING > TBC
+    removePvpFlags(PVP_STATE_FLAG_FFA_PVP);
+#endif
     getSummonInterface()->setFFAPvPFlags(false);
 }
 
-bool Creature::isSanctuaryFlagSet()
+bool Creature::isSanctuaryFlagSet() const
 {
-    return getPvpFlags() & U_FIELD_BYTES_FLAG_SANCTUARY;
+#if VERSION_STRING > TBC
+    return getPvpFlags() & PVP_STATE_FLAG_SANCTUARY;
+#else
+    return false;
+#endif
 }
 
 void Creature::setSanctuaryFlag()
 {
-    addPvpFlags(U_FIELD_BYTES_FLAG_SANCTUARY);
+#if VERSION_STRING > TBC
+    addPvpFlags(PVP_STATE_FLAG_SANCTUARY);
+#endif
     getSummonInterface()->setSanctuaryFlags(true);
 }
 
 void Creature::removeSanctuaryFlag()
 {
-    removePvpFlags(U_FIELD_BYTES_FLAG_SANCTUARY);
+#if VERSION_STRING > TBC
+    removePvpFlags(PVP_STATE_FLAG_SANCTUARY);
+#endif
     getSummonInterface()->setSanctuaryFlags(false);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Owner
 Unit* Creature::getUnitOwner()
+{
+    if (getCharmedByGuid() != 0)
+        return getWorldMapUnit(getCharmedByGuid());
+
+    return nullptr;
+}
+
+Unit const* Creature::getUnitOwner() const
 {
     if (getCharmedByGuid() != 0)
         return getWorldMapUnit(getCharmedByGuid());
@@ -289,7 +332,23 @@ Unit* Creature::getUnitOwnerOrSelf()
     return this;
 }
 
+Unit const* Creature::getUnitOwnerOrSelf() const
+{
+    if (auto* const unitOwner = getUnitOwner())
+        return unitOwner;
+
+    return this;
+}
+
 Player* Creature::getPlayerOwner()
+{
+    if (getCharmedByGuid() != 0)
+        return getWorldMapPlayer(getCharmedByGuid());
+
+    return nullptr;
+}
+
+Player const* Creature::getPlayerOwner() const
 {
     if (getCharmedByGuid() != 0)
         return getWorldMapPlayer(getCharmedByGuid());
@@ -345,7 +404,7 @@ void Creature::toggleDualwield(bool enable)
     }
 }
 
-std::shared_ptr<std::vector<CreatureItem>> Creature::getSellItems()
+std::vector<CreatureItem>* Creature::getSellItems()
 {
     return m_SellItems;
 }
@@ -697,10 +756,6 @@ void Creature::Update(unsigned long time_passed)
 {
     Unit::Update(time_passed);
 
-    // When we are a Summon handle its Update
-    if (isSummon())
-        ToSummon()->Update(time_passed);
-
     // Update Movement
     if (time_passed >= m_movementFlagUpdateTimer)
     {
@@ -750,7 +805,7 @@ void Creature::DeleteMe()
 void Creature::OnRemoveCorpse()
 {
     // time to respawn!
-    if (IsInWorld() && (int32)m_WorldMap->getInstanceId() == m_instanceId)
+    if (IsInWorld() && (int32_t)m_WorldMap->getInstanceId() == m_instanceId)
     {
         sLogger.info("Removing corpse of {}...", std::to_string(getGuid()));
 
@@ -845,12 +900,12 @@ void Creature::OnRespawn(WorldMap* m)
     PushToWorld(m);
 }
 
-void Creature::Create(uint32 mapid, float x, float y, float z, float ang)
+void Creature::Create(uint32_t mapid, float x, float y, float z, float ang)
 {
     Object::_Create(mapid, x, y, z, ang);
 }
 
-void Creature::CreateWayPoint(uint32 /*WayPointID*/, uint32 mapid, float x, float y, float z, float ang)
+void Creature::CreateWayPoint(uint32_t /*WayPointID*/, uint32_t mapid, float x, float y, float z, float ang)
 {
     Object::_Create(mapid, x, y, z, ang);
 }
@@ -873,16 +928,16 @@ void Creature::SaveToDB()
         m_spawn->o = m_position.o;
         m_spawn->emote_state = getEmoteState();
         m_spawn->flags = getUnitFlags();
+        m_spawn->pvp_flagged = isPvpFlagSet() ? 1 : 0;
         m_spawn->factionid = getFactionTemplate();
         m_spawn->bytes0 = getBytes0();
-        m_spawn->bytes1 = getBytes1();
-        m_spawn->bytes2 = getBytes2();
         m_spawn->stand_state = getStandState();
         m_spawn->death_state = 0;
         m_spawn->channel_target_creature = 0;
         m_spawn->channel_target_go = 0;
         m_spawn->channel_spell = 0;
         m_spawn->MountedDisplayID = getMountDisplayId();
+        m_spawn->sheath_state = getSheathType();
 
 #if VERSION_STRING < WotLK
         m_spawn->Item1SlotEntry = getVirtualItemEntry(MELEE);
@@ -901,8 +956,8 @@ void Creature::SaveToDB()
 
         m_spawn->phase = m_phase;
 
-        uint32 x = getWorldMap()->getPosX(GetPositionX());
-        uint32 y = getWorldMap()->getPosY(GetPositionY());
+        uint32_t x = getWorldMap()->getPosX(GetPositionX());
+        uint32_t y = getWorldMap()->getPosY(GetPositionY());
 
         // Add spawn to map
         getWorldMap()->getBaseMap()->getSpawnsListAndCreate(x, y)->CreatureSpawns.push_back(m_spawn);
@@ -936,20 +991,20 @@ void Creature::SaveToDB()
         << getDisplayId() << ","
         << getFactionTemplate() << ","
         << getUnitFlags() << ","
+        << (isPvpFlagSet() ? "1" : "0") << ","
         << getBytes0() << ","
-        << getBytes1() << ","
-        << getBytes2() << ","
         << getEmoteState() << ",0,";
 
     ss << m_spawn->channel_spell << ","
         << m_spawn->channel_target_go << ","
         << m_spawn->channel_target_creature << ",";
 
-    ss << uint32(getStandState()) << ",";
+    ss << uint32_t(getStandState()) << ",";
 
     ss << m_spawn->death_state << ",";
 
     ss << getMountDisplayId() << ","
+        << std::to_string(getSheathType()) << ","
         << m_spawn->Item1SlotEntry << ","
         << m_spawn->Item2SlotEntry << ","
         << m_spawn->Item3SlotEntry << ",";
@@ -985,31 +1040,28 @@ void Creature::DeleteFromDB()
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Quests
 
-void Creature::AddQuest(QuestRelation* Q)
+void Creature::AddQuest(std::unique_ptr<QuestRelation> Q)
 {
-    m_quests->push_back(Q);
+    m_quests->push_back(std::move(Q));
 }
 
-void Creature::DeleteQuest(QuestRelation* Q)
+void Creature::DeleteQuest(QuestRelation const* Q)
 {
-    std::list<QuestRelation*>::iterator it;
-    for (it = m_quests->begin(); it != m_quests->end(); ++it)
+    for (auto it = m_quests->begin(); it != m_quests->end(); ++it)
     {
         if (((*it)->type == Q->type) && ((*it)->qst == Q->qst))
         {
-            delete(*it);
             m_quests->erase(it);
             break;
         }
     }
 }
 
-QuestProperties const* Creature::FindQuest(uint32 quest_id, uint8 quest_relation)
+QuestProperties const* Creature::FindQuest(uint32_t quest_id, uint8_t quest_relation)
 {
-    std::list<QuestRelation*>::iterator it;
-    for (it = m_quests->begin(); it != m_quests->end(); ++it)
+    for (auto it = m_quests->begin(); it != m_quests->end(); ++it)
     {
-        QuestRelation* ptr = (*it);
+        const auto& ptr = (*it);
 
         if ((ptr->qst->id == quest_id) && (ptr->type & quest_relation))
         {
@@ -1019,12 +1071,11 @@ QuestProperties const* Creature::FindQuest(uint32 quest_id, uint8 quest_relation
     return nullptr;
 }
 
-uint16 Creature::GetQuestRelation(uint32 quest_id)
+uint16_t Creature::GetQuestRelation(uint32_t quest_id)
 {
-    uint16 quest_relation = 0;
-    std::list<QuestRelation*>::iterator it;
+    uint16_t quest_relation = 0;
 
-    for (it = m_quests->begin(); it != m_quests->end(); ++it)
+    for (auto it = m_quests->begin(); it != m_quests->end(); ++it)
     {
         if ((*it)->qst->id == quest_id)
         {
@@ -1034,32 +1085,32 @@ uint16 Creature::GetQuestRelation(uint32 quest_id)
     return quest_relation;
 }
 
-uint32 Creature::NumOfQuests()
+uint32_t Creature::NumOfQuests()
 {
-    return (uint32)m_quests->size();
+    return (uint32_t)m_quests->size();
 }
 
-std::list<QuestRelation*>::iterator Creature::QuestsBegin()
+std::list<std::unique_ptr<QuestRelation>>::iterator Creature::QuestsBegin()
 {
     return m_quests->begin();
 }
 
-std::list<QuestRelation*>::iterator Creature::QuestsEnd()
+std::list<std::unique_ptr<QuestRelation>>::iterator Creature::QuestsEnd()
 {
     return m_quests->end();
 }
 
-void Creature::SetQuestList(std::list<QuestRelation*>* qst_lst)
+void Creature::SetQuestList(std::list<std::unique_ptr<QuestRelation>>* qst_lst)
 {
     m_quests = qst_lst;
 }
 
-uint32 Creature::GetHealthFromSpell()
+uint32_t Creature::GetHealthFromSpell()
 {
     return m_healthfromspell;
 }
 
-void Creature::SetHealthFromSpell(uint32 value)
+void Creature::SetHealthFromSpell(uint32_t value)
 {
     m_healthfromspell = value;
 }
@@ -1074,10 +1125,10 @@ bool Creature::HasQuests()
     return m_quests != NULL;
 }
 
-bool Creature::HasQuest(uint32 id, uint32 type)
+bool Creature::HasQuest(uint32_t id, uint32_t type)
 {
     if (!m_quests) return false;
-    for (std::list<QuestRelation*>::iterator itr = m_quests->begin(); itr != m_quests->end(); ++itr)
+    for (auto itr = m_quests->begin(); itr != m_quests->end(); ++itr)
         {
             if ((*itr)->qst->id == id && (*itr)->type & type)
                 return true;
@@ -1162,7 +1213,7 @@ void Creature::EnslaveExpire()
 {
     ++m_enslaveCount;
 
-    uint64 charmer = getCharmedByGuid();
+    uint64_t charmer = getCharmedByGuid();
 
     Player* caster = sObjectMgr.getPlayer(WoWGuid::getGuidLowPartFromUInt64(charmer));
     if (caster)
@@ -1172,8 +1223,8 @@ void Creature::EnslaveExpire()
 
         WorldPacket data(SMSG_PET_SPELLS, 8);
 
-        data << uint64(0);
-        data << uint32(0);
+        data << uint64_t(0);
+        data << uint32_t(0);
 
         caster->sendPacket(&data);
     }
@@ -1198,22 +1249,22 @@ void Creature::EnslaveExpire()
     updateInRangeSameFactionSet();
 }
 
-uint32 Creature::GetEnslaveCount()
+uint32_t Creature::GetEnslaveCount()
 {
     return m_enslaveCount;
 }
 
-void Creature::SetEnslaveCount(uint32 count)
+void Creature::SetEnslaveCount(uint32_t count)
 {
     m_enslaveCount = count;
 }
 
-uint32 Creature::GetEnslaveSpell()
+uint32_t Creature::GetEnslaveSpell()
 {
     return m_enslaveSpell;
 }
 
-void Creature::SetEnslaveSpell(uint32 spellId)
+void Creature::SetEnslaveSpell(uint32_t spellId)
 {
     m_enslaveSpell = spellId;
 }
@@ -1225,8 +1276,8 @@ bool Creature::RemoveEnslave()
 
 void Creature::CalcResistance(uint8_t type)
 {
-    int32 pos = 0;
-    int32 neg = 0;
+    int32_t pos = 0;
+    int32_t neg = 0;
 
     if (BaseResistanceModPct[type] < 0)
         neg = (m_baseResistance[type] * abs(BaseResistanceModPct[type]) / 100);
@@ -1237,9 +1288,9 @@ void Creature::CalcResistance(uint8_t type)
     {
         Player* owner = static_cast<Pet*>(this)->getPlayerOwner();
         if (type == 0 && owner)
-            pos += int32(0.35f * owner->getResistance(type));
+            pos += int32_t(0.35f * owner->getResistance(type));
         else if (owner)
-            pos += int32(0.40f * owner->getResistance(type));
+            pos += int32_t(0.40f * owner->getResistance(type));
     }
 
     if (ResistanceModPct[type] < 0)
@@ -1257,15 +1308,15 @@ void Creature::CalcResistance(uint8_t type)
     setResistanceBuffModNegative(type, neg);
 #endif
 
-    int32 tot = m_baseResistance[type] + pos - neg;
+    int32_t tot = m_baseResistance[type] + pos - neg;
 
     setResistance(type, tot > 0 ? tot : 0);
 }
 
 void Creature::CalcStat(uint8_t type)
 {
-    int32 pos = 0;
-    int32 neg = 0;
+    int32_t pos = 0;
+    int32_t neg = 0;
 
     if (StatModPct[type] < 0)
         neg = (m_baseStats[type] * abs(StatModPct[type]) / 100);
@@ -1276,9 +1327,9 @@ void Creature::CalcStat(uint8_t type)
     {
         Player* owner = static_cast<Pet*>(this)->getPlayerOwner();
         if (type == STAT_STAMINA && owner)
-            pos += int32(0.45f * owner->getStat(STAT_STAMINA));
+            pos += int32_t(0.45f * owner->getStat(STAT_STAMINA));
         else if (type == STAT_INTELLECT && owner && getCreatedBySpellId())
-            pos += int32(0.30f * owner->getStat(STAT_INTELLECT));
+            pos += int32_t(0.30f * owner->getStat(STAT_INTELLECT));
     }
 
     if (TotalStatModPct[type] < 0)
@@ -1296,7 +1347,7 @@ void Creature::CalcStat(uint8_t type)
     setNegStat(type, neg);
 #endif
 
-    int32 tot = m_baseStats[type] + pos - neg;
+    int32_t tot = m_baseStats[type] + pos - neg;
     setStat(type, tot > 0 ? tot : 0);
 
     switch (type)
@@ -1306,8 +1357,8 @@ void Creature::CalcStat(uint8_t type)
             //Attack Power
             if (!isPet())  //We calculate pet's later
             {
-                uint32 str = getStat(STAT_STRENGTH);
-                int32 AP = (str * 2 - 20);
+                uint32_t str = getStat(STAT_STRENGTH);
+                int32_t AP = (str * 2 - 20);
                 if (AP < 0) AP = 0;
                 setAttackPower(AP);
             }
@@ -1317,7 +1368,7 @@ void Creature::CalcStat(uint8_t type)
         case STAT_AGILITY:
         {
             //Ranged Attack Power (Does any creature use this?)
-            int32 RAP = getLevel() + getStat(STAT_AGILITY) - 10;
+            int32_t RAP = getLevel() + getStat(STAT_AGILITY) - 10;
             if (RAP < 0)
                 RAP = 0;
 
@@ -1328,12 +1379,12 @@ void Creature::CalcStat(uint8_t type)
         {
 #if VERSION_STRING != Classic
             //Health
-            uint32 hp = getBaseHealth();
-            uint32 stat_bonus = getPosStat(STAT_STAMINA)- getNegStat(STAT_STAMINA);
-            if (static_cast<int32>(stat_bonus) < 0) stat_bonus = 0;
+            uint32_t hp = getBaseHealth();
+            uint32_t stat_bonus = getPosStat(STAT_STAMINA)- getNegStat(STAT_STAMINA);
+            if (static_cast<int32_t>(stat_bonus) < 0) stat_bonus = 0;
 
-            uint32 bonus = stat_bonus * 10 + m_healthfromspell;
-            uint32 res = hp + bonus;
+            uint32_t bonus = stat_bonus * 10 + m_healthfromspell;
+            uint32_t res = hp + bonus;
 
             if (res < hp)
                 res = hp;
@@ -1348,12 +1399,12 @@ void Creature::CalcStat(uint8_t type)
 #if VERSION_STRING != Classic
             if (getPowerType() == POWER_TYPE_MANA)
             {
-                uint32 mana = getBaseMana();
-                uint32 stat_bonus = getPosStat(STAT_INTELLECT) - getNegStat(STAT_INTELLECT);
-                if (static_cast<int32>(stat_bonus) < 0) stat_bonus = 0;
+                uint32_t mana = getBaseMana();
+                uint32_t stat_bonus = getPosStat(STAT_INTELLECT) - getNegStat(STAT_INTELLECT);
+                if (static_cast<int32_t>(stat_bonus) < 0) stat_bonus = 0;
 
-                uint32 bonus = stat_bonus * 15;
-                uint32 res = mana + bonus;
+                uint32_t bonus = stat_bonus * 15;
+                uint32_t res = mana + bonus;
 
                 if (res < mana) res = mana;
                 setMaxPower(POWER_TYPE_MANA, res);
@@ -1369,8 +1420,8 @@ void Creature::RegenerateHealth()
     if (m_limbostate || !m_canRegenerateHP)
         return;
 
-    uint32 cur = getHealth();
-    uint32 mh = getMaxHealth();
+    uint32_t cur = getHealth();
+    uint32_t mh = getMaxHealth();
     if (cur >= mh)return;
 
     float amt = 0.0f;
@@ -1398,7 +1449,7 @@ void Creature::RegenerateHealth()
     if (amt <= 1.0f) //this fixes regen like 0.98
         cur++;
     else
-        cur += (uint32)amt;
+        cur += (uint32_t)amt;
     setHealth((cur >= mh) ? mh : cur);
 }
 
@@ -1418,12 +1469,12 @@ void Creature::SetCreatureProperties(CreatureProperties const* cp)
     creature_properties = cp;
 }
 
-std::shared_ptr<Trainer> Creature::GetTrainer()
+Trainer const* Creature::GetTrainer()
 {
     return mTrainer;
 }
 
-void Creature::AddVendorItem(uint32 itemid, uint32 amount, WDB::Structures::ItemExtendedCostEntry const* ec)
+void Creature::AddVendorItem(uint32_t itemid, uint32_t amount, WDB::Structures::ItemExtendedCostEntry const* ec)
 {
     CreatureItem ci;
     ci.amount = amount;
@@ -1432,15 +1483,13 @@ void Creature::AddVendorItem(uint32 itemid, uint32 amount, WDB::Structures::Item
     ci.max_amount = 0;
     ci.incrtime = 0;
     ci.extended_cost = ec;
-    if (!m_SellItems)
-    {
-        m_SellItems = std::make_shared<std::vector<CreatureItem>>();
-        sObjectMgr.setVendorList(getEntry(), m_SellItems);
-    }
+    if (m_SellItems == nullptr)
+        m_SellItems = sObjectMgr.createVendorList(getEntry());
+
     m_SellItems->push_back(ci);
 }
 
-void Creature::ModAvItemAmount(uint32 itemid, uint32 value)
+void Creature::ModAvItemAmount(uint32_t itemid, uint32_t value)
 {
     for (std::vector<CreatureItem>::iterator itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
     {
@@ -1464,7 +1513,7 @@ void Creature::ModAvItemAmount(uint32 itemid, uint32 value)
     }
 }
 
-void Creature::UpdateItemAmount(uint32 itemid)
+void Creature::UpdateItemAmount(uint32_t itemid)
 {
     for (std::vector<CreatureItem>::iterator itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
     {
@@ -1481,7 +1530,7 @@ void Creature::UpdateItemAmount(uint32 itemid)
     }
 }
 
-void Creature::ChannelLinkUpGO(uint32 SqlId)
+void Creature::ChannelLinkUpGO(uint32_t SqlId)
 {
     if (!m_WorldMap)        // shouldn't happen
         return;
@@ -1495,7 +1544,7 @@ void Creature::ChannelLinkUpGO(uint32 SqlId)
     }
 }
 
-void Creature::ChannelLinkUpCreature(uint32 SqlId)
+void Creature::ChannelLinkUpCreature(uint32_t SqlId)
 {
     if (!m_WorldMap)        // shouldn't happen
         return;
@@ -1520,17 +1569,17 @@ bool Creature::isattackable(MySQLStructure::CreatureSpawn* spawn)
         return true;
 }
 
-uint8 get_byte(uint32 buffer, uint32 index)
+uint8_t get_byte(uint32_t buffer, uint32_t index)
 {
-    uint32 mask = uint32(~0ul);
-    if (index > sizeof(uint32) - 1)
+    uint32_t mask = uint32_t(~0ul);
+    if (index > sizeof(uint32_t) - 1)
         return 0;
 
     buffer = buffer >> index * 8;
     mask = mask >> 3 * 8;
     buffer = buffer & mask;
 
-    return (uint8)buffer;
+    return (uint8_t)buffer;
 }
 
 bool Creature::teleport(const LocationVector& vec, WorldMap* map)
@@ -1549,7 +1598,7 @@ bool Creature::teleport(const LocationVector& vec, WorldMap* map)
     }
 }
 
-bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStructure::MapInfo const* info)
+bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8_t mode, MySQLStructure::MapInfo const* info)
 {
     m_spawn = spawn;
     creature_properties = sMySQLStore.getCreatureProperties(spawn->entry);
@@ -1572,7 +1621,7 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     setHoverHeight(creature_properties->Scale);
 #endif
 
-    uint32 health;
+    uint32_t health;
     if (creature_properties->MinHealth > creature_properties->MaxHealth)
     {
         sLogger.failure("MinHealth is bigger than MaxHealt! Using MaxHealth value. You should fix this in creature_proto table for entry: {}!", creature_properties->Id);
@@ -1603,7 +1652,7 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     if (mode && info)
         setLevel(std::min(73 - getLevel(), info->lvl_mod_a));
 
-    for (uint8 i = 0; i < 7; ++i)
+    for (uint8_t i = 0; i < 7; ++i)
         setResistance(i, creature_properties->Resistances[i]);
 
     setBaseAttackTime(MELEE, creature_properties->AttackTime);
@@ -1625,6 +1674,12 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     setBoundingRadius(creature_properties->BoundingRadius);
     setCombatReach(creature_properties->CombatReach);
     original_emotestate = spawn->emote_state;
+
+#if VERSION_STRING == TBC
+    // Summons are set in Summon::load
+    if (!isSummon())
+        setPositiveAuraLimit(POS_AURA_LIMIT_CREATURE);
+#endif
 
     // set position
     m_position.ChangeCoords({ spawn->x, spawn->y, spawn->z, spawn->o });
@@ -1670,9 +1725,9 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
         auctionHouse = sAuctionMgr.getAuctionHouse(getEntry());
 
     //load resistances
-    for (uint8 x = 0; x < TOTAL_SPELL_SCHOOLS; ++x)
+    for (uint8_t x = 0; x < TOTAL_SPELL_SCHOOLS; ++x)
         m_baseResistance[x] = getResistance(x);
-    for (uint8 x = 0; x < STAT_COUNT; ++x)
+    for (uint8_t x = 0; x < STAT_COUNT; ++x)
         m_baseStats[x] = getStat(x);
 
     m_baseDamage[0] = getMinDamage();
@@ -1689,13 +1744,14 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
     setBytes0(spawn->bytes0);
 
     // Bytes 1
-    setStandState(static_cast<uint8_t>((spawn->bytes1) & 0xFF));
-    setPetTalentPoints(static_cast<uint8_t>((spawn->bytes1 >> 8) & 0xFF));
-    setStandStateFlags(static_cast<uint8_t>((spawn->bytes1 >> 16) & 0xFF));
-    setAnimationTier(static_cast<AnimationTier>((spawn->bytes1 >> 24) & 0xFF));
+    setBytes1(0);
+    setStandState(spawn->stand_state);
 
     // Bytes 2
-    setBytes2(spawn->bytes2);
+    setBytes2(0);
+    setSheathType(spawn->sheath_state);
+    if (spawn->pvp_flagged == 1)
+        setPvpFlag();
 
     ////////////AI
 
@@ -1746,9 +1802,6 @@ bool Creature::Load(MySQLStructure::CreatureSpawn* spawn, uint8 mode, MySQLStruc
         m_limbostate = true;
         setDeathState(CORPSE);
     }
-
-    if (spawn->stand_state)
-        setStandState((uint8)spawn->stand_state);
 
     m_aiInterface->eventAiInterfaceParamsetFinish();
 
@@ -1826,7 +1879,7 @@ void Creature::Load(CreatureProperties const* properties_, float x, float y, flo
     setHoverHeight(creature_properties->Scale);
 #endif
 
-    uint32 health = creature_properties->MinHealth + Util::getRandomUInt(creature_properties->MaxHealth - creature_properties->MinHealth);
+    uint32_t health = creature_properties->MinHealth + Util::getRandomUInt(creature_properties->MaxHealth - creature_properties->MinHealth);
 
     setMaxHealth(health);
     setHealth(health);
@@ -1836,8 +1889,8 @@ void Creature::Load(CreatureProperties const* properties_, float x, float y, flo
     setBaseMana(creature_properties->Mana);
     setPower(POWER_TYPE_MANA, creature_properties->Mana);
 
-    uint32 model = 0;
-    uint8 gender = creature_properties->generateRandomDisplayIdAndReturnGender(&model);
+    uint32_t model = 0;
+    uint8_t gender = creature_properties->generateRandomDisplayIdAndReturnGender(&model);
     setGender(gender);
 
     setDisplayId(model);
@@ -1848,17 +1901,22 @@ void Creature::Load(CreatureProperties const* properties_, float x, float y, flo
 
     setLevel(creature_properties->MinLevel + (Util::getRandomUInt(creature_properties->MaxLevel - creature_properties->MinLevel)));
 
-    for (uint8 i = 0; i < 7; ++i)
+    for (uint8_t i = 0; i < 7; ++i)
         setResistance(i, creature_properties->Resistances[i]);
 
     setBaseAttackTime(MELEE, creature_properties->AttackTime);
     setMinDamage(creature_properties->MinDamage);
     setMaxDamage(creature_properties->MaxDamage);
 
-
     setFaction(creature_properties->Faction);
     setBoundingRadius(creature_properties->BoundingRadius);
     setCombatReach(creature_properties->CombatReach);
+
+#if VERSION_STRING == TBC
+    // Summons are set in Summon::load
+    if (!isSummon())
+        setPositiveAuraLimit(POS_AURA_LIMIT_CREATURE);
+#endif
 
     original_emotestate = 0;
 
@@ -1904,9 +1962,9 @@ void Creature::Load(CreatureProperties const* properties_, float x, float y, flo
         auctionHouse = sAuctionMgr.getAuctionHouse(getEntry());
 
     //load resistances
-    for (uint8 j = 0; j < TOTAL_SPELL_SCHOOLS; ++j)
+    for (uint8_t j = 0; j < TOTAL_SPELL_SCHOOLS; ++j)
         m_baseResistance[j] = getResistance(j);
-    for (uint8 j = 0; j < STAT_COUNT; ++j)
+    for (uint8_t j = 0; j < STAT_COUNT; ++j)
         m_baseStats[j] = getStat(j);
 
     m_baseDamage[0] = getMinDamage();
@@ -2028,7 +2086,7 @@ void Creature::OnPushToWorld()
     updateFocusRegeneration(true);
     updateEnergyRegeneration(true);
 
-    std::set<uint32>::iterator itr = creature_properties->start_auras.begin();
+    std::set<uint32_t>::iterator itr = creature_properties->start_auras.begin();
     for (; itr != creature_properties->start_auras.end(); ++itr)
     {
         SpellInfo const* sp = sSpellMgr.getSpellInfo((*itr));
@@ -2155,11 +2213,11 @@ void Creature::respawn(bool force)
     sLogger.debug("Respawning creature {} ({})", GetCreatureProperties()->Name, getGuid());
 }
 
-void Creature::Despawn(uint32 delay, uint32 respawntime)
+void Creature::Despawn(uint32_t delay, uint32_t respawntime)
 {
     if (delay)
     {
-        sEventMgr.AddEvent(this, &Creature::Despawn, (uint32)0, respawntime, EVENT_CREATURE_RESPAWN, delay, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+        sEventMgr.AddEvent(this, &Creature::Despawn, (uint32_t)0, respawntime, EVENT_CREATURE_RESPAWN, delay, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
     }
     else
     {
@@ -2296,7 +2354,7 @@ void Creature::SetLimboState(bool set)
     m_limbostate = set;
 }
 
-uint32 Creature::GetLineByFamily(WDB::Structures::CreatureFamilyEntry const* family)
+uint32_t Creature::GetLineByFamily(WDB::Structures::CreatureFamilyEntry const* family)
 {
     return family->skilline ? family->skilline : 0;
 }
@@ -2312,7 +2370,7 @@ void Creature::RemoveLimboState(Unit* /*healer*/)
     m_isInvincible = false;
 }
 
-uint32 Creature::GetNpcTextId()
+uint32_t Creature::GetNpcTextId()
 {
     return sMySQLStore.getGossipTextIdForNpc(this->getEntry());
 }
@@ -2326,7 +2384,7 @@ float Creature::GetBaseParry()
     return 5.0f;
 }
 
-int32 Creature::GetDamageDoneMod(uint16_t school)
+int32_t Creature::GetDamageDoneMod(uint16_t school)
 {
     if (school >= TOTAL_SPELL_SCHOOLS)
         return 0;
@@ -2407,7 +2465,7 @@ uint16_t Creature::GetRequiredLootSkill()
         return SKILL_SKINNING;      // skinning
 }
 
-uint32 Creature::GetSQL_id()
+uint32_t Creature::GetSQL_id()
 {
     return spawnid;
 };
@@ -2417,9 +2475,9 @@ bool Creature::HasItems()
     return ((m_SellItems != NULL) ? true : false);
 }
 
-int32 Creature::GetSlotByItemId(uint32 itemid)
+int32_t Creature::GetSlotByItemId(uint32_t itemid)
 {
-    uint32 slot = 0;
+    uint32_t slot = 0;
     for (std::vector<CreatureItem>::iterator itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
         {
             if (itr->itemid == itemid)
@@ -2430,7 +2488,7 @@ int32 Creature::GetSlotByItemId(uint32 itemid)
     return -1;
 }
 
-uint32 Creature::GetItemAmountByItemId(uint32 itemid)
+uint32_t Creature::GetItemAmountByItemId(uint32_t itemid)
 {
     for (std::vector<CreatureItem>::iterator itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
         {
@@ -2440,12 +2498,12 @@ uint32 Creature::GetItemAmountByItemId(uint32 itemid)
     return 0;
 }
 
-void Creature::GetSellItemBySlot(uint32 slot, CreatureItem& ci)
+void Creature::GetSellItemBySlot(uint32_t slot, CreatureItem& ci)
 {
     ci = m_SellItems->at(slot);
 }
 
-void Creature::GetSellItemByItemId(uint32 itemid, CreatureItem& ci)
+void Creature::GetSellItemByItemId(uint32_t itemid, CreatureItem& ci)
 {
     for (std::vector<CreatureItem>::iterator itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
         {
@@ -2462,7 +2520,7 @@ void Creature::GetSellItemByItemId(uint32 itemid, CreatureItem& ci)
     ci.itemid = 0;
 }
 
-WDB::Structures::ItemExtendedCostEntry const* Creature::GetItemExtendedCostByItemId(uint32 itemid)
+WDB::Structures::ItemExtendedCostEntry const* Creature::GetItemExtendedCostByItemId(uint32_t itemid)
 {
     for (auto itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
     {
@@ -2488,7 +2546,7 @@ size_t Creature::GetSellItemCount()
     return m_SellItems->size();
 }
 
-void Creature::RemoveVendorItem(uint32 itemid)
+void Creature::RemoveVendorItem(uint32_t itemid)
 {
     for (auto itr = m_SellItems->begin(); itr != m_SellItems->end(); ++itr)
     {
@@ -2536,10 +2594,7 @@ void Creature::PrepareForRemove()
 
 bool Creature::IsExotic()
 {
-    if ((GetCreatureProperties()->typeFlags & CREATURE_FLAG1_EXOTIC) != 0)
-        return true;
-
-    return false;
+    return creature_properties->isExotic();
 }
 
 bool Creature::isCritter()
@@ -2550,7 +2605,7 @@ bool Creature::isCritter()
         return false;
 }
 
-void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
+void Creature::die(Unit* pAttacker, uint32_t /*damage*/, uint32_t spellid)
 {
 #ifdef FT_VEHICLES
     // Exit Vehicle
@@ -2558,7 +2613,7 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 #endif
 
     //general hook for die
-    if (!sHookInterface.OnPreUnitDie(pAttacker, this))
+    if (pAttacker != nullptr && !sHookInterface.OnPreUnitDie(pAttacker, this))
         return;
 
     // on die and an target die proc
@@ -2579,11 +2634,11 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
         if (spl != NULL)
         {
 
-            for (uint8 i = 0; i < 3; i++)
+            for (uint8_t i = 0; i < 3; i++)
             {
                 if (spl->getSpellInfo()->getEffect(i) == SPELL_EFFECT_PERSISTENT_AREA_AURA)
                 {
-                    uint64 guid = getChannelObjectGuid();
+                    uint64_t guid = getChannelObjectGuid();
                     DynamicObject* dObj = getWorldMap()->getDynamicObject(WoWGuid::getGuidLowPartFromUInt64(guid));
                     if (!dObj)
                         return;
@@ -2617,15 +2672,20 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 
     removeAllNonPersistentAuras();
 
-    if (pAttacker->IsInWorld() && pAttacker->isCreature() && dynamic_cast<Creature*>(pAttacker)->GetScript())
+    if (pAttacker != nullptr)
     {
-        dynamic_cast<Creature*>(pAttacker)->GetScript()->_internalOnTargetDied(this);
-        dynamic_cast<Creature*>(pAttacker)->GetScript()->OnTargetDied(this);
+        if (pAttacker->IsInWorld() && pAttacker->isCreature() && dynamic_cast<Creature*>(pAttacker)->GetScript())
+        {
+            dynamic_cast<Creature*>(pAttacker)->GetScript()->_internalOnTargetDied(this);
+            dynamic_cast<Creature*>(pAttacker)->GetScript()->OnTargetDied(this);
+        }
+
+        pAttacker->getAIInterface()->eventOnTargetDied(this);
+        pAttacker->smsg_AttackStop(this);
     }
-    pAttacker->getAIInterface()->eventOnTargetDied(this);
 
-    pAttacker->smsg_AttackStop(this);
-
+    // TODO: npc summons and pets should not unsummon on owner death
+    // correct behaviour needs more investigation
     getSummonInterface()->removeAllSummons();
 
     // Clear Threat
@@ -2635,7 +2695,7 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
     getCombatHandler().clearCombat();
 
     // Add Kills if Player is in Vehicle
-    if (pAttacker->isVehicle())
+    if (pAttacker != nullptr && pAttacker->isVehicle())
     {
         Unit* vehicle_owner = getWorldMap()->getUnit(pAttacker->getCharmedByGuid());
 
@@ -2653,11 +2713,11 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
         if (Unit* tagger = m_WorldMap->getUnit(getTaggerGuid()))
             looter = tagger->ToPlayer();
     }
-    else if (pAttacker->isPlayer())
+    else if (pAttacker != nullptr && pAttacker->isPlayer())
     {
         looter = pAttacker->ToPlayer();
     }
-    else if (pAttacker->isCreature())
+    else if (pAttacker != nullptr && pAttacker->isCreature())
     {
         looter = pAttacker->getPlayerOwner();
     }   
@@ -2761,12 +2821,12 @@ void Creature::die(Unit* pAttacker, uint32 /*damage*/, uint32 spellid)
 // 2. WorldPacket... support for MONSTER_SAY
 // 3. data resize, map with players (PlayerSession)
 // 4. Sending localizations if available... puh
-void Creature::SendScriptTextChatMessage(uint32 textid, Unit* target/* = target*/)
+void Creature::SendScriptTextChatMessage(uint32_t textid, Unit* target/* = target*/)
 {
     SendCreatureChatMessageInRange(this, textid, target);
 }
 
-void Creature::SendScriptTextChatMessageByIndex(uint32 textid, Unit* target/* = target*/)
+void Creature::SendScriptTextChatMessageByIndex(uint32_t textid, Unit* target/* = target*/)
 {
     auto text = sMySQLStore.getNpcScriptTextById(getEntry(), textid);
 
@@ -2776,7 +2836,7 @@ void Creature::SendScriptTextChatMessageByIndex(uint32 textid, Unit* target/* = 
         sLogger.failure("Creature::SendScriptTextChatMessageByIndex: Invalid textId");
 }
 
-void Creature::SendTimedScriptTextChatMessage(uint32 textid, uint32 delay, Unit* target/* = nullptr*/)
+void Creature::SendTimedScriptTextChatMessage(uint32_t textid, uint32_t delay, Unit* target/* = nullptr*/)
 {
     if (delay > 0)
     {
@@ -2787,14 +2847,19 @@ void Creature::SendTimedScriptTextChatMessage(uint32 textid, uint32 delay, Unit*
     SendCreatureChatMessageInRange(this, textid, target);
 }
 
-uint32 Creature::GetType()
+uint32_t Creature::GetType()
 {
     return m_Creature_type;
 }
 
-void Creature::SetType(uint32 t)
+void Creature::SetType(uint32_t t)
 {
     m_Creature_type = t;
+}
+
+void Creature::setRespawnTime(uint32_t respawn)
+{
+    m_respawnTime = respawn != 0 ? std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) + respawn : 0;
 }
 
 void Creature::buildPetSpellList(WorldPacket& data)
@@ -2853,7 +2918,7 @@ void Creature::InitSummon(Object* summoner)
     }
 }
 
-bool Creature::updateEntry(uint32 entry)
+bool Creature::updateEntry(uint32_t entry)
 {
     CreatureProperties const* cInfo = sMySQLStore.getCreatureProperties(entry);
     if (!cInfo)

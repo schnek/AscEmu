@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@
 #define DBCFILE_H
 
 #include <cassert>
+#include <memory>
 #include <string>
 
 class DBCFile
@@ -135,7 +136,7 @@ private:
     size_t recordCount;
     size_t fieldCount;
     size_t stringSize;
-    unsigned char *data;
+    std::unique_ptr<unsigned char[]> data;
     unsigned char *stringTable;
 };
 

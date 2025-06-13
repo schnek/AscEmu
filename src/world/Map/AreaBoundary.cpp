@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -86,17 +86,13 @@ bool ZRangeBoundary::isWithinBoundaryArea(LocationVector const* pos) const
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Union of 2 boundaries
-BoundaryUnionBoundary::BoundaryUnionBoundary(AreaBoundary const* b1, AreaBoundary const* b2, bool isInverted) :
-    AreaBoundary(isInverted), _b1(b1), _b2(b2)
+BoundaryUnionBoundary::BoundaryUnionBoundary(std::unique_ptr<AreaBoundary const> b1, std::unique_ptr<AreaBoundary const> b2, bool isInverted) :
+    AreaBoundary(isInverted), _b1(std::move(b1)), _b2(std::move(b2))
 {
     ASSERT(b1 && b2);
 }
 
-BoundaryUnionBoundary::~BoundaryUnionBoundary()
-{
-    delete _b1;
-    delete _b2;
-}
+BoundaryUnionBoundary::~BoundaryUnionBoundary() = default;
 
 bool BoundaryUnionBoundary::isWithinBoundaryArea(LocationVector const* pos) const
 {

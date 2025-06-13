@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -14,6 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/GameObjectAIScript.hpp"
 #include "Storage/MySQLDataStore.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Random.hpp"
 
 enum
 {
@@ -246,11 +247,10 @@ public:
                 if (itm == nullptr)
                     return;
 
-                auto result = pPlayer->getItemInterface()->SafeAddItem(itm, slotresult.ContainerSlot, slotresult.Slot);
+                const auto [result, returnedItem] = pPlayer->getItemInterface()->SafeAddItem(std::move(itm), slotresult.ContainerSlot, slotresult.Slot);
                 if (!result)
                 {
-                    DLLLogDetail("Error while adding item %u to player %s", itm->getEntry(), pPlayer->getName().c_str());
-                    itm->deleteMe();
+                    DLLLogDetail("Error while adding item %u to player %s", returnedItem->getEntry(), pPlayer->getName().c_str());
                 }
             }
             else

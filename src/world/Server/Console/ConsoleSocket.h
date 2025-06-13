@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -38,9 +38,9 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // handle console input
 private:
-    RemoteConsole* mRemoteConsole;
+    std::unique_ptr<RemoteConsole> mRemoteConsole;
 
-    char* mInputBuffer;
+    std::unique_ptr<char[]> mInputBuffer;
     bool isWebClient;
 
     uint32_t mInputBufferLength;

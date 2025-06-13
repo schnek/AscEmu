@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -72,13 +72,13 @@ bool WDT_file::prepareLoadedData()
     if (!FileLoader::prepareLoadedData())
         return false;
 
-    mphd = (wdt_MPHD *)((uint8*)version+version->size+8);
+    mphd = (wdt_MPHD *)((uint8_t*)version+version->size+8);
     if (!mphd->prepareLoadedData())
         return false;
-    main = (wdt_MAIN *)((uint8*)mphd + mphd->size+8);
+    main = (wdt_MAIN *)((uint8_t*)mphd + mphd->size+8);
     if (!main->prepareLoadedData())
         return false;
-    wmo = (wdt_MWMO *)((uint8*)main+ main->size+8);
+    wmo = (wdt_MWMO *)((uint8_t*)main+ main->size+8);
     if (!wmo->prepareLoadedData())
         return false;
     return true;

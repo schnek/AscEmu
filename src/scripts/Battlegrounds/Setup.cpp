@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -18,6 +18,7 @@
  */
 
 #include "Setup.h"
+
 #include "AlteracValley/AlteracValley.h"
 #include "ArathiBasin/ArathiBasin.h"
 #include "CircleOfBlood/CircleOfBlood.h"
@@ -33,7 +34,6 @@
 #include "WarsongGulch/WarsongGulch.h"
 #include "Server/Script/ScriptMgr.hpp"
 #include "Server/Script/ScriptSetup.hpp"
-#include "Common.hpp"
 
 extern "C" SCRIPT_DECL void _exp_set_serverstate_singleton(ServerState* state)
 {

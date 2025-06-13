@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -55,5 +55,5 @@ public:
     void pushUpdateData(ByteBuffer* data, uint32_t updateCount);
     void processPendingUpdates();
 
-    void queueDelayedPacket(WorldPacket* packet);
+    void queueDelayedPacket(std::unique_ptr<WorldPacket> packet);
 };

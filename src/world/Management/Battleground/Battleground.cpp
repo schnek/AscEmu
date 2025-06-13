@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -42,6 +42,7 @@
 #include "Server/Packets/SmsgBattlegroundPlayerJoined.h"
 #include "Server/Packets/SmsgMessageChat.h"
 #include "Storage/WorldStrings.h"
+#include <cstdarg>
 
 Battleground::Battleground(WorldMap* worldMap, uint32_t id, uint32_t levelGroup, uint32_t type) : m_mapMgr(worldMap), m_id(id), m_type(type), m_levelGroup(levelGroup)
 {
@@ -49,8 +50,7 @@ Battleground::Battleground(WorldMap* worldMap, uint32_t id, uint32_t levelGroup,
 
     for (auto& group : m_groups)
     {
-        group = std::make_shared<Group>(true);
-        sObjectMgr.addGroup(group);
+        group = sObjectMgr.createGroup();
         group->m_disbandOnNoMembers = false;
         group->ExpandToRaid();
     }
@@ -76,13 +76,10 @@ WorldMap* Battleground::getWorldMap()
 Battleground::~Battleground()
 {
     sEventMgr.RemoveEvents(this);
-    for (const auto& m_group : m_groups)
+    for (auto& m_group : m_groups)
     {
-        for (uint32_t j = 0; j < m_group->GetSubGroupCount(); ++j)
-        {
-            for (const auto itr : m_group->GetSubGroup(j)->getGroupMembers())
-                m_group->RemovePlayer(itr);
-        }
+        m_group->Disband();
+        m_group = nullptr;
     }
 
     m_resurrectMap.clear();
@@ -145,7 +142,7 @@ void Battleground::buildPvPUpdateDataPacket(WorldPacket* data)
         else
         {
             /* Grab some arena teams */
-            std::shared_ptr<ArenaTeam>* teams = dynamic_cast< Arena* >(this)->GetTeams();
+            auto** teams = dynamic_cast< Arena* >(this)->GetTeams();
 
             if (teams[0])
             {
@@ -330,6 +327,8 @@ void Battleground::portPlayer(Player* plr, bool skip_teleport)
 
     plr->setPendingBattleground(nullptr);
     plr->setBattleground(this);
+    plr->setLastBattlegroundPetId(0);
+    plr->setLastBattlegroundPetSpell(0);
 
     if (!plr->isPvpFlagSet())
         plr->setPvpFlag();
@@ -587,6 +586,8 @@ void Battleground::removePlayer(Player* plr, bool logout)
     // Clean-up
     plr->setBattleground(nullptr);
     plr->setFullHealthMana();
+    plr->setLastBattlegroundPetId(0);
+    plr->setLastBattlegroundPetSpell(0);
     m_players[plr->getBgTeam()].erase(plr);
     memset(&plr->m_bgScore, 0, sizeof(BGScore));
 
@@ -655,7 +656,7 @@ uint32_t Battleground::GetNameID()
     return 34;
 }
 
-int32 Battleground::event_GetInstanceID()
+int32_t Battleground::event_GetInstanceID()
 {
     return m_mapMgr->getInstanceId();
 }
@@ -795,12 +796,16 @@ Creature* Battleground::spawnSpiritGuide(float x, float y, float z, float o, uin
     pCreature->setMaxHealth(10000);
     pCreature->setMaxPower(POWER_TYPE_MANA, 4868);
     pCreature->setMaxPower(POWER_TYPE_FOCUS, 200);
+#if VERSION_STRING < Cata
     pCreature->setMaxPower(POWER_TYPE_HAPPINESS, 2000000);
+#endif
 
     pCreature->setHealth(100000);
     pCreature->setPower(POWER_TYPE_MANA, 4868);
     pCreature->setPower(POWER_TYPE_FOCUS, 200);
+#if VERSION_STRING < Cata
     pCreature->setPower(POWER_TYPE_HAPPINESS, 2000000);
+#endif
 
     pCreature->setLevel(60);
     pCreature->setFaction(84 - horde);
@@ -812,7 +817,8 @@ Creature* Battleground::spawnSpiritGuide(float x, float y, float z, float o, uin
 
     pCreature->setVirtualItemSlotId(MELEE, 22802);
 
-    pCreature->setUnitFlags(UNIT_FLAG_PLUS_MOB | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_IGNORE_PLAYER_NPC | UNIT_FLAG_PVP); // 4928
+    pCreature->setUnitFlags(UNIT_FLAG_PLUS_MOB | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_IGNORE_CREATURE_COMBAT); // 832
+    pCreature->setPvpFlag();
 
     pCreature->setBaseAttackTime(MELEE, 2000);
     pCreature->setBaseAttackTime(OFFHAND, 2000);
@@ -827,7 +833,9 @@ Creature* Battleground::spawnSpiritGuide(float x, float y, float z, float o, uin
 
     pCreature->setNpcFlags(UNIT_NPC_FLAG_SPIRITGUIDE);
     pCreature->setSheathType(SHEATH_STATE_MELEE);
-    pCreature->setPvpFlags(U_FIELD_BYTES_FLAG_AURAS);
+#if VERSION_STRING == TBC
+    pCreature->setPositiveAuraLimit(POS_AURA_LIMIT_CREATURE);
+#endif
 
     pCreature->setAItoUse(false);
 
@@ -926,6 +934,26 @@ void Battleground::eventResurrectPlayers()
                 plr->setPower(POWER_TYPE_MANA, plr->getMaxPower(POWER_TYPE_MANA));
                 plr->setPower(POWER_TYPE_ENERGY, plr->getMaxPower(POWER_TYPE_ENERGY));
                 plr->castSpell(plr, BattlegroundDef::REVIVE_PREPARATION, true);
+
+#if VERSION_STRING >= TBC
+                // Spawn last active pet
+                if (plr->getLastBattlegroundPetId() != 0)
+                {
+                    plr->spawnPet(plr->getLastBattlegroundPetId());
+                }
+                else if (plr->getLastBattlegroundPetSpell() != 0)
+                {
+                    // TODO: not correct, according to classic spell should not be casted
+                    // instead the pet should just spawn
+                    // Hackfixing for now
+                    plr->addUnitFlags(UNIT_FLAG_NO_REAGANT_COST);
+                    plr->castSpell(plr, plr->getLastBattlegroundPetSpell(), true);
+                    plr->removeUnitFlags(UNIT_FLAG_NO_REAGANT_COST);
+                }
+#endif
+
+                plr->setLastBattlegroundPetId(0);
+                plr->setLastBattlegroundPetSpell(0);
             }
         }
         i.second.clear();

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -19,6 +19,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "CreatureAIFunction.hpp"
 #include "AIUtils.hpp"
 #include "CreatureAISummonList.hpp"
+#include <memory>
 
 class Creature;
 struct FilterArgs;
@@ -37,13 +38,13 @@ public:
     virtual void OnSpellHitTarget(Object* /*target*/, SpellInfo const* /*info*/) {} // Triggers when a casted Spell Hits a Target
     virtual void OnTargetParried(Unit* /*_target*/) {}
     virtual void OnTargetDodged(Unit* /*_target*/) {}
-    virtual void OnTargetBlocked(Unit* /*_target*/, int32 /*_amount*/) {}
-    virtual void OnTargetCritHit(Unit* /*_target*/, int32 /*_amount*/) {}
+    virtual void OnTargetBlocked(Unit* /*_target*/, int32_t /*_amount*/) {}
+    virtual void OnTargetCritHit(Unit* /*_target*/, int32_t /*_amount*/) {}
     virtual void OnTargetDied(Unit* /*_target*/) {}
     virtual void OnParried(Unit* /*_target*/) {}
     virtual void OnDodged(Unit* /*_target*/) {}
-    virtual void OnBlocked(Unit* /*_target*/, int32 /*_amount*/) {}
-    virtual void OnCritHit(Unit* /*_target*/, int32 /*_amount*/) {}
+    virtual void OnBlocked(Unit* /*_target*/, int32_t /*_amount*/) {}
+    virtual void OnCritHit(Unit* /*_target*/, int32_t /*_amount*/) {}
     virtual void OnHit(Unit* /*_target*/, float /*_amount*/) {}
     virtual void OnDied(Unit* /*_killer*/) {}
     virtual void OnAssistTargetDied(Unit* /*_assistTarget*/) {}
@@ -118,9 +119,9 @@ public:
     Creature* getNearestCreature(uint32_t entry);
     Creature* getNearestCreature(float posX, float posY, float posZ, uint32_t entry);
 
-    void GetCreatureListWithEntryInGrid(std::list<Creature*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/);
+    void GetCreatureListWithEntryInGrid(std::list<Creature*>& container, uint32_t entry, float maxSearchRange /*= 250.0f*/);
     Creature* findNearestCreature(uint32_t entry, float maxSearchRange /*= 250.0f*/);
-    void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/);
+    void GetGameObjectListWithEntryInGrid(std::list<GameObject*>& container, uint32_t entry, float maxSearchRange /*= 250.0f*/);
     GameObject* findNearestGameObject(uint32_t entry, float maxSearchRange /*= 250.0f*/);
 
     float getRangeToObject(Object* object);
@@ -348,7 +349,7 @@ private:
     uint32_t mCustomAIUpdateDelayTimerId;
     uint32_t mCustomAIUpdateDelay;
 
-    SmallTimeTracker m_oldAIUpdate;
+    std::unique_ptr<Util::SmallTimeTracker> m_oldAIUpdate;
 
 public:
     //old stuff

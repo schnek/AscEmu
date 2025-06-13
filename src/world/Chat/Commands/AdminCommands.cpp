@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -27,7 +27,7 @@ bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_se
         return true;
     }
 
-    uint32_t spell_id = atol(args);
+    uint32_t spell_id = std::stoul(args);
     SpellInfo const* spell_entry = sSpellMgr.getSpellInfo(spell_id);
     if (!spell_entry)
     {

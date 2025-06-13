@@ -1,11 +1,10 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #pragma once
 
-#include "Utilities/Util.hpp"
 #include "InstanceDefines.hpp"
 #include "CommonTypes.hpp"
 
@@ -69,10 +68,6 @@ public:
 
 private:
     bool unloadIfEmpty();
-    void setToDelete(bool toDelete)
-    {
-        m_toDelete = toDelete;
-    }
   
     PlayerList m_playerList;
     GroupList m_groupList;
@@ -81,7 +76,6 @@ private:
     uint32_t m_mapid;
     InstanceDifficulty::Difficulties m_difficulty;
     bool m_canReset;
-    bool m_toDelete;
 
     std::mutex _playerListLock;
 };
@@ -128,7 +122,7 @@ public:
         bool operator==(InstResetEvent const& e) const { return e.instanceId == instanceId; }
     };
     typedef std::multimap<time_t, InstResetEvent> ResetTimeQueue;
-    typedef std::unordered_map<uint32_t, InstanceSaved*> InstanceSavedMap;
+    typedef std::unordered_map<uint32_t, std::unique_ptr<InstanceSaved>> InstanceSavedMap;
     typedef std::unordered_map<uint32_t, time_t> ResetTimeByMapDifficultyMap;
 
     // Loading
@@ -152,10 +146,7 @@ public:
     time_t getSubsequentResetTime(uint32_t mapid, InstanceDifficulty::Difficulties difficulty, time_t resetTime) const;
 
     // Use this on startup when initializing reset times
-    void initializeResetTimeFor(uint16_t mapid, InstanceDifficulty::Difficulties d, time_t t)
-    {
-        m_resetTimeByMapDifficulty[Util::MAKE_PAIR32(mapid, d)] = t;
-    }
+    void initializeResetTimeFor(uint16_t mapid, InstanceDifficulty::Difficulties d, time_t t);
 
     // Use this only when updating existing reset times
     void setResetTimeFor(uint16_t mapid, InstanceDifficulty::Difficulties d, time_t t)

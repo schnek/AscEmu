@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -25,11 +25,12 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/Definitions/SpellEffects.hpp"
 #include "Spell/SpellMgr.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Narrow.hpp"
 #include "Utilities/Strings.hpp"
 
 using namespace AscEmu::Packets;
 
-Item::Item()
+Item::Item() : m_loot(nullptr)
 {
     //////////////////////////////////////////////////////////////////////////
     m_objectType |= TYPE_ITEM;
@@ -62,29 +63,13 @@ Item::Item()
 
 Item::~Item()
 {
-    if (m_loot != nullptr)
-    {
-        delete m_loot;
-        m_loot = nullptr;
-    }
-
     sEventMgr.RemoveEvents(this);
 
-#if VERSION_STRING >= Cata
-    for (auto itr = m_enchantments.begin(); itr != m_enchantments.end(); ++itr)
-    {
-        // These are allocated with new
-        if (itr->second.Slot == REFORGE_ENCHANTMENT_SLOT || itr->second.Slot == TRANSMOGRIFY_ENCHANTMENT_SLOT)
-        {
-            delete itr->second.Enchantment;
-            itr->second.Enchantment = nullptr;
-        }
-    }
-#endif
     m_enchantments.clear();
 
     if (m_owner != nullptr)
     {
+        m_owner->getItemInterface()->RemoveRefundable(getGuid());
         m_owner->getItemInterface()->removeTemporaryEnchantedItem(this);
 #if VERSION_STRING >= WotLK
         m_owner->getItemInterface()->removeTradeableItem(this);
@@ -169,7 +154,7 @@ void Item::modStackCount(int32_t mod)
 }
 
 #ifdef AE_TBC
-void Item::setTextId(const uint32 textId)
+void Item::setTextId(const uint32_t textId)
 {
     write(itemData()->item_text_id, textId);
 }
@@ -240,6 +225,29 @@ void Item::setCreatePlayedTime(uint32_t time) { write(itemData()->create_played_
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// Override Object functions
+
+Unit* Item::getUnitOwner()
+{
+    return m_owner;
+}
+
+Unit const* Item::getUnitOwner() const
+{
+    return m_owner;
+}
+
+Player* Item::getPlayerOwner()
+{
+    return m_owner;
+}
+
+Player const* Item::getPlayerOwner() const
+{
+    return m_owner;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // m_enchantments
 EnchantmentInstance* Item::getEnchantment(EnchantmentSlot slot)
 {
@@ -281,16 +289,17 @@ bool Item::addEnchantment(uint32_t enchantmentId, EnchantmentSlot slot, uint32_t
 
     WDB::Structures::SpellItemEnchantmentEntry const* Enchantment = nullptr;
 #if VERSION_STRING >= Cata
+    std::unique_ptr<WDB::Structures::SpellItemEnchantmentEntry> custom_enchant = nullptr;
     switch (slot)
     {
 
         case TRANSMOGRIFY_ENCHANTMENT_SLOT:
         case REFORGE_ENCHANTMENT_SLOT:
         {
-            auto custom_enchant = new WDB::Structures::SpellItemEnchantmentEntry();
+            custom_enchant = std::make_unique<WDB::Structures::SpellItemEnchantmentEntry>();
             custom_enchant->Id = enchantmentId;
 
-            Enchantment = custom_enchant;
+            Enchantment = custom_enchant.get();
         } break;
 
         default:
@@ -310,13 +319,16 @@ bool Item::addEnchantment(uint32_t enchantmentId, EnchantmentSlot slot, uint32_t
     enchantInstance.BonusApplied = false;
     enchantInstance.Slot = slot;
     enchantInstance.Enchantment = Enchantment;
+#if VERSION_STRING >= Cata
+    enchantInstance.customEnchantmentHolder = std::move(custom_enchant);
+#endif
     enchantInstance.RemoveAtLogout = removedAtLogout;
     enchantInstance.RandomSuffix = randomSuffix;
 
     // Set enchantment to item's wowdata fields
     _setEnchantmentDataFields(slot, Enchantment->Id, duration, 0);
 
-    m_enchantments.insert(std::make_pair(slot, enchantInstance));
+    m_enchantments.try_emplace(slot, std::move(enchantInstance));
 
     if (m_owner == nullptr)
         return true;
@@ -358,16 +370,6 @@ void Item::removeEnchantment(EnchantmentSlot slot, bool timerExpired/* = false*/
         applyEnchantmentBonus(slot, false);
 
     _setEnchantmentDataFields(slot, 0, 0, 0);
-
-#if VERSION_STRING >= Cata
-    // These are allocated with new
-    if (slot == REFORGE_ENCHANTMENT_SLOT || slot == TRANSMOGRIFY_ENCHANTMENT_SLOT)
-    {
-        delete itr->second.Enchantment;
-        itr->second.Enchantment = nullptr;
-    }
-#endif
-
     m_enchantments.erase(itr);
 
     if (!timerExpired)
@@ -773,7 +775,7 @@ uint32_t Item::generateRandomSuffixFactor(ItemProperties const* m_itemProto)
         value = SuffixMods[m_itemProto->InventoryType];
 
     value = value * static_cast<double>(m_itemProto->ItemLevel) + 0.5;
-    return long2int32(value);
+    return Util::long2int32(value);
 }
 
 void Item::_setEnchantmentDataFields(EnchantmentSlot slot, uint32_t enchantmentId, uint32_t duration, uint32_t charges)
@@ -933,7 +935,7 @@ uint32_t Item::repairItemCost()
     }
 
     uint32_t dmodifier = durability_costs->modifier[m_itemProperties->Class == ITEM_CLASS_WEAPON ? m_itemProperties->SubClass : m_itemProperties->SubClass + 21];
-    uint32_t cost = long2int32((getMaxDurability() - getDurability()) * dmodifier * double(durability_quality->quality_modifier));
+    uint32_t cost = Util::long2int32((getMaxDurability() - getDurability()) * dmodifier * double(durability_quality->quality_modifier));
     return cost;
 }
 
@@ -1238,7 +1240,7 @@ uint8_t Item::getCharterTypeForEntry() const
 
 void Item::loadFromDB(Field* fields, Player* plr, bool light)
 {
-    uint32_t itemid = fields[2].GetUInt32();
+    uint32_t itemid = fields[2].asUint32();
 
     m_itemProperties = sMySQLStore.getItemProperties(itemid);
     if (!m_itemProperties)
@@ -1255,20 +1257,20 @@ void Item::loadFromDB(Field* fields, Player* plr, bool light)
     setEntry(itemid);
     m_owner = plr;
 
-    m_wrappedItemId = fields[3].GetUInt32();
-    setGiftCreatorGuid(fields[4].GetUInt32());
-    setCreatorGuid(fields[5].GetUInt32());
+    m_wrappedItemId = fields[3].asUint32();
+    setGiftCreatorGuid(fields[4].asUint32());
+    setCreatorGuid(fields[5].asUint32());
 
-    uint32_t count = fields[6].GetUInt32();
+    uint32_t count = fields[6].asUint32();
     if (count > m_itemProperties->MaxCount && (m_owner && !m_owner->m_cheats.hasItemStackCheat))
         count = m_itemProperties->MaxCount;
     setStackCount(count);
 
-    setChargesLeft(fields[7].GetUInt32());
+    setChargesLeft(fields[7].asUint32());
 
-    setFlags(fields[8].GetUInt32());
-    uint32_t randomProp = fields[9].GetUInt32();
-    const uint32_t randomSuffix = fields[10].GetUInt32();
+    setFlags(fields[8].asUint32());
+    uint32_t randomProp = fields[9].asUint32();
+    const uint32_t randomSuffix = fields[10].asUint32();
 
     setRandomPropertiesId(randomProp);
 
@@ -1279,16 +1281,16 @@ void Item::loadFromDB(Field* fields, Player* plr, bool light)
         setPropertySeed(0);
 
 #ifdef AE_TBC
-    setTextId(fields[11].GetUInt32());
+    setTextId(fields[11].asUint32());
 #endif
 
     setMaxDurability(m_itemProperties->MaxDurability);
-    setDurability(fields[12].GetUInt32());
+    setDurability(fields[12].asUint32());
 
     if (light)
         return;
 
-    std::string enchant_field = fields[15].GetString();
+    std::string enchant_field = fields[15].asCString();
     if (!enchant_field.empty())
     {
         std::vector<std::string> enchants = AscEmu::Util::Strings::split(enchant_field, ";");
@@ -1307,12 +1309,12 @@ void Item::loadFromDB(Field* fields, Player* plr, bool light)
         }
     }
 
-    m_expiresOnTime = fields[16].GetUInt32();
+    m_expiresOnTime = fields[16].asUint32();
 
     // Refund stuff
     std::pair<time_t, uint32_t> refundentry;
-    refundentry.first = fields[17].GetUInt32();
-    refundentry.second = fields[18].GetUInt32();
+    refundentry.first = fields[17].asUint32();
+    refundentry.second = fields[18].asUint32();
 
     if (refundentry.first != 0 && refundentry.second != 0 && getOwner() != nullptr)
     {
@@ -1321,7 +1323,7 @@ void Item::loadFromDB(Field* fields, Player* plr, bool light)
             m_owner->getItemInterface()->AddRefundable(this, refundentry.second, refundentry.first);
     }
 
-    m_text = fields[19].GetString();
+    m_text = fields[19].asCString();
 
     applyRandomProperties(false);
 
@@ -1448,14 +1450,6 @@ void Item::deleteFromDB()
     }
 
     CharacterDatabase.Execute("DELETE FROM playeritems WHERE guid = %u", getGuidLow());
-}
-
-void Item::deleteMe()
-{
-    if (this->m_owner != nullptr)
-        this->m_owner->getItemInterface()->RemoveRefundable(this->getGuid());
-
-    delete this;
 }
 
 const static uint16_t arm_skills[7] =

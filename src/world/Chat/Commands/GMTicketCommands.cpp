@@ -1,7 +1,9 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
+
+#include <sstream>
 
 #include "Chat/Channel.hpp"
 #include "Chat/ChannelMgr.hpp"
@@ -22,7 +24,7 @@ bool ChatHandler::HandleGMTicketListCommand(const char* /*args*/, WorldSession* 
 {
     Player* cplr = m_session->GetPlayer();
 
-    std::shared_ptr<Channel> chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
+    auto* chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
     if (!chn)
         return false;
 
@@ -60,7 +62,7 @@ bool ChatHandler::HandleGMTicketGetByIdCommand(const char* args, WorldSession* m
         return false;
 
     Player* cplr = m_session->GetPlayer();
-    std::shared_ptr<Channel> chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
+    auto* chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
     if (!chn)
         return false;
 
@@ -77,9 +79,9 @@ bool ChatHandler::HandleGMTicketGetByIdCommand(const char* args, WorldSession* m
         return true;
     }
 
-    char* msg = new char[ticket->message.size() + 1];
-    strcpy(msg, ticket->message.c_str());
-    char* start = msg, *end;
+    auto msg = std::make_unique<char[]>(ticket->message.size() + 1);
+    strcpy(msg.get(), ticket->message.c_str());
+    char* start = msg.get(), *end;
     bool firstLine = true;
     for (;;)
     {
@@ -103,7 +105,6 @@ bool ChatHandler::HandleGMTicketGetByIdCommand(const char* args, WorldSession* m
         ss << "GmTicket " << (firstLine ? "3" : "4") << "," << ticket->name << "," << start;
         chn->say(cplr, ss.str(), cplr, true);
     }
-    delete[] msg;
 
     return true;
 }
@@ -114,7 +115,7 @@ bool ChatHandler::HandleGMTicketRemoveByIdCommand(const char* args, WorldSession
         return false;
 
     Player* cplr = m_session->GetPlayer();
-    std::shared_ptr<Channel> chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
+    auto* chn = sChannelMgr.getChannel(worldConfig.getGmClientChannelName(), cplr);
     if (!chn)
         return false;
 
@@ -174,7 +175,7 @@ bool ChatHandler::HandleGMTicketListCommand(const char* args, WorldSession* m_se
         Player* plr = sObjectMgr.GetPlayer((uint32_t)(*itr)->playerGuid);
 
         Player* aplr = nullptr;
-        std::shared_ptr<CachedCharacterInfo> aplri = nullptr;
+        CachedCharacterInfo const* aplri = nullptr;
         if ((*itr)->assignedToPlayer != 0)
         {
             aplr = sObjectMgr.GetPlayer((uint32_t)(*itr)->assignedToPlayer);
@@ -217,9 +218,9 @@ bool ChatHandler::HandleGMTicketGetByIdCommand(const char* args, WorldSession* m
         return true;
     }
 
-    char* msg = new char[ticket->message.size() + 1];
-    strcpy(msg, ticket->message.c_str());
-    char* start = msg, *end;
+    auto msg = std::make_unique<char[]>(ticket->message.size() + 1);
+    strcpy(msg.get(), ticket->message.c_str());
+    char* start = msg.get(), *end;
     bool firstLine = true;
     for (;;)
     {
@@ -247,7 +248,6 @@ bool ChatHandler::HandleGMTicketGetByIdCommand(const char* args, WorldSession* m
         ss << ":" << start;
         chn->say(cplr, ss.str().c_str(), cplr, true);
     }
-    delete[] msg;
 
     return true;
 }
@@ -346,7 +346,7 @@ bool ChatHandler::HandleGMTicketAssignToCommand(const char* args, WorldSession* 
         return true;
     }
 
-    if (plr->getSession()->GetPermissionCount() == 0)
+    if (!plr->getSession()->HasGMPermissions())
     {
         chn->say(cplr, "GmTicket:0:Player is not a GM.", cplr, true);
         return true;

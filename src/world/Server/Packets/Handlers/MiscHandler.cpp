@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Management/WeatherMgr.hpp"
 #include "Management/ItemInterface.h"
 #include "Management/Loot/LootMgr.hpp"
-#include "Management/Loot/LootRoll.hpp"
+#include "Management/Loot/LootItem.hpp"
 #include "Macros/CorpseMacros.hpp"
 #include "Management/Battleground/Battleground.hpp"
 #include "Server/WorldSocket.h"
@@ -78,6 +78,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/InstanceScript.hpp"
 #include "Spell/Spell.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/Strings.hpp"
 
 using namespace AscEmu::Packets;
 
@@ -185,7 +187,7 @@ void WorldSession::handleWhoOpcode(WorldPacket& recvPacket)
             bool skip = true;
             for (uint32_t i = 0; i < srlPacket.name_count; ++i)
             {
-                if (!strnicmp(srlPacket.names[i].c_str(), player->getName().c_str(), srlPacket.names[i].length()))
+                if (AscEmu::Util::Strings::isEqual(srlPacket.names[i].c_str(), player->getName().c_str()))
                 {
                     skip = false;
                     break;
@@ -293,7 +295,7 @@ void WorldSession::handleLogoutRequestOpcode(WorldPacket& /*recvPacket*/)
         return;
     }
 
-    if (GetPermissionCount() == 0)
+    if (!hasPermissions())
     {
         if (_player->getCombatHandler().isInCombat() || _player->m_duelPlayer != nullptr)
         {
@@ -308,7 +310,7 @@ void WorldSession::handleLogoutRequestOpcode(WorldPacket& /*recvPacket*/)
         }
     }
 
-    if (GetPermissionCount() > 0)
+    if (hasPermissions())
     {
         if (_player->m_isResting || _player->isOnTaxi() || worldConfig.player.enableInstantLogoutForAccessType > 0)
         {
@@ -567,7 +569,7 @@ void WorldSession::handleSetActionBarTogglesOpcode(WorldPacket& recvPacket)
 
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SET_ACTIONBAR_TOGGLES: {} (actionbarId)", srlPacket.actionbarId);
 
-    _player->setActionBarId(srlPacket.actionbarId);
+    _player->setEnabledActionBars(srlPacket.actionbarId);
 }
 
 void WorldSession::handleLootRollOpcode(WorldPacket& recvPacket)
@@ -578,7 +580,7 @@ void WorldSession::handleLootRollOpcode(WorldPacket& recvPacket)
 
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_LOOT_ROLL: {} (objectGuid) {} (slot) {} (choice)", srlPacket.objectGuid.getGuidLow(), srlPacket.slot, srlPacket.choice);
 
-    LootRoll* lootRoll = nullptr;
+    LootItem* lootItem = nullptr;
 
     const HighGuid guidType = srlPacket.objectGuid.getHigh();
 
@@ -598,7 +600,7 @@ void WorldSession::handleLootRollOpcode(WorldPacket& recvPacket)
                 return;
 
             if (gameObject->getGoType() == GAMEOBJECT_TYPE_CHEST)
-                lootRoll = gameObjectLootable->loot.items[srlPacket.slot].roll;
+                lootItem = &gameObjectLootable->loot.items[srlPacket.slot];
         } break;
         case HighGuid::Unit:
         {
@@ -609,16 +611,16 @@ void WorldSession::handleLootRollOpcode(WorldPacket& recvPacket)
             if (srlPacket.slot >= creature->loot.items.size() || creature->loot.items.empty())
                 return;
 
-            lootRoll = creature->loot.items[srlPacket.slot].roll;
+            lootItem = &creature->loot.items[srlPacket.slot];
         } break;
         default:
             return;
     }
 
-    if (lootRoll == nullptr)
+    if (lootItem == nullptr)
         return;
 
-    lootRoll->playerRolled(_player, srlPacket.choice);
+    lootItem->playerRolled(_player, srlPacket.choice);
 }
 
 void WorldSession::handleOpenItemOpcode(WorldPacket& recvPacket)
@@ -696,8 +698,8 @@ void WorldSession::handleOpenItemOpcode(WorldPacket& recvPacket)
     _player->setLootGuid(item->getGuid());
     if (item->m_loot == nullptr)
     {
-        item->m_loot = new Loot; //eeeeeek
-        sLootMgr.fillItemLoot(_player, item->m_loot, item->getEntry(), 0);
+        item->m_loot = std::make_unique<Loot>();
+        sLootMgr.fillItemLoot(_player, item->m_loot.get(), item->getEntry(), 0);
     }
     _player->sendLoot(item->getGuid(), LOOT_DISENCHANTING, _player->GetMapId());
 }
@@ -840,19 +842,19 @@ void WorldSession::handleUpdateAccountData(WorldPacket& recvPacket)
     }
 
     size_t receivedPackedSize = recvPacket.size() - 8;
-    auto data = new char[srlPacket.uiDecompressedSize + 1];
-    memset(data, 0, srlPacket.uiDecompressedSize + 1);
+    auto data = std::make_unique<char[]>(srlPacket.uiDecompressedSize + 1);
+    memset(data.get(), 0, srlPacket.uiDecompressedSize + 1);
 
     if (srlPacket.uiDecompressedSize > receivedPackedSize)
     {
-        const int32_t ZlibResult = uncompress(reinterpret_cast<uint8_t*>(data), &uid, recvPacket.contents() + 8,
+        const int32_t ZlibResult = uncompress(reinterpret_cast<uint8_t*>(data.get()), &uid, recvPacket.contents() + 8,
             static_cast<uLong>(receivedPackedSize));
 
         switch (ZlibResult)
         {
             case Z_OK:                  //0 no error decompression is OK
             {
-                SetAccountData(srlPacket.uiId, data, false, srlPacket.uiDecompressedSize);
+                SetAccountData(srlPacket.uiId, std::move(data), false, srlPacket.uiDecompressedSize);
                 sLogger.debug("Successfully decompressed account data {} for {}, and updated storage array.",
                     srlPacket.uiId, _player->getName());
             } break;
@@ -863,13 +865,11 @@ void WorldSession::handleUpdateAccountData(WorldPacket& recvPacket)
             case Z_BUF_ERROR:           //-5
             case Z_VERSION_ERROR:       //-6
             {
-                delete[] data;
                 sLogger.failure("Decompression of account data {} for {} FAILED.", srlPacket.uiId, _player->getName());
             } break;
 
             default:
             {
-                delete[] data;
                 sLogger.failure("Decompression gave a unknown error: {:x}, of account data {} for {} FAILED.",
                     ZlibResult, srlPacket.uiId, _player->getName());
             } break;
@@ -877,8 +877,8 @@ void WorldSession::handleUpdateAccountData(WorldPacket& recvPacket)
     }
     else
     {
-        memcpy(data, recvPacket.contents() + 8, srlPacket.uiDecompressedSize);
-        SetAccountData(srlPacket.uiId, data, false, srlPacket.uiDecompressedSize);
+        memcpy(data.get(), recvPacket.contents() + 8, srlPacket.uiDecompressedSize);
+        SetAccountData(srlPacket.uiId, std::move(data), false, srlPacket.uiDecompressedSize);
     }
 
 #if VERSION_STRING > TBC
@@ -920,7 +920,7 @@ void WorldSession::handleRequestAccountData(WorldPacket& recvPacket)
             data.resize(accountDataEntry->sz + 800);
 
             uLongf destSize;
-            if (compress(data.contents() + (sizeof(uint32_t) * 2), &destSize, reinterpret_cast<const uint8_t*>(accountDataEntry->data), accountDataEntry->sz) != Z_OK)
+            if (compress(data.contents() + (sizeof(uint32_t) * 2), &destSize, reinterpret_cast<const uint8_t*>(accountDataEntry->data.get()), accountDataEntry->sz) != Z_OK)
             {
                 sLogger.debug("CMSG_REQUEST_ACCOUNT_DATA: Error while compressing data");
                 return;
@@ -930,7 +930,7 @@ void WorldSession::handleRequestAccountData(WorldPacket& recvPacket)
         }
         else
         {
-            data.append(accountDataEntry->data, accountDataEntry->sz);
+            data.append(accountDataEntry->data.get(), accountDataEntry->sz);
         }
     }
 
@@ -950,7 +950,7 @@ void WorldSession::handleBugOpcode(WorldPacket& recv_data)
         sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_BUG [Suggestion]");
 
     uint64_t accountId = GetAccountId();
-    uint32_t timeStamp = uint32(UNIXTIME);
+    uint32_t timeStamp = uint32_t(UNIXTIME);
     uint32_t reportId = sObjectMgr.generateReportId();
 
     std::stringstream ss;
@@ -1001,9 +1001,9 @@ void WorldSession::handleBugOpcode(WorldPacket& recv_data)
 }
 #endif
 
-#if VERSION_STRING >= Cata
 void WorldSession::handleSuggestionOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     uint8_t unk1;
     uint8_t unk2;
 
@@ -1034,28 +1034,28 @@ void WorldSession::handleSuggestionOpcode(WorldPacket& recvPacket)
     ss << CharacterDatabase.EscapeString(suggestionMessage) << "')";
 
     CharacterDatabase.ExecuteNA(ss.str().c_str());
-}
 #endif
+}
 
-#if VERSION_STRING >= Cata
 void WorldSession::handleReturnToGraveyardOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     if (_player->isAlive())
         return;
 
     _player->repopAtGraveyard(_player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId());
-}
 #endif
+}
 
-#if VERSION_STRING >= Cata
 void WorldSession::handleLogDisconnectOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     uint32_t disconnectReason;
     recvPacket >> disconnectReason; // 13 - closed window
 
     sLogger.debug("Player {} disconnected on {} - Reason {}", _player->getName(), Util::GetCurrentDateTimeString(), disconnectReason);
-}
 #endif
+}
 
 void WorldSession::handleCompleteCinematic(WorldPacket& /*recvPacket*/)
 {
@@ -1173,32 +1173,39 @@ void WorldSession::handleCorpseReclaimOpcode(WorldPacket& recvPacket)
     _player->setHealth(_player->getMaxHealth() / 2);
 }
 
-#if VERSION_STRING >= Cata
+
 void WorldSession::handleLoadScreenOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     uint32_t mapId;
 
     recvPacket >> mapId;
     recvPacket.readBit();
+#endif
 }
 
 void WorldSession::handleUITimeRequestOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     WorldPacket data(SMSG_UI_TIME, 4);
     data << uint32_t(time(nullptr));
     SendPacket(&data);
+#endif
 }
 
 void WorldSession::handleTimeSyncRespOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     uint32_t counter;
     uint32_t clientTicks;
     recvPacket >> counter;
     recvPacket >> clientTicks;
+#endif
 }
 
 void WorldSession::handleObjectUpdateFailedOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     ObjectGuid guid;
 
 #if VERSION_STRING == Cata
@@ -1251,15 +1258,17 @@ void WorldSession::handleObjectUpdateFailedOpcode(WorldPacket& recvPacket)
     }
 
     //_player->updateVisibility();
+#endif
 }
 
-#if VERSION_STRING >= Cata
+
 
 #define DB2_REPLY_SPARSE 2442913102
 #define DB2_REPLY_ITEM   1344507586
 
 void WorldSession::sendItemDb2Reply(uint32_t entry)
 {
+#if VERSION_STRING >= Cata
 #if VERSION_STRING < Mop
     WorldPacket data(SMSG_DB_REPLY, 44);
     ItemProperties const* proto = sMySQLStore.getItemProperties(entry);
@@ -1291,10 +1300,12 @@ void WorldSession::sendItemDb2Reply(uint32_t entry)
 
     SendPacket(&data);
 #endif
+#endif
 }
 
 void WorldSession::sendItemSparseDb2Reply(uint32_t entry)
 {
+#if VERSION_STRING >= Cata
 #if VERSION_STRING < Mop
     WorldPacket data(SMSG_DB_REPLY, 526);
     ItemProperties const* proto = sMySQLStore.getItemProperties(entry);
@@ -1425,19 +1436,19 @@ void WorldSession::sendItemSparseDb2Reply(uint32_t entry)
 
     SendPacket(&data);
 #endif
-}
-
 #endif
+}
 
 void WorldSession::handleRequestHotfix(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
 #if VERSION_STRING == Cata
     uint32_t type;
     recvPacket >> type;
 
     uint32_t count = recvPacket.readBits(23);
 
-    ObjectGuid* guids = new ObjectGuid[count];
+    auto guids = std::make_unique<ObjectGuid[]>(count);
     for (uint32_t i = 0; i < count; ++i)
     {
         guids[i][0] = recvPacket.readBit();
@@ -1486,7 +1497,7 @@ void WorldSession::handleRequestHotfix(WorldPacket& recvPacket)
 
     uint32_t count = recvPacket.readBits(21);
 
-    ObjectGuid* guids = new ObjectGuid[count];
+    auto guids = std::make_unique<ObjectGuid[]>(count);
     for (uint32_t i = 0; i < count; ++i)
     {
         guids[i][6] = recvPacket.readBit();
@@ -1535,14 +1546,15 @@ void WorldSession::handleRequestHotfix(WorldPacket& recvPacket)
         SendPacket(&data);
     }
 #endif
-    delete[] guids;
+#endif
 }
 
 void WorldSession::handleRequestCemeteryListOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REQUEST_CEMETERY_LIST");
 
-    QueryResult* result = WorldDatabase.Query("SELECT id FROM graveyards WHERE faction = %u OR faction = 3;", _player->getTeam());
+    auto result = WorldDatabase.Query("SELECT id FROM graveyards WHERE faction = %u OR faction = 3;", _player->getTeam());
     if (result)
     {
         WorldPacket data(SMSG_REQUEST_CEMETERY_LIST_RESPONSE, 8 * result->GetRowCount());
@@ -1554,18 +1566,19 @@ void WorldSession::handleRequestCemeteryListOpcode(WorldPacket& /*recvPacket*/)
         do
         {
             Field* field = result->Fetch();
-            data << uint32_t(field[0].GetUInt32());
+            data << uint32_t(field[0].asUint32());
         } while (result->NextRow());
-        delete result;
 
         SendPacket(&data);
     }
-}
 #endif
+}
 
-#if VERSION_STRING > TBC
+
+
 void WorldSession::handleRemoveGlyph(WorldPacket& recvPacket)
 {
+#if VERSION_STRING > TBC
     CmsgRemoveGlyph srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
@@ -1585,11 +1598,10 @@ void WorldSession::handleRemoveGlyph(WorldPacket& recvPacket)
     _player->removeAllAurasById(glyphPropertiesEntry->SpellID);
     _player->m_specs[_player->m_talentActiveSpec].setGlyph(0, srlPacket.glyphNumber);
     _player->smsg_TalentsInfo(false);
-}
 #endif
+}
 
 #if VERSION_STRING > TBC
-
 namespace BarberShopResult
 {
     enum
@@ -1598,9 +1610,11 @@ namespace BarberShopResult
         NoMoney = 1
     };
 }
+#endif
 
 void WorldSession::handleBarberShopResult(WorldPacket& recvPacket)
 {
+#if VERSION_STRING > TBC
     // todo: Here was SMSG_BARBER_SHOP:RESULT... maybe itr is MSG or it was just wrong. Check it!
     CmsgAlterAppearance srlPacket;
     if (!srlPacket.deserialise(recvPacket))
@@ -1667,8 +1681,8 @@ void WorldSession::handleBarberShopResult(WorldPacket& recvPacket)
     _player->setStandState(STANDSTATE_STAND);
     _player->updateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_VISIT_BARBER_SHOP, 1, 0, 0);
     _player->updateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_GOLD_SPENT_AT_BARBER, cost, 0, 0);
-}
 #endif
+}
 
 void WorldSession::handleRepopRequestOpcode(WorldPacket& /*recvPacket*/)
 {
@@ -1707,53 +1721,48 @@ void WorldSession::handleWhoIsOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    QueryResult* resultAcctId = CharacterDatabase.Query("SELECT acct FROM characters WHERE name = '%s'", srlPacket.characterName.c_str());
+    auto resultAcctId = CharacterDatabase.Query("SELECT acct FROM characters WHERE name = '%s'", srlPacket.characterName.c_str());
     if (!resultAcctId)
     {
         SendNotification("%s does not exit!", srlPacket.characterName.c_str());
-        delete resultAcctId;
         return;
     }
 
     Field* fields_acctID = resultAcctId->Fetch();
-    const uint32_t accId = fields_acctID[0].GetUInt32();
-    delete resultAcctId;
+    const uint32_t accId = fields_acctID[0].asUint32();
 
     //todo: this will not work! no table accounts in character_db!!!
-    QueryResult* accountInfoResult = CharacterDatabase.Query("SELECT acct, login, gm, email, lastip, muted FROM accounts WHERE acct = %u", accId);
+    auto accountInfoResult = CharacterDatabase.Query("SELECT acct, login, gm, email, lastip, muted FROM accounts WHERE acct = %u", accId);
     if (!accountInfoResult)
     {
         SendNotification("Account information for %s not found!", srlPacket.characterName.c_str());
-        delete accountInfoResult;
         return;
     }
 
     Field* fields = accountInfoResult->Fetch();
-    std::string acctID = fields[0].GetString();
+    std::string acctID = fields[0].asCString();
     if (acctID.empty())
         acctID = "Unknown";
 
-    std::string acctName = fields[1].GetString();
+    std::string acctName = fields[1].asCString();
     if (acctName.empty())
         acctName = "Unknown";
 
-    std::string acctPerms = fields[2].GetString();
+    std::string acctPerms = fields[2].asCString();
     if (acctPerms.empty())
         acctPerms = "Unknown";
 
-    std::string acctEmail = fields[3].GetString();
+    std::string acctEmail = fields[3].asCString();
     if (acctEmail.empty())
         acctEmail = "Unknown";
 
-    std::string acctIP = fields[4].GetString();
+    std::string acctIP = fields[4].asCString();
     if (acctIP.empty())
         acctIP = "Unknown";
 
-    std::string acctMuted = fields[5].GetString();
+    std::string acctMuted = fields[5].asCString();
     if (acctMuted.empty())
         acctMuted = "Unknown";
-
-    delete accountInfoResult;
 
     std::string msg = srlPacket.characterName + "'s " + "account information: acctID: " + acctID + ", Name: "
     + acctName + ", Permissions: " + acctPerms + ", E-Mail: " + acctEmail + ", lastIP: " + acctIP + ", Muted: " + acctMuted;
@@ -2023,7 +2032,7 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
     {
         data << guild->getGUID();
         data << uint32_t(guild->getLevel());
-        data << uint64(guild->getExperience());
+        data << uint64_t(guild->getExperience());
         data << uint32_t(guild->getMembersCount());
     }
 #endif
@@ -2032,9 +2041,10 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
 #endif
 }
 
-#if VERSION_STRING >= Cata
+
 void WorldSession::readAddonInfoPacket(ByteBuffer &recvPacket)
 {
+#if VERSION_STRING >= Cata
     if (recvPacket.rpos() + 4 > recvPacket.size())
         return;
 
@@ -2109,10 +2119,13 @@ void WorldSession::readAddonInfoPacket(ByteBuffer &recvPacket)
     {
         sLogger.failure("Decompression of addon section of CMSG_AUTH_SESSION failed.");
     }
+#endif
+
 }
 
 void WorldSession::sendAddonInfo()
 {
+#if VERSION_STRING >= Cata
 #if VERSION_STRING < Mop
     WorldPacket data(SMSG_ADDON_INFO, 4);
     for (auto itr : m_addonList)
@@ -2206,10 +2219,12 @@ void WorldSession::sendAddonInfo()
 
     SendPacket(&data);
 #endif
+#endif
 }
 
 bool WorldSession::isAddonRegistered(const std::string& addon_name) const
 {
+#if VERSION_STRING >= Cata
     if (!isAddonMessageFiltered)
         return true;
 
@@ -2218,17 +2233,23 @@ bool WorldSession::isAddonRegistered(const std::string& addon_name) const
 
     auto itr = std::find(mRegisteredAddonPrefixesVector.begin(), mRegisteredAddonPrefixesVector.end(), addon_name);
     return itr != mRegisteredAddonPrefixesVector.end();
+#else
+    return false;
+#endif
 }
 
 void WorldSession::handleUnregisterAddonPrefixesOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_UNREGISTER_ALL_ADDON_PREFIXES");
 
     mRegisteredAddonPrefixesVector.clear();
+#endif
 }
 
 void WorldSession::handleAddonRegisteredPrefixesOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     uint32_t addonCount = recvPacket.readBits(25);
 
     if (addonCount > 64)
@@ -2252,10 +2273,12 @@ void WorldSession::handleAddonRegisteredPrefixesOpcode(WorldPacket& recvPacket)
     }
 
     isAddonMessageFiltered = true;
+#endif
 }
 
 void WorldSession::handleReportOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REPORT");
 
     uint8_t spam_type;                                      // 0 - mail, 1 - chat
@@ -2299,10 +2322,12 @@ void WorldSession::handleReportOpcode(WorldPacket& recvPacket)
     data << uint8_t(0);
 
     SendPacket(&data);
+#endif
 }
 
 void WorldSession::handleReportPlayerOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REPORT_PLAYER {}", static_cast<uint32_t>(recvPacket.size()));
 
     uint8_t unk3 = 0;                                       // type
@@ -2351,9 +2376,8 @@ void WorldSession::handleReportPlayerOpcode(WorldPacket& recvPacket)
             sLogger.debug("type is {}", unk3);
             break;
     }
-}
-
 #endif
+}
 
 void WorldSession::HandleMirrorImageOpcode(WorldPacket& recv_data)
 {
@@ -2452,16 +2476,16 @@ void WorldSession::HandleMirrorImageOpcode(WorldPacket& recv_data)
     sLogger.debug("Sent SMSG_MIRRORIMAGE_DATA");
 }
 
-#if VERSION_STRING > TBC
-void WorldSession::sendClientCacheVersion(uint32 version)
+void WorldSession::sendClientCacheVersion(uint32_t version)
 {
+#if VERSION_STRING > TBC
     WorldPacket data(SMSG_CLIENTCACHE_VERSION, 4);
     data << uint32_t(version);
     SendPacket(&data);
-}
 #endif
+}
 
-void WorldSession::sendAccountDataTimes(uint32 mask)
+void WorldSession::sendAccountDataTimes(uint32_t mask)
 {
     SendPacket(SmsgAccountDataTimes(static_cast<uint32_t>(UNIXTIME), 1, mask, NUM_ACCOUNT_DATA_TYPES).serialise().get());
 }

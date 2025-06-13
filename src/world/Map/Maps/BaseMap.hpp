@@ -1,13 +1,15 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #pragma once
 
 #include "Map/Cells/TerrainMgr.hpp"
-#include <vector>
+#include <array>
+#include <memory>
 #include <string>
+#include <vector>
 
 namespace WDB::Structures
 {
@@ -77,5 +79,5 @@ private:
    
     std::string name;
 
-    CellSpawns** spawns[Map::Cell::_sizeX];
+    std::array<std::unique_ptr<std::array<std::unique_ptr<CellSpawns>, Map::Cell::_sizeY>>, Map::Cell::_sizeX> spawns = { nullptr };
 };

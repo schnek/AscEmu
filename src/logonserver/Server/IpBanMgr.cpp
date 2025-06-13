@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -9,6 +9,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Database/Database.h>
 #include "Server/Master.hpp"
 #include <Logging/Log.hpp>
+
+#include "Utilities/Util.hpp"
 
 IpBanMgr& IpBanMgr::getInstance()
 {
@@ -30,13 +32,13 @@ void IpBanMgr::reload()
     std::lock_guard lock(ipBanMutex);
     _ipBanList.clear();
 
-    QueryResult* result = sLogonSQL->Query("SELECT ip, expire FROM ipbans");
+    auto result = sLogonSQL->Query("SELECT ip, expire FROM ipbans");
     if (result)
     {
         do
         {
-            std::string ipString = result->Fetch()[0].GetString();
-            const uint32_t expireTime = result->Fetch()[1].GetUInt32();
+            std::string ipString = result->Fetch()[0].asCString();
+            const uint32_t expireTime = result->Fetch()[1].asUint32();
 
             std::string smask = "32";
             
@@ -47,7 +49,7 @@ void IpBanMgr::reload()
             else
                 smask = ipString.substr(i + 1);
 
-            const unsigned int ipraw = MakeIP(stmp.c_str());
+            const unsigned int ipraw = Util::makeIP(stmp.c_str());
             const unsigned int ipmask = atoi(smask.c_str());
             if (ipraw == 0 || ipmask == 0)
             {
@@ -63,7 +65,6 @@ void IpBanMgr::reload()
             _ipBanList.push_back(ipBan);
 
         } while (result->NextRow());
-        delete result;
     }
 }
 
@@ -78,7 +79,7 @@ bool IpBanMgr::add(std::string ip, uint32_t duration)
     std::string stmp = ipString.substr(0, i);
     std::string smask = ipString.substr(i + 1);
 
-    const unsigned int ipraw = MakeIP(stmp.c_str());
+    const unsigned int ipraw = Util::makeIP(stmp.c_str());
     const unsigned int ipmask = atoi(smask.c_str());
     if (ipraw == 0 || ipmask == 0)
         return false;
@@ -123,7 +124,7 @@ IpBanStatus IpBanMgr::getBanStatus(in_addr ip_address)
         const auto bannedIp = itr2;
         ++itr2;
 
-        if (ParseCIDRBan(ip_address.s_addr, bannedIp->Mask, bannedIp->Bytes))
+        if (Util::parseCIDRBan(ip_address.s_addr, bannedIp->Mask, bannedIp->Bytes))
         {
             if (bannedIp->Expire == 0)
                 return BAN_STATUS_PERMANENT_BAN;

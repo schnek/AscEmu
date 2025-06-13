@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <zlib.h>
 
 #include "Server/LogonCommClient/LogonCommHandler.h"
-#include "Cryptography/MD5.h"
+#include "Cryptography/MD5.hpp"
 #include "Database/Field.hpp"
 #include "Database/Database.h"
 #include "Logging/Logger.hpp"
@@ -33,11 +33,6 @@ void AddonMgr::initialize()
 #if VERSION_STRING < Cata
 void AddonMgr::finalize()
 {
-    KnownAddonsItr itr;
-    for (itr = mKnownAddons.begin(); itr != mKnownAddons.end(); ++itr)
-    {
-        delete itr->second;
-    }
     mKnownAddons.clear();
 }
 
@@ -60,7 +55,7 @@ bool AddonMgr::IsAddonBanned(std::string name, uint64_t crc)
     else
     {
         // New addon. It'll be saved to db at server shutdown.
-        AddonEntry* ent = new AddonEntry;
+        auto ent = std::make_unique<AddonEntry>();
         ent->name = name;
         ent->crc = crc;
         ent->banned = false;    // by default.. we can change this I guess..
@@ -69,7 +64,7 @@ bool AddonMgr::IsAddonBanned(std::string name, uint64_t crc)
 
         sLogger.debug("Discovered new addon {} sent by client.", name);
 
-        mKnownAddons[ent->name] = ent;
+        mKnownAddons.try_emplace(ent->name, std::move(ent));
     }
 
     return false;
@@ -89,7 +84,7 @@ bool AddonMgr::ShouldShowInList(std::string name)
     else
     {
         // New addon. It'll be saved to db at server shutdown.
-        AddonEntry* ent = new AddonEntry;
+        auto ent = std::make_unique<AddonEntry>();
         ent->name = name;
         ent->crc = 0;
         ent->banned = false;    // by default.. we can change this I guess..
@@ -98,12 +93,12 @@ bool AddonMgr::ShouldShowInList(std::string name)
 
         sLogger.debug("Discovered new addon {} sent by client.", name);
 
-        mKnownAddons[ent->name] = ent;
+        mKnownAddons.try_emplace(ent->name, std::move(ent));
     }
     return true;
 }
 
-void AddonMgr::SendAddonInfoPacket(std::shared_ptr<WorldPacket> source, uint32_t /*pos*/, WorldSession* m_session)
+void AddonMgr::SendAddonInfoPacket(WorldPacket* source, uint32_t /*pos*/, WorldSession* m_session)
 {
     WorldPacket returnpacket;
     returnpacket.Initialize(SMSG_ADDON_INFO);    // SMSG_ADDON_INFO
@@ -260,7 +255,7 @@ void AddonMgr::LoadFromDB()
 {
     const char* loadClientAddons = "SELECT id, name, crc, banned, showinlist FROM clientaddons";
     bool success = false;
-    QueryResult* result = CharacterDatabase.Query(&success, loadClientAddons);
+    auto result = CharacterDatabase.Query(&success, loadClientAddons);
     if (!success)
     {
         sLogger.failure("Query failed: {}", loadClientAddons);
@@ -273,28 +268,25 @@ void AddonMgr::LoadFromDB()
     }
 
     Field* field;
-    AddonEntry* ent;
 
     do
     {
         field = result->Fetch();
-        ent = new AddonEntry;
+        auto ent = std::make_unique<AddonEntry>();
 
-        ent->name = field[1].GetString();
-        ent->crc = field[2].GetUInt64();
-        ent->banned = (field[3].GetUInt32() > 0 ? true : false);
+        ent->name = field[1].asCString();
+        ent->crc = field[2].asUint64();
+        ent->banned = (field[3].asUint32() > 0 ? true : false);
         ent->isNew = false;
 
         // To avoid crashes for stilly nubs who don't update table :P
         if (result->GetFieldCount() == 5)
-            ent->showinlist = (field[4].GetUInt32() > 0 ? true : false);
+            ent->showinlist = (field[4].asUint32() > 0 ? true : false);
 
-        mKnownAddons[ent->name] = ent;
+        mKnownAddons.try_emplace(ent->name, std::move(ent));
 
     }
     while(result->NextRow());
-
-    delete result;
 }
 
 void AddonMgr::SaveToDB()
@@ -327,7 +319,7 @@ void AddonMgr::LoadFromDB()
 {
     auto startTime = Util::TimeNow();
 
-    QueryResult* clientAddonsResult = CharacterDatabase.Query("SELECT name, crc FROM clientaddons");
+    auto clientAddonsResult = CharacterDatabase.Query("SELECT name, crc FROM clientaddons");
     if (clientAddonsResult)
     {
         uint32_t knownAddonsCount = 0;
@@ -336,15 +328,13 @@ void AddonMgr::LoadFromDB()
         {
             Field* fields = clientAddonsResult->Fetch();
 
-            std::string name = fields[0].GetString();
-            uint32_t crc = fields[1].GetUInt32();
+            std::string name = fields[0].asCString();
+            uint32_t crc = fields[1].asUint32();
 
             mKnownAddons.emplace_back(SavedAddon(name, crc));
 
             ++knownAddonsCount;
         } while (clientAddonsResult->NextRow());
-
-        delete clientAddonsResult;
 
         sLogger.debug("Loaded {} known addons from table `clientaddons` in {} ms", knownAddonsCount, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)) );
     }
@@ -366,11 +356,11 @@ void AddonMgr::LoadFromDB()
             Field* fields = clientAddonsResult->Fetch();
 
             BannedAddon addon;
-            addon.id = fields[0].GetUInt32() + dbcMaxBannedAddon;
-            addon.timestamp = uint32_t(fields[2].GetUInt64());
+            addon.id = fields[0].asUint32() + dbcMaxBannedAddon;
+            addon.timestamp = uint32_t(fields[2].asUint64());
 
-            std::string name = fields[1].GetString();
-            std::string version = fields[3].GetString();
+            std::string name = fields[1].asCString();
+            std::string version = fields[3].asCString();
 
             MD5(reinterpret_cast<uint8_t const*>(name.c_str()), name.length(), addon.nameMD5);//
             MD5(reinterpret_cast<uint8_t const*>(version.c_str()), version.length(), addon.versionMD5);//
@@ -379,8 +369,6 @@ void AddonMgr::LoadFromDB()
 
             ++bannedAddonsCount;
         } while (clientAddonsResult->NextRow());
-
-        delete clientAddonsResult;
 
         sLogger.debug("Loaded {} banned addons from table `clientaddons` in {} ms", bannedAddonsCount, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
     }

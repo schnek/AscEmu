@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -68,7 +68,7 @@ void SpellCastTargets::read(WorldPacket& data, uint64_t caster)
         return;
     }
 
-    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_CASTER))
+    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OPEN_LOCK))
     {
         WoWGuid guid;
         data >> guid;
@@ -135,7 +135,7 @@ void SpellCastTargets::write(WorldPacket& data) const
 {
     data << m_targetMask;
 
-    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OBJECT_CASTER))
+    if (m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_OPEN_LOCK))
     {
         FastGUIDPack(data, m_gameObjectTargetGuid);
     }

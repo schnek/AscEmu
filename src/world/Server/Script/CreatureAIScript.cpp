@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -18,22 +18,26 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/Definitions/AuraInterruptFlags.hpp"
 #include "Storage/MySQLDataStore.hpp"
 #include "Objects/Units/Creatures/Pet.h"
+#include "Objects/Units/Creatures/Summons/SummonHandler.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/Opcodes.hpp"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellAura.hpp"
 #include "Spell/SpellInfo.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/TimeTracker.hpp"
 
-CreatureAIScript::CreatureAIScript(Creature* creature) : mScriptPhase(0), summons(creature), mCreatureTimerCount(0), mAIUpdateFrequency(defaultUpdateFrequency),
-                                                         isIdleEmoteEnabled(false), idleEmoteTimerId(0), idleEmoteTimeMin(0), idleEmoteTimeMax(0), _creature(creature), linkedCreatureAI(nullptr), mCreatureAIScheduler(std::make_shared<CreatureAIFunctionScheduler>(this))
+CreatureAIScript::CreatureAIScript(Creature* creature) :
+mScriptPhase(0), summons(creature), mCreatureTimerCount(0), mAIUpdateFrequency(defaultUpdateFrequency), isIdleEmoteEnabled(false), idleEmoteTimerId(0),
+idleEmoteTimeMin(0), idleEmoteTimeMax(0), _creature(creature), linkedCreatureAI(nullptr),
+mCreatureAIScheduler(std::make_shared<CreatureAIFunctionScheduler>(this)),
+m_oldAIUpdate(std::make_unique<Util::SmallTimeTracker>(1000))
 {
     mCreatureTimerIds.clear();
     mCreatureTimer.clear();
 
     mCustomAIUpdateDelayTimerId = 0;
     mCustomAIUpdateDelay = 0;
-
-    m_oldAIUpdate.resetInterval(1000);
 }
 
 CreatureAIScript::~CreatureAIScript()
@@ -147,13 +151,13 @@ void CreatureAIScript::_internalAIUpdate(unsigned long time_passed)
     }
     else
     {
-        m_oldAIUpdate.updateTimer(time_passed);
+        m_oldAIUpdate->updateTimer(time_passed);
 
         // old Timer AIUpdate
-        if (m_oldAIUpdate.isTimePassed())
+        if (m_oldAIUpdate->isTimePassed())
         {
             AIUpdate();
-            m_oldAIUpdate.resetInterval(1000);
+            m_oldAIUpdate->resetInterval(1000);
         }
     }
 }
@@ -196,7 +200,7 @@ Creature* CreatureAIScript::getNearestCreature(float posX, float posY, float pos
     return _creature->getWorldMap()->getInterface()->getCreatureNearestCoords(posX, posY, posZ, entry);
 }
 
-void CreatureAIScript::GetCreatureListWithEntryInGrid(std::list<Creature*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/)
+void CreatureAIScript::GetCreatureListWithEntryInGrid(std::list<Creature*>& container, uint32_t entry, float maxSearchRange /*= 250.0f*/)
 {
     if (_creature->getWorldMap()->getInterface() == nullptr)
         return;
@@ -212,7 +216,7 @@ Creature* CreatureAIScript::findNearestCreature(uint32_t entry, float maxSearchR
     return _creature->getWorldMap()->getInterface()->findNearestCreature(_creature, entry, maxSearchRange);
 }
 
-void CreatureAIScript::GetGameObjectListWithEntryInGrid(std::list<GameObject*>& container, uint32 entry, float maxSearchRange /*= 250.0f*/)
+void CreatureAIScript::GetGameObjectListWithEntryInGrid(std::list<GameObject*>& container, uint32_t entry, float maxSearchRange /*= 250.0f*/)
 {
     if (_creature->getWorldMap()->getInterface() == nullptr)
         return;
@@ -588,10 +592,10 @@ void CreatureAIScript::setWaypointToMove(uint32_t pathId, uint32_t pWaypointId)
     {
 #if VERSION_STRING >= WotLK
     case WAYPOINT_MOVE_TYPE_LAND:
-        init.SetAnimation(AnimationTier::Ground);
+        init.SetAnimation(ANIMATION_FLAG_GROUND);
         break;
     case WAYPOINT_MOVE_TYPE_TAKEOFF:
-        init.SetAnimation(AnimationTier::Hover);
+        init.SetAnimation(ANIMATION_FLAG_HOVER);
         break;
 #endif
     case WAYPOINT_MOVE_TYPE_RUN:
@@ -798,7 +802,7 @@ void CreatureAIScript::setZoneWideCombat(Creature* creature)
     if (!map->hasPlayers())
         return;
 
-    for (auto player : map->getPlayers())
+    for (const auto& player : map->getPlayers())
     {
         if (Player* plr = player.second)
         {
@@ -807,8 +811,8 @@ void CreatureAIScript::setZoneWideCombat(Creature* creature)
 
             creature->getAIInterface()->onHostileAction(plr);
 
-            for (auto pet : plr->getSummons())
-                creature->getAIInterface()->onHostileAction(pet->ToCreature());
+            for (const auto& summon : plr->getSummonInterface()->getSummons())
+                creature->getAIInterface()->onHostileAction(summon);
 
 #ifdef FT_VEHICLES
             if (Unit* vehicle = plr->getVehicleBase())

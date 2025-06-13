@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Movement/MovementManager.h"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/Script/InstanceScript.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 ///  Champion Controller
@@ -100,7 +101,7 @@ void ChampionControllerAI::summonChampions()
     for (uint8_t i = 10; i < 20; i++)
         vChampionJumpTarget.push_back(FactionChampionLoc[i]);
 
-    std::vector<uint32> vChampionEntries = selectChampions(teamInInstance);
+    std::vector<uint32_t> vChampionEntries = selectChampions(teamInInstance);
 
     for (uint8_t i = 0; i < vChampionEntries.size(); ++i)
     {
@@ -212,7 +213,7 @@ std::vector<uint32_t> ChampionControllerAI::selectChampions(PlayerTeam playerTea
 FactionChampionsAI::FactionChampionsAI(Creature* pCreature, uint8_t aitype) : CreatureAIScript(pCreature)
 {
     // Add Boundary
-    pCreature->getAIInterface()->addBoundary(new CircleBoundary(LocationVector(563.26f, 139.6f), 75.0));
+    pCreature->getAIInterface()->addBoundary(std::make_unique<CircleBoundary>(LocationVector(563.26f, 139.6f), 75.0));
     mAIType = aitype;
     mTeamInInstance = 0;
 }

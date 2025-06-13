@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * Circular Buffer Class
@@ -22,8 +22,9 @@
  *
  */
 
-#include <Common.hpp>
 #include "CircularBuffer.h"
+#include <cstdlib>
+#include <cstring>
 
 /** Constructor
  */
@@ -257,7 +258,7 @@ void* CircularBuffer::GetBuffer()
  */
 void CircularBuffer::Allocate(size_t size)
 {
-    m_buffer = (uint8*)malloc(size);
+    m_buffer = (uint8_t*)malloc(size);
     m_bufferEnd = m_buffer + size;
     m_regionAPointer = m_buffer;        // reset A to the start
 }

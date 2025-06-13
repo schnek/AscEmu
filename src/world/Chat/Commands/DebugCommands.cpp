@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -26,6 +26,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/Definitions/SpellCastTargetFlags.hpp"
 #include "Spell/Definitions/SpellFailure.hpp"
 #include "Storage/MySQLDataStore.hpp"
+#include "Utilities/Narrow.hpp"
+#include "Utilities/Util.hpp"
 
 bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldSession* session)
 {
@@ -35,19 +37,17 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
 
     std::vector<uint32_t> creatureEntries;
 
-    QueryResult* creature_spawn_result = WorldDatabase.Query("SELECT entry FROM creature_spawns WHERE map = %u GROUP BY(entry)", map);
+    auto creature_spawn_result = WorldDatabase.Query("SELECT entry FROM creature_spawns WHERE map = %u GROUP BY(entry)", map);
     if (creature_spawn_result)
     {
         {
             do
             {
                 Field* fields = creature_spawn_result->Fetch();
-                creatureEntries.push_back(fields[0].GetUInt32());
+                creatureEntries.push_back(fields[0].asUint32());
 
             } while (creature_spawn_result->NextRow());
         }
-
-        delete creature_spawn_result;
     }
 
     //prepare new table for dump
@@ -82,14 +82,14 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
         creature_spawn->o = session->GetPlayer()->GetOrientation();
         creature_spawn->emote_state = 0;
         creature_spawn->flags = creature_properties->NPCFLags;
+        creature_spawn->pvp_flagged = 0;
         creature_spawn->factionid = creature_properties->Faction;
         creature_spawn->bytes0 = creature_spawn->setbyte(0, 2, gender);
-        creature_spawn->bytes1 = 0;
-        creature_spawn->bytes2 = 0;
         creature_spawn->stand_state = 0;
         creature_spawn->death_state = 0;
         creature_spawn->channel_target_creature = creature_spawn->channel_target_go = creature_spawn->channel_spell = 0;
         creature_spawn->MountedDisplayID = 0;
+        creature_spawn->sheath_state = 0;
 
         creature_spawn->Item1SlotEntry = creature_properties->itemslot_1;
         creature_spawn->Item2SlotEntry = creature_properties->itemslot_2;
@@ -112,7 +112,7 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
             if (map_cell != nullptr)
                 map_cell->setLoaded();
 
-            for (auto aiSpells : creature->getAIInterface()->mCreatureAISpells)
+            for (const auto& aiSpells : creature->getAIInterface()->mCreatureAISpells)
             {
                 if (aiSpells->fromDB)
                     continue;
@@ -607,7 +607,7 @@ bool ChatHandler::HandlePlayMovie(const char* args, WorldSession* m_session)
     if (selected_player == nullptr)
         return true;
 
-    uint32_t movie = atol(args);
+    uint32_t movie = std::stoul(args);
 
     selected_player->sendMovie(movie);
 
@@ -624,7 +624,7 @@ bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session
     if (selected_player == nullptr)
         return true;
 
-    uint32_t fail = atol(args);
+    uint32_t fail = std::stoul(args);
     if (fail > SPELL_FAILED_UNKNOWN)
     {
         RedSystemMessage(m_session, "Argument %u is out of range!", fail);
@@ -1256,9 +1256,9 @@ bool ChatHandler::HandleAuraUpdateAdd(const char* args, WorldSession* m_session)
             return true;
         }
         Spell* SpellPtr = sSpellMgr.newSpell(Pl, Sp, false, nullptr);
-        AuraPtr = sSpellMgr.newAura(Sp, SpellPtr->getDuration(), Pl, Pl);
-        SystemMessage(m_session, "SMSG_AURA_UPDATE (add): VisualSlot %u - SpellID %u - Flags %i (0x%04X) - StackCount %i", AuraPtr->m_visualSlot, SpellID, Flags, Flags, StackCount);
-        Pl->addAura(AuraPtr);       // Serves purpose to just add the aura to our auraslots
+        auto auraHolder = sSpellMgr.newAura(Sp, SpellPtr->getDuration(), Pl, Pl);
+        SystemMessage(m_session, "SMSG_AURA_UPDATE (add): VisualSlot %u - SpellID %u - Flags %i (0x%04X) - StackCount %i", auraHolder->m_visualSlot, SpellID, Flags, Flags, StackCount);
+        Pl->addAura(std::move(auraHolder));       // Serves purpose to just add the aura to our auraslots
 
         delete SpellPtr;
     }
@@ -1458,7 +1458,7 @@ bool ChatHandler::HandleCastSpellCommand(const char* args, WorldSession* m_sessi
         return false;
     }
 
-    uint32_t spellid = atol(args);
+    uint32_t spellid = std::stoul(args);
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellid);
     if (!spellentry)
     {
@@ -1499,7 +1499,7 @@ bool ChatHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_ses
         return false;
     }
 
-    uint32_t spellId = atol(args);
+    uint32_t spellId = std::stoul(args);
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellId);
     if (!spellentry)
     {
@@ -1558,7 +1558,7 @@ bool ChatHandler::HandleCastSelfCommand(const char* args, WorldSession* m_sessio
         return false;
     }
 
-    uint32_t spellid = atol(args);
+    uint32_t spellid = std::stoul(args);
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellid);
     if (!spellentry)
     {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -75,6 +75,8 @@
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/EventMgr.h"
 #include "CommonTime.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/Util.hpp"
 
 const float sotaTitanRelic[4] = { 836.5f, -108.8f, 120.59f, 0.0f };
 

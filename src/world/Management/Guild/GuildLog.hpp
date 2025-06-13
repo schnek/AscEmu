@@ -1,11 +1,13 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #pragma once
 
 #include "WorldPacket.h"
+
+#include <memory>
 
 class GuildLogEntry
 {
@@ -28,4 +30,4 @@ protected:
     uint64_t mTimestamp;
 };
 
-typedef std::list<GuildLogEntry*> GuildLog;
+typedef std::list<std::unique_ptr<GuildLogEntry>> GuildLog;

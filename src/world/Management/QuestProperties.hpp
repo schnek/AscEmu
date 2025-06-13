@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -76,8 +76,8 @@ struct QuestProperties
     uint32_t MailSendItem;
 
     uint32_t point_mapid;
-    uint32_t point_x;
-    uint32_t point_y;
+    float point_x;
+    float point_y;
     uint32_t point_opt;
 
     uint32_t rew_money_at_max_level;

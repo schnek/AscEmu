@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,6 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "CommonTypes.hpp"
 #include "AEVersion.hpp"
+#include "ScriptEvent.hpp"
 
 #include <map>
 #include <set>
@@ -41,8 +42,8 @@ public:
 
     // Procedures that had been here before
     virtual GameObject* GetObjectForOpenLock(Player* /*pCaster*/, Spell* /*pSpell*/, SpellInfo const* /*pSpellEntry*/) { return NULL; }
-    virtual void SetLockOptions(uint32 /*pEntryId*/, GameObject* /*pGameObject*/) {}
-    virtual uint32 GetRespawnTimeForCreature(uint32 /*pEntryId*/, Creature* /*pCreature*/) { return 240000; }
+    virtual void SetLockOptions(uint32_t /*pEntryId*/, GameObject* /*pGameObject*/) {}
+    virtual uint32_t GetRespawnTimeForCreature(uint32_t /*pEntryId*/, Creature* /*pCreature*/) { return 240000; }
 
     // Player
     virtual void OnPlayerDeath(Player* /*pVictim*/, Unit* /*pKiller*/) {}
@@ -52,8 +53,8 @@ public:
 
     // Area and AreaTrigger
     virtual void OnPlayerEnter(Player* /*pPlayer*/) {}
-    virtual void OnAreaTrigger(Player* /*pPlayer*/, uint32 /*pAreaId*/) {}
-    virtual void OnZoneChange(Player* /*pPlayer*/, uint32 /*pNewZone*/, uint32 /*pOldZone*/) {}
+    virtual void OnAreaTrigger(Player* /*pPlayer*/, uint32_t /*pAreaId*/) {}
+    virtual void OnZoneChange(Player* /*pPlayer*/, uint32_t /*pNewZone*/, uint32_t /*pOldZone*/) {}
 
     // Creature / GameObject - part of it is simple reimplementation for easier use Creature / GO < --- > Script
     virtual void OnCreatureDeath(Creature* /*pVictim*/, Unit* /*pKiller*/) {}
@@ -197,7 +198,7 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // script events
 protected:
-    scriptEventMap* scriptEvents;
+    scriptEventMap scriptEvents;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // misc

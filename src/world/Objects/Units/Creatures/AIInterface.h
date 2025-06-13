@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,9 +12,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/ScriptEvent.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Storage/MySQLStructures.h"
-#include "Utilities/Util.hpp"
-
 #include <functional>
+#include "Utilities/TimeTracker.hpp"
 
 inline bool inRangeYZX(const float* v1, const float* v2, const float r, const float h)
 {
@@ -72,7 +71,7 @@ struct AI_SCRIPT_SENDMESSAGES
     uint32_t maxCount;
 };
 
-typedef std::vector<std::shared_ptr<AI_SCRIPT_SENDMESSAGES>> definedEmoteVector;
+typedef std::vector<std::unique_ptr<AI_SCRIPT_SENDMESSAGES>> definedEmoteVector;
 
 enum ReactStates : uint8_t
 {
@@ -146,8 +145,8 @@ public:
 
     std::function<Unit* ()> getTargetFunction = nullptr;
 
-    SmallTimeTracker mDurationTimer;
-    SmallTimeTracker mCooldownTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mDurationTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mCooldownTimer;
 
     uint32_t mDuration;
     void setdurationTimer(uint32_t durationTimer);
@@ -339,7 +338,7 @@ public:
 private:
     AI_Agent m_AiCurrentAgent;
     bool m_hasFleed;
-    SmallTimeTracker m_fleeTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_fleeTimer;
 
 protected:
     bool m_AlreadyCallAssistance;
@@ -425,15 +424,16 @@ public:
 
     void updateEmotes(unsigned long time_passed);
     void eventAiInterfaceParamsetFinish();
-    std::shared_ptr<TimedEmoteList> timed_emotes;
+    TimedEmoteList* timed_emotes;
 
     bool moveTo(float x, float y, float z, float o = 0.0f, bool running = false);
     void calcDestinationAndMove(Unit* target, float dist);
 
     // boundary system methods
     bool checkBoundary();
-    CreatureBoundary const getBoundary() const { return _boundary; }
-    void addBoundary(AreaBoundary const* boundary, bool overrideDefault = false, bool negativeBoundaries = false);
+    CreatureBoundary const& getBoundary() const { return _boundary; }
+    // todo: does it really have to be a pointer? -Appled
+    void addBoundary(std::unique_ptr<AreaBoundary const> boundary, bool overrideDefault = false, bool negativeBoundaries = false);
     void setDefaultBoundary();
     void clearBoundary();
     static bool isInBounds(CreatureBoundary const* boundary, LocationVector who);
@@ -541,7 +541,7 @@ private:
     definedEmoteVector mEmotesOnRandomWaypoint;
 
 public:
-    void sendStoredText(definedEmoteVector store, Unit* target);
+    void sendStoredText(definedEmoteVector& store, Unit* target);
 
     Unit* mCurrentSpellTarget;
 
@@ -555,11 +555,11 @@ public:
     bool isValidUnitTarget(Object* pObject, TargetFilter pFilter, float pMinRange = 0.0f, float pMaxRange = 0.0f);
 
 protected:
-    SmallTimeTracker m_boundaryCheckTime;
+    std::unique_ptr<Util::SmallTimeTracker> m_boundaryCheckTime;
     CreatureBoundary _boundary;
     bool _negateBoundary;
 
-    SmallTimeTracker m_updateAssistTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_updateAssistTimer;
     AssistTargetSet m_assistTargets;
 
 private:
@@ -574,9 +574,9 @@ public:
     virtual void movementInform(uint32_t /*type*/, uint32_t /*id*/);
 
     bool canCreatePath(float x, float y, float z);
-    dtStatus findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32 polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32 maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter);
-    bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32 pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query);
-    uint32 fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32 maxPath, const dtPolyRef* visited, const uint32 nvisited);
+    dtStatus findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32_t polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32_t maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter);
+    bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32_t pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query);
+    uint32_t fixupCorridor(dtPolyRef* path, const uint32_t npath, const uint32_t maxPath, const dtPolyRef* visited, const uint32_t nvisited);
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Waypoint functions
@@ -627,8 +627,8 @@ public:
     //addAISpell(spellID, Chance, TargetType, Duration (s), waitBeforeNextCast (s))
     CreatureAISpells* addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t duration = 0, uint32_t cooldown = 0, bool forceRemove = false, bool isTriggered = false);
 
-    std::list<AI_Spell*> m_spells;
-    void addSpellToList(AI_Spell* sp);
+    std::list<std::unique_ptr<AI_Spell>> m_spells;
+    void addSpellToList(std::unique_ptr<AI_Spell> sp);
     AI_Spell* getSpell(uint32_t entry);
     void setNextSpell(uint32_t spellId);
     void removeNextSpell(uint32_t spellId);
@@ -645,10 +645,10 @@ public:
 
     CreatureAISpells* mLastCastedSpell;
 
-    typedef std::vector<CreatureAISpells*> CreatureAISpellsArray;
+    typedef std::vector<std::unique_ptr<CreatureAISpells>> CreatureAISpellsArray;
     CreatureAISpellsArray mCreatureAISpells;
 
-    SmallTimeTracker mSpellWaitTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mSpellWaitTimer;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // script events
@@ -659,11 +659,11 @@ protected:
 protected:
     bool canEnterCombat;
 
-    std::list<std::shared_ptr<SpawnTimedEmotes>>::iterator next_timed_emote;
+    TimedEmoteList::iterator next_timed_emote;
     uint32_t timed_emote_expire;
 
     bool m_cannotReachTarget;
-    SmallTimeTracker m_noTargetTimer;
-    SmallTimeTracker m_cannotReachTimer;
-    SmallTimeTracker m_updateTargetTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_noTargetTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_cannotReachTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_updateTargetTimer;
 };

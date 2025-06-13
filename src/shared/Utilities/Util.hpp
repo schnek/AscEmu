@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,13 +7,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <algorithm>
 #include <chrono>
-#include <iomanip>
-#include <iostream>
 #include <map>
-#include <random>
-#include <utility>
 #include <filesystem>
 #include <locale>
+#include <type_traits>
 
 namespace Util
 {
@@ -33,25 +30,6 @@ namespace Util
     // utf8String functions
 
     std::size_t max_consecutive(std::string_view name, bool case_insensitive = false, const std::locale& locale = std::locale());
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    
-    inline uint32_t MAKE_PAIR32(uint16_t l, uint16_t h)
-    {
-        return uint32_t(l | (uint32_t(h) << 16));
-    }
-
-    // Narrowing
-    inline int32_t float2int32(float value)
-    {
-        return static_cast<int32_t>(std::round(value));
-    }
-
-    template <typename T>
-    T int32abs(int value)
-    {
-        return static_cast<T>(std::abs(value));
-    }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Time calculation/formatting
@@ -95,59 +73,6 @@ namespace Util
 
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    // Random number helper functions
-
-    int getRandomInt(int end);
-    int getRandomInt(int start, int end);
-
-    uint32_t getRandomUInt(uint32_t end);
-    uint32_t getRandomUInt(uint32_t start, uint32_t end);
-
-    float getRandomFloat(float end);
-    float getRandomFloat(float start, float end);
-
-    // Gets random number from 1-100 and returns true if val is greater than the number
-    bool checkChance(uint32_t val);
-    // Gets random number from 1-100 and returns true if val is greater than the number
-    bool checkChance(int32_t val);
-    // Gets random number from 1-100 and returns true if val is greater than the number
-    bool checkChance(float_t val);
-
-    template <class T>
-    inline T square(T x) { return x * x; }
-
-    // Percentage calculation
-    template <class T, class U>
-    inline T calculatePct(T base, U pct)
-    {
-        return T(base * static_cast<float>(pct) / 100.0f);
-    }
-
-    template <class T, class U>
-    inline T addPct(T& base, U pct)
-    {
-        return base += calculatePct(base, pct);
-    }
-
-    template <class T, class U>
-    inline T applyPct(T& base, U pct)
-    {
-        return base = calculatePct(base, pct);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // Container helper functions
-
-    template<typename T>
-    inline void randomShuffleVector(std::vector<T>* vector)
-    {
-        std::random_device rd;
-        std::mt19937 mt(rd());
-
-        std::shuffle(vector->begin(), vector->end(), mt);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
     // C++17 filesystem dependent functions
 
     /*! \brief Returns map of directory file names. */
@@ -162,50 +87,69 @@ namespace Util
     uint32_t readMinorVersionFromString(const std::string& fileName);
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    // Benchmark
-    class BenchmarkTime
+    // std::is_specialization_of_v implementation
+
+    // Primary template - not a specialization
+    template <template <typename, typename...> class Template, typename>
+    struct is_specialization_of : std::false_type {};
+
+    // Partial specialization for types with a second parameter as a pack
+    template <template <typename, typename...> class Template, typename T1, typename... Args>
+    struct is_specialization_of<Template, Template<T1, Args...>> : std::true_type {};
+
+    // Helper variable template for convenience
+    template <typename T, template <typename, typename...> class Template>
+    concept is_specialization_of_v = is_specialization_of<Template, T>::value;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // std::is_specialization_of_v implementation for e.g. std::arrays
+
+    // Primary template for types with size_t as the second parameter - not a specialization
+    template <template <typename, size_t> class Template, typename>
+    struct is_size_based_specialization_of : std::false_type {};
+
+    // Partial specialization for types with size_t as the second parameter
+    template <template <typename, size_t> class Template, typename T1, size_t N>
+    struct is_size_based_specialization_of<Template, Template<T1, N>> : std::true_type {};
+
+    // Helper variable template for types with size_t as the second parameter for convenience
+    template <typename T, template <typename, size_t> class Template>
+    concept is_size_based_specialization_of_v = is_size_based_specialization_of<Template, T>::value;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Misc
+    unsigned int makeIP(std::string_view _str);
+
+    bool parseCIDRBan(uint32_t _ip, uint32_t _mask, uint32_t _maskBits);
+
+    template<class Factory>
+    struct LazyInstanceCreator
     {
-    public:
-        BenchmarkTime(std::string function = "")
+        /*!
+        * \brief Converts a struct to a specified type using a lazy evaluation approach.
+        *
+        * This struct utilizes an internal lambda factory to generate an instance of the provided type
+        * when a conversion is necessary. It is particularly useful when working with objects and
+        * emplace/try_emplace.
+        *
+        * Important notes:
+        *
+        * - The internal lambda will only be invoked if a conversion is required, ensuring that the
+        * evaluation is lazy and avoids unnecessary overhead. If i.e. emplace operation fails, no
+        * conversion will take place, meaning that resources such as unique_ptr will not be allocated,
+        * preventing even temporary unnecessary memory allocations.
+        *
+        * - Works with both emplace and try_emplace
+        */
+        constexpr LazyInstanceCreator(Factory&& factory) : m_factory(std::move(factory))
         {
-            m_startTime = std::chrono::high_resolution_clock::now();
-            functionName = std::move(function);
         }
 
-        ~BenchmarkTime()
+        constexpr operator auto() const noexcept(std::is_nothrow_invocable_v<const Factory&>)
         {
-            Stop();
+            return m_factory();
         }
 
-        void Stop()
-        {
-            const auto endTime = std::chrono::high_resolution_clock::now();
-
-            const auto start = std::chrono::time_point_cast<std::chrono::microseconds>(m_startTime).time_since_epoch().count();
-            const auto end = std::chrono::time_point_cast<std::chrono::microseconds>(endTime).time_since_epoch().count();
-
-            const auto duration = end - start;
-            const double ms = duration * 0.001;
-
-            std::cout << "BenchmarkTime:" << (functionName.empty() ? "" : functionName) << duration << ": microseconds (" << ms << "ms)\n";
-        }
-
-    private:
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_startTime;
-        std::string functionName;
+        Factory m_factory;
     };
 }
-
-struct SmallTimeTracker
-{
-    int32_t mExpireTime;
-
-public:
-    SmallTimeTracker(uint32_t expired = 0) : mExpireTime(static_cast<int32_t>(expired)) {}
-
-    void updateTimer(uint32_t diffTime) { mExpireTime -= diffTime; }
-    void resetInterval(uint32_t intervalTime) { mExpireTime = static_cast<int32_t>(intervalTime); }
-
-    int32_t getExpireTime() const { return mExpireTime; }
-    bool isTimePassed() const { return mExpireTime <= 0; }
-};

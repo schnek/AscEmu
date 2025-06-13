@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -41,11 +41,13 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgMessageChat.h"
 #include "Server/Script/HookInterface.hpp"
 #include "Spell/Spell.hpp"
+#include "Spell/SpellAura.hpp"
 #include "Spell/SpellMgr.hpp"
 #include "Storage/MySQLDataStore.hpp"
 #include "Storage/MySQLStructures.h"
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Random.hpp"
 
 int LuaUnit::GetDisplay(lua_State* L, Unit* ptr)
 {
@@ -717,8 +719,8 @@ int LuaUnit::CreateLuaEvent(lua_State* L, Unit* ptr)
 
     if (functionRef)
     {
-        TimedEvent* ev = TimedEvent::Allocate(ptr, new CallbackP1<LuaEngine, int>(LuaGlobal::instance()->luaEngine().get(), &LuaEngine::CallFunctionByReference, functionRef), EVENT_LUA_CREATURE_EVENTS, delay, repeats);
-        ptr->event_AddEvent(ev);
+        auto ev = TimedEvent::Allocate(ptr, std::make_unique<CallbackP1<LuaEngine, int>>(LuaGlobal::instance()->luaEngine().get(), &LuaEngine::CallFunctionByReference, functionRef), EVENT_LUA_CREATURE_EVENTS, delay, repeats);
+        ptr->event_AddEvent(std::move(ev));
         std::map< uint64_t, std::set<int> >& objRefs = LuaGlobal::instance()->luaEngine()->getObjectFunctionRefs();
         const std::map< uint64_t, std::set<int> >::iterator itr = objRefs.find(ptr->getGuid());
         if (itr == objRefs.end())
@@ -890,28 +892,9 @@ int LuaUnit::AddItem(lua_State* L, Unit* ptr)
     if (item_proto == nullptr)
         return 0;
 
-    auto item_add = player->getItemInterface()->FindItemLessMax(id, count, false);
-    if (item_add == nullptr)
-    {
-        item_add = sObjectMgr.createItem(id, player);
-        if (item_add == nullptr)
-            return 0;
-
-        item_add->setStackCount(count);
-        if (player->getItemInterface()->AddItemToFreeSlot(item_add))
-            player->sendItemPushResultPacket(false, true, false, player->getItemInterface()->LastSearchItemBagSlot(),
-                player->getItemInterface()->LastSearchItemSlot(), count, item_add->getEntry(), item_add->getPropertySeed(),
-                item_add->getRandomPropertiesId(), item_add->getStackCount());
-    }
-    else
-    {
-        item_add->modStackCount(count);
-        item_add->setDirty();
-        player->sendItemPushResultPacket(false, true, false,
-            static_cast<uint8_t>(player->getItemInterface()->GetBagSlotByGuid(item_add->getGuid())), 0,
-            count, item_add->getEntry(), item_add->getPropertySeed(), item_add->getRandomPropertiesId(), item_add->getStackCount());
-    }
-    PUSH_ITEM(L, item_add);
+    player->getItemInterface()->AddItemById(id, count, 0);
+    // TODO
+    //PUSH_ITEM(L, item_add);
     return 1;
 }
 
@@ -1526,23 +1509,21 @@ int LuaUnit::StartQuest(lua_State* L, Unit* ptr)
         {
             if (questProperties->receive_items[i])
             {
-                Item* item = sObjectMgr.createItem(questProperties->receive_items[i], player);
+                auto item = sObjectMgr.createItem(questProperties->receive_items[i], player);
                 if (item == nullptr)
                     return false;
 
-                if (!player->getItemInterface()->AddItemToFreeSlot(item))
-                    item->deleteMe();
+                player->getItemInterface()->AddItemToFreeSlot(std::move(item));
             }
         }
 
         if (questProperties->srcitem && questProperties->srcitem != questProperties->receive_items[0])
         {
-            Item* item = sObjectMgr.createItem(questProperties->srcitem, player);
+            auto item = sObjectMgr.createItem(questProperties->srcitem, player);
             if (item)
             {
                 item->setStackCount(questProperties->srcitemcount ? questProperties->srcitemcount : 1);
-                if (!player->getItemInterface()->AddItemToFreeSlot(item))
-                    item->deleteMe();
+                player->getItemInterface()->AddItemToFreeSlot(std::move(item));
             }
         }
 
@@ -2047,12 +2028,8 @@ int LuaUnit::QuestAddStarter(lua_State* L, Unit* ptr)
 
     char my_query1[200];
     sprintf(my_query1, "SELECT id FROM creature_quest_starter WHERE id = %d AND quest = %d AND min_build <= %u AND max_build >= %u", quest_giver, quest_id, VERSION_STRING, VERSION_STRING);
-    const QueryResult* selectResult1 = WorldDatabase.Query(my_query1);
-    if (selectResult1)
-    {
-        delete selectResult1; //already has quest
-    }
-    else
+    const auto selectResult1 = WorldDatabase.Query(my_query1);
+    if (selectResult1 == nullptr)
     {
         char my_insert1[200];
         sprintf(my_insert1, "INSERT INTO creature_quest_starter (id, quest) VALUES (%d,%d,%u,%u)", quest_giver, quest_id, VERSION_STRING, VERSION_STRING);
@@ -2096,12 +2073,8 @@ int LuaUnit::QuestAddFinisher(lua_State* L, Unit* ptr)
 
     char my_query1[200];
     sprintf(my_query1, "SELECT id FROM creature_quest_finisher WHERE id = %d AND quest = %d AND min_build <= %u AND max_build >= %u", quest_giver, quest_id, VERSION_STRING, VERSION_STRING);
-    const QueryResult* selectResult1 = WorldDatabase.Query(my_query1);
-    if (selectResult1)
-    {
-        delete selectResult1; //already has quest
-    }
-    else
+    const auto selectResult1 = WorldDatabase.Query(my_query1);
+    if (selectResult1 == nullptr)
     {
         char my_insert1[200];
         sprintf(my_insert1, "INSERT INTO creature_quest_finisher (id, quest, min_build, max_build) VALUES (%d,%d,%u,%u)", quest_giver, quest_id, VERSION_STRING, VERSION_STRING);
@@ -2244,7 +2217,7 @@ int LuaUnit::SetOutOfCombatRange(lua_State* L, Unit* ptr)
 
     const auto range = static_cast<float>(luaL_checkinteger(L, 1));
     if (range)
-        ptr->getAIInterface()->addBoundary(new CircleBoundary(ptr->GetPosition(), range), true);
+        ptr->getAIInterface()->addBoundary(std::make_unique<CircleBoundary>(ptr->GetPosition(), range), true);
     return 0;
 }
 
@@ -3902,8 +3875,8 @@ int LuaUnit::AddAura(lua_State* L, Unit* ptr)
     const bool temp = CHECK_BOOL(L, 3);
     if (spellid)
     {
-        Aura* aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(spellid), duration, ptr, ptr, temp);
-        ptr->addAura(aura);
+        auto aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(spellid), duration, ptr, ptr, temp);
+        ptr->addAura(std::move(aura));
         lua_pushboolean(L, 1);
     }
     else
@@ -4358,7 +4331,9 @@ int LuaUnit::GetAccountName(lua_State* L, Unit* ptr)
 
 int LuaUnit::GetGmRank(lua_State* L, Unit* ptr)
 {
-    if (ptr == nullptr || !ptr->IsInWorld() || !ptr->isPlayer())
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*if (ptr == nullptr || !ptr->IsInWorld() || !ptr->isPlayer())
     {
         return 0;
     }
@@ -4367,7 +4342,7 @@ int LuaUnit::GetGmRank(lua_State* L, Unit* ptr)
     if (level != nullptr)
         lua_pushstring(L, level);
     else
-        lua_pushnil(L);
+        lua_pushnil(L);*/
     return 1;
 }
 
@@ -4621,7 +4596,7 @@ int LuaUnit::SendLootWindow(lua_State* L, Unit* ptr)
         switch (loot_type)
         {
             case 6:
-                sLootMgr.fillItemLoot(plr, pItem->m_loot, pItem->getEntry(), plr->getWorldMap() ? (plr->getWorldMap()->getDifficulty() ? true : false) : false);
+                sLootMgr.fillItemLoot(plr, pItem->m_loot.get(), pItem->getEntry(), plr->getWorldMap() ? (plr->getWorldMap()->getDifficulty() ? true : false) : false);
                 loot_type2 = 1;
                 break;
             default:
@@ -4654,10 +4629,9 @@ int LuaUnit::AddLoot(lua_State* L, Unit* ptr)
     const bool perm = ((luaL_optinteger(L, 4, 0) == 1) ? true : false);
     if (perm)
     {
-        const QueryResult* result = WorldDatabase.Query("SELECT * FROM loot_creatures WHERE entryid = %u, itemid = %u", ptr->getEntry(), itemid);
+        const auto result = WorldDatabase.Query("SELECT * FROM loot_creatures WHERE entryid = %u, itemid = %u", ptr->getEntry(), itemid);
         if (!result)
             WorldDatabase.Execute("REPLACE INTO loot_creatures VALUES (%u, %u, %f, 0, 0, 0, %u, %u )", ptr->getEntry(), itemid, chance, mincount, maxcount);
-        delete result;
     }
     sLootMgr.addLoot(&ptr->loot, itemid, ichance, mincount, maxcount, ptr->getWorldMap()->getDifficulty());
     return 0;
@@ -5557,7 +5531,7 @@ int LuaUnit::IsInChannel(lua_State* L, Unit* ptr)
     if (!channelName)
         return 0;
 
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
+    const auto* channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
     // Channels: "General", "Trade", "LocalDefense", "GuildRecruitment", "LookingForGroup", (or any custom channel)
     if (channel->hasMember(dynamic_cast<Player*>(ptr)))
         lua_pushboolean(L, 1);
@@ -5575,7 +5549,7 @@ int LuaUnit::JoinChannel(lua_State* L, Unit* ptr)
     }
 
     const char* channelName = luaL_checkstring(L, 1);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
+    auto* const channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
     if (!channel)
         return 0;
 
@@ -5597,7 +5571,7 @@ int LuaUnit::LeaveChannel(lua_State* L, Unit* ptr)
     }
 
     const char* channelName = luaL_checkstring(L, 1);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
+    auto* const channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
     if (!channelName || !channel || !channel->hasMember(dynamic_cast<Player*>(ptr)))
         return 0;
 
@@ -5615,7 +5589,7 @@ int LuaUnit::SetChannelName(lua_State* L, Unit* ptr)
 
     const char* currentName = luaL_checkstring(L, 1);
     const char* newName = luaL_checkstring(L, 2);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(currentName, dynamic_cast<Player*>(ptr));
+    auto* const channel = sChannelMgr.getChannel(currentName, dynamic_cast<Player*>(ptr));
     if (!currentName || !newName || !channel || channel->getChannelName() == newName)
         return 0;
 
@@ -5632,7 +5606,7 @@ int LuaUnit::SetChannelPassword(lua_State* L, Unit* ptr)
 
     const char* channelName = luaL_checkstring(L, 1);
     const char* password = luaL_checkstring(L, 2);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
+    auto* const channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
     if (!password || !channel || channel->getChannelPassword() == password)
         return 0;
 
@@ -5648,7 +5622,7 @@ int LuaUnit::GetChannelPassword(lua_State* L, Unit* ptr)
     }
 
     const char* channelName = luaL_checkstring(L, 1);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
+    const auto* channel = sChannelMgr.getChannel(channelName, dynamic_cast<Player*>(ptr));
     if (!channel)
         return 0;
 
@@ -5666,7 +5640,7 @@ int LuaUnit::KickFromChannel(lua_State* L, Unit* ptr)
 
     const char* channelName = luaL_checkstring(L, 1);
     Player* player = dynamic_cast<Player*>(ptr);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, player);
+    auto* const channel = sChannelMgr.getChannel(channelName, player);
     if (!channel)
         return 0;
 
@@ -5683,7 +5657,7 @@ int LuaUnit::BanFromChannel(lua_State* L, Unit* ptr)
 
     const char* channelName = luaL_checkstring(L, 1);
     Player* player = dynamic_cast<Player*>(ptr);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, player);
+    auto* const channel = sChannelMgr.getChannel(channelName, player);
     if (!channel)
         return 0;
 
@@ -5700,7 +5674,7 @@ int LuaUnit::UnbanFromChannel(lua_State* L, Unit* ptr)
 
     const char* channelName = luaL_checkstring(L, 1);
     Player* player = dynamic_cast<Player*>(ptr);
-    const std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, player);
+    auto* const channel = sChannelMgr.getChannel(channelName, player);
     if (!channel)
         return 0;
 
@@ -5985,12 +5959,14 @@ int LuaUnit::ResetPetTalents(lua_State* /*L*/, Unit* ptr)
         return 0;
     }
 
-    Pet* pet = dynamic_cast<Player*>(ptr)->getFirstPetFromSummons();
+    Pet* pet = dynamic_cast<Player*>(ptr)->getPet();
     if (pet != nullptr)
     {
         pet->WipeTalents();
+#if VERSION_STRING == WotLK || VERSION_STRING == Cata
         pet->setPetTalentPoints(pet->GetTPsForLevel(pet->getLevel()));
         pet->SendTalentsToOwner();
+#endif
     }
     return 0;
 }
@@ -6415,10 +6391,12 @@ int LuaUnit::AddAuraObject(lua_State* L, Unit* ptr)
         return 0;
     }
 
-    Aura* aura = CHECK_AURA(L, 1);
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*Aura* aura = CHECK_AURA(L, 1);
     if (!aura)
         return 0;
-    ptr->addAura(aura);
+    ptr->addAura(aura);*/
     return 0;
 }
 

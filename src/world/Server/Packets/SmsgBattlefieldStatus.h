@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -91,7 +91,7 @@ namespace AscEmu::Packets
                 case 3:                     // BGSTATUS_TIME
                     packet << mapId;
 #if VERSION_STRING > TBC
-                    packet << uint64(0);
+                    packet << uint64_t(0);
 #endif
                     packet << uint32_t(0);
                     packet << time;

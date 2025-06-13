@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -147,12 +147,11 @@ bool GameObjectModel::initialize(std::unique_ptr<GameObjectModelOwnerBase> model
     return true;
 }
 
-GameObjectModel* GameObjectModel::Create(std::unique_ptr<GameObjectModelOwnerBase> modelOwner, std::string const& dataPath)
+std::unique_ptr<GameObjectModel> GameObjectModel::Create(std::unique_ptr<GameObjectModelOwnerBase> modelOwner, std::string const& dataPath)
 {
-    GameObjectModel* mdl = new GameObjectModel();
+    auto mdl = std::unique_ptr<GameObjectModel>(new GameObjectModel());
     if (!mdl->initialize(std::move(modelOwner), dataPath))
     {
-        delete mdl;
         return nullptr;
     }
 

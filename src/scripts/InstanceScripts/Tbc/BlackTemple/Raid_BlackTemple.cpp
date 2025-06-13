@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -14,6 +14,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/CreatureAIScript.hpp"
 #include "Server/Script/GameObjectAIScript.hpp"
 #include "Server/Script/InstanceScript.hpp"
+#include "Spell/SpellAura.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Illidan Encounter Event Options
@@ -331,8 +333,8 @@ public:
 
     void OnDied(Unit* /*pKiller*/) override
     {
-        Aura* pAura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(MUTANT_WAR_HOUND_CLOUD_OF_DISEASE), (uint32_t)20000, getCreature(), getCreature());
-        getCreature()->addAura(pAura);
+        auto pAura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(MUTANT_WAR_HOUND_CLOUD_OF_DISEASE), (uint32_t)20000, getCreature(), getCreature());
+        getCreature()->addAura(std::move(pAura));
     }
 };
 
@@ -1492,8 +1494,8 @@ public:
             }
 
             //_unit->castSpell(_unit, SpellId, true);
-            Aura* aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(SpellId), (uint32_t)15000, getCreature(), getCreature());
-            getCreature()->addAura(aura);
+            auto aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo(SpellId), (uint32_t)15000, getCreature(), getCreature());
+            getCreature()->addAura(std::move(aura));
 
             AuraChange = t + 15;
         }

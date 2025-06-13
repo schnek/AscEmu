@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -39,6 +39,7 @@
 #include "Storage/MySQLDataStore.hpp"
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Random.hpp"
 
 enum
 {
@@ -59,15 +60,9 @@ bool FrostWarding(uint8_t /*effectIndex*/, Spell* s)
 
     unitTarget->removeReflect(spellId, true);
 
-    ReflectSpellSchool* rss = new ReflectSpellSchool;
-
-    rss->chance = s->getSpellInfo()->getProcChance();
-    rss->spellId = s->getSpellInfo()->getId();
-    rss->school = SCHOOL_FROST;
-    rss->infront = false;
-    rss->charges = 0;
-
-    unitTarget->m_reflectSpellSchool.push_back(rss);
+    unitTarget->m_reflectSpellSchool.emplace_back(std::make_unique<ReflectSpellSchool>(
+        spellId, 0, SCHOOL_FROST, s->getSpellInfo()->getProcChance(), false
+    ));
 
     return true;
 }
@@ -81,15 +76,9 @@ bool MoltenShields(uint8_t /*effectIndex*/, Spell* s)
 
     unitTarget->removeReflect(s->getSpellInfo()->getId(), true);
 
-    ReflectSpellSchool* rss = new ReflectSpellSchool;
-
-    rss->chance = s->getSpellInfo()->getEffectBasePoints(0);
-    rss->spellId = s->getSpellInfo()->getId();
-    rss->school = SCHOOL_FIRE;
-    rss->infront = false;
-    rss->charges = 0;
-
-    unitTarget->m_reflectSpellSchool.push_back(rss);
+    unitTarget->m_reflectSpellSchool.emplace_back(std::make_unique<ReflectSpellSchool>(
+        s->getSpellInfo()->getId(), 0, SCHOOL_FIRE, s->getSpellInfo()->getEffectBasePoints(0), false
+    ));
 
     return true;
 }

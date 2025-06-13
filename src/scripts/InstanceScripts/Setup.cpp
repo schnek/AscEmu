@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,6 @@
  */
 
 #include "Setup.h"
-#include "Common.hpp"
 
 #include "Server/ServerState.h"
 #include "Server/Script/ScriptMgr.hpp"

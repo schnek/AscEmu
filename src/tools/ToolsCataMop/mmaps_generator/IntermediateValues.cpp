@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,8 @@
 
 #include "IntermediateValues.h"
 
+#include "CommonTypes.hpp"
+
 namespace MMAP
 {
     IntermediateValues::~IntermediateValues()
@@ -30,7 +32,7 @@ namespace MMAP
         rcFreePolyMeshDetail(polyMeshDetail);
     }
 
-    void IntermediateValues::writeIV(uint32 mapID, uint32 tileX, uint32 tileY)
+    void IntermediateValues::writeIV(uint32_t mapID, uint32_t tileX, uint32_t tileY)
     {
         char fileName[255];
         char tileString[25];
@@ -200,7 +202,7 @@ namespace MMAP
         fwrite(mesh->meshes, sizeof(int), mesh->nmeshes*4, file);
     }
 
-    void IntermediateValues::generateObjFile(uint32 mapID, uint32 tileX, uint32 tileY, MeshData &meshData)
+    void IntermediateValues::generateObjFile(uint32_t mapID, uint32_t tileX, uint32_t tileY, MeshData &meshData)
     {
         char objFileName[255];
         sprintf(objFileName, "meshes/map%04u%02u%02u.obj", mapID, tileY, tileX);

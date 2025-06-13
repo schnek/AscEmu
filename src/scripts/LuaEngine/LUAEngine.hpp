@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,6 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/EventMgr.h"
 #include "Server/Script/ScriptMgr.hpp"
 #include <set>
+#include <sstream>
 
 
 #ifdef DEBUG
@@ -178,7 +179,7 @@ struct LUALoadScripts
 struct EventInfoHolder
 {
     const char* funcName;
-    TimedEvent* te;
+    std::shared_ptr<TimedEvent> te;
 };
 
 struct LuaObjectBinding
@@ -292,7 +293,7 @@ public:
     std::set<int> & getFunctionRefs();
     std::map< uint64_t, std::set<int> > & getObjectFunctionRefs();
 
-    std::unordered_map<int, EventInfoHolder*> m_registeredTimedEvents;
+    std::unordered_map<int, std::unique_ptr<EventInfoHolder>> m_registeredTimedEvents;
 
     struct _ENGINEHOOKINFO
     {
@@ -340,7 +341,7 @@ public:
                 const auto itr2 = itr++;
                 if (strncmp(itr2->second->funcName, table, strlen(table)) == 0)
                 {
-                    event_RemoveByPointer(itr2->second->te);
+                    event_RemoveByPointer(itr2->second->te.get());
                     free((void*)itr2->second->funcName);
                     luaL_unref(LuaGlobal::instance()->luaEngine()->getluState(), LUA_REGISTRYINDEX, itr2->first);
                     LuaGlobal::instance()->luaEngine()->m_registeredTimedEvents.erase(itr2);
@@ -356,7 +357,7 @@ public:
                 const auto itr2 = itr++;
                 if (strcmp(itr2->second->funcName, name) == 0)
                 {
-                    event_RemoveByPointer(itr2->second->te);
+                    event_RemoveByPointer(itr2->second->te.get());
                     free((void*)itr2->second->funcName);
                     luaL_unref(LuaGlobal::instance()->luaEngine()->getluState(), LUA_REGISTRYINDEX, itr2->first);
                     LuaGlobal::instance()->luaEngine()->m_registeredTimedEvents.erase(itr2);
@@ -369,7 +370,7 @@ public:
             auto itr = LuaGlobal::instance()->luaEngine()->m_registeredTimedEvents.find(ref);
             if (itr != LuaGlobal::instance()->luaEngine()->m_registeredTimedEvents.end())
             {
-                event_RemoveByPointer(itr->second->te);
+                event_RemoveByPointer(itr->second->te.get());
                 free((void*)itr->second->funcName);
                 luaL_unref(LuaGlobal::instance()->luaEngine()->getluState(), LUA_REGISTRYINDEX, itr->first);
                 LuaGlobal::instance()->luaEngine()->m_registeredTimedEvents.erase(itr);

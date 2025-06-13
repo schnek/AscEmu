@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -24,15 +24,18 @@ void FormationMgr::addCreatureToGroup(uint32_t leaderSpawnId, Creature* creature
 {
     WorldMap* map = creature->getWorldMap();
 
-    auto itr = map->CreatureGroupHolder.find(leaderSpawnId);
-    if (itr != map->CreatureGroupHolder.end())
+    const auto [itr, inserted] = map->CreatureGroupHolder.try_emplace(leaderSpawnId, Util::LazyInstanceCreator([leaderSpawnId] {
+        return std::make_unique<CreatureGroup>(leaderSpawnId);
+    }));
+
+    if (!inserted)
     {
         //Add member to an existing group
         sLogger.debug("FormationMgr : Group found: {}, inserting creature {}, Group InstanceID {}", leaderSpawnId, creature->getGuid(), creature->GetInstanceID());
 
         // With dynamic spawn the creature may have just respawned
         // we need to find previous instance of creature and delete it from the formation, as it'll be invalidated
-        for (auto pair : map->_sqlids_creatures)
+        for (const auto& pair : map->_sqlids_creatures)
         {
             if (pair.first == creature->getSpawnId())
             {
@@ -49,8 +52,6 @@ void FormationMgr::addCreatureToGroup(uint32_t leaderSpawnId, Creature* creature
     {
         //Create new group
         sLogger.debug("FormationMgr : Group not found: {}. Creating new group.", leaderSpawnId);
-        CreatureGroup* group = new CreatureGroup(leaderSpawnId);
-        std::tie(itr, std::ignore) = map->CreatureGroupHolder.emplace(leaderSpawnId, group);
     }
 
     itr->second->addMember(creature);
@@ -69,7 +70,6 @@ void FormationMgr::removeCreatureFromGroup(CreatureGroup* group, Creature* membe
         auto itr = map->CreatureGroupHolder.find(group->getLeaderSpawnId());
         ASSERT(itr != map->CreatureGroupHolder.end() && "Not registered group in map");
         map->CreatureGroupHolder.erase(itr);
-        delete group;
     }
 }
 
@@ -78,7 +78,7 @@ void FormationMgr::loadCreatureFormations()
     auto oldMSTime = Util::TimeNow();
 
     //Get group data
-    QueryResult* result = WorldDatabase.Query("SELECT leaderGUID, memberGUID, dist, angle, groupAI, point_1, point_2 FROM creature_formations ORDER BY leaderGUID");
+    auto result = WorldDatabase.Query("SELECT leaderGUID, memberGUID, dist, angle, groupAI, point_1, point_2 FROM creature_formations ORDER BY leaderGUID");
     if (!result)
     {
         sLogger.debug("FormationMgr : Loaded 0 creatures in formations. DB table `creature_formations` is empty!");
@@ -93,26 +93,25 @@ void FormationMgr::loadCreatureFormations()
 
         //Load group member data
         FormationInfo member;
-        member.LeaderSpawnId              = fields[0].GetUInt32();
-        uint32_t memberSpawnId            = fields[1].GetUInt32();
+        member.LeaderSpawnId              = fields[0].asUint32();
+        uint32_t memberSpawnId            = fields[1].asUint32();
         member.FollowDist                 = 0.f;
         member.FollowAngle                = 0.f;
 
         //If creature is group leader we may skip loading of dist/angle
         if (member.LeaderSpawnId != memberSpawnId)
         {
-            member.FollowDist             = fields[2].GetFloat();
-            member.FollowAngle            = fields[3].GetFloat() * float(M_PI) / 180.0f;
+            member.FollowDist             = fields[2].asFloat();
+            member.FollowAngle            = fields[3].asFloat() * float(M_PI) / 180.0f;
         }
 
-        member.GroupAI                    = fields[4].GetUInt32();
+        member.GroupAI                    = fields[4].asUint32();
         for (uint8_t i = 0; i < 2; ++i)
-            member.LeaderWaypointIDs[i]   = fields[5 + i].GetUInt16();
+            member.LeaderWaypointIDs[i]   = fields[5 + i].asUint16();
 
         // check data correctness
         {
-            QueryResult* spawnResult = nullptr;
-            spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", member.LeaderSpawnId);
+            auto spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", member.LeaderSpawnId);
             if (spawnResult == nullptr)
             {
                 sLogger.failure("FormationMgr : creature_formations table leader guid {} incorrect (not exist)", member.LeaderSpawnId);

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -20,8 +20,14 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/WorldSession.h"
 #include "Server/Packets/SmsgMessageChat.h"
 #include "Storage/MySQLDataStore.hpp"
+#include <cstdarg>
+
+#include "CommandRegistry.hpp"
 
 using namespace AscEmu::Packets;
+
+ChatHandler::ChatHandler() = default;
+ChatHandler::~ChatHandler() = default;
 
 ChatHandler& ChatHandler::getInstance()
 {
@@ -32,13 +38,13 @@ ChatHandler& ChatHandler::getInstance()
 void ChatHandler::initialize()
 {
     sCommandTableStorage.Init();
-    SkillNameManager = new SkillNameMgr;
+    sCommandTableStorage.registerCommands();
+    SkillNameManager = std::make_unique<SkillNameMgr>();
 }
 
 void ChatHandler::finalize()
 {
     sCommandTableStorage.Dealloc();
-    delete SkillNameManager;
 }
 
 bool ChatHandler::hasStringAbbr(const char* s1, const char* s2)
@@ -147,7 +153,7 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
     if (!*text)
         return 0;
 
-    if (session->GetPermissionCount() == 0 && worldConfig.server.requireGmForCommands)
+    if (!session->HasGMPermissions() && worldConfig.server.requireGmForCommands)
         return 0;
 
     if (text[0] != '!' && text[0] != '.') // let's not confuse users
@@ -157,6 +163,20 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
     if (text[1] == '.')
         return 0;
 
+    // Try the new command system first
+    {
+        std::string input(text);
+
+        if (!input.length())
+            return 0;
+
+        // Check if the command exists in the new system first
+        const std::string fullCommand(input.begin() + 1, input.end());  // Remove the leading '.' or '!'
+        if (CommandRegistry::getInstance().executeCommand(fullCommand, session))
+            return 1;  // Command was handled by the new system
+    }
+
+    // Fallback to the old system
     text++;
 
     try
@@ -435,6 +455,12 @@ void ChatHandler::BlueSystemMessage(WorldSession* m_session, const char* message
         m_session->SendPacket(SmsgMessageChat(SystemMessagePacket(msg)).serialise().get());
 }
 
+void ChatHandler::sendSystemMessagePacket(WorldSession* _session, std::string& _message)
+{
+    if (_session != nullptr)
+        _session->SendPacket(SmsgMessageChat(SystemMessagePacket(_message)).serialise().get());
+}
+
 std::string ChatHandler::GetNpcFlagString(Creature* creature)
 {
     std::string s = "";
@@ -645,7 +671,7 @@ bool ChatHandler::HandleGetSkillLevelCommand(const char* args, WorldSession* m_s
         return false;
     }
 
-    char* SkillName = SkillNameManager->SkillNames[skill];
+    char* SkillName = SkillNameManager->SkillNames[skill].get();
     if (SkillName == nullptr)
     {
         BlueSystemMessage(m_session, "Skill: %u does not exists", skill);
@@ -676,7 +702,7 @@ int32_t GetSpellIDFromLink(const char* spelllink)
         return 0;
     }
 
-    return atol(ptr + 8);       // spell id is just past "|Hspell:" (8 bytes)
+    return std::stoul(ptr + 8);       // spell id is just past "|Hspell:" (8 bytes)
 }
 
 void ChatHandler::SendItemLinkToPlayer(ItemProperties const* iProto, WorldSession* pSession, bool ItemCount, Player* owner, uint32_t language)

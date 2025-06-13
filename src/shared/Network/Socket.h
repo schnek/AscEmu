@@ -19,17 +19,19 @@
 #include <map>
 #include <set>
 
+#include "Threading/Mutex.hpp"
+
 class SERVER_DECL Socket
 {
     public:
         // Constructor. If fd = 0, it will be assigned
-        Socket(SOCKET fd, uint32 sendbuffersize, uint32 recvbuffersize);
+        Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize);
 
         // Destructor.
         virtual ~Socket();
 
         // Open a connection to another machine.
-        bool Connect(const char* Address, uint32 Port);
+        bool Connect(const char* Address, uint32_t Port);
 
         // Disconnect the socket.
         void Disconnect();
@@ -51,31 +53,31 @@ class SERVER_DECL Socket
         /* Sending Operations */
 
         // Locks sending mutex, adds bytes, unlocks mutex.
-        bool Send(const uint8* Bytes, uint32 Size);
+        bool Send(const uint8_t* Bytes, uint32_t Size);
 
         // Burst system - Locks the sending mutex.
-        inline void BurstBegin() { m_writeMutex.Acquire(); }
+        inline void BurstBegin() { m_writeMutex.acquire(); }
 
         // Burst system - Adds bytes to output buffer.
-        bool BurstSend(const uint8* Bytes, uint32 Size);
+        bool BurstSend(const uint8_t* Bytes, uint32_t Size);
 
         // Burst system - Pushes event to queue - do at the end of write events.
         void BurstPush();
 
         // Burst system - Unlocks the sending mutex.
-        inline void BurstEnd() { m_writeMutex.Release(); }
+        inline void BurstEnd() { m_writeMutex.release(); }
 
         /* Client Operations */
 
         // Get the client's ip in numerical form.
         std::string GetRemoteIP();
-        inline uint32 GetRemotePort() { return ntohs(m_client.sin_port); }
+        inline uint32_t GetRemotePort() { return ntohs(m_client.sin_port); }
         inline SOCKET GetFd() { return m_fd; }
 
         /* Platform-specific methods */
 
         void SetupReadEvent();
-        void ReadCallback(uint32 len);
+        void ReadCallback(uint32_t len);
         void WriteCallback();
 
         inline bool IsDeleted()
@@ -161,7 +163,7 @@ class SERVER_DECL Socket
 #ifdef CONFIG_USE_EPOLL
     public:
         // Posts a epoll event with the specifed arguments.
-        void PostEvent(uint32 events);
+        void PostEvent(uint32_t events);
 
         inline bool HasSendLock()
         {
@@ -189,13 +191,13 @@ class SERVER_DECL Socket
         void PollTraffic(unsigned long* sent, unsigned long* recieved)
         {
 
-            m_writeMutex.Acquire();
+            m_writeMutex.acquire();
             *sent = m_BytesSent;
             *recieved = m_BytesRecieved;
             m_BytesSent = 0;
             m_BytesRecieved = 0;
 
-            m_writeMutex.Release();
+            m_writeMutex.release();
         }
 };
 
@@ -264,7 +266,7 @@ class SocketGarbageCollector
         {
             std::map<Socket*, time_t>::iterator i, i2;
             time_t t = UNIXTIME;
-            lock.Acquire();
+            lock.acquire();
             for(i = deletionQueue.begin(); i != deletionQueue.end();)
             {
                 i2 = i++;
@@ -274,14 +276,14 @@ class SocketGarbageCollector
                     deletionQueue.erase(i2);
                 }
             }
-            lock.Release();
+            lock.release();
         }
 
         void QueueSocket(Socket* s)
         {
-            lock.Acquire();
+            lock.acquire();
             deletionQueue.insert(std::map<Socket*, time_t>::value_type(s, UNIXTIME + SOCKET_GC_TIMEOUT));
-            lock.Release();
+            lock.release();
         }
 };
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -11,6 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/Units/Creatures/AIInterface.h"
 #include "Objects/Units/Creatures/Creature.h"
 #include "Storage/MySQLDataStore.hpp"
+#include "Utilities/TimeTracker.hpp"
 
 MapScriptInterface::MapScriptInterface(WorldMap& mgr) : m_worldMap(mgr)
 {}
@@ -344,16 +345,16 @@ Creature* MapScriptInterface::spawnCreature(uint32_t Entry, LocationVector pos, 
     spawn->o = pos.o;
     spawn->emote_state = 0;
     spawn->flags = 0;
+    spawn->pvp_flagged = 0;
     spawn->factionid = creature_properties->Faction;
     spawn->bytes0 = 0;
-    spawn->bytes1 = 0;
-    spawn->bytes2 = 0;
     spawn->stand_state = 0;
     spawn->death_state = 0;
     spawn->channel_target_creature = 0;
     spawn->channel_target_go = 0;
     spawn->channel_spell = 0;
     spawn->MountedDisplayID = 0;
+    spawn->sheath_state = 0;
 
     spawn->Item1SlotEntry = creature_properties->itemslot_1;
     spawn->Item2SlotEntry = creature_properties->itemslot_2;

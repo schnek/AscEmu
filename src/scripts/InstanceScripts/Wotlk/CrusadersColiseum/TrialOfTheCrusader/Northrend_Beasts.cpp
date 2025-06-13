@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -15,6 +15,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellAura.hpp"
 #include "Spell/SpellInfo.hpp"
 #include "CommonTime.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 ///  Combat Stalker
@@ -96,7 +97,7 @@ void CombatStalkerAI::StartIcehowl(CreatureAIFunc pThis)
 NorthrendBeastsAI::NorthrendBeastsAI(Creature* pCreature) : CreatureAIScript(pCreature)
 {
     // Add Boundary
-    pCreature->getAIInterface()->addBoundary(new CircleBoundary(LocationVector(563.26f, 139.6f), 75.0));
+    pCreature->getAIInterface()->addBoundary(std::make_unique<CircleBoundary>(LocationVector(563.26f, 139.6f), 75.0));
 }
 
 CreatureAIScript* NorthrendBeastsAI::Create(Creature* pCreature) { return new NorthrendBeastsAI(pCreature); }
@@ -211,7 +212,7 @@ void NorthrendBeastsAI::initialMove(CreatureAIFunc pThis)
 ///  Gormok
 GormokAI::GormokAI(Creature* pCreature) : NorthrendBeastsAI(pCreature)
 {
-    setUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_PLUS_MOB);
+    setUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT | UNIT_FLAG_IGNORE_PLAYER_COMBAT | UNIT_FLAG_PLUS_MOB);
     getCreature()->setAItoUse(true);
     _setWieldWeapon(true);
 }
@@ -381,7 +382,7 @@ void SnoboldAI::mountOnBoss()
         cancelFunctionFromScheduler(func_Batter);
         cancelFunctionFromScheduler(func_HeadCrack);
 
-        for (uint8 i = 0; i < Beasts::MAX_SNOBOLDS; i++)
+        for (uint8_t i = 0; i < Beasts::MAX_SNOBOLDS; i++)
         {
             if (!gormok->getVehicleKit()->getPassenger(i))
             {
@@ -1180,7 +1181,7 @@ SpellScriptExecuteState SlimePool::onAuraPeriodicTick(Aura* aur, AuraEffectModif
         return SpellScriptExecuteState::EXECUTE_OK;
 
     ++stackCounter;
-    int32_t const radius = static_cast<int32>(((stackCounter / 60.f) * 0.9f + 0.1f) * 10000.f * 2.f / 3.f);
+    int32_t const radius = static_cast<int32_t>(((stackCounter / 60.f) * 0.9f + 0.1f) * 10000.f * 2.f / 3.f);
 
     SpellInfo const* spellInfo = sSpellMgr.getSpellInfo(aur->getSpellInfo()->getEffectTriggerSpell(aurEff->getEffectIndex()));
     Unit* caster = aur->GetUnitTarget();

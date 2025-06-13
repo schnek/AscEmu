@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -22,11 +22,12 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/HookInterface.hpp"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellInfo.hpp"
+#include "Utilities/Narrow.hpp"
 
 const uint32_t ARENA_PREPARATION = 32727;
 
-const uint32_t GREEN_TEAM = 0;
-const uint32_t GOLD_TEAM = 1;
+// const uint32_t GREEN_TEAM = 0;
+// const uint32_t GOLD_TEAM = 1;
 
 Arena::Arena(WorldMap* _worldMap, uint32_t _id, uint32_t _levelGroup, uint32_t _arenaType, uint32_t _playersPerSide) : Battleground(_worldMap, _id, _levelGroup, _arenaType)
 {
@@ -127,7 +128,7 @@ bool Arena::HandleFinishBattlegroundRewardCalculation(PlayerTeam _winningTeam)
 
             for (std::set<uint32_t>::iterator itr = m_players2[i].begin(); itr != m_players2[i].end(); ++itr)
             {
-                std::shared_ptr<CachedCharacterInfo> info = sObjectMgr.getCachedCharacterInfo(*itr);
+                const auto info = sObjectMgr.getCachedCharacterInfo(*itr);
                 if (info)
                 {
                     ArenaTeamMember* tp = m_teams[i]->getMember(info);
@@ -221,8 +222,8 @@ void Arena::OnAddPlayer(Player* _player)
         _player->setIsQueuedForBg(false);
 
     // Add the green/gold team flag
-    Aura* aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo((_player->getInitialTeam()) ? 35775 - _player->getBgTeam() : 32725 - _player->getBgTeam()), -1, _player, _player, true);
-    _player->addAura(aura);
+    auto aura = sSpellMgr.newAura(sSpellMgr.getSpellInfo((_player->getInitialTeam()) ? 35775 - _player->getBgTeam() : 32725 - _player->getBgTeam()), -1, _player, _player, true);
+    _player->addAura(std::move(aura));
 
     _player->setFfaPvpFlag();
 
@@ -251,7 +252,7 @@ void Arena::HookOnPlayerKill(Player* _player, Player* _playerVictim)
 {
     if (!m_hasStarted)
     {
-        _player->kill(); //cheater.
+        _player->die(nullptr, 0, 0); //cheater.
         return;
     }
 
@@ -393,7 +394,7 @@ uint32_t Arena::CalcDeltaRating(uint32_t _oldRating, uint32_t _opponentRating, b
     // K is the maximum possible change
     // Through investigation, K was estimated to be 32 (same as chess)
     double multiplier = (_outcome ? 1.0 : 0.0) - winChance;
-    return long2int32(32.0 * multiplier);
+    return Util::long2int32(32.0 * multiplier);
 }
 
 uint32_t Arena::GetTeamFaction(uint32_t _teamId)
@@ -405,7 +406,7 @@ uint32_t Arena::GetTeamFaction(uint32_t _teamId)
 
 uint8_t Arena::Rated() { return rated_match; }
 uint8_t Arena::GetArenaTeamType() const { return m_arenateamtype; }
-std::shared_ptr<ArenaTeam>* Arena::GetTeams() { return m_teams; }
+ArenaTeam** Arena::GetTeams() { return m_teams; }
 
 LocationVector Arena::GetStartingCoords(uint32_t /*Team*/)
 {

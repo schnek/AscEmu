@@ -1,7 +1,9 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
+
+#include <sstream>
 
 #include "Chat/ChatDefines.hpp"
 #include "Chat/ChatHandler.hpp"
@@ -123,7 +125,7 @@ bool ChatHandler::HandleRecallListCommand(const char* args, WorldSession* m_sess
     std::string search(args);
     AscEmu::Util::Strings::toLowerCase(search);
 
-    for (auto* recall : sMySQLStore.getRecallStore())
+    for (const auto& recall : sMySQLStore.getRecallStore())
     {
         std::string recallName(recall->name);
         AscEmu::Util::Strings::toLowerCase(recallName);

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,7 @@ void Database::CleanupLibs()
 }
 
 
-Database* Database::CreateDatabaseInterface()
+std::unique_ptr<Database> Database::CreateDatabaseInterface()
 {
-    return new MySQLDatabase();
+    return std::make_unique<MySQLDatabase>();
 }

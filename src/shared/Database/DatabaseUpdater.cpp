@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,14 +7,16 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Logging/Logger.hpp>
 #include "Database.h"
 #include "Field.hpp"
-#include <Common.hpp>
 #include "CommonFilesystem.hpp"
 #include <Utilities/Util.hpp>
 #include <iostream>
+#include <regex>
+
+#include "Threading/LegacyThreadPool.h"
 
 void DatabaseUpdater::initBaseIfNeeded(const std::string& dbName, const std::string& dbBaseType, Database& dbPointer)
 {
-    QueryResult* dbResult = dbPointer.Query("SHOW TABLES FROM %s", dbName.c_str());
+    auto dbResult = dbPointer.Query("SHOW TABLES FROM %s", dbName.c_str());
     if (dbResult == nullptr)
     {
         sLogger.info("Database: Your Database {} has no tables. AE is setting up the database for you.", dbName);
@@ -34,7 +36,7 @@ void DatabaseUpdater::initBaseIfNeeded(const std::string& dbName, const std::str
         while (currentProgress < 1.0f)
         {
             // calc percentage
-            const uint32_t sendQueues = queue - dbPointer.GetQueueSize();
+            const size_t sendQueues = queue - dbPointer.GetQueueSize();
             currentProgress = static_cast<float>(sendQueues) / static_cast<float>(queue);
 
             std::cout << "Creating '" << dbName << "' : ";
@@ -73,6 +75,7 @@ void DatabaseUpdater::setupDatabase(const std::string& database, Database& dbPoi
     {
         sLogger.debug("{}", baseFilePath.generic_string());
         std::string loadedFile = Util::readFileIntoString(baseFilePath);
+        loadedFile = std::regex_replace(loadedFile, std::regex("\r\n+"), "\n");
 
         // split into seperated string
         std::vector<std::string> seglist;
@@ -106,8 +109,8 @@ void DatabaseUpdater::checkAndApplyDBUpdatesIfNeeded(const std::string& database
 struct DatabaseUpdateFile
 {
     std::string fullName;
-    uint32_t majorVersion;
-    uint32_t minorVersion;
+    uint32_t majorVersion = 0;
+    uint32_t minorVersion = 0;
 };
 
 void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Database& dbPointer)
@@ -116,7 +119,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // 1. get current version
-    QueryResult* result = dbPointer.Query("SELECT LastUpdate FROM %s_db_version ORDER BY LastUpdate DESC LIMIT 1", database.c_str());
+    auto result = dbPointer.Query("SELECT LastUpdate FROM %s_db_version ORDER BY LastUpdate DESC LIMIT 1", database.c_str());
 
     if (!result)
     {
@@ -125,7 +128,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
     }
 
     Field* fields = result->Fetch();
-    const std::string dbLastUpdate = fields[0].GetString();
+    const std::string dbLastUpdate = fields[0].asCString();
 
     sLogger.info("Database {} Version : {}", database, dbLastUpdate);
 
@@ -147,7 +150,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
 
     // In Windows, recursive_directory_iterator seems to get files sorted but
     // in Linux they are in random order -Appled
-    std::sort(updateFiles.begin(), updateFiles.end());
+    std::ranges::sort(updateFiles);
 
     for (const auto& filePathName : updateFiles)
     {
@@ -165,7 +168,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
         //\todo Remove me
         //sLogger.info("Available file in updates dir: {}", filePathName);
 
-        updateSqlStore.emplace(std::pair<uint32_t, DatabaseUpdateFile>(count, dbUpdateFile));
+        updateSqlStore.emplace(count, dbUpdateFile);
         ++count;
     }
 
@@ -179,7 +182,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
     {
         //sLogger.debug("=========== New {} update files in {} ===========", database, sqlUpdateDir);
         //compare it with latest update in mysql
-        for (const auto update : updateSqlStore)
+        for (const auto& update : updateSqlStore)
         {
             bool addToUpdateFiles = false;
             if (update.second.majorVersion == lastUpdateMajor && update.second.minorVersion > lastUpdateMinor)
@@ -190,7 +193,7 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
 
             if (addToUpdateFiles)
             {
-                applyNewUpdateFilesStore.insert(update);
+                applyNewUpdateFilesStore.emplace(update);
                 sLogger.debug("Updatefile {}, Major({}), Minor({}) - added and ready to be applied!", update.second.fullName, update.second.majorVersion, update.second.minorVersion);
             }
         }
@@ -200,16 +203,18 @@ void DatabaseUpdater::applyUpdatesForDatabase(const std::string& database, Datab
     // 4. open/parse files and apply to db
     if (!applyNewUpdateFilesStore.empty())
     {
-        sLogger.debug("=========== Applying sql updates from {} ===========", sqlUpdateDir);
+        sLogger.info("=========== Applying sql updates from {} ===========", sqlUpdateDir);
 
-        for (const auto execute : applyNewUpdateFilesStore)
+        for (const auto& [_, updateFilePath] : applyNewUpdateFilesStore)
         {
-            const fs::path sqlFile = fs::current_path() /= execute.second.fullName;
+            const fs::path sqlFile = fs::current_path() /= updateFilePath.fullName;
 
             if (fs::exists(sqlFile))
             {
-                sLogger.debug("{}", execute.second.fullName);
+                sLogger.info("{}", updateFilePath.fullName);
                 std::string loadedFile = Util::readFileIntoString(sqlFile);
+                // Make sure newlines are same in all files -Appled
+                loadedFile = std::regex_replace(loadedFile, std::regex("\r\n+"), "\n");
 
                 // split into seperated string
                 std::vector<std::string> seglist;

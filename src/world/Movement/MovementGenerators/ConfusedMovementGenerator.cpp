@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -11,9 +11,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Movement/PathGenerator.h"
 #include "Objects/Units/Creatures/AIInterface.h"
 #include "Objects/Units/Players/Player.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/TimeTracker.hpp"
 
 template<class T>
-ConfusedMovementGenerator<T>::ConfusedMovementGenerator() : _timer(0), _x(0.f), _y(0.f), _z(0.f)
+ConfusedMovementGenerator<T>::ConfusedMovementGenerator() : _timer(std::make_unique<Util::SmallTimeTracker>(0)), _x(0.f), _y(0.f), _z(0.f)
 {
     this->Mode = MOTION_MODE_DEFAULT;
     this->Priority = MOTION_PRIORITY_HIGHEST;
@@ -40,7 +42,7 @@ void ConfusedMovementGenerator<T>::doInitialize(T* owner)
     owner->addUnitFlags(UNIT_FLAG_CONFUSED);
     owner->stopMoving();
 
-    _timer.resetInterval(0);
+    _timer->resetInterval(0);
     owner->getPosition(_x, _y, _z);
     _path = nullptr;
 }
@@ -70,8 +72,8 @@ bool ConfusedMovementGenerator<T>::doUpdate(T* owner, uint32_t diff)
         MovementGenerator::removeFlag(MOVEMENTGENERATOR_FLAG_INTERRUPTED);
 
     // waiting for next move
-    _timer.updateTimer(diff);
-    if ((MovementGenerator::hasFlag(MOVEMENTGENERATOR_FLAG_SPEED_UPDATE_PENDING) && !owner->movespline->Finalized()) || (_timer.isTimePassed() && owner->movespline->Finalized()))
+    _timer->updateTimer(diff);
+    if ((MovementGenerator::hasFlag(MOVEMENTGENERATOR_FLAG_SPEED_UPDATE_PENDING) && !owner->movespline->Finalized()) || (_timer->isTimePassed() && owner->movespline->Finalized()))
     {
         MovementGenerator::removeFlag(MOVEMENTGENERATOR_FLAG_TRANSITORY);
 
@@ -84,7 +86,7 @@ bool ConfusedMovementGenerator<T>::doUpdate(T* owner, uint32_t diff)
         if (!owner->IsWithinLOS(destination))
         {
             // Retry later on
-            _timer.resetInterval(200);
+            _timer->resetInterval(200);
             return true;
         }
 
@@ -99,7 +101,7 @@ bool ConfusedMovementGenerator<T>::doUpdate(T* owner, uint32_t diff)
                     || (_path->getPathType() & PATHFIND_SHORTCUT)
                     || (_path->getPathType() & PATHFIND_FARFROMPOLY))
         {
-            _timer.resetInterval(100);
+            _timer->resetInterval(100);
             return true;
         }
 
@@ -108,8 +110,8 @@ bool ConfusedMovementGenerator<T>::doUpdate(T* owner, uint32_t diff)
         MovementMgr::MoveSplineInit init(owner);
         init.MovebyPath(_path->getPath());
         init.SetWalk(true);
-        int32 traveltime = init.Launch();
-        _timer.resetInterval(std::max(300u, Util::getRandomUInt(traveltime / 2, traveltime * 2)));
+        int32_t traveltime = init.Launch();
+        _timer->resetInterval(std::max(300u, Util::getRandomUInt(traveltime / 2, traveltime * 2)));
     }
 
     return true;
@@ -159,7 +161,7 @@ template void ConfusedMovementGenerator<Player>::doInitialize(Player*);
 template void ConfusedMovementGenerator<Creature>::doInitialize(Creature*);
 template void ConfusedMovementGenerator<Player>::doReset(Player*);
 template void ConfusedMovementGenerator<Creature>::doReset(Creature*);
-template bool ConfusedMovementGenerator<Player>::doUpdate(Player*, uint32);
-template bool ConfusedMovementGenerator<Creature>::doUpdate(Creature*, uint32);
+template bool ConfusedMovementGenerator<Player>::doUpdate(Player*, uint32_t);
+template bool ConfusedMovementGenerator<Creature>::doUpdate(Creature*, uint32_t);
 template void ConfusedMovementGenerator<Player>::doDeactivate(Player*);
 template void ConfusedMovementGenerator<Creature>::doDeactivate(Creature*);

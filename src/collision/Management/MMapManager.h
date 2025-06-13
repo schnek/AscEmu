@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #include "DetourNavMesh.h"
 #include "DetourNavMeshQuery.h"
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -54,7 +55,7 @@ namespace MMAP
     };
 
 
-    typedef std::unordered_map<uint32_t, MMapData*> MMapDataSet;
+    typedef std::unordered_map<uint32_t, std::unique_ptr<MMapData>> MMapDataSet;
 
     // singleton class
     // holds all all access to mmap loading unloading and meshes

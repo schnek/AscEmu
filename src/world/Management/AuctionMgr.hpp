@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,6 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 class AuctionHouse;
@@ -35,7 +36,7 @@ public:
 
 private:
     std::unordered_map<uint32_t, AuctionHouse*> m_auctionHouseEntryMap;
-    std::vector<AuctionHouse*> m_auctionHouses;
+    std::vector<std::unique_ptr<AuctionHouse>> m_auctionHouses;
 
     std::atomic<unsigned long> m_maxId = 1;
 

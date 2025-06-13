@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -1545,7 +1545,7 @@ namespace WDB::Structures
         uint32_t MapID;                                             // 1
         uint32_t Difficulty;                                        // 2 (for arenas: arena slot)
         char const* Message;                                        // 3-18 text showed when transfer to map failed (missing requirements)
-        //uint32 Message_lang_mask;                                 // 19
+        //uint32_t Message_lang_mask;                               // 19
         uint32_t RaidDuration;                                      // 20
         uint32_t MaxPlayers;                                        // 21
         //char const* Difficultystring;                             // 22

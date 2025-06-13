@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -42,7 +42,7 @@ public:
 
     void invitePlayer(Player* plr, Player* new_player);
     void kickOrBanPlayer(Player* plr, Player* die_player, bool ban);
-    void unBanPlayer(Player* plr, std::shared_ptr<CachedCharacterInfo> bplr);
+    void unBanPlayer(Player* plr, CachedCharacterInfo const* bplr);
 
     void moderateChannel(Player* plr);
     void giveModerator(Player* plr, Player* new_player);

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -113,6 +113,22 @@ void TaxiPath::initTaxiNodesForLevel(uint32_t race, uint32_t chrClass, uint8_t l
             setTaximaskNode(94);
             break;
 #endif
+#if VERSION_STRING >= Cata
+        case RACE_GOBLIN:
+            setTaximaskNode(23);
+            break;
+        case RACE_WORGEN:
+            setTaximaskNode(2);
+            break;
+#endif
+#if VERSION_STRING >= Mop   
+        case RACE_PANDAREN_ALLIANCE:
+            setTaximaskNode(2);
+            break;
+        case RACE_PANDAREN_HORDE:
+            setTaximaskNode(23);
+            break;
+#endif
         default:
             break;
     }
@@ -178,7 +194,7 @@ void TaxiPath::loadTaxiMask(std::string const& data)
     uint8_t index = 0;
     for (; index < DBC_TAXI_MASK_SIZE && iter != tokens.cend(); ++iter, ++index)
     {
-        if (const uint32_t mask = atol((*iter).c_str()))
+        if (const uint32_t mask = std::stoul((*iter).c_str()))
         {
             // load and set bits only for existing taxi nodes
             m_taximask[index] = sTaxiNodesMask[index] & mask;
@@ -224,7 +240,7 @@ bool TaxiPath::loadTaxiDestinationsFromString(std::string const& values, uint32_
     const auto tokens = AscEmu::Util::Strings::split(values, " ");
     for (const auto& itr : tokens)
     {
-        if (const uint32_t node = atol((itr).c_str()))
+        if (const uint32_t node = std::stoul((itr).c_str()))
             addTaxiDestination(node);
         else
             return false;
@@ -397,7 +413,7 @@ void TaxiMgr::loadTaxiNodeLevelData()
     auto oldMSTime = Util::TimeNow();
 
     //                                               0            1
-    QueryResult* result = WorldDatabase.Query("SELECT TaxiNodeId, `Level` FROM taxi_level_data ORDER BY TaxiNodeId ASC");
+    auto result = WorldDatabase.Query("SELECT TaxiNodeId, `Level` FROM taxi_level_data ORDER BY TaxiNodeId ASC");
 
     if (!result)
     {
@@ -410,8 +426,8 @@ void TaxiMgr::loadTaxiNodeLevelData()
     {
         Field* fields = result->Fetch();
 
-        uint32_t taxiNodeId = fields[0].GetUInt16();
-        uint8_t level = fields[1].GetUInt8();
+        uint32_t taxiNodeId = fields[0].asUint16();
+        uint8_t level = fields[1].asUint8();
 
         const auto node = sTaxiNodesStore.lookupEntry(taxiNodeId);
         if (node == nullptr)
@@ -445,7 +461,7 @@ void TaxiMgr::initialize()
 
     // Initialize global taxinodes mask
     // include existed nodes that have at least single not spell base (scripted) path
-    std::set<uint32> spellPaths;
+    std::set<uint32_t> spellPaths;
 
 #if VERSION_STRING > WotLK
     for (uint32_t i = 0; i < sSpellEffectStore.getNumRows(); ++i)

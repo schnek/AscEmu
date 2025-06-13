@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -15,13 +15,14 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellAura.hpp"
 #include "Spell/SpellInfo.hpp"
 #include "Storage/WDB/WDBStores.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Twins Base AI
 TwinsAI::TwinsAI(Creature* pCreature) : CreatureAIScript(pCreature)
 {
     // Add Boundary
-    pCreature->getAIInterface()->addBoundary(new CircleBoundary(LocationVector(563.26f, 139.6f), 75.0));
+    pCreature->getAIInterface()->addBoundary(std::make_unique<CircleBoundary>(LocationVector(563.26f, 139.6f), 75.0));
 
     AuraState = 0;
     Weapon = 0;
@@ -66,8 +67,8 @@ void TwinsAI::OnCombatStart(Unit*)
     if (CreatureAIScript* pSister = getLinkedCreatureAIScript())
     {
         SpellInfo const* spellInfo = sSpellMgr.getSpellInfo(MyEmphatySpellId);
-        Aura* pAura = sSpellMgr.newAura(spellInfo, (int32_t)GetDuration(sSpellDurationStore.lookupEntry(spellInfo->getDurationIndex())), getCreature(), pSister->getCreature());
-        getCreature()->addAura(pAura);
+        auto pAura = sSpellMgr.newAura(spellInfo, (int32_t)GetDuration(sSpellDurationStore.lookupEntry(spellInfo->getDurationIndex())), getCreature(), pSister->getCreature());
+        getCreature()->addAura(std::move(pAura));
         setZoneWideCombat(pSister->getCreature());
     }
 

@@ -1,11 +1,10 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #pragma once
 
-#include "CommonTypes.hpp"
 #include "GameEventDefines.hpp"
 #include "Threading/AEThread.h"
 
@@ -50,7 +49,7 @@ public:
     ActiveEvents const& GetActiveEventList() const { return mActiveEvents; }
     void StartArenaEvents();
     void LoadFromDB();
-    GameEvent* GetEventById(uint32 pEventId);
+    GameEvent* GetEventById(uint32_t pEventId);
 
     GameEvents mGameEvents;
     ActiveEvents mActiveEvents;

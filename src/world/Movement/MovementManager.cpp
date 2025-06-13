@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -35,6 +35,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "MovementGenerators/FlightPathMovementGenerator.h"
 #include "Objects/Units/Creatures/AIInterface.h"
 #include "Storage/MySQLDataStore.hpp"
+#include "Utilities/TimeTracker.hpp"
 
 namespace FactorySelector
 {
@@ -670,7 +671,7 @@ void MovementManager::moveLand(uint32_t id, LocationVector const& pos, Optional<
     MovementMgr::MoveSplineInit init(_owner);
     init.MoveTo(positionToVector3(pos), false);
 #if VERSION_STRING >= WotLK
-    init.SetAnimation(AnimationTier::Ground);
+    init.SetAnimation(ANIMATION_FLAG_GROUND);
 #endif
     if (velocity)
         init.SetVelocity(*velocity);
@@ -682,7 +683,7 @@ void MovementManager::moveTakeoff(uint32_t id, LocationVector const& pos, Option
     MovementMgr::MoveSplineInit init(_owner);
     init.MoveTo(positionToVector3(pos), false);
 #if VERSION_STRING >= WotLK
-    init.SetAnimation(AnimationTier::Hover);
+    init.SetAnimation(ANIMATION_FLAG_HOVER);
 #endif
     if (velocity)
         init.SetVelocity(*velocity);
@@ -830,7 +831,7 @@ void MovementManager::moveCirclePath(float x, float y, float z, float radius, bo
         init.SetFly();
         init.SetCyclic();
 #if VERSION_STRING >= WotLK
-        init.SetAnimation(AnimationTier::Hover);
+        init.SetAnimation(ANIMATION_FLAG_HOVER);
 #endif
     }
     else

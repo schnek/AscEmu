@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -85,7 +85,7 @@ void WorldSession::handleCreatureQueryOpcode(WorldPacket& recvData)
     const auto subName = loc ? loc->subName : creature_info->SubName.c_str();
 
     sLogger.debug("Received SMSG_CREATURE_QUERY_RESPONSE for entry: {}", srlPacket.entry);
-    SendPacket(SmsgCreatureQueryResponse(*creature_info, srlPacket.entry, name, subName).serialise().get());
+    SendPacket(SmsgCreatureQueryResponse(creature_info, srlPacket.entry, name, subName).serialise().get());
 }
 
 void WorldSession::handleQueryTimeOpcode(WorldPacket& /*recvPacket*/)

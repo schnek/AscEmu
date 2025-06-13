@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -19,7 +19,7 @@ class Unit;
 struct DamageInfo;
 struct SpellForcedBasePoints;
 
-typedef SpellProc* (*spell_proc_factory_function)();
+typedef std::unique_ptr<SpellProc> (*spell_proc_factory_function)();
 typedef std::unordered_map<uint32_t, spell_proc_factory_function> SpellProcMap;
 
 class SERVER_DECL SpellProc
@@ -184,8 +184,8 @@ public:
     // Registers multiple spell ids to same spell proc script
     void addByIds(uint32_t* spellIds, spell_proc_factory_function spellProc);
 
-    SpellProc* newSpellProc(Unit* owner, uint32_t spellId, uint32_t origSpellId, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask, Aura* createdByAura, Object* obj);
-    SpellProc* newSpellProc(Unit* owner, SpellInfo const* spellInfo, SpellInfo const* origSpellInfo, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask, Aura* createdByAura, Object* obj);
+    std::unique_ptr<SpellProc> newSpellProc(Unit* owner, uint32_t spellId, uint32_t origSpellId, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask, Aura* createdByAura, Object* obj);
+    std::unique_ptr<SpellProc> newSpellProc(Unit* owner, SpellInfo const* spellInfo, SpellInfo const* origSpellInfo, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask, Aura* createdByAura, Object* obj);
 
 private:
     SpellProcMap mSpellProc;

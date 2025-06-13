@@ -1,11 +1,17 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "CommandTableStorage.hpp"
+
+#include <sstream>
+
 #include "ChatCommand.hpp"
 #include "ChatHandler.hpp"
+#include "CommandRegistry.hpp"
+#include "Commands/AccountCommand.hpp"
+#include "Commands/AchievementCommand.hpp"
 #include "Logging/Logger.hpp"
 #include "Server/DatabaseDefinition.hpp"
 #include "Utilities/Strings.hpp"
@@ -38,8 +44,6 @@ ChatCommand* CommandTableStorage::GetSubCommandTable(const char* name)
         return _NPCCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "cheat"))
         return _CheatCommandTable;
-    if (AscEmu::Util::Strings::isEqual(name, "account"))
-        return _accountCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "quest"))
         return _questCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "pet"))
@@ -68,8 +72,6 @@ ChatCommand* CommandTableStorage::GetSubCommandTable(const char* name)
         return _instanceCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "arena"))
         return _arenaCommandTable;
-    if (AscEmu::Util::Strings::isEqual(name, "achieve"))
-        return _achievementCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "vehicle"))
         return _vehicleCommandTable;
     if (AscEmu::Util::Strings::isEqual(name, "transport"))
@@ -110,7 +112,7 @@ ChatCommand* CommandTableStorage::GetReloadCommandTable(const char* name)
 }
 
 #define dupe_command_table(ct, dt) this->dt = (ChatCommand*)allocate_and_copy(sizeof(ct)/* / sizeof(ct[0])*/, ct)
-inline void* allocate_and_copy(uint32 len, void* pointer)
+inline void* allocate_and_copy(uint32_t len, void* pointer)
 {
     void* data = malloc(len);
     memcpy(data, pointer, len);
@@ -119,16 +121,15 @@ inline void* allocate_and_copy(uint32 len, void* pointer)
 
 void CommandTableStorage::Load()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT command_name, access_level FROM command_overrides");
+    auto result = CharacterDatabase.Query("SELECT command_name, access_level FROM command_overrides");
     if (!result) return;
 
     do
     {
-        const char* name = result->Fetch()[0].GetString();
-        const char* level = result->Fetch()[1].GetString();
+        const char* name = result->Fetch()[0].asCString();
+        const char* level = result->Fetch()[1].asCString();
         Override(name, level);
     } while (result->NextRow());
-    delete result;
 }
 
 void CommandTableStorage::Override(const char* command, const char* level)
@@ -262,7 +263,6 @@ void CommandTableStorage::Dealloc()
     free(_NPCCommandTable);
     free(_NPCSetCommandTable);
     free(_CheatCommandTable);
-    free(_accountCommandTable);
     free(_petCommandTable);
     free(_recallCommandTable);
     free(_questCommandTable);
@@ -280,10 +280,17 @@ void CommandTableStorage::Dealloc()
     free(_unbanCommandTable);
     free(_instanceCommandTable);
     free(_arenaCommandTable);
-    free(_achievementCommandTable);
     free(_vehicleCommandTable);
     free(_transportCommandTable);
     free(_commandTable);
+}
+
+void CommandTableStorage::registerCommands()
+{
+    // Register the main ".account" command with all subcommands
+    CommandRegistry::getInstance().registerCommand("account", std::make_unique<AccountCommand>());
+    CommandRegistry::getInstance().registerCommand("achievement", std::make_unique<AchievementCommand>());
+    CommandRegistry::getInstance().loadOverrides();
 }
 
 void CommandTableStorage::Init()
@@ -317,7 +324,9 @@ void CommandTableStorage::Init()
         { "flags",                  'm', &ChatHandler::HandleModifyFlags,                                  "Mods flags of the selected target.",                                                nullptr },
         { "faction",                'm', &ChatHandler::HandleModifyFaction,                                "Mods faction template of the selected target.",                                     nullptr },
         { "dynamicflags",           'm', &ChatHandler::HandleModifyDynamicflags,                           "Mods dynamic flags of the selected target.",                                        nullptr },
+#if VERSION_STRING < Cata
         { "happiness",              'm', &ChatHandler::HandleModifyHappiness,                              "Mods happiness value of the selected target.",                                      nullptr },
+#endif
         { "boundingradius",         'm', &ChatHandler::HandleModifyBoundingradius,                         "Mods bounding radius of the selected target.",                                      nullptr },
         { "combatreach",            'm', &ChatHandler::HandleModifyCombatreach,                            "Mods combat reach of the selected target.",                                         nullptr },
         { "emotestate",             'm', &ChatHandler::HandleModifyEmotestate,                             "Mods Unit emote state of the selected target.",                                     nullptr },
@@ -582,20 +591,6 @@ void CommandTableStorage::Init()
     };
     dupe_command_table(CheatCommandTable, _CheatCommandTable);
 
-    static ChatCommand accountCommandTable[] =
-    {
-        { "create",                 'a', &ChatHandler::HandleAccountCreate,                                "Creates an account with name and password",                                         nullptr },
-        { "setgm",                  'z', &ChatHandler::HandleAccountSetGMCommand,                          "Sets gm level on account. Pass it username and 0,1,2,3,az, etc.",                   nullptr },
-        { "mute",                   'a', &ChatHandler::HandleAccountMuteCommand,                           "Mutes account for <timeperiod>.",                                                   nullptr },
-        { "unmute",                 'a', &ChatHandler::HandleAccountUnmuteCommand,                         "Unmutes account <x>",                                                               nullptr },
-        { "ban",                    'a', &ChatHandler::HandleAccountBannedCommand,                         "Bans account: .ban account <name> [duration] [reason]",                             nullptr },
-        { "unban",                  'z', &ChatHandler::HandleAccountUnbanCommand,                          "Unbans account x.",                                                                 nullptr },
-        { "changepw",               '0', &ChatHandler::HandleAccountChangePassword,                        "Change the password of your account.",                                              nullptr },
-        { "getid",                  '1', &ChatHandler::HandleAccountGetAccountID,                          "Get Account ID for account name X",                                                 nullptr },
-        { nullptr,                  '0', nullptr,                                                          "",                                                                                  nullptr }
-    };
-    dupe_command_table(accountCommandTable, _accountCommandTable);
-
     static ChatCommand petCommandTable[] =
     {
         { "create",                 'm', &ChatHandler::HandlePetCreateCommand,                             "Creates a pet with <entry>.",                                                       nullptr },
@@ -847,17 +842,6 @@ void CommandTableStorage::Init()
     };
     dupe_command_table(arenaCommandTable, _arenaCommandTable);
 
-    static ChatCommand achievementCommandTable[] =
-    {
-#if VERSION_STRING > TBC
-        { "complete",               'm', &ChatHandler::HandleAchievementCompleteCommand,                   "Completes the specified achievement.",                                              nullptr },
-        { "criteria",               'm', &ChatHandler::HandleAchievementCriteriaCommand,                   "Completes the specified achievement criteria.",                                     nullptr },
-        { "reset",                  'm', &ChatHandler::HandleAchievementResetCommand,                      "Resets achievement data from the target.",                                          nullptr },
-#endif
-        { nullptr,                  '0', nullptr,                                                          "",                                                                                  nullptr }
-    };
-    dupe_command_table(achievementCommandTable, _achievementCommandTable);
-
     static ChatCommand vehicleCommandTable[] =
     {
 #ifdef FT_VEHICLES
@@ -900,7 +884,6 @@ void CommandTableStorage::Init()
         { "battleground",           '0', nullptr,                                                          "",                                                                 BattlegroundCommandTable },
         { "npc",                    '0', nullptr,                                                          "",                                                                          NPCCommandTable },
         { "cheat",                  '0', nullptr,                                                          "",                                                                        CheatCommandTable },
-        { "account",                '0', nullptr,                                                          "",                                                                      accountCommandTable },
         { "quest",                  '0', nullptr,                                                          "",                                                                        questCommandTable },
         { "pet",                    '0', nullptr,                                                          "",                                                                          petCommandTable },
         { "recall",                 '0', nullptr,                                                          "",                                                                       recallCommandTable },
@@ -920,7 +903,6 @@ void CommandTableStorage::Init()
         { "gogameobject",           'v', &ChatHandler::HandleGoGameObjectSpawnCommand,                     "Teleports you to the gameobject with <spawn_id>.",                                  nullptr },
         { "gostartlocation",        'm', &ChatHandler::HandleGoStartLocationCommand,                       "Teleports you to a starting location",                                              nullptr },
         { "gotrig",                 'v', &ChatHandler::HandleGoTriggerCommand,                             "Teleports you to the areatrigger with <id>.",                                       nullptr },
-        { "achieve",                '0', nullptr,                                                          "",                                                                  achievementCommandTable },
         { "vehicle",                'm', nullptr,                                                          "",                                                                      vehicleCommandTable },
         { "transport",              'm', nullptr,                                                          "",                                                                    transportCommandTable },
         { nullptr,                  '0', nullptr,                                                          "",                                                                                  nullptr }

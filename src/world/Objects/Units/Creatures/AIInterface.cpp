@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -46,6 +46,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellInfo.hpp"
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/TimeTracker.hpp"
 
 // Random and guessed values for Internal Spell cast chance
 float spellChanceModifierDispell[12] =
@@ -113,7 +115,6 @@ AIInterface::AIInterface()
     m_is_in_instance(false),
     internalPhase(0),
 
-    m_boundaryCheckTime(2500),
     _negateBoundary(false),
 
     mShowWayPoints(false),
@@ -124,7 +125,15 @@ AIInterface::AIInterface()
     totemspell(nullptr),
 
     canEnterCombat(true),
-    timed_emote_expire(0xFFFFFFFF)
+    timed_emote_expire(0xFFFFFFFF),
+
+    m_fleeTimer(std::make_unique<Util::SmallTimeTracker>(0)),
+    m_boundaryCheckTime(std::make_unique<Util::SmallTimeTracker>(2500)),
+    m_updateAssistTimer(std::make_unique<Util::SmallTimeTracker>(1500)),
+    mSpellWaitTimer(std::make_unique<Util::SmallTimeTracker>(1500)),
+    m_noTargetTimer(std::make_unique<Util::SmallTimeTracker>(4000)),
+    m_cannotReachTimer(std::make_unique<Util::SmallTimeTracker>(500)),
+    m_updateTargetTimer(std::make_unique<Util::SmallTimeTracker>(1500))
 {
     _boundary.clear();
     m_assistTargets.clear();
@@ -155,12 +164,6 @@ AIInterface::AIInterface()
     mLastCastedSpell = nullptr;
     mCurrentSpellTarget = nullptr;
     setCannotReachTarget(false);
-    m_fleeTimer.resetInterval(0);
-    mSpellWaitTimer.resetInterval(1500);
-    m_cannotReachTimer.resetInterval(500);
-    m_noTargetTimer.resetInterval(4000);
-    m_updateAssistTimer.resetInterval(1500);
-    m_updateTargetTimer.resetInterval(1500);
 };
 
 AIInterface::~AIInterface()
@@ -204,9 +207,9 @@ void AIInterface::initialiseScripts(uint32_t entry)
     // Reset AI Spells
     if (mCreatureAISpells.size())
     {
-        for (auto spell : mCreatureAISpells)
+        for (const auto& spell : mCreatureAISpells)
         {
-            spell->mCooldownTimer.resetInterval(spell->mCooldown);
+            spell->mCooldownTimer->resetInterval(spell->mCooldown);
             spell->setCastCount(0);
         }
     }
@@ -239,7 +242,7 @@ void AIInterface::initialiseScripts(uint32_t entry)
 
     auto scripts = sMySQLStore.getCreatureAiScripts(entry);
 
-    for (auto aiScripts : *scripts)
+    for (const auto& aiScripts : *scripts)
     {
         uint8_t eventId = aiScripts.event;
 
@@ -336,19 +339,13 @@ void AIInterface::initialiseScripts(uint32_t entry)
 
 void AIInterface::addEmoteFromDatabase(std::vector<MySQLStructure::CreatureAIScripts> scripts, definedEmoteVector& emoteVector)
 {
-    for (auto script : scripts)
+    for (const auto& script : scripts)
     {
         if (script.action == actionSendMessage)
         {
-            std::shared_ptr<AI_SCRIPT_SENDMESSAGES> message = std::make_shared<AI_SCRIPT_SENDMESSAGES>();
-
-            message->textId = script.textId;
-            message->canche = script.chance;
-            message->phase = script.phase;
-            message->healthPrecent = script.maxHealth;
-            message->maxCount = script.maxCount;
-
-            emoteVector.push_back(std::move(message));
+            emoteVector.emplace_back(std::make_unique<AI_SCRIPT_SENDMESSAGES>(
+                script.textId, script.chance, script.phase, script.maxHealth, 0, script.maxCount
+            ));
         }
     }
 }
@@ -381,8 +378,12 @@ void AIInterface::addSpellFromDatabase(std::vector<MySQLStructure::CreatureAIScr
             if (spellCooldown == 0)
                 spellCooldown = spellInfo->getSpellDefaultDuration(nullptr);
 
+            // Ready add to our List
+            if (hasAISpell(spell.spellId))
+                continue;
+
             // Create AI Spell
-            CreatureAISpells* newAISpell = new CreatureAISpells(spellInfo, castChance, spell.target, spellInfo->getSpellDefaultDuration(nullptr), spellCooldown, false, spell.triggered);
+            const auto& newAISpell = mCreatureAISpells.emplace_back(std::make_unique<CreatureAISpells>(spellInfo, castChance, spell.target, spellInfo->getSpellDefaultDuration(nullptr), spellCooldown, false, spell.triggered));
 
             if (spell.textId)
                 newAISpell->addDBEmote(spell.textId);
@@ -394,10 +395,6 @@ void AIInterface::addSpellFromDatabase(std::vector<MySQLStructure::CreatureAIScr
 
             if (spell.maxHealth)
                 newAISpell->setMinMaxPercentHp(spell.minHealth, spell.maxHealth);
-
-            // Ready add to our List
-            if (!hasAISpell(spell.spellId))
-                mCreatureAISpells.push_back(newAISpell);
         }
         else
             sLogger.debug("Tried to Register Creature AI Spell without a valid Spell Id {}", spell.spellId);
@@ -436,10 +433,10 @@ bool AIInterface::canUnitEvade(unsigned long time_passed)
         // if we dont have a Valid target go in Evade Mode
         if (!getCurrentTarget() && !getUnit()->isInEvadeMode())
         {
-            m_noTargetTimer.updateTimer(time_passed);
-            if (m_noTargetTimer.isTimePassed())
+            m_noTargetTimer->updateTimer(time_passed);
+            if (m_noTargetTimer->isTimePassed())
             {
-                m_noTargetTimer.resetInterval(4000);
+                m_noTargetTimer->resetInterval(4000);
                 return true;
             }
         }
@@ -447,8 +444,8 @@ bool AIInterface::canUnitEvade(unsigned long time_passed)
         // if we cannot reach the Target go in Evade Mode
         if (canNotReachTarget() && !getUnit()->isInEvadeMode())
         {
-            m_cannotReachTimer.updateTimer(time_passed);
-            if (m_cannotReachTimer.isTimePassed())
+            m_cannotReachTimer->updateTimer(time_passed);
+            if (m_cannotReachTimer->isTimePassed())
                 return true;
         }
     }
@@ -456,12 +453,12 @@ bool AIInterface::canUnitEvade(unsigned long time_passed)
     // periodic check to see if the creature has passed an evade boundary
     if (!getUnit()->isInEvadeMode())
     {
-        m_boundaryCheckTime.updateTimer(time_passed);
-        if (m_boundaryCheckTime.isTimePassed())
+        m_boundaryCheckTime->updateTimer(time_passed);
+        if (m_boundaryCheckTime->isTimePassed())
         {
             if (checkBoundary())
             {
-                m_boundaryCheckTime.resetInterval(2500);
+                m_boundaryCheckTime->resetInterval(2500);
                 return false;
             }
         }
@@ -511,7 +508,7 @@ void AIInterface::enterEvadeMode()
         {
             if (m_Unit->isPet())
             {
-                static_cast<Pet*>(m_Unit)->SetPetAction(PET_ACTION_FOLLOW);
+                static_cast<Pet*>(m_Unit)->setPetAction(PET_ACTION_FOLLOW);
                 if (m_Unit->isAlive() && m_Unit->IsInWorld())
                 {
                     static_cast<Pet*>(m_Unit)->HandleAutoCastEvent(AUTOCAST_EVENT_LEAVE_COMBAT);
@@ -569,18 +566,18 @@ void AIInterface::Update(unsigned long time_passed)
 
 void AIInterface::updateAIScript(unsigned long time_passed)
 {
-    mSpellWaitTimer.updateTimer(time_passed);
+    mSpellWaitTimer->updateTimer(time_passed);
 
     // Update Spells
     if (getUnit()->isInCombat())
     {
         // Update Internal Spell Timers
-        for (auto spells : mCreatureAISpells)
+        for (const auto& spells : mCreatureAISpells)
         {
             if (!getUnit()->isCastingSpell())
-                spells->mCooldownTimer.updateTimer(time_passed);
+                spells->mCooldownTimer->updateTimer(time_passed);
 
-            spells->mDurationTimer.updateTimer(time_passed);
+            spells->mDurationTimer->updateTimer(time_passed);
         }
 
         UpdateAISpells();
@@ -701,9 +698,9 @@ void AIInterface::castAISpell(uint32_t aiSpellId)
     CreatureAISpells* aiSpell = nullptr;
 
     // Lets find the stored Spellinfo
-    for (auto spell : mCreatureAISpells)
+    for (const auto& spell : mCreatureAISpells)
         if (spell->mSpellInfo && spell->mSpellInfo->getId() == aiSpellId)
-            aiSpell = spell;
+            aiSpell = spell.get();
 
     // when no valid Spell is found return
     if (!aiSpell)
@@ -715,7 +712,7 @@ void AIInterface::castAISpell(uint32_t aiSpellId)
 bool AIInterface::hasAISpell(CreatureAISpells* aiSpell)
 {
     // Lets find the stored Spellinfo
-    for (auto spell : mCreatureAISpells)
+    for (const auto& spell : mCreatureAISpells)
         if (spell->mSpellInfo && spell->mSpellInfo->getId() == aiSpell->mSpellInfo->getId())
             return true;
 
@@ -725,7 +722,7 @@ bool AIInterface::hasAISpell(CreatureAISpells* aiSpell)
 bool AIInterface::hasAISpell(uint32_t SpellId)
 {
     // Lets find the stored Spellinfo
-    for (auto spell : mCreatureAISpells)
+    for (const auto& spell : mCreatureAISpells)
         if (spell->mSpellInfo && spell->mSpellInfo->getId() == SpellId)
             return true;
 
@@ -856,25 +853,25 @@ void AIInterface::updateTargets(unsigned long time_passed)
     // Find Target when no Threat List is available
     if (!isEngaged() && hasReactState(REACT_AGGRESSIVE))
     {
-        m_updateTargetTimer.updateTimer(time_passed);
-        if (m_updateTargetTimer.isTimePassed())
+        m_updateTargetTimer->updateTimer(time_passed);
+        if (m_updateTargetTimer->isTimePassed())
         {
-            m_updateTargetTimer.resetInterval(1500);
+            m_updateTargetTimer->resetInterval(1500);
             findTarget();
         }
     }
 
     if (isEngaged())
     {
-        m_updateAssistTimer.updateTimer(time_passed);
+        m_updateAssistTimer->updateTimer(time_passed);
 
         if (canUnitEvade(time_passed))
             enterEvadeMode();
 
         // Find Assist Targets to assist us in our Fight
-        if (m_updateAssistTimer.isTimePassed())
+        if (m_updateAssistTimer->isTimePassed())
         {
-            m_updateAssistTimer.resetInterval(1500);
+            m_updateAssistTimer->resetInterval(1500);
 
             // find nearby allies
             findAssistance();
@@ -1202,7 +1199,7 @@ void AIInterface::updateAgent(uint32_t p_time)
 
     // Do not update combat if unit is feared
     // but update if the fear is self caused by on low health fleeing
-    if (getUnit()->hasUnitStateFlag(UNIT_STATE_FLEEING) && m_fleeTimer.getExpireTime() <= 0)
+    if (getUnit()->hasUnitStateFlag(UNIT_STATE_FLEEING) && m_fleeTimer->getExpireTime() <= 0)
         return;
 
     // Selects Current Agent Type For Unit
@@ -1413,8 +1410,8 @@ void AIInterface::handleAgentFlee(uint32_t p_time)
     if (getUnit()->isInEvadeMode())
         return;
 
-    m_fleeTimer.updateTimer(p_time);
-    if (m_fleeTimer.isTimePassed())
+    m_fleeTimer->updateTimer(p_time);
+    if (m_fleeTimer->isTimePassed())
     {
         getUnit()->setControlled(false, UNIT_STATE_FLEEING);
         setCurrentAgent(AGENT_NULL);
@@ -1423,7 +1420,7 @@ void AIInterface::handleAgentFlee(uint32_t p_time)
     if (m_hasFleed)
         return;
 
-    m_fleeTimer.resetInterval(m_FleeDuration);
+    m_fleeTimer->resetInterval(m_FleeDuration);
 
     if (m_Unit->IsInWorld() && m_Unit->isCreature() && static_cast<Creature*>(m_Unit)->GetScript())
         static_cast<Creature*>(m_Unit)->GetScript()->OnFlee(getCurrentTarget());
@@ -1617,7 +1614,7 @@ bool AIInterface::canAssistTo(Unit* u, Unit* enemy, bool checkfaction /*= true*/
 void AIInterface::selectCurrentAgent(Unit* target, uint32_t spellid)
 {
     // If mob is currently fleeing
-    if (m_fleeTimer.getExpireTime() > 0)
+    if (m_fleeTimer->getExpireTime() > 0)
     {
         setCurrentAgent(AGENT_FLEE);
         return;
@@ -1688,14 +1685,12 @@ void AIInterface::selectCurrentAgent(Unit* target, uint32_t spellid)
     }
 }
 
-void AIInterface::addSpellToList(AI_Spell* sp)
+void AIInterface::addSpellToList(std::unique_ptr<AI_Spell> sp)
 {
     if (!sp || !sp->spell)
         return;
 
-    AI_Spell* sp2 = new AI_Spell;
-    memcpy(sp2, sp, sizeof(AI_Spell));
-    m_spells.push_back(sp2);
+    m_spells.push_back(std::move(sp));
 }
 
 void AIInterface::initializeSpells()
@@ -1718,7 +1713,7 @@ AI_Spell* AIInterface::getSpell(uint32_t entry)
         for (const auto& aiSpell : m_spells)
         {
             if (aiSpell->spell->getId() == entry)
-                return aiSpell;
+                return aiSpell.get();
         }
     }
     return nullptr;
@@ -2152,9 +2147,8 @@ void AIInterface::justEnteredCombat(Unit* pUnit)
 {
     if (!isEngaged() && getUnit()->getThreatManager().canHaveThreatList())
         engagementStart(pUnit);
-    // Zyres: this looks pretty wrong - fix it if needed otherwise everything sill start engagement @aaron02
-    // else // maybe add more here this part down is for petAI
-    //    engagementStart(pUnit);
+    else if (getUnit()->isPet()) // maybe add more here this part down is for petAI
+       engagementStart(pUnit);
 }
 
 void AIInterface::engagementStart(Unit* target)
@@ -2224,7 +2218,7 @@ void AIInterface::atEngagementOver()
     getUnit()->setTargetGuid(0);
 
     m_hasFleed = false;
-    m_fleeTimer.resetInterval(0);
+    m_fleeTimer->resetInterval(0);
     setCurrentAgent(AGENT_NULL);
 
     m_Unit->smsg_AttackStop(nullptr);
@@ -2876,7 +2870,7 @@ void AIInterface::setCannotReachTarget(bool cannotReach)
     if (cannotReach == m_cannotReachTarget)
         return;
     m_cannotReachTarget = cannotReach;
-    m_cannotReachTimer.resetInterval(5000);
+    m_cannotReachTimer->resetInterval(5000);
 }
 
 void AIInterface::initializeReactState()
@@ -2914,18 +2908,18 @@ bool AIInterface::isInBoundary() const
     return AIInterface::isInBounds(&_boundary, getUnit()->GetPosition()) != _negateBoundary;
 }
 
-void AIInterface::doImmediateBoundaryCheck() { m_boundaryCheckTime.resetInterval(0); }
+void AIInterface::doImmediateBoundaryCheck() { m_boundaryCheckTime->resetInterval(0); }
 
 /*static*/ bool AIInterface::isInBounds(CreatureBoundary const* boundary, LocationVector pos)
 {
-    for (AreaBoundary const* areaBoundary : *boundary)
+    for (const auto& areaBoundary : *boundary)
         if (!areaBoundary->isWithinBoundary(pos))
             return false;
 
     return true;
 }
 
-void AIInterface::addBoundary(AreaBoundary const* boundary, bool overrideDefault/* = false*/, bool negateBoundaries /*= false*/)
+void AIInterface::addBoundary(std::unique_ptr<AreaBoundary const> boundary, bool overrideDefault/* = false*/, bool negateBoundaries /*= false*/)
 {
     if (boundary == nullptr)
         return;
@@ -2937,7 +2931,7 @@ void AIInterface::addBoundary(AreaBoundary const* boundary, bool overrideDefault
         m_disableDynamicBoundary = true;
     }
 
-    _boundary.push_back(boundary);
+    _boundary.push_back(std::move(boundary));
     _negateBoundary = negateBoundaries;
     doImmediateBoundaryCheck();
 }
@@ -2959,14 +2953,11 @@ void AIInterface::setDefaultBoundary()
     clearBoundary();
 
     // Default boundary 50 yards
-    addBoundary(new CircleBoundary(getUnit()->GetPosition(), 50.0f));
+    addBoundary(std::make_unique<CircleBoundary>(getUnit()->GetPosition(), 50.0f));
 }
 
 void AIInterface::clearBoundary()
 {
-    for (auto& boundaryItr : _boundary)
-        delete boundaryItr;
-
     _boundary.clear();
 }
 
@@ -3121,10 +3112,10 @@ void AIInterface::setWayPointToMove(uint32_t waypointId)
     {
 #if VERSION_STRING >= WotLK
     case WAYPOINT_MOVE_TYPE_LAND:
-        init.SetAnimation(AnimationTier::Ground);
+        init.SetAnimation(ANIMATION_FLAG_GROUND);
         break;
     case WAYPOINT_MOVE_TYPE_TAKEOFF:
-        init.SetAnimation(AnimationTier::Hover);
+        init.SetAnimation(ANIMATION_FLAG_HOVER);
         break;
 #endif
     case WAYPOINT_MOVE_TYPE_RUN:
@@ -3156,7 +3147,7 @@ bool AIInterface::activateShowWayPoints(Player* player, bool /*showBackwards*/)
     {
         Creature* targetCreature = static_cast<Creature*>(getUnit());
 
-        Creature* wpCreature = new Creature((uint64)HIGHGUID_TYPE_WAYPOINT << 32 | wayPoint.id);
+        Creature* wpCreature = new Creature((uint64_t)HIGHGUID_TYPE_WAYPOINT << 32 | wayPoint.id);
         wpCreature->CreateWayPoint(wayPoint.id, player->GetMapId(), wayPoint.x, wayPoint.y, wayPoint.z, 0);
         wpCreature->SetCreatureProperties(targetCreature->GetCreatureProperties());
         wpCreature->setEntry(1);
@@ -3276,15 +3267,15 @@ bool AIInterface::canCreatePath(float x, float y, float z)
     return true;
 }
 
-dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32 polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32 maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter)
+dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32_t polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32_t maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter)
 {
     *smoothPathSize = 0;
-    uint32 nsmoothPath = 0;
+    uint32_t nsmoothPath = 0;
     usedOffmesh = false;
 
     dtPolyRef polys[MAX_PATH_LENGTH];
     memcpy(polys, polyPath, sizeof(dtPolyRef)*polyPathSize);
-    uint32 npolys = polyPathSize;
+    uint32_t npolys = polyPathSize;
 
     float iterPos[VERTEX_SIZE], targetPos[VERTEX_SIZE];
     if (dtStatusFailed(query->closestPointOnPolyBoundary(polys[0], startPos, iterPos)))
@@ -3326,10 +3317,10 @@ dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos,
 
         // Move
         float result[VERTEX_SIZE];
-        const static uint32 MAX_VISIT_POLY = 16;
+        const static uint32_t MAX_VISIT_POLY = 16;
         dtPolyRef visited[MAX_VISIT_POLY];
 
-        uint32 nvisited = 0;
+        uint32_t nvisited = 0;
         query->moveAlongSurface(polys[0], iterPos, moveTgt, &filter, result, visited, (int*)&nvisited, MAX_VISIT_POLY);
         npolys = fixupCorridor(polys, npolys, MAX_PATH_LENGTH, visited, nvisited);
 
@@ -3356,7 +3347,7 @@ dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos,
             // Advance the path up to and over the off-mesh connection.
             dtPolyRef prevRef = 0;
             dtPolyRef polyRef = polys[0];
-            uint32 npos = 0;
+            uint32_t npos = 0;
             while (npos < npolys && polyRef != steerPosRef)
             {
                 prevRef = polyRef;
@@ -3364,7 +3355,7 @@ dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos,
                 npos++;
             }
 
-            for (uint32 i = npos; i < npolys; ++i)
+            for (uint32_t i = npos; i < npolys; ++i)
             {
                 polys[i - npos] = polys[i];
             }
@@ -3400,21 +3391,21 @@ dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos,
     return nsmoothPath < maxSmoothPathSize ? DT_SUCCESS : DT_FAILURE;
 }
 
-bool AIInterface::getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32 pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query)
+bool AIInterface::getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32_t pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query)
 {
     // Find steer target.
     static const int32_t MAX_STEER_POINTS = 3;
     float steerPath[MAX_STEER_POINTS * VERTEX_SIZE];
     unsigned char steerPathFlags[MAX_STEER_POINTS];
     dtPolyRef steerPathPolys[MAX_STEER_POINTS];
-    uint32 nsteerPath = 0;
+    uint32_t nsteerPath = 0;
     dtStatus dtResult = query->findStraightPath(startPos, endPos, path, static_cast<int32_t>(pathSize),
         steerPath, steerPathFlags, steerPathPolys, (int*)&nsteerPath, MAX_STEER_POINTS);
     if (!nsteerPath || dtStatusFailed(dtResult))
         return false;
 
     // Find vertex far enough to steer to.
-    uint32 ns = 0;
+    uint32_t ns = 0;
     while (ns < nsteerPath)
     {
         // Stop at Off-Mesh link or when point is further than slop away.
@@ -3437,10 +3428,10 @@ bool AIInterface::getSteerTarget(const float* startPos, const float* endPos, con
     return true;
 }
 
-uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32 maxPath, const dtPolyRef* visited, const uint32 nvisited)
+uint32_t AIInterface::fixupCorridor(dtPolyRef* path, const uint32_t npath, const uint32_t maxPath, const dtPolyRef* visited, const uint32_t nvisited)
 {
-    int32 furthestPath = -1;
-    int32 furthestVisited = -1;
+    int32_t furthestPath = -1;
+    int32_t furthestVisited = -1;
 
     // Find furthest common polygon.
     for (auto i = static_cast<int32_t>(npath) - 1; i >= 0; --i)
@@ -3467,9 +3458,9 @@ uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uin
     // Concatenate paths.
 
     // Adjust beginning of the buffer to include the visited.
-    uint32 req = nvisited - furthestVisited;
-    uint32 orig = uint32(furthestPath + 1) < npath ? furthestPath + 1 : npath;
-    uint32 size = npath - orig > 0 ? npath - orig : 0;
+    uint32_t req = nvisited - furthestVisited;
+    uint32_t orig = uint32_t(furthestPath + 1) < npath ? furthestPath + 1 : npath;
+    uint32_t size = npath - orig > 0 ? npath - orig : 0;
     if (req + size > maxPath)
         size = maxPath - req;
 
@@ -3477,7 +3468,7 @@ uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uin
         memmove(path + req, path + orig, size * sizeof(dtPolyRef));
 
     // Store visited
-    for (uint32 i = 0; i < req; ++i)
+    for (uint32_t i = 0; i < req; ++i)
     {
         path[i] = visited[(nvisited - 1) - i];
     }
@@ -3485,7 +3476,8 @@ uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uin
     return req + size;
 }
 
-CreatureAISpells::CreatureAISpells(SpellInfo const* spellInfo, float castChance, uint32_t targetType, uint32_t duration, uint32_t cooldown, bool forceRemove, bool isTriggered)
+CreatureAISpells::CreatureAISpells(SpellInfo const* spellInfo, float castChance, uint32_t targetType, uint32_t duration, uint32_t cooldown, bool forceRemove, bool isTriggered) :
+    mDurationTimer(std::make_unique<Util::SmallTimeTracker>(0)), mCooldownTimer(std::make_unique<Util::SmallTimeTracker>(0))
 {
     mSpellInfo = spellInfo;
     mCastChance = castChance;
@@ -3523,12 +3515,12 @@ CreatureAISpells::CreatureAISpells(SpellInfo const* spellInfo, float castChance,
 
 void CreatureAISpells::setdurationTimer(uint32_t durationTimer)
 {
-    mDurationTimer.resetInterval(durationTimer);
+    mDurationTimer->resetInterval(durationTimer);
 }
 
 void CreatureAISpells::setCooldownTimer(uint32_t cooldownTimer)
 {
-    mCooldownTimer.resetInterval(cooldownTimer);
+    mCooldownTimer->resetInterval(cooldownTimer);
 }
 
 void CreatureAISpells::addDBEmote(uint32_t textId)
@@ -3683,14 +3675,12 @@ CreatureAISpells* AIInterface::addAISpell(uint32_t spellId, float castChance, ui
         if (spellCooldown == 0)
             spellCooldown = spellInfo->getSpellDefaultDuration(nullptr);
 
-        CreatureAISpells* newAISpell = new CreatureAISpells(spellInfo, castChance, targetType, spellDuration, spellCooldown, forceRemove, isTriggered);
-
-        mCreatureAISpells.push_back(newAISpell);
+        const auto& newAISpell = mCreatureAISpells.emplace_back(std::make_unique<CreatureAISpells>(spellInfo, castChance, targetType, spellDuration, spellCooldown, forceRemove, isTriggered));
 
         newAISpell->setdurationTimer(spellDuration);
         newAISpell->setCooldownTimer(spellCooldown);
 
-        return newAISpell;
+        return newAISpell.get();
     }
 
     sLogger.failure("tried to add invalid spell with id {}", spellId);
@@ -3702,7 +3692,7 @@ void AIInterface::UpdateAISpells()
 {
     if (mLastCastedSpell)
     {
-        if (!mSpellWaitTimer.isTimePassed())
+        if (!mSpellWaitTimer->isTimePassed())
         {
             // spell has a min/max range
             if (!getUnit()->isCastingSpell() && (mLastCastedSpell->mMaxPositionRangeToCast > 0.0f || mLastCastedSpell->mMinPositionRangeToCast > 0.0f))
@@ -3745,7 +3735,7 @@ void AIInterface::UpdateAISpells()
         if (AISpell != nullptr)
         {
             // stop spells and remove aura in case of duration
-            if (AISpell->mDurationTimer.isTimePassed() && AISpell->mForceRemoveAura)
+            if (AISpell->mDurationTimer->isTimePassed() && AISpell->mForceRemoveAura)
             {
                 getUnit()->interruptSpell();
                 getUnit()->removeAllAurasById(AISpell->mSpellInfo->getId());
@@ -3754,7 +3744,7 @@ void AIInterface::UpdateAISpells()
     }
 
     // cast one spell and check if spell is done (duration)
-    if (mSpellWaitTimer.isTimePassed())
+    if (mSpellWaitTimer->isTimePassed())
     {
         CreatureAISpells* usedSpell = nullptr;
 
@@ -3779,7 +3769,7 @@ void AIInterface::UpdateAISpells()
                     continue;
 
                 // spell was casted before, check if the wait time is done
-                if (!AISpell->mCooldownTimer.isTimePassed())
+                if (!AISpell->mCooldownTimer->isTimePassed())
                     continue;
 
                 // check if creature has Mana/Power required to cast
@@ -3834,7 +3824,7 @@ void AIInterface::UpdateAISpells()
                 // random chance for shuffeld array should do the job
                 if (randomChance < AISpell->mCastChance)
                 {
-                    usedSpell = AISpell;
+                    usedSpell = AISpell.get();
                     break;
                 }
                 else
@@ -3915,11 +3905,11 @@ void AIInterface::UpdateAISpells()
             uint32_t casttime = (GetCastTime(sSpellCastTimesStore.lookupEntry(usedSpell->mSpellInfo->getCastingTimeIndex())) ? GetCastTime(sSpellCastTimesStore.lookupEntry(usedSpell->mSpellInfo->getCastingTimeIndex())) : 500);
 
             // reset cast wait timer
-            mSpellWaitTimer.resetInterval(casttime);
+            mSpellWaitTimer->resetInterval(casttime);
 
             // reset spell timers to cleanup exceeded spells
-            usedSpell->mDurationTimer.resetInterval(usedSpell->mDuration);
-            usedSpell->mCooldownTimer.resetInterval(usedSpell->mCooldown);
+            usedSpell->mDurationTimer->resetInterval(usedSpell->mDuration);
+            usedSpell->mCooldownTimer->resetInterval(usedSpell->mCooldown);
         }
     }
 }
@@ -4106,20 +4096,16 @@ bool AIInterface::isValidUnitTarget(Object* pObject, TargetFilter pFilter, float
     return true;
 }
 
-void AIInterface::sendStoredText(definedEmoteVector store, Unit* target)
+void AIInterface::sendStoredText(definedEmoteVector& store, Unit* target)
 {
     float randomChance = Util::getRandomFloat(100.0f);
 
     // Shuffle Around our textIds to randomize it
     if (!store.empty())
     {
-        for (uint16_t i = 0; i < store.size() - 1; ++i)
-        {
-            const auto j = i + rand() % (store.size() - i);
-            std::swap(store[i], store[j]);
-        }
+        Util::randomShuffleVector(&store);
 
-        for (auto mEmotes : store)
+        for (const auto& mEmotes : store)
         {
             if (mEmotes->phase && mEmotes->phase != internalPhase)
                 continue;

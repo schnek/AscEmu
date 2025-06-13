@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,6 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/DatabaseDefinition.hpp"
 #include "Storage/MySQLDataStore.hpp"
 #include "Storage/WDB/WDBStores.hpp"
+#include "Utilities/Random.hpp"
 #include "Utilities/Util.hpp"
 
 template <class T> // works for anything that has the field 'chance' and is stored in plain array
@@ -132,14 +133,14 @@ void LootMgr::loadLoot()
 
 void LootMgr::loadLootProp()
 {
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM item_randomprop_groups");
+    auto result = WorldDatabase.Query("SELECT * FROM item_randomprop_groups");
     if (result != nullptr)
     {
         do
         {
-            uint32_t id = result->Fetch()[0].GetUInt32();
-            uint32_t eid = result->Fetch()[1].GetUInt32();
-            float ch = result->Fetch()[2].GetFloat();
+            uint32_t id = result->Fetch()[0].asUint32();
+            uint32_t eid = result->Fetch()[1].asUint32();
+            float ch = result->Fetch()[2].asFloat();
             auto item_random_properties = sItemRandomPropertiesStore.lookupEntry(eid);
             if (item_random_properties == nullptr)
             {
@@ -159,7 +160,6 @@ void LootMgr::loadLootProp()
                 itr->second.push_back(std::make_pair(item_random_properties, ch));
             }
         } while (result->NextRow());
-        delete result;
     }
 
     result = WorldDatabase.Query("SELECT * FROM item_randomsuffix_groups");
@@ -167,9 +167,9 @@ void LootMgr::loadLootProp()
     {
         do
         {
-            uint32_t id = result->Fetch()[0].GetUInt32();
-            uint32_t eid = result->Fetch()[1].GetUInt32();
-            float ch = result->Fetch()[2].GetFloat();
+            uint32_t id = result->Fetch()[0].asUint32();
+            uint32_t eid = result->Fetch()[1].asUint32();
+            float ch = result->Fetch()[2].asFloat();
             auto item_random_suffix = sItemRandomSuffixStore.lookupEntry(eid);
             if (item_random_suffix == nullptr)
             {
@@ -189,13 +189,12 @@ void LootMgr::loadLootProp()
                 itr->second.push_back(std::make_pair(item_random_suffix, ch));
             }
         } while (result->NextRow());
-        delete result;
     }
 }
 
 void LootMgr::loadLootTables(std::string const& szTableName, LootTemplateMap* LootTable)
 {
-    QueryResult* result = sMySQLStore.getWorldDBQuery("SELECT * FROM %s ORDER BY entryid ASC", szTableName.c_str());
+    auto result = sMySQLStore.getWorldDBQuery("SELECT * FROM %s ORDER BY entryid ASC", szTableName.c_str());
     if (result == nullptr)
     {
         sLogger.failure("LootMgr::loadLootTables : Loading loot from table {} failed.", szTableName);
@@ -211,14 +210,14 @@ void LootMgr::loadLootTables(std::string const& szTableName, LootTemplateMap* Lo
         std::vector<float> chance;
         chance.reserve(4);
 
-        uint32_t entry = fields[0].GetUInt32();
-        uint32_t itemId = fields[1].GetUInt32();
-        chance.push_back(fields[2].GetFloat());
-        chance.push_back(fields[3].GetFloat());
-        chance.push_back(fields[4].GetFloat());
-        chance.push_back(fields[5].GetFloat());
-        uint32_t mincount = fields[6].GetUInt32();
-        uint32_t maxcount = fields[7].GetUInt8();
+        uint32_t entry = fields[0].asUint32();
+        uint32_t itemId = fields[1].asUint32();
+        chance.push_back(fields[2].asFloat());
+        chance.push_back(fields[3].asFloat());
+        chance.push_back(fields[4].asFloat());
+        chance.push_back(fields[5].asFloat());
+        uint32_t mincount = fields[6].asUint32();
+        uint32_t maxcount = fields[7].asUint8();
 
         const auto itemProto = sMySQLStore.getItemProperties(itemId);
         if (itemProto == nullptr)
@@ -233,12 +232,10 @@ void LootMgr::loadLootTables(std::string const& szTableName, LootTemplateMap* Lo
         if (LootTable->empty() || tab->first != entry)
         {
             // Searching the template (in case template Id changed)
-            tab = LootTable->find(entry);
-            if (tab == LootTable->cend())
-            {
-                auto pr = LootTable->insert({ entry, std::make_shared<LootTemplate>() });
-                tab = pr.first;
-            }
+            const auto [tabItr, _] = LootTable->try_emplace(entry, Util::LazyInstanceCreator([] {
+                return std::make_unique<LootTemplate>();
+            }));
+            tab = tabItr;
         }
 
         // Add Item to our Tempelate
@@ -247,7 +244,6 @@ void LootMgr::loadLootTables(std::string const& szTableName, LootTemplateMap* Lo
     } while (result->NextRow());
 
     sLogger.info("{} loot templates loaded from {}", count, szTableName);
-    delete result;
 }
 
 void LootMgr::loadAndGenerateLoot(uint8_t type)
@@ -292,14 +288,12 @@ void LootMgr::addLoot(Loot* loot, uint32_t itemid, std::vector<float> chance, ui
     // check difficulty level
     if (item.chance[lootDifficulty] < 0.0f)
     {
-        delete& item;
         return;
     }
 
     // Bad luck for the entry
     if (!item.roll(0))
     {
-        delete& item;
         return;
     }
 

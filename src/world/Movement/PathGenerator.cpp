@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -689,14 +689,14 @@ bool PathGenerator::haveTile(const G3D::Vector3& p) const
 
 uint32_t PathGenerator::fixupCorridor(dtPolyRef* path, uint32_t npath, uint32_t maxPath, dtPolyRef const* visited, uint32_t nvisited)
 {
-    int32 furthestPath = -1;
-    int32 furthestVisited = -1;
+    int32_t furthestPath = -1;
+    int32_t furthestVisited = -1;
 
     // Find furthest common polygon.
-    for (int32 i = npath-1; i >= 0; --i)
+    for (int32_t i = npath-1; i >= 0; --i)
     {
         bool found = false;
-        for (int32 j = nvisited-1; j >= 0; --j)
+        for (int32_t j = nvisited-1; j >= 0; --j)
         {
             if (path[i] == visited[j])
             {

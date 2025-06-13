@@ -1,10 +1,11 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "WorldMap.hpp"
 #include "Objects/DynamicObject.hpp"
+#include "Objects/Units/Creatures/CreatureGroups.h"
 #include "Objects/Units/Creatures/Pet.h"
 #include "Objects/Units/Creatures/Summons/Summon.hpp"
 #include "Objects/Units/Unit.hpp"
@@ -31,6 +32,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/WDB/WDBStores.hpp"
 
 #include <ctime>
+#include <cstdarg>
 
 #include "Logging/Logger.hpp"
 #include "Management/ObjectMgr.hpp"
@@ -47,7 +49,7 @@ using namespace AscEmu::Threading;
 extern bool bServerShutdown;
 
 WorldMap::WorldMap(BaseMap* baseMap, uint32_t id, uint32_t expiry, uint32_t InstanceId, uint8_t SpawnMode) : CellHandler<MapCell>(baseMap), eventHolder(InstanceId), worldstateshandler(id),
-    _terrain(new TerrainHolder(id)), m_unloadTimer(expiry), m_baseMap(baseMap)
+    _terrain(std::make_unique<TerrainHolder>(id)), m_unloadTimer(expiry), m_baseMap(baseMap)
 {
     // Map
     setSpawnMode(SpawnMode);
@@ -57,7 +59,7 @@ WorldMap::WorldMap(BaseMap* baseMap, uint32_t id, uint32_t expiry, uint32_t Inst
     m_event_Instanceid = eventHolder.GetInstanceID();
 
     // Create script interface
-    ScriptInterface = new MapScriptInterface(*this);
+    ScriptInterface = std::make_unique<MapScriptInterface>(*this);
 
     // Set up storage arrays
     m_CreatureStorage.resize(getBaseMap()->CreatureSpawnCount, nullptr);
@@ -106,27 +108,22 @@ WorldMap::~WorldMap()
     m_thread->killAndJoin();
     sEventMgr.RemoveEvents(this);
 
-    if (ScriptInterface != nullptr)
-    {
-        delete ScriptInterface;
-        ScriptInterface = nullptr;
-    }
-
-    delete _terrain;
+    // Prevents a crash on map shutdown -Appled
+    ScriptInterface = nullptr;
 
     // Remove objects
-    if (_cells)
+    if (_cells != nullptr)
     {
         for (uint32_t i = 0; i < Map::Cell::_sizeX; i++)
         {
-            if (_cells[i] != 0)
+            if ((*_cells)[i] != nullptr)
             {
                 for (uint32_t j = 0; j < Map::Cell::_sizeY; j++)
                 {
-                    if (_cells[i][j] != 0)
+                    if ((*(*_cells)[i])[j] != nullptr)
                     {
-                        _cells[i][j]->_unloadpending = false;
-                        _cells[i][j]->removeObjects();
+                        (*(*_cells)[i])[j]->_unloadpending = false;
+                        (*(*_cells)[i])[j]->removeObjects();
                     }
                 }
             }
@@ -202,13 +199,10 @@ void WorldMap::runThread()
         return;
 }
 
-void WorldMap::shutdownMapThread(bool killThreadOnly/* = false*/)
+void WorldMap::shutdownMapThread()
 {
     pInstance = nullptr;
     m_terminateThread = true;
-
-    // Note; map is never deleted if boolean is set to true, only thread is killed and freed
-    sMapMgr.addMapToRemovePool(this, killThreadOnly);
 }
 
 void WorldMap::unsafeKillMapThread()
@@ -330,12 +324,15 @@ void WorldMap::update(uint32_t t_diff)
 
     // Update Pets
     {
+        const auto diffTime = msTime - m_lastPetUpdateTimer;
         for (auto itr = m_PetStorage.cbegin(); itr != m_PetStorage.cend();)
         {
             Pet* ptr = itr->second;
             ++itr;
-            ptr->Update(t_diff);
+            ptr->Update(diffTime);
         }
+
+        m_lastPetUpdateTimer = msTime;
     }
 
     // Update Players
@@ -435,7 +432,7 @@ void WorldMap::update(uint32_t t_diff)
                 break;
 
             _corpseDespawnTimes.pop();
-            if (std::shared_ptr<Corpse> pCorpse = sObjectMgr.getCorpseByGuid(static_cast<uint32_t>(next.guid)))
+            if (auto* const pCorpse = sObjectMgr.getCorpseByGuid(static_cast<uint32_t>(next.guid)))
             {
                 if (pCorpse->getWorldMap() != this)
                     break;
@@ -458,23 +455,21 @@ void WorldMap::processRespawns()
 
     while (!_respawnTimes.empty())
     {
-        RespawnInfo* next = _respawnTimes.top();
+        RespawnInfo* next = _respawnTimes.top().get();
         if (now < next->time) // done for this tick
             break;
 
         if (checkRespawn(next)) // see if we're allowed to respawn
         {
             // ok, respawn
-            _respawnTimes.pop();
             getRespawnMapForType(next->type).erase(next->spawnId);
             doRespawn(next->type, next->obj, next->spawnId, next->cellX, next->cellY);
-            delete next;
+            _respawnTimes.pop();
         }
         else if (!next->time) // just remove respawn entry without rescheduling
         {
-            _respawnTimes.pop();
             getRespawnMapForType(next->type).erase(next->spawnId);
-            delete next;
+            _respawnTimes.pop();
         }
         else
         {
@@ -503,8 +498,10 @@ void WorldMap::unloadAll(bool onShutdown/* = false*/)
     if (onShutdown)
         return;
 
-    sMapMgr.removeInstance(getInstanceId());
-    shutdownMapThread();
+    if (getInstanceId() == 0)
+        sMapMgr.addMapToRemovePool(this);
+    else
+        sMapMgr.removeInstance(getInstanceId());
 }
 
 void WorldMap::initVisibilityDistance()
@@ -641,7 +638,7 @@ void WorldMap::PushObject(Object* obj)
         }
 
         // Build update-block for player
-        ByteBuffer* buf = 0;
+        std::unique_ptr<ByteBuffer> buf;
         uint32_t count;
         Player* plObj = nullptr;
 
@@ -670,14 +667,14 @@ void WorldMap::PushObject(Object* obj)
                 MapCell* cell = getCell(posX, posY);
                 if (cell)
                 {
-                    updateInRangeSet(obj, plObj, cell, &buf);
+                    updateInRangeSet(obj, plObj, cell, buf);
                 }
             }
         }
 
         // Forced Cells
         for (auto& cell : m_forcedcells)
-            updateInRangeSet(obj, plObj, cell, &buf);
+            updateInRangeSet(obj, plObj, cell, buf);
 
         //Add to the cell's object list
         objCell->addObject(obj);
@@ -745,23 +742,21 @@ void WorldMap::PushObject(Object* obj)
             if (_mapWideStaticObjects.size())
             {
                 uint32_t globalcount = 0;
-                if (!buf)
-                    buf = new ByteBuffer(300);
+                if (buf == nullptr)
+                    buf = std::make_unique<ByteBuffer>(300);
 
                 for (auto _mapWideStaticObject : _mapWideStaticObjects)
                 {
-                    count = _mapWideStaticObject->buildCreateUpdateBlockForPlayer(buf, plObj);
+                    count = _mapWideStaticObject->buildCreateUpdateBlockForPlayer(buf.get(), plObj);
                     globalcount += count;
                 }
                 /*VLack: It seems if we use the same buffer then it is a BAD idea to try and push created data one by one, add them at once!
                        If you try to add them one by one, then as the buffer already contains data, they'll end up repeating some object.
                        Like 6 object updates for Deeprun Tram, but the built package will contain these entries: 2AFD0, 2AFD0, 2AFD1, 2AFD0, 2AFD1, 2AFD2*/
                 if (globalcount > 0)
-                    plObj->getUpdateMgr().pushCreationData(buf, globalcount);
+                    plObj->getUpdateMgr().pushCreationData(buf.get(), globalcount);
             }
         }
-
-        delete buf;
     }
     else
     {
@@ -878,7 +873,8 @@ void WorldMap::RemoveObject(Object* obj, bool free_guid)
             break;
         default:
         {
-            sLogger.debug("WorldMap::RemoveObject called for invalid type {}.", obj->GetTypeFromGUID());
+            if (!obj->isPlayer())
+                sLogger.debug("WorldMap::RemoveObject called for invalid type {} (not player).", obj->GetTypeFromGUID());
             break;
         }
     }
@@ -1256,7 +1252,7 @@ bool WorldMap::isCellActive(uint32_t x, uint32_t y)
     return false;
 }
 
-void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuffer** buf)
+void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, std::unique_ptr<ByteBuffer>& buf)
 {
     if (cell == nullptr)
         return;
@@ -1293,13 +1289,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
 
                     if (plObj2->canSee(obj) && !plObj2->isVisibleObject(obj->getGuid()))
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = obj->buildCreateUpdateBlockForPlayer(*buf, plObj2);
-                        plObj2->getUpdateMgr().pushCreationData(*buf, count);
+                        count = obj->buildCreateUpdateBlockForPlayer(buf.get(), plObj2);
+                        plObj2->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj2->addVisibleObject(obj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
                 else if (curObj->isCreatureOrPlayer() && static_cast<Unit*>(curObj)->m_playerControler != nullptr)
@@ -1308,13 +1304,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
 
                     if (plObj2->canSee(obj) && !plObj2->isVisibleObject(obj->getGuid()))
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = obj->buildCreateUpdateBlockForPlayer(*buf, plObj2);
-                        plObj2->getUpdateMgr().pushCreationData(*buf, count);
+                        count = obj->buildCreateUpdateBlockForPlayer(buf.get(), plObj2);
+                        plObj2->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj2->addVisibleObject(obj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
 
@@ -1322,13 +1318,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
                 {
                     if (plObj->canSee(curObj) && !plObj->isVisibleObject(curObj->getGuid()))
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = curObj->buildCreateUpdateBlockForPlayer(*buf, plObj);
-                        plObj->getUpdateMgr().pushCreationData(*buf, count);
+                        count = curObj->buildCreateUpdateBlockForPlayer(buf.get(), plObj);
+                        plObj->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj->addVisibleObject(curObj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
             }
@@ -1347,13 +1343,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
                     }
                     else if (cansee && !isvisible)
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = obj->buildCreateUpdateBlockForPlayer(*buf, plObj2);
-                        plObj2->getUpdateMgr().pushCreationData(*buf, count);
+                        count = obj->buildCreateUpdateBlockForPlayer(buf.get(), plObj2);
+                        plObj2->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj2->addVisibleObject(obj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
                 else if (curObj->isCreatureOrPlayer() && static_cast<Unit*>(curObj)->m_playerControler != nullptr)
@@ -1368,13 +1364,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
                     }
                     else if (cansee && !isvisible)
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = obj->buildCreateUpdateBlockForPlayer(*buf, plObj2);
-                        plObj2->getUpdateMgr().pushCreationData(*buf, count);
+                        count = obj->buildCreateUpdateBlockForPlayer(buf.get(), plObj2);
+                        plObj2->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj2->addVisibleObject(obj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
 
@@ -1389,13 +1385,13 @@ void WorldMap::updateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteB
                     }
                     else if (cansee && !isvisible)
                     {
-                        if (!*buf)
-                            *buf = new ByteBuffer(2500);
+                        if (buf == nullptr)
+                            buf = std::make_unique<ByteBuffer>(2500);
 
-                        count = curObj->buildCreateUpdateBlockForPlayer(*buf, plObj);
-                        plObj->getUpdateMgr().pushCreationData(*buf, count);
+                        count = curObj->buildCreateUpdateBlockForPlayer(buf.get(), plObj);
+                        plObj->getUpdateMgr().pushCreationData(buf.get(), count);
                         plObj->addVisibleObject(curObj->getGuid());
-                        (*buf)->clear();
+                        buf->clear();
                     }
                 }
             }
@@ -1413,7 +1409,6 @@ void WorldMap::changeObjectLocation(Object* obj)
         return;
 
     Player* plObj = nullptr;
-    ByteBuffer* buf = nullptr;
 
     if (obj->isPlayer())
         plObj = static_cast<Player*>(obj);
@@ -1544,18 +1539,16 @@ void WorldMap::changeObjectLocation(Object* obj)
         startY = cellY > 5 ? cellY - 6 : 0;
     }
 
+    std::unique_ptr<ByteBuffer> buf;
     for (uint32_t posX = startX; posX <= endX; ++posX)
     {
         for (uint32_t posY = startY; posY <= endY; ++posY)
         {
             MapCell* cell = getCell(posX, posY);
             if (cell)
-                updateInRangeSet(obj, plObj, cell, &buf);
+                updateInRangeSet(obj, plObj, cell, buf);
         }
     }
-
-    if (buf)
-        delete buf;
 }
 
 void WorldMap::changeFarsightLocation(Player* plr, DynamicObject* farsight)
@@ -1717,8 +1710,13 @@ Pet* WorldMap::getPet(uint32_t guid)
 
 Summon* WorldMap::summonCreature(uint32_t entry, LocationVector pos, WDB::Structures::SummonPropertiesEntry const* properties /*= nullptr*/, uint32_t duration /*= 0*/, Object* summoner /*= nullptr*/, uint32_t spellId /*= 0*/)
 {
-    // Generate a new Guid
-    uint64_t guid = generateCreatureGuid(entry, false);
+    // Generate always a new guid for totems, otherwise the totem bar will get messed up
+    const auto isTotemSummon = properties != nullptr &&
+        (properties->ControlType == SUMMON_CONTROL_TYPE_WILD ||
+            properties->ControlType == SUMMON_CONTROL_TYPE_GUARDIAN ||
+            properties->ControlType == SUMMON_CATEGORY_UNK) &&
+        properties->Type == SUMMONTYPE_TOTEM;
+    uint64_t guid = generateCreatureGuid(entry, !isTotemSummon);
 
     // Phase
     uint32_t phase = 1;
@@ -2056,16 +2054,16 @@ void WorldMap::callScriptUpdate()
 void WorldMap::loadRespawnTimes()
 {
     // Load Saved Respawns
-    QueryResult* result = CharacterDatabase.Query("SELECT type, spawnId, respawnTime FROM respawn WHERE mapId = %u AND instanceId = %u", getBaseMap()->getMapId(), getInstanceId());
+    auto result = CharacterDatabase.Query("SELECT type, spawnId, respawnTime FROM respawn WHERE mapId = %u AND instanceId = %u", getBaseMap()->getMapId(), getInstanceId());
     if (!result)
         return;
 
     do
     {
         Field* fields = result->Fetch();
-        SpawnObjectType type = SpawnObjectType(fields[0].GetUInt16());
-        uint32_t spawnId = fields[1].GetUInt32();
-        uint64_t respawnTime = fields[2].GetUInt64();
+        SpawnObjectType type = SpawnObjectType(fields[0].asUint16());
+        uint32_t spawnId = fields[1].asUint32();
+        uint64_t respawnTime = fields[2].asUint64();
 
         if (type == SPAWN_TYPE_CREATURE)
         {
@@ -2173,7 +2171,7 @@ bool WorldMap::addRespawn(RespawnInfo const& info)
         auto it = bySpawnIdMap.find(info.spawnId);
         if (it != bySpawnIdMap.end()) // spawnid already has a respawn scheduled
         {
-            RespawnInfo* const existing = it->second;
+            RespawnInfo const* existing = it->second;
             if (info.time <= existing->time) // delete existing in this case
                 deleteRespawn(existing);
             else
@@ -2182,28 +2180,13 @@ bool WorldMap::addRespawn(RespawnInfo const& info)
     }
     else
     {
-        sLogger.failure("Invalid respawn info for spawn id ({},{}) being inserted", uint32(info.type), info.spawnId);
+        sLogger.failure("Invalid respawn info for spawn id ({},{}) being inserted", uint32_t(info.type), info.spawnId);
     }
 
-    RespawnInfo* ri = new RespawnInfo(info);
-    _respawnTimes.emplace(ri);
-    bySpawnIdMap.emplace(ri->spawnId, ri);
+    auto ri = std::make_unique<RespawnInfo>(info);
+    bySpawnIdMap.emplace(ri->spawnId, ri.get());
+    _respawnTimes.emplace(std::move(ri));
     return true;
-}
-
-static void pushRespawnInfoFrom(std::vector<RespawnInfo*>& data, RespawnInfoMap const& map)
-{
-    data.reserve(data.size() + map.size());
-    for (auto const& pair : map)
-        data.push_back(pair.second);
-}
-
-void WorldMap::getRespawnInfo(std::vector<RespawnInfo*>& respawnData, SpawnObjectTypeMask types) const
-{
-    if (types & SPAWN_TYPEMASK_CREATURE)
-        pushRespawnInfoFrom(respawnData, _creatureRespawnTimesBySpawnId);
-    if (types & SPAWN_TYPEMASK_GAMEOBJECT)
-        pushRespawnInfoFrom(respawnData, _gameObjectRespawnTimesBySpawnId);
 }
 
 RespawnInfo* WorldMap::getRespawnInfo(SpawnObjectType type, uint32_t spawnId) const
@@ -2229,7 +2212,7 @@ void WorldMap::removeRespawnTime(SpawnObjectType type,uint32_t spawnId)
         deleteRespawn(info);
 }
 
-void WorldMap::deleteRespawn(RespawnInfo* info)
+void WorldMap::deleteRespawn(RespawnInfo const* info)
 {
     // Delete from all relevant containers to ensure consistency
     ASSERT(info);
@@ -2241,14 +2224,11 @@ void WorldMap::deleteRespawn(RespawnInfo* info)
     ASSERT(it != range.second);
     spawnMap.erase(it);
 
-    // respawn heap
-    _respawnTimes.remove(info);
-
     // database
     deleteRespawnFromDB(info->type, info->spawnId);
 
-    // then cleanup the object
-    delete info;
+    // respawn heap and cleanup the object
+    _respawnTimes.remove(info);
 }
 
 void WorldMap::deleteRespawnTimesInDB(uint32_t mapId, uint32_t instanceId)
@@ -2363,9 +2343,7 @@ void WorldMap::doRespawn(SpawnObjectType type, Object* object, uint32_t spawnId,
 void WorldMap::addCorpseDespawn(uint64_t guid, time_t time)
 {
     const auto now = Util::getTimeNow();
-
-    CorpseInfo info(now + time, guid);
-    _corpseDespawnTimes.emplace(info);
+    _corpseDespawnTimes.emplace(now + time, guid);
 }
 
 void WorldMap::updateObjects()
@@ -2473,7 +2451,7 @@ void WorldMap::pushToProcessed(Player* plr)
 
 MapScriptInterface* WorldMap::getInterface()
 {
-    return ScriptInterface;
+    return ScriptInterface.get();
 }
 
 WorldStatesHandler& WorldMap::getWorldStatesHandler()
@@ -2835,7 +2813,7 @@ void WorldMap::getFullTerrainStatusForPosition(uint32_t phaseMask, float x, floa
     vmgr->getAreaAndLiquidData(getBaseMap()->getMapId(), x, y, z, reqLiquidType, vmapData);
     _dynamicTree.getAreaAndLiquidData(x, y, z, phaseMask, reqLiquidType, dynData);
 
-    uint32 gridAreaId = 0;
+    uint32_t gridAreaId = 0;
     float gridMapHeight = INVALID_HEIGHT;
     if (gmap)
     {
@@ -2908,11 +2886,11 @@ void WorldMap::getFullTerrainStatusForPosition(uint32_t phaseMask, float x, floa
     data.liquidStatus = LIQUID_MAP_NO_WATER;
     if (wmoData && wmoData->liquidInfo && wmoData->liquidInfo->level > wmoData->floorZ)
     {
-        uint32 liquidType = wmoData->liquidInfo->type;
+        uint32_t liquidType = wmoData->liquidInfo->type;
         if (getBaseMap()->getMapId() == 530 && liquidType == 2) // gotta love blizzard hacks
             liquidType = 15;
 
-        uint32 liquidFlagType = 0;
+        uint32_t liquidFlagType = 0;
         if (WDB::Structures::LiquidTypeEntry const* liquidData = sLiquidTypeStore.lookupEntry(liquidType))
             liquidFlagType = liquidData->Type;
 

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -13,3 +13,4 @@ void SetupRandomScripts(ScriptMgr* mgr);
 void SetupMiscCreatures(ScriptMgr* mgr);
 void InitializeGameObjectTeleportTable(ScriptMgr* mgr);
 void SetupCityDalaran(ScriptMgr* mgr);
+void SetupNeutralGuards(ScriptMgr* mgr);

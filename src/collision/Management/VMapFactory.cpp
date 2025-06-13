@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,22 +21,21 @@
 
 namespace VMAP
 {
-    VMapManager2* gVMapManager = nullptr;
+    std::unique_ptr<VMapManager2> gVMapManager = nullptr;
 
     //===============================================
     // just return the instance
     VMapManager2* VMapFactory::createOrGetVMapManager()
     {
         if (gVMapManager == nullptr)
-            gVMapManager= new VMapManager2();                // should be taken from config ... Please change if you like :-)
-        return gVMapManager;
+            gVMapManager = std::make_unique<VMapManager2>();                // should be taken from config ... Please change if you like :-)
+        return gVMapManager.get();
     }
 
     //===============================================
     // delete all internal data structures
     void VMapFactory::clear()
     {
-        delete gVMapManager;
         gVMapManager = nullptr;
     }
 }

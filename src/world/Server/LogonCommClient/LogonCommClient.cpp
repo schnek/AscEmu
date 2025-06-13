@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -23,7 +23,6 @@
 #include <zlib.h>
 
 #include "Utilities/Util.hpp"
-#include "CommonTypes.hpp"
 #include "LogonCommClient.h"
 #include "LogonCommHandler.h"
 #include "WorldPacket.h"
@@ -40,7 +39,7 @@
 LogonCommClientSocket::LogonCommClientSocket(SOCKET fd) : Socket(fd, 724288, 262444)
 {
     // do nothing
-    last_ping = last_pong = (uint32)UNIXTIME;
+    last_ping = last_pong = (uint32_t)UNIXTIME;
     remaining = opcode = 0;
     _id = 0;
     latency = 0;
@@ -67,8 +66,8 @@ void LogonCommClientSocket::OnRead()
             // decrypt the first two bytes
             if (use_crypto)
             {
-                _recvCrypto.Process((uint8*)&opcode, (uint8*)&opcode, 2);
-                _recvCrypto.Process((uint8*)&remaining, (uint8*)&remaining, 4);
+                _rwCrypto.process((uint8_t*)&opcode, (uint8_t*)&opcode, 2);
+                _rwCrypto.process((uint8_t*)&remaining, (uint8_t*)&remaining, 4);
             }
 
             // convert network byte order
@@ -84,13 +83,13 @@ void LogonCommClientSocket::OnRead()
         if (remaining)
         {
             buff.resize(remaining);
-            //Read(remaining, (uint8*)buff.contents());
+            //Read(remaining, (uint8_t*)buff.contents());
             readBuffer.Read(buff.contents(), remaining);
         }
 
         // decrypt the rest of the packet
         if (use_crypto && remaining)
-            _recvCrypto.Process(buff.contents(), buff.contents(), remaining);
+            _rwCrypto.process(buff.contents(), buff.contents(), remaining);
 
         // handle the packet
         HandlePacket(buff);
@@ -143,7 +142,7 @@ void LogonCommClientSocket::HandlePacket(WorldPacket& recvData)
 void LogonCommClientSocket::HandleRegister(WorldPacket& recvData)
 {
     uint32_t realmlid;
-    uint32 error;
+    uint32_t error;
     std::string realmname;
 
     recvData >> error;
@@ -170,17 +169,17 @@ void LogonCommClientSocket::HandleRegister(WorldPacket& recvData)
 
 void LogonCommClientSocket::HandleSessionInfo(WorldPacket& recvData)
 {
-    uint32 request_id;
+    uint32_t request_id;
     recvData >> request_id;
 
     Mutex & m = sLogonCommHandler.getPendingLock();
-    m.Acquire();
+    m.acquire();
 
     // find the socket with this request
     WorldSocket* sock = sLogonCommHandler.getWorldSocketForClientRequestId(request_id);
     if (sock == nullptr || sock->Authed || !sock->IsConnected())       // Expired/Client disconnected
     {
-        m.Release();
+        m.release();
         return;
     }
 
@@ -188,13 +187,13 @@ void LogonCommClientSocket::HandleSessionInfo(WorldPacket& recvData)
     sock->Authed = true;
     sLogonCommHandler.removeUnauthedClientSocket(request_id);
     sock->InformationRetreiveCallback(recvData, request_id);
-    m.Release();
+    m.release();
 }
 
 void LogonCommClientSocket::HandlePong(WorldPacket& /*recvData*/)
 {
     latency = Util::getMSTime() - pingtime;
-    last_pong = (uint32)UNIXTIME;
+    last_pong = (uint32_t)UNIXTIME;
 }
 
 void LogonCommClientSocket::SendPing()
@@ -204,7 +203,7 @@ void LogonCommClientSocket::SendPing()
     data << uint8_t(Config.MainConfig.getIntDefault("Realm1", "Id", 1));
     SendPacket(&data, false);
 
-    last_ping = (uint32)UNIXTIME;
+    last_ping = (uint32_t)UNIXTIME;
 }
 
 void LogonCommClientSocket::SendPacket(WorldPacket* data, bool no_crypto)
@@ -217,21 +216,21 @@ void LogonCommClientSocket::SendPacket(WorldPacket* data, bool no_crypto)
 
     header.opcode = data->GetOpcode();
     //header.size   = ntohl((u_long)data->size());
-    header.size = (uint32)data->size();
+    header.size = (uint32_t)data->size();
 
     byteSwapUInt32(&header.size);
 
     if (use_crypto && !no_crypto)
-        _sendCrypto.Process((unsigned char*)&header, (unsigned char*)&header, 6);
+        _sendCrypto.process((unsigned char*)&header, (unsigned char*)&header, 6);
 
-    bool rv = BurstSend((const uint8*)&header, 6);
+    bool rv = BurstSend((const uint8_t*)&header, 6);
 
     if (data->size() > 0 && rv)
     {
         if (use_crypto && !no_crypto)
-            _sendCrypto.Process(data->contents(), data->contents(), (unsigned int)data->size());
+            _sendCrypto.process(data->contents(), data->contents(), (unsigned int)data->size());
 
-        rv = BurstSend(data->contents(), (uint32)data->size());
+        rv = BurstSend(data->contents(), (uint32_t)data->size());
     }
 
     if (rv) BurstPush();
@@ -252,10 +251,10 @@ LogonCommClientSocket::~LogonCommClientSocket()
 
 void LogonCommClientSocket::SendChallenge()
 {
-    uint8* key = sLogonCommHandler.sql_passhash;
+    uint8_t* key = sLogonCommHandler.sql_passhash;
 
-    _recvCrypto.Setup(key, 20);
-    _sendCrypto.Setup(key, 20);
+    _rwCrypto.setup(key, 20);
+    _sendCrypto.setup(key, 20);
 
     // packets are encrypted from now on
     use_crypto = true;
@@ -268,7 +267,7 @@ void LogonCommClientSocket::SendChallenge()
 
 void LogonCommClientSocket::HandleAuthResponse(WorldPacket& recvData)
 {
-    uint8 result;
+    uint8_t result;
     recvData >> result;
     if (result != 1)
     {
@@ -280,10 +279,10 @@ void LogonCommClientSocket::HandleAuthResponse(WorldPacket& recvData)
     }
 }
 
-void LogonCommClientSocket::UpdateAccountCount(uint32 account_id, uint8 add)
+void LogonCommClientSocket::UpdateAccountCount(uint32_t account_id, uint8_t add)
 {
     WorldPacket data(LRCMSG_ACC_CHAR_MAPPING_UPDATE, 9);
-    std::set<uint32>::iterator itr = realm_ids.begin();
+    std::set<uint32_t>::iterator itr = realm_ids.begin();
 
     for (; itr != realm_ids.end(); ++itr)
     {
@@ -298,23 +297,22 @@ void LogonCommClientSocket::UpdateAccountCount(uint32 account_id, uint8 add)
 void LogonCommClientSocket::HandleRequestAccountMapping(WorldPacket& recvData)
 {
     auto startTime = Util::TimeNow();
-    uint32 realm_id;
-    uint32 account_id;
-    QueryResult* result;
-    std::map<uint32, uint8> mapping_to_send;
-    std::map<uint32, uint8>::iterator itr;
+    uint32_t realm_id;
+    uint32_t account_id;
+    std::map<uint32_t, uint8_t> mapping_to_send;
+    std::map<uint32_t, uint8_t>::iterator itr;
 
     // grab the realm id
     recvData >> realm_id;
 
     // fetch the character mapping
-    result = CharacterDatabase.Query("SELECT acct FROM characters");
+    auto result = CharacterDatabase.Query("SELECT acct FROM characters");
 
     if (result)
     {
         do
         {
-            account_id = result->Fetch()[0].GetUInt32();
+            account_id = result->Fetch()[0].asUint32();
             itr = mapping_to_send.find(account_id);
             if (itr != mapping_to_send.end())
                 itr->second++;
@@ -322,7 +320,6 @@ void LogonCommClientSocket::HandleRequestAccountMapping(WorldPacket& recvData)
                 mapping_to_send.insert(std::make_pair(account_id, static_cast<uint8_t>(1)));
         }
         while (result->NextRow());
-        delete result;
     }
 
     if (!mapping_to_send.size())
@@ -332,8 +329,8 @@ void LogonCommClientSocket::HandleRequestAccountMapping(WorldPacket& recvData)
     }
 
     ByteBuffer uncompressed(40000 * 5 + 8);
-    //uint32 Count = 0;
-    uint32 Remaining = (uint32)mapping_to_send.size();
+    //uint32_t Count = 0;
+    uint32_t Remaining = (uint32_t)mapping_to_send.size();
     itr = mapping_to_send.begin();
     for (;;)
     {
@@ -341,13 +338,13 @@ void LogonCommClientSocket::HandleRequestAccountMapping(WorldPacket& recvData)
         uncompressed << realm_id;
 
         if (Remaining > 40000)
-            uncompressed << uint32(40000);
+            uncompressed << uint32_t(40000);
         else
             uncompressed << Remaining;
 
-        for (uint32 i = 0; i < 40000; ++i, ++itr)
+        for (uint32_t i = 0; i < 40000; ++i, ++itr)
         {
-            uncompressed << uint32(itr->first) << uint8(itr->second);
+            uncompressed << uint32_t(itr->first) << uint8_t(itr->second);
             if (!--Remaining)
                 break;
         }
@@ -409,7 +406,7 @@ void LogonCommClientSocket::CompressAndSend(ByteBuffer& uncompressed)
         return;
     }
 
-    *(uint32*)data.contents() = (uint32)uncompressed.size();
+    *(uint32_t*)data.contents() = (uint32_t)uncompressed.size();
 
     data.resize(stream.total_out + 4);
     SendPacket(&data, false);
@@ -417,7 +414,7 @@ void LogonCommClientSocket::CompressAndSend(ByteBuffer& uncompressed)
 
 void LogonCommClientSocket::HandleDisconnectAccount(WorldPacket& recvData)
 {
-    uint32 id;
+    uint32_t id;
     recvData >> id;
 
     WorldSession* sess = sWorld.getSessionByAccountId(id);
@@ -428,8 +425,8 @@ void LogonCommClientSocket::HandleDisconnectAccount(WorldPacket& recvData)
 void ConsoleAuthCallback(uint32_t request, uint32_t result);
 void LogonCommClientSocket::HandleConsoleAuthResult(WorldPacket& recvData)
 {
-    uint32 requestid;
-    uint32 result;
+    uint32_t requestid;
+    uint32_t result;
 
     recvData >> requestid;
     recvData >> result;
@@ -439,7 +436,7 @@ void LogonCommClientSocket::HandleConsoleAuthResult(WorldPacket& recvData)
 
 void LogonCommClientSocket::HandlePopulationRequest(WorldPacket& recvData)
 {
-    uint32 realmId;
+    uint32_t realmId;
     // Grab the realm id
     recvData >> realmId;
 
@@ -452,8 +449,8 @@ void LogonCommClientSocket::HandlePopulationRequest(WorldPacket& recvData)
 
 void LogonCommClientSocket::HandleModifyDatabaseResult(WorldPacket& recvData)
 {
-    uint32 method_id;
-    uint8 result_id;
+    uint32_t method_id;
+    uint8_t result_id;
     //Get the result/method id for further processing
     recvData >> method_id;
     recvData >> result_id;
@@ -531,7 +528,7 @@ void LogonCommClientSocket::HandleModifyDatabaseResult(WorldPacket& recvData)
 
 void LogonCommClientSocket::HandleResultCheckAccount(WorldPacket& recvData)
 {
-    uint8 result_id;
+    uint8_t result_id;
     std::string account_name;
     std::string request_name;
 
@@ -570,7 +567,7 @@ void LogonCommClientSocket::HandleResultCheckAccount(WorldPacket& recvData)
             std::string gmlevel;
             recvData >> gmlevel;
 
-            uint32 accountId;
+            uint32_t accountId;
             recvData >> accountId;
 
             if (gmlevel.compare("0") != 0)
@@ -619,7 +616,7 @@ void LogonCommClientSocket::HandleResultCheckAccount(WorldPacket& recvData)
         } break;
         case 4:     // Account ID
         {
-            uint32 account_id;
+            uint32_t account_id;
             recvData >> account_id;
 
             if (request_name.compare("none") != 0)

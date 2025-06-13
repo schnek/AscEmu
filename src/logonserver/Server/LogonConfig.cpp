@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,6 +12,7 @@ LogonConfig::LogonConfig()
 {
     // logon.conf - LogonDatabase
     logonDb.port = 3306;
+    logonDb.isLegacyAuth = false;
 
     // logon.conf - Listen
     listen.port = 8093;
@@ -45,6 +46,7 @@ void LogonConfig::loadConfigValues(bool reload /*false*/)
     Config.MainConfig.tryGetString("LogonDatabase", "Password", &logonDb.password);
     Config.MainConfig.tryGetInt("LogonDatabase", "Port", &logonDb.port);
     Config.MainConfig.tryGetInt("LogonDatabase", "Connections", &logonDb.connections);
+    Config.MainConfig.tryGetBool("LogonDatabase", "LegacyAuth", &logonDb.isLegacyAuth);
 
     // logon.conf - Listen
     Config.MainConfig.tryGetString("Listen", "Host", &listen.host);

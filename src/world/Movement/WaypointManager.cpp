@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -15,8 +15,8 @@ void WaypointMgr::load()
     auto oldMSTime = Util::TimeNow();
     _waypointStore.clear();
 
-    //                                                         0    1         2           3          4            5           6        7      8           9
-    QueryResult* result = sMySQLStore.getWorldDBQuery("SELECT id, point, position_x, position_y, position_z, orientation, move_type, delay, action, action_chance FROM creature_waypoints ORDER BY id, point");
+    //                                                 0    1         2           3          4            5           6        7      8           9
+    auto result = sMySQLStore.getWorldDBQuery("SELECT id, point, position_x, position_y, position_z, orientation, move_type, delay, action, action_chance FROM creature_waypoints ORDER BY id, point");
 
     if (!result)
     {
@@ -29,22 +29,22 @@ void WaypointMgr::load()
     do
     {
         Field* fields = result->Fetch();
-        uint32_t pathId = fields[0].GetUInt32();
-        float x = fields[2].GetFloat();
-        float y = fields[3].GetFloat();
-        float z = fields[4].GetFloat();
-        float o = fields[5].GetFloat();
+        uint32_t pathId = fields[0].asUint32();
+        float x = fields[2].asFloat();
+        float y = fields[3].asFloat();
+        float z = fields[4].asFloat();
+        float o = fields[5].asFloat();
 
         normalizeMapCoord(x);
         normalizeMapCoord(y);
 
         WaypointNode waypoint;
-        waypoint.id = fields[1].GetUInt32();
+        waypoint.id = fields[1].asUint32();
         waypoint.x = x;
         waypoint.y = y;
         waypoint.z = z;
         waypoint.orientation = o;
-        waypoint.moveType = fields[6].GetUInt32();
+        waypoint.moveType = fields[6].asUint32();
 
         if (waypoint.moveType >= WAYPOINT_MOVE_TYPE_MAX)
         {
@@ -52,9 +52,9 @@ void WaypointMgr::load()
             continue;
         }
 
-        waypoint.delay = fields[7].GetUInt32();
-        waypoint.eventId = fields[8].GetUInt32();
-        waypoint.eventChance = fields[9].GetInt8();
+        waypoint.delay = fields[7].asUint32();
+        waypoint.eventId = fields[8].asUint32();
+        waypoint.eventChance = fields[9].asInt8();
 
         WaypointPath& path = _waypointStore[pathId];
         path.id = pathId;
@@ -70,8 +70,8 @@ void WaypointMgr::loadCustomWaypoints()
 {
     auto oldMSTime = Util::TimeNow();
 
-    //                                                0    1         2           3          4            5           6        7      8           9
-    QueryResult* result = WorldDatabase.Query("SELECT id, point, position_x, position_y, position_z, orientation, move_type, delay, action, action_chance FROM creature_script_waypoints ORDER BY id, point");
+    //                                         0    1         2           3          4            5           6        7      8           9
+    auto result = WorldDatabase.Query("SELECT id, point, position_x, position_y, position_z, orientation, move_type, delay, action, action_chance FROM creature_script_waypoints ORDER BY id, point");
 
     if (!result)
     {
@@ -84,22 +84,22 @@ void WaypointMgr::loadCustomWaypoints()
     do
     {
         Field* fields = result->Fetch();
-        uint32_t pathId = fields[0].GetUInt32();
-        float x = fields[2].GetFloat();
-        float y = fields[3].GetFloat();
-        float z = fields[4].GetFloat();
-        float o = fields[5].GetFloat();
+        uint32_t pathId = fields[0].asUint32();
+        float x = fields[2].asFloat();
+        float y = fields[3].asFloat();
+        float z = fields[4].asFloat();
+        float o = fields[5].asFloat();
 
         normalizeMapCoord(x);
         normalizeMapCoord(y);
 
         WaypointNode waypoint;
-        waypoint.id = fields[1].GetUInt32();
+        waypoint.id = fields[1].asUint32();
         waypoint.x = x;
         waypoint.y = y;
         waypoint.z = z;
         waypoint.orientation = o;
-        waypoint.moveType = fields[6].GetUInt32();
+        waypoint.moveType = fields[6].asUint32();
 
         if (waypoint.moveType >= WAYPOINT_MOVE_TYPE_MAX)
         {
@@ -107,9 +107,9 @@ void WaypointMgr::loadCustomWaypoints()
             continue;
         }
 
-        waypoint.delay = fields[7].GetUInt32();
-        waypoint.eventId = fields[8].GetUInt32();
-        waypoint.eventChance = fields[9].GetInt8();
+        waypoint.delay = fields[7].asUint32();
+        waypoint.eventId = fields[8].asUint32();
+        waypoint.eventChance = fields[9].asInt8();
 
         WaypointPath& path = _waypointStore[pathId];
         path.id = pathId;
@@ -146,10 +146,10 @@ WaypointPath* WaypointMgr::getCustomScriptWaypointPath(uint32_t id)
 
 uint32_t WaypointMgr::generateWaypointPathId()
 {
-    QueryResult* result = sMySQLStore.getWorldDBQuery("SELECT MAX(id) FROM creature_waypoints");
+    auto result = sMySQLStore.getWorldDBQuery("SELECT MAX(id) FROM creature_waypoints");
     if (result)
     {
-        uint32_t maxPathId = result->Fetch()[0].GetUInt32();
+        uint32_t maxPathId = result->Fetch()[0].asUint32();
 
         WaypointPath& path = _waypointStore[maxPathId];
         path.id = maxPathId;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -15,7 +15,7 @@ enum SpellCastTargetFlags
     TARGET_FLAG_ITEM            = 0x00010,
     TARGET_FLAG_SOURCE_LOCATION = 0x00020,
     TARGET_FLAG_DEST_LOCATION   = 0x00040,
-    TARGET_FLAG_OBJECT_CASTER   = 0x00080,
+    TARGET_FLAG_UNK8            = 0x00080, // used in 7 spells
     TARGET_FLAG_UNIT_CASTER     = 0x00100,
     TARGET_FLAG_CORPSE          = 0x00200, // PvP Corpse
     TARGET_FLAG_UNIT_CORPSE     = 0x00400, // Gathering Corpse

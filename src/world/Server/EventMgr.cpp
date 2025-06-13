@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -27,7 +27,7 @@ EventMgr& EventMgr::getInstance()
     return mInstance;
 }
 
-TimedEvent* TimedEvent::Allocate(void* object, CallbackBase* callback, uint32 flags, time_t time, uint32 repeat)
+std::shared_ptr<TimedEvent> TimedEvent::Allocate(void* object, std::unique_ptr<CallbackBase> callback, uint32_t flags, time_t time, uint32_t repeat)
 {
-    return new TimedEvent(object, callback, flags, time, repeat, 0);
+    return std::make_shared<TimedEvent>(object, std::move(callback), flags, time, repeat, 0);
 }

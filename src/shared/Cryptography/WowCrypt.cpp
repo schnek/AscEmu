@@ -1,12 +1,15 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "WowCrypt.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <openssl/hmac.h>
+
+#include "Sha1.hpp"
 
 WowCrypt::WowCrypt()
 {
@@ -47,11 +50,11 @@ void WowCrypt::initWotlkCrypt(uint8_t* key)
     HMAC(EVP_sha1(), recv, seedLenght, key, 40, encryptHash, &mdLength);
     assert(mdLength == SHA_DIGEST_LENGTH);
 
-    RC4_set_key(&m_clientWotlkDecryptKey, SHA_DIGEST_LENGTH, decryptHash);
-    RC4_set_key(&m_serverWotlkEncryptKey, SHA_DIGEST_LENGTH, encryptHash);
+    m_clientWotlkDecrypt.setup(decryptHash, SHA_DIGEST_LENGTH);
+    m_servertWotlkEncrypt.setup(encryptHash, SHA_DIGEST_LENGTH);
 
-    RC4(&m_serverWotlkEncryptKey, 1024, pass, pass);
-    RC4(&m_clientWotlkDecryptKey, 1024, pass, pass);
+    m_clientWotlkDecrypt.process(pass, pass, 1024);
+    m_servertWotlkEncrypt.process(pass, pass, 1024);
 
     m_isInitialized = true;
 }
@@ -73,11 +76,11 @@ void WowCrypt::initMopCrypt(uint8_t* key)
     HMAC(EVP_sha1(), recv, seedLenght, key, 40, encryptHash, &mdLength);
     assert(mdLength == SHA_DIGEST_LENGTH);
 
-    RC4_set_key(&m_clientWotlkDecryptKey, SHA_DIGEST_LENGTH, decryptHash);
-    RC4_set_key(&m_serverWotlkEncryptKey, SHA_DIGEST_LENGTH, encryptHash);
+    m_clientWotlkDecrypt.setup(decryptHash, SHA_DIGEST_LENGTH);
+    m_servertWotlkEncrypt.setup(encryptHash, SHA_DIGEST_LENGTH);
 
-    RC4(&m_serverWotlkEncryptKey, 1024, pass, pass);
-    RC4(&m_clientWotlkDecryptKey, 1024, pass, pass);
+    m_clientWotlkDecrypt.process(pass, pass, 1024);
+    m_servertWotlkEncrypt.process(pass, pass, 1024);
 
     m_isInitialized = true;
 }
@@ -86,16 +89,16 @@ void WowCrypt::decryptWotlkReceive(uint8_t* data, size_t length)
 {
     if (!m_isInitialized)
         return;
-    
-    RC4(&m_clientWotlkDecryptKey, (unsigned long)length, data, data);
+
+    m_clientWotlkDecrypt.process(data, data, length);
 }
 
 void WowCrypt::encryptWotlkSend(uint8_t* data, size_t length)
 {
     if (!m_isInitialized)
         return;
-    
-    RC4(&m_serverWotlkEncryptKey, (unsigned long)length, data, data);
+
+    m_servertWotlkEncrypt.process(data, data, length);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -164,15 +167,15 @@ void WowCrypt::generateTbcKey(uint8_t* key, uint8_t* sessionkey)
     }
 
     Sha1Hash sha1;
-    sha1.UpdateData(firstBuffer, 64);
-    sha1.UpdateData(sessionkey, 40);
-    sha1.Finalize();
+    sha1.updateData(firstBuffer, 64);
+    sha1.updateData(sessionkey, 40);
+    sha1.finalize();
 
-    uint8_t* tempDigest = sha1.GetDigest();
+    uint8_t* tempDigest = sha1.getDigest();
     Sha1Hash sha2;
-    sha2.UpdateData(secondBuffer, 64);
-    sha2.UpdateData(tempDigest, SHA_DIGEST_LENGTH);
-    sha2.Finalize();
+    sha2.updateData(secondBuffer, 64);
+    sha2.updateData(tempDigest, SHA_DIGEST_LENGTH);
+    sha2.finalize();
 
-    memcpy(key, sha2.GetDigest(), SHA_DIGEST_LENGTH);
+    memcpy(key, sha2.getDigest(), SHA_DIGEST_LENGTH);
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -204,7 +204,7 @@ void HookInterface::OnHonorableKill(Player* pPlayer, Player* pKilled)
         ((tOnHonorableKill)*itr)(pPlayer, pKilled);
 }
 
-void HookInterface::OnArenaFinish(Player* pPlayer, std::shared_ptr<ArenaTeam> pTeam, bool victory, bool rated)
+void HookInterface::OnArenaFinish(Player* pPlayer, ArenaTeam* pTeam, bool victory, bool rated)
 {
     ServerHookList hookList = sScriptMgr._hooks[SERVER_HOOK_EVENT_ON_ARENA_FINISH];
     for (ServerHookList::iterator itr = hookList.begin(); itr != hookList.end(); ++itr)

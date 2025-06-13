@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -14,6 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/Spell.hpp"
 #include "Spell/SpellAura.hpp"
 #include "Spell/SpellInfo.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Misc: Muradin
@@ -152,7 +153,7 @@ void MuradinSaurfangEvent::AIUpdate(unsigned long time_passed)
                 if (outroNpc && outroNpc->GetScript())
                 {
                     outroNpc->GetScript()->setCanEnterCombat(false);
-                    outroNpc->addUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC);
+                    outroNpc->addUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT);
                     outroNpc->GetScript()->DoAction(ACTION_START_OUTRO);
                 }
 
@@ -851,7 +852,7 @@ void DeathbringerSaurfangAI::Reset()
     _dead = false;
 
     setCanEnterCombat(false);
-    getCreature()->addUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC);
+    getCreature()->addUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT);
 
     getCreature()->setPower(POWER_TYPE_ENERGY, 0);
     _castAISpell(ZeroPowerSpell);
@@ -898,7 +899,7 @@ void DeathbringerSaurfangAI::AIUpdate(unsigned long time_passed)
                 sendDBChatMessage(SAY_DEATHBRINGER_INTRO_ALLIANCE_7);
                 _castAISpell(GripOfAgonySpell);
                 setCanEnterCombat(true);
-                getCreature()->removeUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC);
+                getCreature()->removeUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT);
                 break;
             }
             case EVENT_INTRO_HORDE_2_SE:
@@ -918,7 +919,7 @@ void DeathbringerSaurfangAI::AIUpdate(unsigned long time_passed)
                 sendDBChatMessage(SAY_DEATHBRINGER_INTRO_HORDE_9);
                 _castAISpell(GripOfAgonySpell);
                 setCanEnterCombat(true);
-                getCreature()->removeUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC);
+                getCreature()->removeUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT);
                 break;
             }
             case EVENT_INTRO_FINISH_SE:
@@ -1000,7 +1001,7 @@ void DeathbringerSaurfangAI::DamageTaken(Unit* _attacker, uint32_t* damage)
 
         // Prepare for Outro
         getCreature()->addUnitFlags(UNIT_FLAG_NOT_SELECTABLE);
-        getCreature()->addUnitFlags(UNIT_FLAG_IGNORE_PLAYER_NPC);
+        getCreature()->addUnitFlags(UNIT_FLAG_IGNORE_CREATURE_COMBAT);
 
         Creature* Commander = mInstance->getInstance()->getInterface()->findNearestCreature(getCreature(), mInstance->getInstance()->getTeamIdInInstance() ? NPC_SE_HIGH_OVERLORD_SAURFANG : NPC_SE_MURADIN_BRONZEBEARD, 250.0f);
         if (Commander)
@@ -1025,7 +1026,7 @@ void DeathbringerSaurfangAI::DoAction(int32_t const action)
         case PHASE_INTRO_A:
         case PHASE_INTRO_H:
         {     
-            setScriptPhase(uint32(action));
+            setScriptPhase(uint32_t(action));
 
             // Move
             getCreature()->getMovementManager()->movePoint(POINT_SAURFANG, deathbringerPos.getPositionX(), deathbringerPos.getPositionY(), deathbringerPos.getPositionZ());

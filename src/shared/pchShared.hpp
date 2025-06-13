@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+// Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 
 #pragma once
 
@@ -10,4 +10,5 @@
 #include <string>
 #include <atomic>
 #include "Common.hpp"
+#include "Threading/ConditionVariable.h"
 #include "Utilities/Util.hpp"

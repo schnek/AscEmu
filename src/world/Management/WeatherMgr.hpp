@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -34,7 +34,7 @@ public:
     uint32_t getSound(uint32_t effect, float density);
 
 private:
-    std::map<uint32_t, WeatherInfo*> m_zoneWeathers;
+    std::map<uint32_t, std::unique_ptr<WeatherInfo>> m_zoneWeathers;
 };
 
 class WeatherInfo : public EventableObject

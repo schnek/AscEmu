@@ -6,6 +6,8 @@
  *
  */
 
+#include <vector>
+
 #include "../Network.h"
 
 #ifdef CONFIG_USE_IOCP
@@ -73,7 +75,7 @@ bool SocketWorkerThread::runThread()
     return true;
 }
 
-void HandleReadComplete(Socket* s, uint32 len)
+void HandleReadComplete(Socket* s, uint32_t len)
 {
     //s->m_readEvent= NULL;
     if(!s->IsDeleted())
@@ -90,7 +92,7 @@ void HandleReadComplete(Socket* s, uint32 len)
     }
 }
 
-void HandleWriteComplete(Socket* s, uint32 len)
+void HandleWriteComplete(Socket* s, uint32_t len)
 {
     if(!s->IsDeleted())
     {
@@ -105,7 +107,7 @@ void HandleWriteComplete(Socket* s, uint32 len)
     }
 }
 
-void HandleShutdown(Socket* /*s*/, uint32 /*len*/)
+void HandleShutdown(Socket* /*s*/, uint32_t /*len*/)
 {
 
 }
@@ -114,10 +116,10 @@ void SocketMgr::CloseAll()
 {
     std::vector<Socket*> tokill;
 
-    socketLock.Acquire();
+    socketLock.acquire();
     for(std::set<Socket*>::iterator itr = _sockets.begin(); itr != _sockets.end(); ++itr)
         tokill.push_back(*itr);
-    socketLock.Release();
+    socketLock.release();
 
     for(std::vector<Socket*>::iterator itr = tokill.begin(); itr != tokill.end(); ++itr)
         (*itr)->Disconnect();
@@ -125,9 +127,9 @@ void SocketMgr::CloseAll()
     size_t size;
     do
     {
-        socketLock.Acquire();
+        socketLock.acquire();
         size = _sockets.size();
-        socketLock.Release();
+        socketLock.release();
     }
     while(size);
 }

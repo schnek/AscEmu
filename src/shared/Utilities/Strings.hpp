@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -26,8 +26,9 @@ namespace AscEmu::Util::Strings
     std::vector<std::string> split(const std::string& source, const std::string& seperator);
 
     /*! \brief Returns true if string is in source */
-    bool contains(std::string& string, std::string& source);
+    bool contains(std::string const& string, std::string const& source);
 
     /*! \brief Returns true if both strings are equal (case sensitive) */
     bool isEqual(const char* lhs, const char* rhs);
+    bool isEqual(std::string lhs, const char* rhs);
 }

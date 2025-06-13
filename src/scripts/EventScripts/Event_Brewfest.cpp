@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -78,7 +78,7 @@ public:
         addWaypoint(1, createWaypoint(1, 0, WAYPOINT_MOVE_TYPE_WALK, pCreature->GetPosition()));
     }
 
-    void DoAction(int32 const action) override
+    void DoAction(int32_t const action) override
     {
         if(action == 0)
             setWaypointToMove(1, 1);

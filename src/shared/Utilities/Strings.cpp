@@ -1,9 +1,10 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "Strings.hpp"
+#include <cstring>
 #include <sstream>
 
 namespace AscEmu::Util::Strings
@@ -59,7 +60,7 @@ namespace AscEmu::Util::Strings
         return string_vector;
     }
 
-    bool contains(std::string& string, std::string& source)
+    bool contains(std::string const& string, std::string const& source)
     {
         return source.find(string) != std::string::npos;
     }
@@ -67,5 +68,10 @@ namespace AscEmu::Util::Strings
     bool isEqual(const char* lhs, const char* rhs)
     {
         return !std::strcmp(lhs, rhs);
+    }
+
+    bool isEqual(std::string lhs, const char* rhs)
+    {
+        return !std::strcmp(lhs.c_str(), rhs);
     }
 }

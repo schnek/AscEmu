@@ -1,7 +1,7 @@
-# Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
-cmake_minimum_required(VERSION 3.16.3)
+# Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
+cmake_minimum_required(VERSION 3.22)
 
-project(Ascemu)
+project(AscEmu)
 
 # cmake options
 include(cmake/Options.cmake)
@@ -9,7 +9,7 @@ include(cmake/Options.cmake)
 # perform system tasks
 include(cmake/CheckSystem.cmake)
 
-# add dependecies
+# add dependencies
 add_subdirectory(dep)
 
 # add executables

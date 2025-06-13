@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -257,7 +257,7 @@ void Aura::removeAura(AuraRemoveMode mode/* = AURA_REMOVE_BY_SERVER*/)
     }
 
     // Remove aura from unit before removing modifiers
-    getOwner()->_removeAura(this);
+    auto auraHolder = getOwner()->_removeAura(this);
 
     // Remove all modifiers
     removeAllAuraEffects();
@@ -270,7 +270,7 @@ void Aura::removeAura(AuraRemoveMode mode/* = AURA_REMOVE_BY_SERVER*/)
     if (getSpellInfo()->custom_BGR_one_buff_on_target & SPELL_TYPE_SEAL && !--m_target->m_ascSeal)
         getOwner()->removeAuraStateAndAuras(AURASTATE_FLAG_JUDGEMENT);
 
-    getOwner()->addGarbageAura(this);
+    getOwner()->addGarbageAura(std::move(auraHolder));
 }
 
 bool Aura::isDeleted() const

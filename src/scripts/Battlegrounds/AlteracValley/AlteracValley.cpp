@@ -1,11 +1,13 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "Setup.h"
 #include "AlteracValley.h"
 
+#include "Management/Loot/LootItem.hpp"
+#include "Management/Loot/LootRoll.hpp"
 #include "Management/HonorHandler.h"
 #include "Management/WorldStates.hpp"
 #include "Map/Maps/BattleGroundMap.hpp"
@@ -22,6 +24,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/EventMgr.h"
 #include "CommonTime.hpp"
+#include <cstdarg>
+
+#include "Utilities/Narrow.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/Util.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Fire Locations
@@ -1312,7 +1319,7 @@ void AlteracValley::HookGenerateLoot(Player* plr, Object* pCorpse)
                     li.roll = nullptr;
 
                     // push to vector
-                    static_cast<Corpse*>(pCorpse)->loot.items.push_back(li);
+                    static_cast<Corpse*>(pCorpse)->loot.items.push_back(std::move(li));
                 }
             }
         }

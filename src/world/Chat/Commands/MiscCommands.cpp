@@ -1,8 +1,9 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
+#include "Account/AccountCommandBan.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
@@ -38,7 +39,7 @@ bool ChatHandler::HandleMountCommand(const char* args, WorldSession* m_session)
         return true;
     }
 
-    uint32_t modelid = atol(args);
+    uint32_t modelid = std::stoul(args);
     if (!modelid)
     {
         RedSystemMessage(m_session, "No model specified!");
@@ -91,9 +92,9 @@ bool ChatHandler::HandleGoCreatureSpawnCommand(const char* args, WorldSession* m
         return true;
     }
 
-    for (const auto creatureSpawnMap : sMySQLStore._creatureSpawnsStore)
+    for (const auto& creatureSpawnMap : sMySQLStore._creatureSpawnsStore)
     {
-        for (const auto creatureSpawn : creatureSpawnMap)
+        for (const auto& creatureSpawn : creatureSpawnMap)
         {
             if (creatureSpawn->id == spawn_id)
             {
@@ -117,9 +118,9 @@ bool ChatHandler::HandleGoGameObjectSpawnCommand(const char* args, WorldSession*
         return true;
     }
 
-    for (const auto goSpawnMap : sMySQLStore._gameobjectSpawnsStore)
+    for (const auto& goSpawnMap : sMySQLStore._gameobjectSpawnsStore)
     {
-        for (const auto goSpawn : goSpawnMap)
+        for (const auto& goSpawn : goSpawnMap)
         {
             if (goSpawn->id == spawn_id)
             {
@@ -256,8 +257,7 @@ bool ChatHandler::HandleKillCommand(const char* args, WorldSession* m_session)
             RedSystemMessage(m_session, "Player %s is not online or does not exist!", args);
             return true;
         }
-        named_player->setHealth(0);
-        named_player->kill();
+        named_player->die(nullptr, 0, 0);
         RedSystemMessage(named_player->getSession(), "You were killed by %s with a GM command.", m_session->GetPlayer()->getName().c_str());
         GreenSystemMessage(m_session, "Killed player %s.", args);
         sGMLog.writefromsession(m_session, "used kill command on Player Name: %s Guid: %s ", named_player->getName().c_str(), std::to_string(named_player->getGuid()).c_str());
@@ -288,7 +288,7 @@ bool ChatHandler::HandleKillCommand(const char* args, WorldSession* m_session)
                     auto player = static_cast<Player*>(unit_target);
 
                     player->setHealth(0);
-                    player->kill();
+                    player->die(nullptr, 0, 0);
                     RedSystemMessage(player->getSession(), "You were killed by %s with a GM command.", m_session->GetPlayer()->getName().c_str());
                     GreenSystemMessage(m_session, "Killed player %s.", player->getName().c_str());
                     sGMLog.writefromsession(m_session, "used kill command on Player Name: %s Guid: %s", m_session->GetPlayer()->getName().c_str(), std::to_string(player->getGuid()).c_str());
@@ -699,7 +699,7 @@ bool ChatHandler::HandleAnnounceCommand(const char* args, WorldSession* m_sessio
     {
         if (m_session->CanUseCommand('z'))
             worldAnnounce << "<Admin>";
-        else if (m_session->GetPermissionCount())
+        else if (m_session->hasPermissions())
             worldAnnounce << "<GM>";
     }
 
@@ -743,7 +743,7 @@ bool ChatHandler::HandleWAnnounceCommand(const char* args, WorldSession* m_sessi
     {
         if (m_session->CanUseCommand('z'))
             colored_widescreen_text << "<Admin>";
-        else if (m_session->GetPermissionCount())
+        else if (m_session->hasPermissions())
             colored_widescreen_text << "<GM>";
     }
 
@@ -883,7 +883,7 @@ bool ChatHandler::HandleSummonCommand(const char* args, WorldSession* m_session)
     }
     else
     {
-        std::shared_ptr<CachedCharacterInfo> pinfo = sObjectMgr.getCachedCharacterInfoByName(args);
+        const auto pinfo = sObjectMgr.getCachedCharacterInfoByName(args);
         if (!pinfo)
         {
             char buf[256];
@@ -1042,7 +1042,7 @@ bool ChatHandler::HandlePlayerInfo(const char* args, WorldSession* m_session)
     BlueSystemMessage(m_session, "%s has played %s at this level", (plr->getGender() ? "She" : "He"), playedLevel);
     BlueSystemMessage(m_session, "and %s overall", playedTotal);
 
-    BlueSystemMessage(m_session, "%s is connecting from account '%s'[%u] with permissions '%s'", (plr->getGender() ? "She" : "He"), sess->GetAccountName().c_str(), sess->GetAccountId(), sess->GetPermissions());
+    BlueSystemMessage(m_session, "%s is connecting from account '%s'[%u] with permissions '%s'", (plr->getGender() ? "She" : "He"), sess->GetAccountName().c_str(), sess->GetAccountId(), sess->GetPermissions().get());
 
     BlueSystemMessage(m_session, "Factiontemplate: %u", plr->getFactionTemplate());
 
@@ -1207,7 +1207,7 @@ bool ChatHandler::HandleBanCharacterCommand(const char* args, WorldSession* m_se
         return false;
 
     char* pCharacter = (char*)args;
-    std::shared_ptr<CachedCharacterInfo> pInfo = nullptr;
+    CachedCharacterInfo const* pInfo = nullptr;
     char* pReason;
     char* pDuration;
     uint32_t BanTime = 0;
@@ -1324,9 +1324,12 @@ bool ChatHandler::HandleBanAllCommand(const char* args, WorldSession* m_session)
     char pIPCmd[256];
     snprintf(pIPCmd, 254, "%s %s %s", pIP.c_str(), pDuration, pReason);
     HandleIPBanCommand(pIPCmd, m_session);
-    char pAccCmd[256];
-    snprintf(pAccCmd, 254, "%s %s %s", pAcc.c_str(), pDuration, pReason);
-    HandleAccountBannedCommand(pAccCmd, m_session);
+
+    AccountCommandBan banCommand;
+    if (banCommand.execute({pAcc, pDuration, pReason }, m_session))
+        greenSystemMessage(m_session, "Execute account ban for '{}'.", pAcc);
+    else
+        redSystemMessage(m_session, "Cant execute account ban for '{}'", pAcc);
 
     return true;
 }

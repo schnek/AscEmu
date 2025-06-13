@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -42,10 +42,14 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/WorldSession.h"
 #include "Spell/SpellInfo.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Narrow.hpp"
 
 #if VERSION_STRING < Cata
 #include "Management/Guild/Guild.hpp"
 #endif
+
+ObjectMgr::ObjectMgr() = default;
+ObjectMgr::~ObjectMgr() = default;
 
 ObjectMgr& ObjectMgr::getInstance()
 {
@@ -73,7 +77,7 @@ void ObjectMgr::finalize()
     m_trainers.clear();
 
     sLogger.info("ObjectMgr : Clearing Level Information...");
-    for (const auto levelInfoPair : m_levelInfo)
+    for (const auto& levelInfoPair : m_levelInfo)
         levelInfoPair.second->clear();
 
     m_levelInfo.clear();
@@ -91,9 +95,9 @@ void ObjectMgr::finalize()
     m_reputationInstance.clear();
 
     sLogger.info("ObjectMgr : Deleting Groups...");
-    for (const auto groupPair : m_groups)
+    for (const auto& groupPair : m_groups)
     {
-        auto group = groupPair.second;
+        auto& group = groupPair.second;
         if (group != nullptr)
         {
             for (uint32_t i = 0; i < group->GetSubGroupCount(); ++i)
@@ -133,7 +137,7 @@ void ObjectMgr::finalize()
 // Arena Team
 void ObjectMgr::loadArenaTeams()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT * FROM arenateams");
+    auto result = CharacterDatabase.Query("SELECT * FROM arenateams");
     if (result != nullptr)
     {
         if (result->GetFieldCount() != 22)
@@ -143,50 +147,63 @@ void ObjectMgr::loadArenaTeams()
         }
         do
         {
-            const std::shared_ptr<ArenaTeam> team = std::make_shared<ArenaTeam>(result->Fetch());
-            addArenaTeam(team);
-            if (team->m_id > static_cast<uint32_t>(m_hiArenaTeamId.load()))
-                m_hiArenaTeamId = static_cast<uint32_t>(team->m_id);
+            const auto [arenaItr, _] = m_arenaTeams.emplace(result->Fetch()[0].asUint32(), std::make_unique<ArenaTeam>(result->Fetch()));
+            m_arenaTeamMap[arenaItr->second->m_type].emplace(arenaItr->second->m_id, arenaItr->second.get());
+            if (arenaItr->second->m_id > static_cast<uint32_t>(m_hiArenaTeamId.load()))
+                m_hiArenaTeamId = static_cast<uint32_t>(arenaItr->second->m_id);
 
         } while (result->NextRow());
-        delete result;
     }
 
     updateArenaTeamRankings();
 }
 
-void ObjectMgr::addArenaTeam(std::shared_ptr<ArenaTeam> _arenaTeam)
+ArenaTeam* ObjectMgr::createArenaTeam(uint8_t type, Player const* leaderPlr, std::string_view name, uint32_t rating, ArenaTeamEmblem const& emblem)
 {
+    if (leaderPlr == nullptr)
+        return nullptr;
+
     std::lock_guard guard(m_arenaTeamLock);
-    m_arenaTeams[_arenaTeam->m_id] = _arenaTeam;
-    m_arenaTeamMap[_arenaTeam->m_type].insert(std::make_pair(_arenaTeam->m_id, _arenaTeam));
+
+    auto arenaTeam = std::make_unique<ArenaTeam>(type, generateArenaTeamId());
+    arenaTeam->m_leader = leaderPlr->getGuidLow();
+    arenaTeam->m_name = name;
+    arenaTeam->m_emblem = emblem;
+    arenaTeam->m_stats.rating = rating;
+
+    if (!arenaTeam->addMember(leaderPlr->getPlayerInfo()))
+        return nullptr;
+
+    const auto [arenaItr, _] = m_arenaTeams.emplace(arenaTeam->m_id, std::move(arenaTeam));
+    m_arenaTeamMap[arenaItr->second->m_type].emplace(arenaItr->second->m_id, arenaItr->second.get());
+    return arenaItr->second.get();
 }
 
-void ObjectMgr::removeArenaTeam(std::shared_ptr<ArenaTeam> _arenaTeam)
+void ObjectMgr::removeArenaTeam(ArenaTeam const* _arenaTeam)
 {
     std::lock_guard guard(m_arenaTeamLock);
-    m_arenaTeams.erase(_arenaTeam->m_id);
     m_arenaTeamMap[_arenaTeam->m_type].erase(_arenaTeam->m_id);
+    m_arenaTeams.erase(_arenaTeam->m_id);
 }
 
-std::shared_ptr<ArenaTeam> ObjectMgr::getArenaTeamByName(std::string& _name, uint32_t /*type*/)
+ArenaTeam const* ObjectMgr::getArenaTeamByName(std::string& _name, uint32_t /*type*/) const
 {
     std::lock_guard guard(m_arenaTeamLock);
     for (auto& arenaTeam : m_arenaTeams)
         if (arenaTeam.second->m_name == _name)
-            return arenaTeam.second;
+            return arenaTeam.second.get();
 
     return nullptr;
 }
 
-std::shared_ptr<ArenaTeam> ObjectMgr::getArenaTeamById(uint32_t _id)
+ArenaTeam* ObjectMgr::getArenaTeamById(uint32_t _id) const
 {
     std::lock_guard guard(m_arenaTeamLock);
     const auto arenaTeam = m_arenaTeams.find(_id);
-    return arenaTeam == m_arenaTeams.end() ? nullptr : arenaTeam->second;
+    return arenaTeam == m_arenaTeams.end() ? nullptr : arenaTeam->second.get();
 }
 
-std::shared_ptr<ArenaTeam> ObjectMgr::getArenaTeamByGuid(uint32_t _guid, uint32_t _type)
+ArenaTeam* ObjectMgr::getArenaTeamByGuid(uint32_t _guid, uint32_t _type) const
 {
     std::lock_guard guard(m_arenaTeamLock);
     for (auto& arenaTeam : m_arenaTeamMap[_type])
@@ -200,23 +217,23 @@ std::shared_ptr<ArenaTeam> ObjectMgr::getArenaTeamByGuid(uint32_t _guid, uint32_
 class ArenaSorter
 {
 public:
-    bool operator()(std::shared_ptr<ArenaTeam> const& _arenaTeamA, std::shared_ptr<ArenaTeam> const& _arenaTeamB) const
+    bool operator()(ArenaTeam const* _arenaTeamA, ArenaTeam const* _arenaTeamB) const
     {
         return (_arenaTeamA->m_stats.rating > _arenaTeamB->m_stats.rating);
     }
 
-    bool operator()(std::shared_ptr<ArenaTeam>& _arenaTeamA, std::shared_ptr<ArenaTeam>& _arenaTeamB) const
+    bool operator()(ArenaTeam* _arenaTeamA, ArenaTeam* _arenaTeamB) const
     {
         return (_arenaTeamA->m_stats.rating > _arenaTeamB->m_stats.rating);
     }
 };
 
-void ObjectMgr::updateArenaTeamRankings()
+void ObjectMgr::updateArenaTeamRankings() const
 {
     std::lock_guard guard(m_arenaTeamLock);
     for (auto& arenaTeams : m_arenaTeamMap)
     {
-        std::vector<std::shared_ptr<ArenaTeam>> ranking;
+        std::vector<ArenaTeam*> ranking;
         ranking.reserve(arenaTeams.size());
 
         for (auto& arenaTeamPair : arenaTeams)
@@ -238,14 +255,14 @@ void ObjectMgr::updateArenaTeamRankings()
     }
 }
 
-void ObjectMgr::updateArenaTeamWeekly()
+void ObjectMgr::updateArenaTeamWeekly() const
 {
     std::lock_guard guard(m_arenaTeamLock);
     for (auto& arenaTeams : m_arenaTeamMap)
     {
         for (const auto& arenaTeamPair : arenaTeams)
         {
-            if (const std::shared_ptr<ArenaTeam> arenaTeam = arenaTeamPair.second)
+            if (auto* const arenaTeam = arenaTeamPair.second)
             {
                 arenaTeam->m_stats.played_week = 0;
                 arenaTeam->m_stats.won_week = 0;
@@ -262,14 +279,14 @@ void ObjectMgr::updateArenaTeamWeekly()
     }
 }
 
-void ObjectMgr::resetArenaTeamRatings()
+void ObjectMgr::resetArenaTeamRatings() const
 {
     std::lock_guard guard(m_arenaTeamLock);
     for (auto& arenaTeams : m_arenaTeamMap)
     {
         for (auto& arenaTeamPair : arenaTeams)
         {
-            if (const std::shared_ptr<ArenaTeam> arenaTeam = arenaTeamPair.second)
+            if (auto* const arenaTeam = arenaTeamPair.second)
             {
                 arenaTeam->m_stats.played_season = 0;
                 arenaTeam->m_stats.played_week = 0;
@@ -299,23 +316,26 @@ void ObjectMgr::loadCharters()
 {
     m_hiCharterId = 0;
 
-    if (QueryResult* result = CharacterDatabase.Query("SELECT * FROM charters"))
+    if (auto result = CharacterDatabase.Query("SELECT * FROM charters"))
     {
         do
         {
-            auto charter = std::make_shared<Charter>(result->Fetch());
-            m_charters[charter->getCharterType()].insert(std::make_pair(charter->getId(), charter));
-            if (charter->getId() > static_cast<int64_t>(m_hiCharterId.load()))
-                m_hiCharterId = charter->getId();
+            const auto* fields = result->Fetch();
+            const auto id = fields[0].asUint32();
+            const auto type = fields[1].asUint8();
+            const auto [itr, _] = m_charters[type].try_emplace(id, Util::LazyInstanceCreator([fields] {
+                return std::make_unique<Charter>(fields);
+            }));
+
+            if (itr->second->getId() > static_cast<int64_t>(m_hiCharterId.load()))
+                m_hiCharterId = itr->second->getId();
 
         } while (result->NextRow());
-
-        delete result;
     }
     sLogger.info("ObjectMgr : {} charters loaded.", static_cast<uint32_t>(m_charters[0].size()));
 }
 
-void ObjectMgr::removeCharter(const std::shared_ptr<Charter>& _charter)
+void ObjectMgr::removeCharter(Charter const* _charter)
 {
     if (_charter)
     {
@@ -330,59 +350,58 @@ void ObjectMgr::removeCharter(const std::shared_ptr<Charter>& _charter)
     }
 }
 
-std::shared_ptr<Charter> ObjectMgr::createCharter(uint32_t _leaderGuid, CharterTypes _type)
+Charter* ObjectMgr::createCharter(uint32_t _leaderGuid, CharterTypes _type)
 {
     uint32_t charterId = ++m_hiCharterId;
-    auto charter = std::make_shared<Charter>(charterId, _leaderGuid, _type);
 
     std::lock_guard guard(m_charterLock);
-    m_charters[charter->getCharterType()].insert(std::make_pair(charter->getId(), charter));
+    const auto [charterItr, _] = m_charters[_type].try_emplace(charterId, std::make_unique<Charter>(charterId, _leaderGuid, _type));
 
-    return charter;
+    return charterItr->second.get();
 }
 
-std::shared_ptr<Charter> ObjectMgr::getCharterByName(const std::string& _charterName, const CharterTypes _type)
+Charter* ObjectMgr::getCharterByName(const std::string& _charterName, const CharterTypes _type) const
 {
     std::lock_guard guard(m_charterLock);
 
     for (auto& charterPair : m_charters[_type])
         if (charterPair.second->getGuildName() == _charterName)
-            return charterPair.second;
+            return charterPair.second.get();
 
     return nullptr;
 }
 
-std::shared_ptr<Charter> ObjectMgr::getCharter(const uint32_t _charterId, const CharterTypes _type)
+Charter const* ObjectMgr::getCharter(const uint32_t _charterId, const CharterTypes _type) const
 {
     std::lock_guard guard(m_charterLock);
     const auto charterPair = m_charters[_type].find(_charterId);
-    return charterPair == m_charters[_type].end() ? nullptr : charterPair->second;
+    return charterPair == m_charters[_type].end() ? nullptr : charterPair->second.get();
 }
 
-std::shared_ptr<Charter> ObjectMgr::getCharterByGuid(const uint64_t _playerGuid, const CharterTypes _type)
+Charter* ObjectMgr::getCharterByGuid(const uint64_t _playerGuid, const CharterTypes _type) const
 {
     std::lock_guard guard(m_charterLock);
     for (auto& charterPair : m_charters[_type])
     {
         if (_playerGuid == charterPair.second->getLeaderGuid())
-            return charterPair.second;
+            return charterPair.second.get();
 
         for (const uint32_t playerGuid : charterPair.second->getSignatures())
             if (playerGuid == _playerGuid)
-                return charterPair.second;
+                return charterPair.second.get();
     }
 
     return nullptr;
 }
 
-std::shared_ptr<Charter> ObjectMgr::getCharterByItemGuid(const uint64_t _itemGuid)
+Charter* ObjectMgr::getCharterByItemGuid(const uint64_t _itemGuid) const
 {
     std::lock_guard guard(m_charterLock);
     for (auto& charterType : m_charters)
     {
         for (auto& charterPair : charterType)
             if (charterPair.second->getItemGuid() == _itemGuid)
-                return charterPair.second;
+                return charterPair.second.get();
     }
 
     return nullptr;
@@ -392,81 +411,63 @@ std::shared_ptr<Charter> ObjectMgr::getCharterByItemGuid(const uint64_t _itemGui
 // CachedCharacterInfo
 void ObjectMgr::loadCharacters()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT guid, name, race, class, level, gender, zoneid, timestamp, acct FROM characters");
+    auto result = CharacterDatabase.Query("SELECT guid, name, race, class, level, gender, zoneid, timestamp, acct FROM characters");
     if (result)
     {
         do
         {
-            Field* fields = result->Fetch();
-            const auto cachedCharacterInfo = std::make_shared<CachedCharacterInfo>();
-            cachedCharacterInfo->guid = fields[0].GetUInt32();
-
-            std::string characterNameDB = fields[1].GetString();
-            AscEmu::Util::Strings::capitalize(characterNameDB);
-
-            cachedCharacterInfo->name = characterNameDB;
-            cachedCharacterInfo->race = fields[2].GetUInt8();
-            cachedCharacterInfo->cl = fields[3].GetUInt8();
-            cachedCharacterInfo->lastLevel = fields[4].GetUInt32();
-            cachedCharacterInfo->gender = fields[5].GetUInt8();
-            cachedCharacterInfo->lastZone = fields[6].GetUInt32();
-            cachedCharacterInfo->lastOnline = fields[7].GetUInt32();
-            cachedCharacterInfo->acct = fields[8].GetUInt32();
-            cachedCharacterInfo->m_Group = nullptr;
-            cachedCharacterInfo->subGroup = 0;
-            cachedCharacterInfo->m_guild = 0;
-            cachedCharacterInfo->guildRank = GUILD_RANK_NONE;
-            cachedCharacterInfo->team = getSideByRace(cachedCharacterInfo->race);
-
-            m_cachedCharacterInfo[cachedCharacterInfo->guid] = cachedCharacterInfo;
+            const auto* fields = result->Fetch();
+            m_cachedCharacterInfo.try_emplace(fields[0].asUint32(), Util::LazyInstanceCreator([fields] {
+                return std::make_unique<CachedCharacterInfo>(fields);
+            }));
 
         } while (result->NextRow());
-        delete result;
     }
     sLogger.info("ObjectMgr : {} players loaded.", static_cast<uint32_t>(m_cachedCharacterInfo.size()));
 }
 
-void ObjectMgr::addCachedCharacterInfo(const std::shared_ptr<CachedCharacterInfo>& _characterInfo)
+CachedCharacterInfo* ObjectMgr::addCachedCharacterInfo(std::unique_ptr<CachedCharacterInfo> _characterInfo)
 {
     std::lock_guard guard(m_cachedCharacterLock);
-    m_cachedCharacterInfo[_characterInfo->guid] = _characterInfo;
+    const auto [itr, _] = m_cachedCharacterInfo.try_emplace(_characterInfo->guid, std::move(_characterInfo));
+    return itr->second.get();
 }
 
-std::shared_ptr<CachedCharacterInfo> ObjectMgr::getCachedCharacterInfo(uint32_t _playerGuid)
+CachedCharacterInfo* ObjectMgr::getCachedCharacterInfo(uint32_t _playerGuid) const
 {
     std::lock_guard guard(m_cachedCharacterLock);
 
     const auto characterPair = m_cachedCharacterInfo.find(_playerGuid);
     if (characterPair != m_cachedCharacterInfo.end())
-        return characterPair->second;
+        return characterPair->second.get();
 
     return nullptr;
 }
 
-std::shared_ptr<CachedCharacterInfo> ObjectMgr::getCachedCharacterInfoByName(std::string _playerName)
+CachedCharacterInfo* ObjectMgr::getCachedCharacterInfoByName(std::string _playerName) const
 {
     std::string searchName = std::string(std::move(_playerName));
     AscEmu::Util::Strings::toLowerCase(searchName);
 
     std::lock_guard guard(m_cachedCharacterLock);
 
-    for (const auto characterPair : m_cachedCharacterInfo)
+    for (const auto& characterPair : m_cachedCharacterInfo)
     {
         std::string characterName = characterPair.second->name;
         AscEmu::Util::Strings::toLowerCase(characterName);
         if (characterName == searchName)
-            return characterPair.second;
+            return characterPair.second.get();
     }
 
     return nullptr;
 }
 
-void ObjectMgr::updateCachedCharacterInfoName(const std::shared_ptr<CachedCharacterInfo>& _characterInfo, const std::string& _newName)
+void ObjectMgr::updateCachedCharacterInfoName(const CachedCharacterInfo* _characterInfo, const std::string& _newName) const
 {
     std::lock_guard guard(m_cachedCharacterLock);
 
     for (const auto& characterPair : m_cachedCharacterInfo)
-        if (_characterInfo == characterPair.second)
+        if (_characterInfo == characterPair.second.get())
             characterPair.second->name = _newName;
 }
 
@@ -478,93 +479,90 @@ void ObjectMgr::deleteCachedCharacterInfo(const uint32_t _playerGuid)
     if (characterPair == m_cachedCharacterInfo.end())
         return;
 
-    const auto characterInfo = characterPair->second;
+    const auto& characterInfo = characterPair->second;
     if (characterInfo->m_Group)
-        characterInfo->m_Group->RemovePlayer(characterInfo);
+        characterInfo->m_Group->RemovePlayer(characterInfo.get());
 
     m_cachedCharacterInfo.erase(characterPair);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Corpse
-void ObjectMgr::loadCorpsesForInstance(WorldMap* _worldMap) const
+void ObjectMgr::loadCorpsesForInstance(WorldMap* _worldMap)
 {
-    if (QueryResult* result = CharacterDatabase.Query("SELECT * FROM corpses WHERE instanceid = %u", _worldMap->getInstanceId()))
+    if (auto result = CharacterDatabase.Query("SELECT * FROM corpses WHERE instanceid = %u", _worldMap->getInstanceId()))
     {
         do
         {
             Field* fields = result->Fetch();
-            const auto corpse = std::make_shared<Corpse>(HIGHGUID_TYPE_CORPSE, fields[0].GetUInt32());
-            corpse->SetPosition(fields[1].GetFloat(), fields[2].GetFloat(), fields[3].GetFloat(), fields[4].GetFloat());
-            corpse->setZoneId(fields[5].GetUInt32());
-            corpse->SetMapId(fields[6].GetUInt32());
-            corpse->SetInstanceID(fields[7].GetUInt32());
-            corpse->setCorpseDataFromDbString(fields[8].GetString());
+            auto corpse = std::make_unique<Corpse>(HIGHGUID_TYPE_CORPSE, fields[0].asUint32());
+            corpse->SetPosition(fields[1].asFloat(), fields[2].asFloat(), fields[3].asFloat(), fields[4].asFloat());
+            corpse->setZoneId(fields[5].asUint32());
+            corpse->SetMapId(fields[6].asUint32());
+            corpse->SetInstanceID(fields[7].asUint32());
+            corpse->setCorpseDataFromDbString(fields[8].asCString());
 
             if (corpse->getDisplayId() == 0)
                 continue;
 
             corpse->PushToWorld(_worldMap);
+            std::lock_guard guard(m_corpseLock);
+            m_corpses.try_emplace(corpse->getGuidLow(), std::move(corpse));
         } while (result->NextRow());
-
-        delete result;
     }
 }
 
-std::shared_ptr<Corpse> ObjectMgr::loadCorpseByGuid(const uint32_t _corpseGuid) const
+Corpse* ObjectMgr::loadCorpseByGuid(const uint32_t _corpseGuid)
 {
-    if (QueryResult* result = CharacterDatabase.Query("SELECT * FROM corpses WHERE guid =%u ", _corpseGuid))
+    if (auto result = CharacterDatabase.Query("SELECT * FROM corpses WHERE guid =%u ", _corpseGuid))
     {
         Field* field = result->Fetch();
-        const auto corpse = std::make_shared<Corpse>(HIGHGUID_TYPE_CORPSE, field[0].GetUInt32());
-        corpse->SetPosition(field[1].GetFloat(), field[2].GetFloat(), field[3].GetFloat(), field[4].GetFloat());
-        corpse->setZoneId(field[5].GetUInt32());
-        corpse->SetMapId(field[6].GetUInt32());
-        corpse->setCorpseDataFromDbString(field[7].GetString());
+        auto corpse = std::make_unique<Corpse>(HIGHGUID_TYPE_CORPSE, field[0].asUint32());
+        corpse->SetPosition(field[1].asFloat(), field[2].asFloat(), field[3].asFloat(), field[4].asFloat());
+        corpse->setZoneId(field[5].asUint32());
+        corpse->SetMapId(field[6].asUint32());
+        corpse->setCorpseDataFromDbString(field[7].asCString());
 
         if (corpse->getDisplayId() == 0)
             return nullptr;
 
         corpse->setLoadedFromDB(true);
-        corpse->SetInstanceID(field[8].GetUInt32());
+        corpse->SetInstanceID(field[8].asUint32());
         corpse->AddToWorld();
 
-        delete result;
-        return corpse;
+        std::lock_guard guard(m_corpseLock);
+        const auto [itr, _] = m_corpses.try_emplace(corpse->getGuidLow(), std::move(corpse));
+        return itr->second.get();
     }
 
     return nullptr;
 }
 
-std::shared_ptr<Corpse> ObjectMgr::createCorpse()
+Corpse* ObjectMgr::createCorpse()
 {
     uint32_t corpseGuid = ++m_hiCorpseGuid;
-    auto corpse = std::make_shared<Corpse>(HIGHGUID_TYPE_CORPSE, corpseGuid);
-    addCorpse(corpse);
 
-    return corpse;
-}
-
-void ObjectMgr::addCorpse(const std::shared_ptr<Corpse>& _corpse)
-{
     std::lock_guard guard(m_corpseLock);
-    m_corpses[_corpse->getGuidLow()] = _corpse;
+    const auto [corpseItr, _] = m_corpses.try_emplace(corpseGuid, Util::LazyInstanceCreator([corpseGuid] {
+        return std::make_unique<Corpse>(HIGHGUID_TYPE_CORPSE, corpseGuid);
+    }));
+    return corpseItr->second.get();
 }
 
-void ObjectMgr::removeCorpse(const std::shared_ptr<Corpse>& _corpse)
+void ObjectMgr::removeCorpse(const Corpse* _corpse)
 {
     std::lock_guard guard(m_corpseLock);
     m_corpses.erase(_corpse->getGuidLow());
 }
 
-std::shared_ptr<Corpse> ObjectMgr::getCorpseByGuid(uint32_t _corpseGuid)
+Corpse* ObjectMgr::getCorpseByGuid(uint32_t _corpseGuid) const
 {
     std::lock_guard guard(m_corpseLock);
     const auto corpsePair = m_corpses.find(_corpseGuid);
-    return corpsePair != m_corpses.end() ? corpsePair->second : nullptr;
+    return corpsePair != m_corpses.end() ? corpsePair->second.get() : nullptr;
 }
 
-std::shared_ptr<Corpse> ObjectMgr::getCorpseByOwner(const uint32_t _playerGuid)
+Corpse* ObjectMgr::getCorpseByOwner(const uint32_t _playerGuid) const
 {
     std::lock_guard guard(m_corpseLock);
     for (const auto& corpsePair : m_corpses)
@@ -573,7 +571,7 @@ std::shared_ptr<Corpse> ObjectMgr::getCorpseByOwner(const uint32_t _playerGuid)
         wowGuid.Init(corpsePair.second->getOwnerGuid());
 
         if (wowGuid.getGuidLowPart() == _playerGuid)
-            return corpsePair.second;
+            return corpsePair.second.get();
     }
 
     return nullptr;
@@ -584,20 +582,20 @@ void ObjectMgr::unloadCorpseCollector()
     std::lock_guard guard(m_corpseLock);
     for (const auto& corpsePair : m_corpses)
     {
-        const auto corpse = corpsePair.second;
+        const auto corpse = corpsePair.second.get();
         if (corpse->IsInWorld())
             corpse->RemoveFromWorld(false);
     }
     m_corpses.clear();
 }
 
-void ObjectMgr::addCorpseDespawnTime(const std::shared_ptr<Corpse>& _corpse)
+void ObjectMgr::addCorpseDespawnTime(const Corpse* _corpse) const
 {
     if (_corpse->IsInWorld())
         _corpse->getWorldMap()->addCorpseDespawn(_corpse->getGuid(), 600000);
 }
 
-void ObjectMgr::delinkCorpseForPlayer(const Player* _player)
+void ObjectMgr::delinkCorpseForPlayer(const Player* _player) const
 {
     if (const auto corpse = getCorpseByOwner(_player->getGuidLow()))
     {
@@ -612,15 +610,14 @@ void ObjectMgr::loadVendors()
 {
     m_vendors.clear();
 
-    QueryResult* result = sMySQLStore.getWorldDBQuery("SELECT * FROM vendors");
+    auto result = sMySQLStore.getWorldDBQuery("SELECT * FROM vendors");
     if (result != nullptr)
     {
-        std::shared_ptr<std::vector<CreatureItem>> items;
+        std::vector<CreatureItem>* items = nullptr;
 
         if (result->GetFieldCount() < 6 + 1)
         {
             sLogger.failure("Invalid format in vendors ({}/6) columns, not enough data to proceed.", result->GetFieldCount());
-            delete result;
             return;
         }
 
@@ -632,49 +629,42 @@ void ObjectMgr::loadVendors()
         do
         {
             Field* fields = result->Fetch();
-            auto itr = m_vendors.find(fields[0].GetUInt32());
-            if (itr == m_vendors.end())
-            {
-                items = std::make_shared<std::vector<CreatureItem>>();
-                m_vendors[fields[0].GetUInt32()] = items;
-            }
-            else
-            {
-                items = itr->second;
-            }
+            items = createVendorList(fields[0].asUint32());
 
             CreatureItem itm{};
-            itm.itemid = fields[1].GetUInt32();
-            itm.amount = fields[2].GetUInt32();
-            itm.available_amount = fields[3].GetUInt32();
-            itm.max_amount = fields[3].GetUInt32();
-            itm.incrtime = fields[4].GetUInt32();
+            itm.itemid = fields[1].asUint32();
+            itm.amount = fields[2].asUint32();
+            itm.available_amount = fields[3].asUint32();
+            itm.max_amount = fields[3].asUint32();
+            itm.incrtime = fields[4].asUint32();
             itm.extended_cost = nullptr;
-            if (fields[5].GetUInt32() > 0)
+            if (fields[5].asUint32() > 0)
             {
-                const auto item_extended_cost = sItemExtendedCostStore.lookupEntry(fields[5].GetUInt32());
+                const auto item_extended_cost = sItemExtendedCostStore.lookupEntry(fields[5].asUint32());
                 if (item_extended_cost == nullptr)
-                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "LoadVendors : Extendedcost for item {} references nonexistent EC {}", fields[1].GetUInt32(), fields[5].GetUInt32());
+                    sLogger.debugFlag(AscEmu::Logging::LF_DB_TABLES, "LoadVendors : Extendedcost for item {} references nonexistent EC {}", fields[1].asUint32(), fields[5].asUint32());
                 else
                     itm.extended_cost = item_extended_cost;
             }
 
             items->push_back(itm);
         } while (result->NextRow());
-
-        delete result;
     }
     sLogger.info("ObjectMgr : {} vendors loaded.", static_cast<uint32_t>(m_vendors.size()));
 }
 
-std::shared_ptr<std::vector<CreatureItem>> ObjectMgr::getVendorList(uint32_t _entry)
+std::vector<CreatureItem>* ObjectMgr::getVendorList(uint32_t _entry) const
 {
-    return m_vendors[_entry];
+    const auto itr = m_vendors.find(_entry);
+    return itr != m_vendors.cend() ? itr->second.get() : nullptr;
 }
 
-void ObjectMgr::setVendorList(uint32_t _entry, std::shared_ptr<std::vector<CreatureItem>> _list)
+std::vector<CreatureItem>* ObjectMgr::createVendorList(uint32_t _entry)
 {
-    m_vendors[_entry] = _list;
+    const auto [vendorItr, _] = m_vendors.try_emplace(_entry, Util::LazyInstanceCreator([] {
+        return std::make_unique<std::vector<CreatureItem>>();
+    }));
+    return vendorItr->second.get();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -702,7 +692,7 @@ void ObjectMgr::loadAchievementRewards()
 {
     m_achievementRewards.clear();
 
-    QueryResult* result = WorldDatabase.Query("SELECT entry, gender, title_A, title_H, item, sender, subject, text FROM achievement_reward");
+    auto result = WorldDatabase.Query("SELECT entry, gender, title_A, title_H, item, sender, subject, text FROM achievement_reward");
     if (result == nullptr)
     {
         sLogger.info("Loaded 0 achievement rewards. DB table `achievement_reward` is empty.");
@@ -714,7 +704,7 @@ void ObjectMgr::loadAchievementRewards()
     do
     {
         Field* fields = result->Fetch();
-        uint32_t entry = fields[0].GetUInt32();
+        uint32_t entry = fields[0].asUint32();
 
         if (sAchievementStore.lookupEntry(entry) == nullptr)
         {
@@ -723,13 +713,13 @@ void ObjectMgr::loadAchievementRewards()
         }
 
         AchievementReward reward;
-        reward.gender   = fields[1].GetUInt8();
-        reward.titel_A  = fields[2].GetUInt32();
-        reward.titel_H  = fields[3].GetUInt32();
-        reward.itemId   = fields[4].GetUInt32();
-        reward.sender   = fields[5].GetUInt32();
-        reward.subject  = fields[6].GetString() != nullptr ? fields[6].GetString() : "";
-        reward.text     = fields[7].GetString() != nullptr ? fields[7].GetString() : "";
+        reward.gender   = fields[1].asUint8();
+        reward.titel_A  = fields[2].asUint32();
+        reward.titel_H  = fields[3].asUint32();
+        reward.itemId   = fields[4].asUint32();
+        reward.sender   = fields[5].asUint32();
+        reward.subject  = fields[6].asCString() != nullptr ? fields[6].asCString() : "";
+        reward.text     = fields[7].asCString() != nullptr ? fields[7].asCString() : "";
 
         if (reward.gender > GENDER_NONE)
         {
@@ -806,14 +796,12 @@ void ObjectMgr::loadAchievementRewards()
 
     } while (result->NextRow());
 
-    delete result;
-
     sLogger.info("ObjectMgr : Loaded {} achievement rewards", count);
 }
 
 void ObjectMgr::loadCompletedAchievements()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT achievement FROM character_achievement GROUP BY achievement");
+    auto result = CharacterDatabase.Query("SELECT achievement FROM character_achievement GROUP BY achievement");
 
     if (!result)
     {
@@ -824,9 +812,8 @@ void ObjectMgr::loadCompletedAchievements()
     do
     {
         Field* fields = result->Fetch();
-        m_allCompletedAchievements.insert(fields[0].GetUInt32());
+        m_allCompletedAchievements.insert(fields[0].asUint32());
     } while (result->NextRow());
-    delete result;
 }
 
 AchievementReward const* ObjectMgr::getAchievementReward(uint32_t _entry, uint8_t _gender)
@@ -870,84 +857,80 @@ void ObjectMgr::loadReputationModifiers()
 
 void ObjectMgr::loadReputationModifierTable(const char* _tableName, ReputationModMap& _reputationModMap)
 {
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM %s", _tableName);
+    auto result = WorldDatabase.Query("SELECT * FROM %s", _tableName);
     if (result)
     {
         do
         {
-            auto reputationMod = std::make_shared<ReputationMod>();
-            reputationMod->faction[TEAM_ALLIANCE] = result->Fetch()[1].GetUInt32();
-            reputationMod->faction[TEAM_HORDE] = result->Fetch()[2].GetUInt32();
-            reputationMod->value = result->Fetch()[3].GetInt32();
-            reputationMod->replimit = result->Fetch()[4].GetUInt32();
+            const auto entry = result->Fetch()[0].asUint32();
 
-            auto itr = _reputationModMap.find(result->Fetch()[0].GetUInt32());
-            if (itr == _reputationModMap.end())
+            const auto [repModItr, createdNew] = _reputationModMap.try_emplace(entry, Util::LazyInstanceCreator([] {
+                return std::make_unique<ReputationModifier>();
+            }));
+            if (createdNew)
+                repModItr->second->entry = entry;
+
+            const auto& reputationMod = repModItr->second->mods.emplace_back(std::make_unique<ReputationMod>());
+            if (AscEmu::Util::Strings::isEqual(_tableName, "reputation_creature_onkill"))
             {
-                auto modifier = std::make_shared<ReputationModifier>();
-                modifier->entry = result->Fetch()[0].GetUInt32();
-
-                modifier->mods.push_back(reputationMod);
-
-                _reputationModMap.insert(std::pair(result->Fetch()[0].GetUInt32(), modifier));
+                reputationMod->faction[TEAM_ALLIANCE] = result->Fetch()[1].asUint32();
+                reputationMod->faction[TEAM_HORDE] = result->Fetch()[2].asUint32();
+                reputationMod->value = result->Fetch()[3].asInt32();
+                reputationMod->replimit = result->Fetch()[4].asUint32();
             }
-            else
+
+            if (AscEmu::Util::Strings::isEqual(_tableName, "reputation_faction_onkill"))
             {
-                itr->second->mods.push_back(reputationMod);
+                reputationMod->faction[TEAM_ALLIANCE] = result->Fetch()[1].asUint32();
+                reputationMod->faction[TEAM_HORDE] = result->Fetch()[4].asUint32();
+                reputationMod->value = result->Fetch()[2].asInt32();
+                reputationMod->replimit = result->Fetch()[3].asUint32();
             }
 
         } while (result->NextRow());
-        delete result;
     }
     sLogger.info("ObjectMgr : {} reputation modifiers on {}.", static_cast<uint32_t>(_reputationModMap.size()), _tableName);
 }
 
 void ObjectMgr::loadInstanceReputationModifiers()
 {
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM reputation_instance_onkill");
+    auto result = WorldDatabase.Query("SELECT * FROM reputation_instance_onkill");
     if (!result)
         return;
     do
     {
         Field* field = result->Fetch();
 
-        auto reputationMod = std::make_shared<InstanceReputationMod>();
-        reputationMod->mapid = field[0].GetUInt32();
-        reputationMod->mob_rep_reward = field[1].GetInt32();
-        reputationMod->mob_rep_limit = field[2].GetUInt32();
-        reputationMod->boss_rep_reward = field[3].GetInt32();
-        reputationMod->boss_rep_limit = field[4].GetUInt32();
-        reputationMod->faction[TEAM_ALLIANCE] = field[5].GetUInt32();
-        reputationMod->faction[TEAM_HORDE] = field[6].GetUInt32();
+        const auto mapId = field[0].asUint32();
+        const auto [repInstanceItr, createdNew] = m_reputationInstance.try_emplace(mapId, Util::LazyInstanceCreator([] {
+            return std::make_unique<InstanceReputationModifier>();
+        }));
+        if (createdNew)
+            repInstanceItr->second->mapid = mapId;
 
-        auto itr = m_reputationInstance.find(reputationMod->mapid);
-        if (itr == m_reputationInstance.end())
-        {
-            auto modifier = std::make_shared<InstanceReputationModifier>();
-            modifier->mapid = reputationMod->mapid;
-            modifier->mods.push_back(reputationMod);
-            m_reputationInstance.insert(std::make_pair(modifier->mapid, modifier));
-        }
-        else
-        {
-            itr->second->mods.push_back(reputationMod);
-        }
+        const auto& reputationMod = repInstanceItr->second->mods.emplace_back(std::make_unique<InstanceReputationMod>());
+        reputationMod->mapid = mapId;
+        reputationMod->mob_rep_reward = field[1].asInt32();
+        reputationMod->mob_rep_limit = field[2].asUint32();
+        reputationMod->boss_rep_reward = field[3].asInt32();
+        reputationMod->boss_rep_limit = field[4].asUint32();
+        reputationMod->faction[TEAM_ALLIANCE] = field[5].asUint32();
+        reputationMod->faction[TEAM_HORDE] = field[6].asUint32();
 
     } while (result->NextRow());
-    delete result;
 
     sLogger.info("ObjectMgr : {} instance reputation modifiers loaded.", static_cast<uint32_t>(m_reputationInstance.size()));
 }
 
-std::shared_ptr<ReputationModifier> ObjectMgr::getReputationModifier(uint32_t _entry, uint32_t _factionId)
+ReputationModifier const* ObjectMgr::getReputationModifier(uint32_t _entry, uint32_t _factionId) const
 {
     auto reputationPair = m_reputationCreature.find(_entry);
     if (reputationPair != m_reputationCreature.end())
-        return reputationPair->second;
+        return reputationPair->second.get();
 
     reputationPair = m_reputationFaction.find(_factionId);
     if (reputationPair != m_reputationFaction.end())
-        return reputationPair->second;
+        return reputationPair->second.get();
 
     return nullptr;
 }
@@ -1000,7 +983,7 @@ bool ObjectMgr::handleInstanceReputationModifiers(Player* _player, Unit* _unitVi
 // Group
 void ObjectMgr::loadGroups()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT * FROM `groups`");
+    auto result = CharacterDatabase.Query("SELECT * FROM `groups`");
     if (result)
     {
         if (result->GetFieldCount() != 52)
@@ -1010,11 +993,10 @@ void ObjectMgr::loadGroups()
         }
         do
         {
-            const auto group = std::make_shared<Group>(false);
-            sObjectMgr.addGroup(group);
+            auto group = std::make_unique<Group>(false);
             group->LoadFromDB(result->Fetch());
+            m_groups.try_emplace(group->GetID(), std::move(group));
         } while (result->NextRow());
-        delete result;
     }
 
     sLogger.info("ObjectMgr : {} groups loaded.", static_cast<uint32_t>(this->m_groups.size()));
@@ -1024,7 +1006,7 @@ void ObjectMgr::loadGroupInstances()
 {
     CharacterDatabase.Execute("DELETE FROM group_instance WHERE guid NOT IN (SELECT guid FROM `groups`)");
 
-    QueryResult* result = CharacterDatabase.Query("SELECT gi.guid, i.map, gi.instance, gi.permanent, i.difficulty, i.resettime, (SELECT COUNT(1) FROM character_instance ci LEFT JOIN `groups` g ON ci.guid = g.group1member1 WHERE ci.instance = gi.instance AND ci.permanent = 1 LIMIT 1) FROM group_instance gi LEFT JOIN instance i ON gi.instance = i.id ORDER BY guid");
+    auto result = CharacterDatabase.Query("SELECT gi.guid, i.map, gi.instance, gi.permanent, i.difficulty, i.resettime, (SELECT COUNT(1) FROM character_instance ci LEFT JOIN `groups` g ON ci.guid = g.group1member1 WHERE ci.instance = gi.instance AND ci.permanent = 1 LIMIT 1) FROM group_instance gi LEFT JOIN instance i ON gi.instance = i.id ORDER BY guid");
     if (!result)
     {
         sLogger.info("Loaded 0 group-instance saves. DB table `group_instance` is empty!");
@@ -1035,27 +1017,26 @@ void ObjectMgr::loadGroupInstances()
     do
     {
         Field* fields = result->Fetch();
-        std::shared_ptr<Group> group = sObjectMgr.getGroupById(fields[0].GetUInt32());
+        auto* group = sObjectMgr.getGroupById(fields[0].asUint32());
 
-        WDB::Structures::MapEntry const* mapEntry = sMapStore.lookupEntry(fields[1].GetUInt16());
+        WDB::Structures::MapEntry const* mapEntry = sMapStore.lookupEntry(fields[1].asUint16());
         if (!mapEntry || !mapEntry->isDungeon())
         {
-            sLogger.failure("Incorrect entry in group_instance table : no dungeon map {}", fields[1].GetUInt16());
+            sLogger.failure("Incorrect entry in group_instance table : no dungeon map {}", fields[1].asUint16());
             continue;
         }
 
-        uint32_t diff = fields[4].GetUInt8();
+        uint32_t diff = fields[4].asUint8();
         if (diff >= static_cast<uint32_t>(mapEntry->isRaid() ? InstanceDifficulty::Difficulties::MAX_RAID_DIFFICULTY : InstanceDifficulty::Difficulties::MAX_DUNGEON_DIFFICULTY))
         {
             sLogger.failure("Wrong dungeon difficulty use in group_instance table: {}", diff + 1);
             diff = 0;                                   // default for both difficaly types
         }
 
-        InstanceSaved* save = sInstanceMgr.addInstanceSave(mapEntry->id, fields[2].GetUInt32(), InstanceDifficulty::Difficulties(diff), time_t(fields[5].GetUInt64()), fields[6].GetUInt64() == 0, true);
-        group->bindToInstance(save, fields[3].GetBool(), true);
+        InstanceSaved* save = sInstanceMgr.addInstanceSave(mapEntry->id, fields[2].asUint32(), InstanceDifficulty::Difficulties(diff), time_t(fields[5].asUint64()), fields[6].asUint64() == 0, true);
+        group->bindToInstance(save, fields[3].asBool(), true);
         ++count;
     } while (result->NextRow());
-    delete result;
 
     sLogger.info("Loaded {} group-instance saves", count);
 }
@@ -1066,10 +1047,12 @@ uint32_t ObjectMgr::generateGroupId()
     return groupId;
 }
 
-void ObjectMgr::addGroup(std::shared_ptr<Group> _group)
+Group* ObjectMgr::createGroup()
 {
     std::lock_guard guard(m_groupLock);
-    m_groups.insert(std::make_pair(_group->GetID(), _group));
+    auto group = std::make_unique<Group>(true);
+    const auto [groupItr, _] = m_groups.try_emplace(group->GetID(), std::move(group));
+    return groupItr->second.get();
 }
 
 void ObjectMgr::removeGroup(uint32_t _groupId)
@@ -1078,24 +1061,24 @@ void ObjectMgr::removeGroup(uint32_t _groupId)
     m_groups.erase(_groupId);
 }
 
-std::shared_ptr<Group> ObjectMgr::getGroupByLeader(Player* pPlayer)
+Group* ObjectMgr::getGroupByLeader(Player* pPlayer) const
 {
     std::lock_guard guard(m_groupLock);
 
     for (auto& m_group : m_groups)
         if (m_group.second->GetLeader() == pPlayer->getPlayerInfo())
-            return m_group.second;
+            return m_group.second.get();
 
     return nullptr;
 }
 
-std::shared_ptr<Group> ObjectMgr::getGroupById(uint32_t _id)
+Group* ObjectMgr::getGroupById(uint32_t _id) const
 {
     std::lock_guard guard(m_groupLock);
 
     const auto itr = m_groups.find(_id);
     if (itr != m_groups.end())
-        return itr->second;
+        return itr->second.get();
 
     return nullptr;
 }
@@ -1222,19 +1205,19 @@ void ObjectMgr::loadVehicleAccessories()
 {
     m_vehicleAccessoryStore.clear();
 
-    QueryResult* result = WorldDatabase.Query("SELECT entry, accessory_entry, seat_id , minion, summontype, summontimer FROM vehicle_accessories;");
+    auto result = WorldDatabase.Query("SELECT entry, accessory_entry, seat_id , minion, summontype, summontimer FROM vehicle_accessories;");
     if (result != nullptr)
     {
         do
         {
             Field* fields = result->Fetch();
 
-            uint32_t entry = fields[0].GetUInt32();
-            uint32_t accessory = fields[1].GetUInt32();
-            int8_t seatId = fields[2].GetInt8();
-            bool isMinion = fields[3].GetBool();
-            uint8_t summonType = fields[4].GetUInt8();
-            uint32_t summonTimer = fields[5].GetUInt32();
+            uint32_t entry = fields[0].asUint32();
+            uint32_t accessory = fields[1].asUint32();
+            int8_t seatId = fields[2].asInt8();
+            bool isMinion = fields[3].asBool();
+            uint8_t summonType = fields[4].asUint8();
+            uint32_t summonTimer = fields[5].asUint32();
 
             if (!sMySQLStore.getCreatureProperties(entry))
             {
@@ -1258,8 +1241,6 @@ void ObjectMgr::loadVehicleAccessories()
             m_vehicleAccessoryStore[entry].push_back(VehicleAccessory(accessory, seatId, isMinion, summonType, summonTimer));
 
         } while (result->NextRow());
-
-        delete result;
     }
 }
 
@@ -1276,26 +1257,24 @@ void ObjectMgr::loadVehicleSeatAddon()
 {
     m_vehicleSeatAddonStore.clear();
 
-    QueryResult* result = WorldDatabase.Query("SELECT SeatEntry, SeatOrientation, ExitParamX , ExitParamY, ExitParamZ, ExitParamO, ExitParamValue FROM vehicle_seat_addon;");
+    auto result = WorldDatabase.Query("SELECT SeatEntry, SeatOrientation, ExitParamX , ExitParamY, ExitParamZ, ExitParamO, ExitParamValue FROM vehicle_seat_addon;");
     if (result != nullptr)
     {
         do
         {
             Field* fields = result->Fetch();
 
-            uint32_t seatID = fields[0].GetUInt32();
-            float orientation = fields[1].GetFloat();
-            float exitX = fields[2].GetFloat();
-            float exitY = fields[3].GetFloat();
-            float exitZ = fields[4].GetFloat();
-            float exitO = fields[5].GetFloat();
-            uint8_t exitParam = fields[6].GetUInt8();
+            uint32_t seatID = fields[0].asUint32();
+            float orientation = fields[1].asFloat();
+            float exitX = fields[2].asFloat();
+            float exitY = fields[3].asFloat();
+            float exitZ = fields[4].asFloat();
+            float exitO = fields[5].asFloat();
+            uint8_t exitParam = fields[6].asUint8();
 
             m_vehicleSeatAddonStore[seatID] = VehicleSeatAddon(orientation, { exitX, exitY, exitZ, exitO }, exitParam);
 
         } while (result->NextRow());
-
-        delete result;
     }
 }
 
@@ -1328,7 +1307,6 @@ void ObjectMgr::loadEventScripts()
     if (!result)
     {
         sLogger.debug("LoadEventScripts : Loaded 0 event_scripts. DB table `event_scripts` is empty.");
-        delete result;
         return;
     }
 
@@ -1337,22 +1315,22 @@ void ObjectMgr::loadEventScripts()
     {
         Field* fields = result->Fetch();
 
-        uint32_t event_id = fields[0].GetUInt32();
+        uint32_t event_id = fields[0].asUint32();
         SimpleEventScript eventscript;
         eventscript.eventId = event_id;
-        eventscript.function = static_cast<ScriptCommands>(fields[1].GetUInt8());
-        eventscript.scripttype = static_cast<EasyScriptTypes>(fields[2].GetUInt8());
-        eventscript.data_1 = fields[3].GetUInt32();
-        eventscript.data_2 = fields[4].GetUInt32();
-        eventscript.data_3 = fields[5].GetUInt32();
-        eventscript.data_4 = fields[6].GetUInt32();
-        eventscript.data_5 = fields[7].GetUInt32();
-        eventscript.x = fields[8].GetUInt32();
-        eventscript.y = fields[9].GetUInt32();
-        eventscript.z = fields[10].GetUInt32();
-        eventscript.o = fields[11].GetUInt32();
-        eventscript.delay = fields[12].GetUInt32();
-        eventscript.nextevent = fields[13].GetUInt32();
+        eventscript.function = static_cast<ScriptCommands>(fields[1].asUint8());
+        eventscript.scripttype = static_cast<EasyScriptTypes>(fields[2].asUint8());
+        eventscript.data_1 = fields[3].asUint32();
+        eventscript.data_2 = fields[4].asUint32();
+        eventscript.data_3 = fields[5].asUint32();
+        eventscript.data_4 = fields[6].asUint32();
+        eventscript.data_5 = fields[7].asUint32();
+        eventscript.x = fields[8].asUint32();
+        eventscript.y = fields[9].asUint32();
+        eventscript.z = fields[10].asUint32();
+        eventscript.o = fields[11].asUint32();
+        eventscript.delay = fields[12].asUint32();
+        eventscript.nextevent = fields[13].asUint32();
 
         SimpleEventScript* SimpleEventScript = &m_eventScriptMaps.insert(EventScriptMaps::value_type(event_id, eventscript))->second;
 
@@ -1363,8 +1341,6 @@ void ObjectMgr::loadEventScripts()
         ++count;
 
     } while (result->NextRow());
-
-    delete result;
 
     sLogger.info("ObjectMgr : Loaded event_scripts for {} events...", count);
 }
@@ -1633,31 +1609,24 @@ void ObjectMgr::generateDatabaseGossipOptionAndSubMenu(Object* _object, Player* 
 
 void ObjectMgr::loadTrainerSpellSets()
 {
-    auto* const spellSetResult = sMySQLStore.getWorldDBQuery("SELECT * FROM trainer_properties_spellset WHERE min_build <= %u AND max_build >= %u;", VERSION_STRING, VERSION_STRING);
+    auto spellSetResult = sMySQLStore.getWorldDBQuery("SELECT * FROM trainer_properties_spellset WHERE min_build <= %u AND max_build >= %u;", VERSION_STRING, VERSION_STRING);
     if (spellSetResult != nullptr)
     {
-        std::shared_ptr<std::vector<TrainerSpell>> trainerSpells;
+        std::vector<TrainerSpell>* trainerSpells = nullptr;
 
         do
         {
             Field* fields = spellSetResult->Fetch();
 
-            auto spellSetPair = m_trainerSpellSet.find(fields[0].GetUInt32());
-
-            if (spellSetPair == m_trainerSpellSet.end())
-            {
-                trainerSpells = std::make_shared<std::vector<TrainerSpell>>();
-                m_trainerSpellSet[fields[0].GetUInt32()] = trainerSpells;
-            }
-            else
-            {
-                trainerSpells = spellSetPair->second;
-            }
+            const auto [spellSetItr, _] = m_trainerSpellSet.try_emplace(fields[0].asUint32(), Util::LazyInstanceCreator([] {
+                return std::make_unique<std::vector<TrainerSpell>>();
+            }));
+            trainerSpells = spellSetItr->second.get();
 
             auto* const fields2 = spellSetResult->Fetch();
 
-            auto castSpellID = fields2[3].GetUInt32();
-            auto learnSpellID = fields2[4].GetUInt32();
+            auto castSpellID = fields2[3].asUint32();
+            auto learnSpellID = fields2[4].asUint32();
 
             TrainerSpell ts;
             auto abrt = false;
@@ -1674,7 +1643,7 @@ void ObjectMgr::loadTrainerSpellSets()
                             ts.castRealSpell = sSpellMgr.getSpellInfo(ts.castSpell->getEffectTriggerSpell(i));
                             if (ts.castRealSpell == nullptr)
                             {
-                                sLogger.failure("LoadTrainers : TrainerSpellSet {} contains cast spell {} that is non-teaching", fields[0].GetUInt32(), castSpellID);
+                                sLogger.failure("LoadTrainers : TrainerSpellSet {} contains cast spell {} that is non-teaching", fields[0].asUint32(), castSpellID);
                                 abrt = true;
                             }
 
@@ -1696,13 +1665,13 @@ void ObjectMgr::loadTrainerSpellSets()
             if (ts.castSpell != nullptr && ts.castRealSpell == nullptr)
                 continue;
 
-            ts.cost = fields2[5].GetUInt32();
-            ts.requiredSpell[0] = fields2[6].GetUInt32();
-            ts.requiredSkillLine = fields2[7].GetUInt16();
-            ts.requiredSkillLineValue = fields2[8].GetUInt32();
-            ts.requiredLevel = fields2[9].GetUInt32();
-            ts.deleteSpell = fields2[10].GetUInt32();
-            ts.isStatic = fields2[11].GetUInt32();
+            ts.cost = fields2[5].asUint32();
+            ts.requiredSpell[0] = fields2[6].asUint32();
+            ts.requiredSkillLine = fields2[7].asUint16();
+            ts.requiredSkillLineValue = fields2[8].asUint32();
+            ts.requiredLevel = fields2[9].asUint32();
+            ts.deleteSpell = fields2[10].asUint32();
+            ts.isStatic = fields2[11].asUint32();
 
             // Check if spell teaches a primary profession skill
             if (ts.requiredSkillLine == 0 && ts.castRealSpell != nullptr)
@@ -1733,13 +1702,10 @@ void ObjectMgr::loadTrainerSpellSets()
     }
 }
 
-std::shared_ptr<std::vector<TrainerSpell>> ObjectMgr::getTrainerSpellSetById(uint32_t _id)
+std::vector<TrainerSpell> const* ObjectMgr::getTrainerSpellSetById(uint32_t _id) const
 {
     auto itr = m_trainerSpellSet.find(_id);
-    if (itr == m_trainerSpellSet.end())
-        return {};
-
-    return itr->second;
+    return itr != m_trainerSpellSet.cend() ? itr->second.get() : nullptr;
 }
 
 void ObjectMgr::loadTrainers()
@@ -1747,66 +1713,63 @@ void ObjectMgr::loadTrainers()
 #if VERSION_STRING <= Cata
     std::string normalTalkMessage = "DMSG";
 
-    if (auto* const trainerResult = sMySQLStore.getWorldDBQuery("SELECT * FROM trainer_properties WHERE build <= %u;", VERSION_STRING))
+    if (auto trainerResult = sMySQLStore.getWorldDBQuery("SELECT * FROM trainer_properties WHERE build <= %u;", VERSION_STRING))
     {
         do
         {
             auto* const fields = trainerResult->Fetch();
-            const auto entry = fields[0].GetUInt32();
+            const auto entry = fields[0].asUint32();
+            const auto spellCount = static_cast<uint32_t>(getTrainerSpellSetById(fields[12].asUint32())->size());
 
-            std::shared_ptr<Trainer> trainer = std::make_shared<Trainer>();
-            trainer->RequiredSkill = fields[2].GetUInt16();
-            trainer->RequiredSkillLine = fields[3].GetUInt32();
-            trainer->RequiredClass = fields[4].GetUInt32();
-            trainer->RequiredRace = fields[5].GetUInt32();
-            trainer->RequiredRepFaction = fields[6].GetUInt32();
-            trainer->RequiredRepValue = fields[7].GetUInt32();
-            trainer->TrainerType = fields[8].GetUInt32();
-            trainer->Can_Train_Gossip_TextId = fields[10].GetUInt32();
-            trainer->Cannot_Train_GossipTextId = fields[11].GetUInt32();
-            trainer->spellset_id = fields[12].GetUInt32();
-            trainer->can_train_max_level = fields[13].GetUInt32();
-            trainer->can_train_min_skill_value = fields[14].GetUInt32();
-            trainer->can_train_max_skill_value = fields[15].GetUInt32();
+            if (spellCount == 0)
+                continue;
+
+            const auto [trainerItr, _] = m_trainers.try_emplace(entry, Util::LazyInstanceCreator([] {
+                return std::make_unique<Trainer>();
+            }));
+
+            auto* trainer = trainerItr->second.get();
+            trainer->RequiredSkill = fields[2].asUint16();
+            trainer->RequiredSkillLine = fields[3].asUint32();
+            trainer->RequiredClass = fields[4].asUint32();
+            trainer->RequiredRace = fields[5].asUint32();
+            trainer->RequiredRepFaction = fields[6].asUint32();
+            trainer->RequiredRepValue = fields[7].asUint32();
+            trainer->TrainerType = fields[8].asUint32();
+            trainer->Can_Train_Gossip_TextId = fields[10].asUint32();
+            trainer->Cannot_Train_GossipTextId = fields[11].asUint32();
+            trainer->spellset_id = fields[12].asUint32();
+            trainer->can_train_max_level = fields[13].asUint32();
+            trainer->can_train_min_skill_value = fields[14].asUint32();
+            trainer->can_train_max_skill_value = fields[15].asUint32();
 
             if (!trainer->Can_Train_Gossip_TextId)
                 trainer->Can_Train_Gossip_TextId = 1;
             if (!trainer->Cannot_Train_GossipTextId)
                 trainer->Cannot_Train_GossipTextId = 1;
 
-            std::string temp = fields[9].GetString();
+            std::string temp = fields[9].asCString();
             if (temp.length())
                 trainer->UIMessage = temp;
             else
                 trainer->UIMessage = normalTalkMessage;
 
-            trainer->SpellCount = static_cast<uint32_t>(getTrainerSpellSetById(trainer->spellset_id)->size());
+            trainer->SpellCount = spellCount;
 
-            // and now we insert it to our lookup table
-            if (trainer->SpellCount == 0)
-            {
-                if (trainer->UIMessage != normalTalkMessage)
-                    trainer->UIMessage.clear();
-
-                continue;
-            }
-
-            m_trainers.insert(std::pair(entry, trainer));
         } while (trainerResult->NextRow());
 
-        delete trainerResult;
         sLogger.info("ObjectMgr : {} trainers loaded.", static_cast<uint32_t>(m_trainers.size()));
     }
 #endif
 }
 
-std::shared_ptr<Trainer> ObjectMgr::getTrainer(uint32_t _entry)
+Trainer const* ObjectMgr::getTrainer(uint32_t _entry) const
 {
     const auto iter = m_trainers.find(_entry);
     if (iter == m_trainers.end())
         return nullptr;
 
-    return iter->second;
+    return iter->second.get();
 }
 
 void ObjectMgr::loadCreatureDisplayInfo()
@@ -1926,7 +1889,7 @@ void ObjectMgr::loadInstanceEncounters()
     const auto startTime = Util::TimeNow();
 
     //                                                 0         1            2                3               4       5
-    QueryResult* result = WorldDatabase.Query("SELECT entry, creditType, creditEntry, lastEncounterDungeon, comment, mapid FROM instance_encounters");
+    auto result = WorldDatabase.Query("SELECT entry, creditType, creditEntry, lastEncounterDungeon, comment, mapid FROM instance_encounters");
     if (result == nullptr)
     {
         sLogger.debug(">> Loaded 0 instance encounters, table is empty!");
@@ -1941,14 +1904,14 @@ void ObjectMgr::loadInstanceEncounters()
     do
     {
         Field* fields = result->Fetch();
-        auto entry = fields[0].GetUInt32();
-        auto creditType = fields[1].GetUInt8();
-        auto creditEntry = fields[2].GetUInt32();
-        auto lastEncounterDungeon = fields[3].GetUInt16();
-        auto dungeonEncounterName = fields[4].GetString();
+        auto entry = fields[0].asUint32();
+        auto creditType = fields[1].asUint8();
+        auto creditEntry = fields[2].asUint32();
+        auto lastEncounterDungeon = fields[3].asUint16();
+        auto dungeonEncounterName = fields[4].asCString();
 
 #if VERSION_STRING <= TBC
-        auto mapId = fields[5].GetUInt32();
+        auto mapId = fields[5].asUint32();
 #else
         const auto dungeonEncounter = sDungeonEncounterStore.lookupEntry(entry);
         if (dungeonEncounter == nullptr)
@@ -2020,10 +1983,10 @@ void ObjectMgr::loadInstanceEncounters()
 
 #if VERSION_STRING <= TBC
         DungeonEncounterList& encounters = m_dungeonEncounterStore[mapId];
-        encounters.push_back(std::make_shared<DungeonEncounter>(EncounterCreditType(creditType), creditEntry));
+        encounters.emplace_back(std::make_unique<DungeonEncounter>(EncounterCreditType(creditType), creditEntry));
 #else
         DungeonEncounterList& encounters = m_dungeonEncounterStore[static_cast<int32_t>(static_cast<uint16_t>(dungeonEncounter->mapId) | (static_cast<uint32_t>(dungeonEncounter->difficulty) << 16))];
-        encounters.push_back(std::make_shared<DungeonEncounter>(dungeonEncounter, EncounterCreditType(creditType), creditEntry, lastEncounterDungeon));
+        encounters.emplace_back(std::make_unique<DungeonEncounter>(dungeonEncounter, EncounterCreditType(creditType), creditEntry, lastEncounterDungeon));
 #endif
         ++count;
     } while (result->NextRow());
@@ -2031,7 +1994,7 @@ void ObjectMgr::loadInstanceEncounters()
     sLogger.info("ObjectMgr : Loaded {} instance encounters in {} ms", count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
 
-DungeonEncounterList const* ObjectMgr::getDungeonEncounterList(uint32_t _mapId, uint8_t _difficulty)
+DungeonEncounterList const* ObjectMgr::getDungeonEncounterList(uint32_t _mapId, uint8_t _difficulty) const
 {
 #if VERSION_STRING >= WotLK
     std::unordered_map<uint32_t, DungeonEncounterList>::const_iterator itr = m_dungeonEncounterStore.find(uint32_t(uint16_t(_mapId) | (uint32_t(_difficulty) << 16)));
@@ -2050,40 +2013,37 @@ void ObjectMgr::loadCreatureMovementOverrides()
 
     m_creatureMovementOverrides.clear();
 
-    QueryResult* result = WorldDatabase.Query("SELECT SpawnId, Ground, Swim, Flight, Rooted, Chase, Random from creature_movement_override");
+    auto result = WorldDatabase.Query("SELECT SpawnId, Ground, Swim, Flight, Rooted, Chase, Random from creature_movement_override");
     if (!result)
     {
-        sLogger.info("loadCreatureMovementOverrides : Loaded 0 creature movement overrides. DB table `creature_movement_override` is empty!");
+        sLogger.info("CreatureMovementOverrides : Loaded 0 creature movement overrides. DB table `creature_movement_override` is empty!");
         return;
     }
 
     do
     {
         Field* fields = result->Fetch();
-        uint32_t spawnId = fields[0].GetUInt32();
+        uint32_t spawnId = fields[0].asUint32();
 
-        QueryResult* spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", spawnId);
+        auto spawnResult = WorldDatabase.Query("SELECT * FROM creature_spawns WHERE id = %u", spawnId);
         if (spawnResult == nullptr)
         {
             sLogger.failure("Creature (SpawnId: {}) does not exist but has a record in `creature_movement_override`", spawnId);
-            delete spawnResult;
             continue;
         }
 
         CreatureMovementData& movement = m_creatureMovementOverrides[spawnId];
-        movement.Ground = static_cast<CreatureGroundMovementType>(fields[1].GetUInt8());
-        movement.Swim = fields[2].GetBool();
-        movement.Flight = static_cast<CreatureFlightMovementType>(fields[3].GetUInt8());
-        movement.Rooted = fields[4].GetBool();
-        movement.Chase = static_cast<CreatureChaseMovementType>(fields[5].GetUInt8());
-        movement.Random = static_cast<CreatureRandomMovementType>(fields[6].GetUInt8());
+        movement.Ground = static_cast<CreatureGroundMovementType>(fields[1].asUint8());
+        movement.Swim = fields[2].asBool();
+        movement.Flight = static_cast<CreatureFlightMovementType>(fields[3].asUint8());
+        movement.Rooted = fields[4].asBool();
+        movement.Chase = static_cast<CreatureChaseMovementType>(fields[5].asUint8());
+        movement.Random = static_cast<CreatureRandomMovementType>(fields[6].asUint8());
 
         checkCreatureMovement(spawnId, movement);
         ++count;
 
     } while (result->NextRow());
-
-    delete result;
 
     sLogger.info("ObjectMgr :  Loaded {} movement overrides in {} ms", count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
@@ -2113,20 +2073,17 @@ CreatureMovementData const* ObjectMgr::getCreatureMovementOverride(uint32_t _spa
 
 void ObjectMgr::loadWorldStateTemplates()
 {
-    QueryResult* result = WorldDatabase.QueryNA("SELECT DISTINCT map FROM worldstate_templates ORDER BY map;");
+    auto result = WorldDatabase.QueryNA("SELECT DISTINCT map FROM worldstate_templates ORDER BY map;");
     if (result == nullptr)
         return;
 
     do
     {
         Field* field = result->Fetch();
-        uint32_t mapId = field[0].GetUInt32();
+        uint32_t mapId = field[0].asUint32();
 
-        m_worldstateTemplates.insert(std::make_pair(mapId, std::make_shared<WorldStateMap>()));
-
+        m_worldstateTemplates.emplace(mapId, std::make_unique<WorldStateMap>());
     } while (result->NextRow());
-
-    delete result;
 
     result = WorldDatabase.QueryNA("SELECT map, zone, field, value FROM worldstate_templates;");
     if (result == nullptr)
@@ -2137,33 +2094,30 @@ void ObjectMgr::loadWorldStateTemplates()
         Field* field = result->Fetch();
         WorldState worldState;
 
-        uint32_t mapId = field[0].GetUInt32();
-        uint32_t zone = field[1].GetUInt32();
-        worldState.field = field[2].GetUInt32();
-        worldState.value = field[3].GetUInt32();
+        uint32_t mapId = field[0].asUint32();
+        uint32_t zone = field[1].asUint32();
+        worldState.field = field[2].asUint32();
+        worldState.value = field[3].asUint32();
 
         auto itr = m_worldstateTemplates.find(mapId);
         if (itr == m_worldstateTemplates.end())
             continue;
 
-        itr->second->insert(std::make_pair(zone, worldState));
-
+        itr->second->emplace(zone, worldState);
     } while (result->NextRow());
-
-    delete result;
 }
 
-std::shared_ptr<WorldStateMap> ObjectMgr::getWorldStatesForMap(uint32_t _map) const
+WorldStateMap const* ObjectMgr::getWorldStatesForMap(uint32_t _map) const
 {
     const auto itr = m_worldstateTemplates.find(_map);
     if (itr == m_worldstateTemplates.end())
         return nullptr;
-    return itr->second;
+    return itr->second.get();
 }
 
 void ObjectMgr::loadCreatureTimedEmotes()
 {
-    QueryResult* result = WorldDatabase.Query("SELECT * FROM creature_timed_emotes order by rowid asc");
+    auto result = WorldDatabase.Query("SELECT * FROM creature_timed_emotes order by rowid asc");
     if (!result)
         return;
 
@@ -2171,40 +2125,31 @@ void ObjectMgr::loadCreatureTimedEmotes()
     do
     {
         Field* field = result->Fetch();
-        auto timedEmotes = std::make_shared<SpawnTimedEmotes>();
-        timedEmotes->type = field[2].GetUInt8();
-        timedEmotes->value = field[3].GetUInt32();
-        timedEmotes->msg = field[4].GetString();
-        timedEmotes->msg_type = field[5].GetUInt8();
-        timedEmotes->msg_lang = field[6].GetUInt8();
-        timedEmotes->expire_after = field[7].GetUInt32();
+        uint32_t spawnId = field[0].asUint32();
 
-        uint32_t spawnId = field[0].GetUInt32();
+        const auto [timedEmoteItr, _] = m_timedEmotes.try_emplace(spawnId, Util::LazyInstanceCreator([] {
+            return std::make_unique<TimedEmoteList>();
+        }));
 
-        auto timedEmotePair = m_timedEmotes.find(spawnId);
-        if (timedEmotePair == m_timedEmotes.end())
-        {
-            std::shared_ptr<TimedEmoteList> emoteList = std::make_shared<TimedEmoteList>();
-            emoteList->push_back(timedEmotes);
-            m_timedEmotes[spawnId] = emoteList;
-        }
-        else
-        {
-            timedEmotePair->second->push_back(timedEmotes);
-        }
+        const auto& timedEmotes = timedEmoteItr->second->emplace_back(std::make_unique<SpawnTimedEmotes>());
+        timedEmotes->type = field[2].asUint8();
+        timedEmotes->value = field[3].asUint32();
+        timedEmotes->msg = field[4].asCString();
+        timedEmotes->msg_type = field[5].asUint8();
+        timedEmotes->msg_lang = field[6].asUint8();
+        timedEmotes->expire_after = field[7].asUint32();
 
         ++count;
     } while (result->NextRow());
 
     sLogger.info("ObjectMgr : {} timed emotes cached.", count);
-    delete result;
 }
 
-std::shared_ptr<TimedEmoteList> ObjectMgr::getTimedEmoteList(uint32_t _spawnId)
+TimedEmoteList* ObjectMgr::getTimedEmoteList(uint32_t _spawnId) const
 {
     const auto timedEmotesPair = m_timedEmotes.find(_spawnId);
     if (timedEmotesPair != m_timedEmotes.end())
-        return timedEmotesPair->second;
+        return timedEmotesPair->second.get();
 
      return nullptr;
 }
@@ -2237,11 +2182,13 @@ void ObjectMgr::generateLevelUpInfo()
                 continue;
             }
 
-            auto levelMap = std::make_shared<LevelMap>();
+            const auto [lvlMapItr, _] = m_levelInfo.insert_or_assign(std::make_pair(playerRace, playerClass), std::make_unique<LevelMap>());
+            auto* levelMap = lvlMapItr->second.get();
 
             for (uint32_t level = 1; level <= worldConfig.player.playerLevelCap; ++level)
             {
-                auto levelInfo = std::make_shared<LevelInfo>();
+                const auto [lvlInfoItr, _] = levelMap->insert_or_assign(level, std::make_unique<LevelInfo>());
+                auto* levelInfo = lvlInfoItr->second.get();
 
                 if (auto* playerClassLevelstats = sMySQLStore.getPlayerClassLevelStats(level, playerClass))
                 {
@@ -2272,11 +2219,7 @@ void ObjectMgr::generateLevelUpInfo()
 
                     _missingStatLevelData.push_back({ level, playerRace, playerClass });
                 }
-
-                levelMap->insert(LevelMap::value_type(level, levelInfo));
             }
-
-            m_levelInfo.insert(LevelInfoMap::value_type(std::make_pair(playerRace, playerClass), levelMap));
         }
     }
 
@@ -2403,7 +2346,7 @@ void ObjectMgr::generateLevelUpInfo()
     sLogger.info("ObjectMgr : {} level up information generated.", (stat_counter + hp_counter));
 }
 
-std::shared_ptr<LevelInfo> ObjectMgr::getLevelInfo(uint32_t _race, uint32_t _class, uint32_t _level)
+LevelInfo* ObjectMgr::getLevelInfo(uint32_t _race, uint32_t _class, uint32_t _level) const
 {
     for (const auto& levelInfoPair : m_levelInfo)
     {
@@ -2419,17 +2362,17 @@ std::shared_ptr<LevelInfo> ObjectMgr::getLevelInfo(uint32_t _race, uint32_t _cla
                 return nullptr;
             }
 
-            return levelInfoMap->second;
+            return levelInfoMap->second.get();
         }
     }
 
     return nullptr;
 }
 
-std::shared_ptr<Pet> ObjectMgr::createPet(uint32_t _entry)
+Pet* ObjectMgr::createPet(uint32_t _entry, WDB::Structures::SummonPropertiesEntry const* properties)
 {
     const uint32_t guid = ++m_hiPetGuid;
-    return std::make_shared<Pet>(WoWGuid(guid, _entry, HIGHGUID_TYPE_PET));
+    return new Pet(WoWGuid(guid, _entry, HIGHGUID_TYPE_PET), properties);
 }
 
 void ObjectMgr::loadPetSpellCooldowns()
@@ -2475,35 +2418,32 @@ uint32_t ObjectMgr::getPetSpellCooldown(uint32_t _spellId)
     return 0;
 }
 
-Item* ObjectMgr::loadItem(uint32_t _lowGuid)
+std::unique_ptr<Item> ObjectMgr::loadItem(uint32_t _lowGuid)
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT * FROM playeritems WHERE guid = %u", _lowGuid);
-    Item* item = nullptr;
+    auto result = CharacterDatabase.Query("SELECT * FROM playeritems WHERE guid = %u", _lowGuid);
+    std::unique_ptr<Item> item = nullptr;
     if (result)
     {
-        if (const auto itemProperties = sMySQLStore.getItemProperties(result->Fetch()[2].GetUInt32()))
+        if (const auto itemProperties = sMySQLStore.getItemProperties(result->Fetch()[2].asUint32()))
         {
             if (itemProperties->InventoryType == INVTYPE_BAG)
             {
-                Container* container = new Container(HIGHGUID_TYPE_CONTAINER, _lowGuid);
-                container->loadFromDB(result->Fetch());
-                item = container;
+                item = std::make_unique<Container>(HIGHGUID_TYPE_CONTAINER, _lowGuid);
+                dynamic_cast<Container*>(item.get())->loadFromDB(result->Fetch());
             }
             else
             {
-                item = new Item;
+                item = std::make_unique<Item>();
                 item->init(HIGHGUID_TYPE_ITEM, _lowGuid);
                 item->loadFromDB(result->Fetch(), nullptr, false);
             }
         }
-
-        delete result;
     }
 
     return item;
 }
 
-Item* ObjectMgr::createItem(uint32_t _entry, Player* _playerOwner)
+std::unique_ptr<Item> ObjectMgr::createItem(uint32_t _entry, Player* _playerOwner)
 {
     ItemProperties const* itemProperties = sMySQLStore.getItemProperties(_entry);
     if (itemProperties == nullptr)
@@ -2511,13 +2451,13 @@ Item* ObjectMgr::createItem(uint32_t _entry, Player* _playerOwner)
 
     if (itemProperties->InventoryType == INVTYPE_BAG)
     {
-        Container* container = new Container(HIGHGUID_TYPE_CONTAINER, generateLowGuid(HIGHGUID_TYPE_CONTAINER));
+        auto container = std::make_unique<Container>(HIGHGUID_TYPE_CONTAINER, generateLowGuid(HIGHGUID_TYPE_CONTAINER));
         container->create(_entry, _playerOwner);
         container->setStackCount(1);
         return container;
     }
 
-    Item* item = new Item;
+    auto item = std::make_unique<Item>();
     item->init(HIGHGUID_TYPE_ITEM, generateLowGuid(HIGHGUID_TYPE_ITEM));
     item->create(_entry, _playerOwner);
     item->setStackCount(1);
@@ -2535,32 +2475,28 @@ Item* ObjectMgr::createItem(uint32_t _entry, Player* _playerOwner)
 
 void ObjectMgr::setHighestGuids()
 {
-    QueryResult* result = CharacterDatabase.Query("SELECT MAX(guid) FROM characters");
+    auto result = CharacterDatabase.Query("SELECT MAX(guid) FROM characters");
     if (result)
     {
-        m_hiPlayerGuid = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiPlayerGuid = result->Fetch()[0].asUint32();
     }
 
     result = CharacterDatabase.Query("SELECT MAX(guid) FROM playeritems");
     if (result)
     {
-        m_hiItemGuid = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiItemGuid = result->Fetch()[0].asUint32();
     }
 
     result = WorldDatabase.Query("SELECT MAX(entry) FROM item_pages");
     if (result)
     {
-        m_hiItemPageEntry = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiItemPageEntry = result->Fetch()[0].asUint32();
     }
 
     result = CharacterDatabase.Query("SELECT MAX(guid) FROM corpses");
     if (result)
     {
-        m_hiCorpseGuid = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiCorpseGuid = result->Fetch()[0].asUint32();
     }
 
     result = sMySQLStore.getWorldDBQuery("SELECT MAX(id) FROM creature_spawns WHERE min_build <= %u AND max_build >= %u AND event_entry = 0", VERSION_STRING, VERSION_STRING);
@@ -2568,10 +2504,8 @@ void ObjectMgr::setHighestGuids()
     {
         do
         {
-            m_hiCreatureSpawnId = result->Fetch()[0].GetUInt32();
+            m_hiCreatureSpawnId = result->Fetch()[0].asUint32();
         } while (result->NextRow());
-
-        delete result;
     }
 
     result = sMySQLStore.getWorldDBQuery("SELECT MAX(id) FROM gameobject_spawns WHERE min_build <= %u AND max_build >= %u AND event_entry = 0", VERSION_STRING, VERSION_STRING);
@@ -2579,58 +2513,51 @@ void ObjectMgr::setHighestGuids()
     {
         do
         {
-            m_hiGameObjectSpawnId = result->Fetch()[0].GetUInt32();
+            m_hiGameObjectSpawnId = result->Fetch()[0].asUint32();
         } while (result->NextRow());
-        delete result;
     }
 
     result = CharacterDatabase.Query("SELECT MAX(group_id) FROM `groups`");
     if (result)
     {
-        m_hiGroupId = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiGroupId = result->Fetch()[0].asUint32();
     }
 
     result = CharacterDatabase.Query("SELECT MAX(charterid) FROM charters");
     if (result)
     {
-        m_hiCharterId = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiCharterId = result->Fetch()[0].asUint32();
     }
 
     result = CharacterDatabase.Query("SELECT MAX(guildid) FROM guilds");
     if (result)
     {
-        m_hiGuildId = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_hiGuildId = result->Fetch()[0].asUint32();
     }
 
     result = CharacterDatabase.Query("SELECT MAX(UID) FROM playerbugreports");
     if (result != nullptr)
     {
-        m_reportId = result->Fetch()[0].GetUInt32() + 1;
-        delete result;
+        m_reportId = result->Fetch()[0].asUint32() + 1;
     }
 
     result = CharacterDatabase.Query("SELECT MAX(message_id) FROM mailbox");
     if (result)
     {
-        m_mailId = result->Fetch()[0].GetUInt32() + 1;
-        delete result;
+        m_mailId = result->Fetch()[0].asUint32() + 1;
     }
 
     result = CharacterDatabase.Query("SELECT MAX(setGUID) FROM equipmentsets");
     if (result != nullptr)
     {
-        m_setGuid = result->Fetch()[0].GetUInt32() + 1;
-        delete result;
+        m_setGuid = result->Fetch()[0].asUint32() + 1;
     }
 
 #if VERSION_STRING > WotLK
     result = CharacterDatabase.Query("SELECT MAX(itemId) FROM character_void_storage");
     if (result  != nullptr)
     {
-        m_voidItemId = uint64_t(result->Fetch()[0].GetUInt32() + 1);
+        m_voidItemId = uint64_t(result->Fetch()[0].asUint32() + 1);
     }
 #endif
 

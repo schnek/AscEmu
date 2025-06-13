@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -23,7 +23,7 @@ bool ChatHandler::HandleModifyHp(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldHealth = unitTarget->getHealth();
 
     if (unitTarget->isPlayer())
@@ -64,7 +64,7 @@ bool ChatHandler::HandleModifyMana(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldMana = unitTarget->getPower(POWER_TYPE_MANA);
 
     if (unitTarget->isPlayer())
@@ -105,7 +105,7 @@ bool ChatHandler::HandleModifyRage(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldRage = unitTarget->getPower(POWER_TYPE_RAGE);
 
     if (unitTarget->isPlayer())
@@ -146,7 +146,7 @@ bool ChatHandler::HandleModifyEnergy(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldEnergy = unitTarget->getPower(POWER_TYPE_ENERGY);
 
     if (unitTarget->isPlayer())
@@ -188,7 +188,7 @@ bool ChatHandler::HandleModifyRunicpower(const char* args, WorldSession* session
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldRunic = unitTarget->getPower(POWER_TYPE_RUNIC_POWER);
 
     if (unitTarget->isPlayer())
@@ -230,7 +230,7 @@ bool ChatHandler::HandleModifyStrength(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldStrength = unitTarget->getStat(STAT_STRENGTH);
 
     if (unitTarget->isPlayer())
@@ -268,7 +268,7 @@ bool ChatHandler::HandleModifyAgility(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldAgility = unitTarget->getStat(STAT_AGILITY);
 
     if (unitTarget->isPlayer())
@@ -307,7 +307,7 @@ bool ChatHandler::HandleModifyIntelligence(const char* args, WorldSession* sessi
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldIntellect = unitTarget->getStat(STAT_INTELLECT);
 
     if (unitTarget->isPlayer())
@@ -345,7 +345,7 @@ bool ChatHandler::HandleModifySpirit(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldSpirit = unitTarget->getStat(STAT_SPIRIT);
 
     if (unitTarget->isPlayer())
@@ -383,7 +383,7 @@ bool ChatHandler::HandleModifyArmor(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldArmor = unitTarget->getResistance(0);
 
     if (unitTarget->isPlayer())
@@ -421,7 +421,7 @@ bool ChatHandler::HandleModifyHoly(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldHoly = unitTarget->getResistance(1);
 
     if (unitTarget->isPlayer())
@@ -459,7 +459,7 @@ bool ChatHandler::HandleModifyFire(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldFire = unitTarget->getResistance(2);
 
     if (unitTarget->isPlayer())
@@ -497,7 +497,7 @@ bool ChatHandler::HandleModifyNature(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldNature = unitTarget->getResistance(3);
 
     if (unitTarget->isPlayer())
@@ -535,7 +535,7 @@ bool ChatHandler::HandleModifyFrost(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldFrost = unitTarget->getResistance(4);
 
     if (unitTarget->isPlayer())
@@ -573,7 +573,7 @@ bool ChatHandler::HandleModifyShadow(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldShadow = unitTarget->getResistance(5);
 
     if (unitTarget->isPlayer())
@@ -611,7 +611,7 @@ bool ChatHandler::HandleModifyArcane(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldArcane = unitTarget->getResistance(5);
 
     if (unitTarget->isPlayer())
@@ -689,7 +689,7 @@ bool ChatHandler::HandleModifyAp(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldAttackPower = unitTarget->getAttackPower();
 
     if (unitTarget->isPlayer())
@@ -727,7 +727,7 @@ bool ChatHandler::HandleModifyRangeap(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldRangedAp = unitTarget->getRangedAttackPower();
 
     if (unitTarget->isPlayer())
@@ -803,7 +803,7 @@ bool ChatHandler::HandleModifyNativedisplayid(const char* args, WorldSession* se
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldDisplayId = unitTarget->getNativeDisplayId();
 
     if (unitTarget->isPlayer())
@@ -841,7 +841,7 @@ bool ChatHandler::HandleModifyDisplayid(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldDisplayId = unitTarget->getDisplayId();
 
     if (unitTarget->isPlayer())
@@ -879,7 +879,7 @@ bool ChatHandler::HandleModifyFlags(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldUnitFlags = unitTarget->getUnitFlags();
 
     if (unitTarget->isPlayer())
@@ -917,7 +917,7 @@ bool ChatHandler::HandleModifyFaction(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldFaction = unitTarget->getFactionTemplate();
 
     if (unitTarget->isPlayer())
@@ -955,7 +955,7 @@ bool ChatHandler::HandleModifyDynamicflags(const char* args, WorldSession* sessi
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldDynamicFlags = unitTarget->getDynamicFlags();
 
     if (unitTarget->isPlayer())
@@ -983,6 +983,7 @@ bool ChatHandler::HandleModifyDynamicflags(const char* args, WorldSession* sessi
     return false;
 }
 
+#if VERSION_STRING < Cata
 //.modify happiness
 bool ChatHandler::HandleModifyHappiness(const char* args, WorldSession* session)
 {
@@ -993,7 +994,7 @@ bool ChatHandler::HandleModifyHappiness(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldHappiness = unitTarget->getPower(POWER_TYPE_HAPPINESS);
 
     if (unitTarget->isPlayer())
@@ -1020,6 +1021,7 @@ bool ChatHandler::HandleModifyHappiness(const char* args, WorldSession* session)
 
     return false;
 }
+#endif
 
 //.modify boundingradius
 bool ChatHandler::HandleModifyBoundingradius(const char* args, WorldSession* session)
@@ -1107,7 +1109,7 @@ bool ChatHandler::HandleModifyEmotestate(const char* args, WorldSession* session
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldEmote = unitTarget->getEmoteState();
 
     if (unitTarget->isPlayer())
@@ -1145,7 +1147,7 @@ bool ChatHandler::HandleModifyBytes0(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldBytes = unitTarget->getBytes0();
 
     if (unitTarget->isPlayer())
@@ -1183,7 +1185,7 @@ bool ChatHandler::HandleModifyBytes1(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldBytes = unitTarget->getBytes1();
 
     if (unitTarget->isPlayer())
@@ -1221,7 +1223,7 @@ bool ChatHandler::HandleModifyBytes2(const char* args, WorldSession* session)
     if (unitTarget == nullptr)
         return true;
 
-    const uint32_t value = atol(args);
+    const uint32_t value = std::stoul(args);
     const uint32_t oldBytes = unitTarget->getBytes2();
 
     if (unitTarget->isPlayer())

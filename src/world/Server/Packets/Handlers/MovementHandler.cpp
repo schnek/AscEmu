@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -8,6 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgSetActiveMover.h"
 #include "Server/Packets/MovementPacket.h"
 #include "Server/WorldSession.h"
+#include "Objects/Units/Creatures/Summons/SummonHandler.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Objects/Units/Creatures/Vehicle.hpp"
 #include "Map/Cells/CellHandlerDefines.hpp"
@@ -30,9 +31,9 @@ This file is released under the MIT license. See README-MIT for more information
 
 using namespace AscEmu::Packets;
 
-#if VERSION_STRING < Cata
 void WorldSession::handleSetActiveMoverOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING < Cata
     CmsgSetActiveMover srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
@@ -58,8 +59,8 @@ void WorldSession::handleSetActiveMoverOpcode(WorldPacket& recvPacket)
         m_MoverWoWGuid.Init(_player->getGuid());
     else
         m_MoverWoWGuid = srlPacket.guid;
-}
 #endif
+}
 
 void WorldSession::updatePlayerMovementVars(uint16_t opcode)
 {
@@ -133,7 +134,7 @@ bool WorldSession::isHackDetectedInMovementData(uint16_t opcode)
 
     // Speed
     // implement worldConfig.antiHack.isSpeedHackCkeckEnabled
-    if (_player->isOnTaxi() && _player->obj_movement_info.transport_guid == 0 && !_player->getSession()->GetPermissionCount())
+    if (_player->isOnTaxi() && _player->obj_movement_info.transport_guid == 0 && !_player->getSession()->hasPermissions())
     {
         // simplified: just take the fastest speed. less chance of fuckups too
         // get the "normal speeds" not the changed ones!
@@ -478,7 +479,7 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
 {
 #if VERSION_STRING < Cata
     /* extract packet */
-    uint32 unk1;
+    uint32_t unk1;
     float  newspeed;
     Unit* mover = _player->m_controledUnit;
 
@@ -635,8 +636,11 @@ void WorldSession::handleMoveTeleportAckOpcode(WorldPacket& recvPacket)
         _player->setTransferStatus(TRANSFER_NONE);
         _player->speedCheatReset();
 
-        for (auto summon : _player->getSummons())
-            summon->SetPosition(_player->GetPositionX() + 2, _player->GetPositionY() + 2, _player->GetPositionZ(), M_PI_FLOAT);
+        for (const auto& summon : _player->getSummonInterface()->getSummons())
+        {
+            if (!summon->isTotem())
+                summon->SetPosition(_player->GetPositionX() + 2, _player->GetPositionY() + 2, _player->GetPositionZ(), M_PI_FLOAT);
+        }
 
         if (_player->m_sentTeleportPosition.x != 999999.0f)
         {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -13,6 +13,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/DatabaseDefinition.hpp"
 #include "Server/EventMgr.h"
 #include "Server/World.h"
+#include "Utilities/Narrow.hpp"
 
 using AscEmu::Threading::AEThread;
 using std::chrono::milliseconds;
@@ -114,11 +115,10 @@ void DayWatcherThread::update_settings()
 void DayWatcherThread::load_settings()
 {
     m_arenaPeriod = get_timeout_from_string(worldConfig.period.arenaUpdate, WEEKLY);
-    QueryResult* result = CharacterDatabase.Query("SELECT setting_value FROM server_settings WHERE setting_id = \'last_arena_update_time\'");
+    auto result = CharacterDatabase.Query("SELECT setting_value FROM server_settings WHERE setting_id = \'last_arena_update_time\'");
     if (result)
     {
-        m_lastArenaTime = result->Fetch()[0].GetUInt32();
-        delete result;
+        m_lastArenaTime = result->Fetch()[0].asUint32();
     }
     else
     {
@@ -127,11 +127,10 @@ void DayWatcherThread::load_settings()
     }
 
     m_dailyPeriod = get_timeout_from_string(worldConfig.period.dailyUpdate, DAILY);
-    QueryResult* result2 = CharacterDatabase.Query("SELECT setting_value FROM server_settings WHERE setting_id = \'last_daily_update_time\'");
+    auto result2 = CharacterDatabase.Query("SELECT setting_value FROM server_settings WHERE setting_id = \'last_daily_update_time\'");
     if (result2)
     {
-        m_lastDailyTime = result2->Fetch()[0].GetUInt32();
-        delete result2;
+        m_lastDailyTime = result2->Fetch()[0].asUint32();
     }
     else
     {
@@ -194,15 +193,15 @@ void DayWatcherThread::update_arena()
 {
     sLogger.info("DayWatcherThread : Running Weekly Arena Point Maintenance...");
 
-    QueryResult* result = CharacterDatabase.Query("SELECT guid, arenaPoints FROM characters");
+    auto result = CharacterDatabase.Query("SELECT guid, arenaPoints FROM characters");
     uint32_t arenapointsPerTeam[3] = { 0 };
     if (result)
     {
         do
         {
             Field* field = result->Fetch();
-            uint32_t guid = field[0].GetUInt32();
-            uint32_t arenapoints = field[1].GetUInt32();
+            uint32_t guid = field[0].asUint32();
+            uint32_t arenapoints = field[1].asUint32();
             uint32_t orig_arenapoints = arenapoints;
 
             for (uint8_t i = 0; i < 3; ++i)
@@ -253,7 +252,7 @@ void DayWatcherThread::update_arena()
                     }
 
                     if (arenaPoints > 1.0)
-                        arenapointsPerTeam[i] += long2int32(double(ceil(arenaPoints)));
+                        arenapointsPerTeam[i] += Util::long2int32(double(ceil(arenaPoints)));
                 }
             }
 
@@ -277,7 +276,6 @@ void DayWatcherThread::update_arena()
                 CharacterDatabase.Execute("UPDATE characters SET arenaPoints = %u WHERE guid = %u", arenapoints, guid);
             }
         } while (result->NextRow());
-        delete result;
     }
 
     sObjectMgr.updateArenaTeamWeekly();
