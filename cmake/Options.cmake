@@ -27,3 +27,15 @@ option(BUILD_LUAENGINE          "Build LuaEngine."                              
 option(BUILD_WITH_WARNINGS      "Enable/Disable warnings on compilation"                                    ON)
 option(AE_USE_PCH               "Enable precompiled headers - it will reduce compilation time"              ON)
 option(TREAT_WARNINGS_AS_ERRORS "Treats warnings as errors"                                                 OFF)
+
+include(CheckCXXCompilerFlag)
+
+check_cxx_compiler_flag("-Winvalid-pch" COMPILER_SUPPORTS_PCH)
+
+if (COMPILER_SUPPORTS_PCH)
+    message(STATUS "Compiler supports PCH.")
+    set(AE_USE_PCH ON)
+else()
+    message(WARNING "Compiler does NOT support PCH.")
+    set(AE_USE_PCH OFF)
+endif()
