@@ -3,26 +3,39 @@
 # set up our project name.
 set(LIBRARY_NAME shared)
 
-file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.h Config/*.hpp)
-file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.h Cryptography/*.hpp)
-file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.h Database/*.hpp)
-file(GLOB SRC_DEBUGGING_FILES Debugging/*.cpp Debugging/*.h Debugging/*.hpp)
-file(GLOB SRC_EXCEPTIONS_FILES Exceptions/*.cpp Exceptions/*.h Exceptions/*.hpp)
-file(GLOB SRC_LOGGING_FILES Logging/*.cpp Logging/*.h Logging/*.hpp)
-file(GLOB SRC_NETWORK_FILES Network/*.cpp Network/*.h Network/*.hpp)
+ascemu_source_group
 
+# helper macro to collect sources recursively.
+macro(ascemu_source_collect VAR DIR)
+    file(GLOB_RECURSE ${VAR} CONFIGURE_DEPENDS
+        ${DIR}/*.cpp
+        ${DIR}/*.h
+        ${DIR}/*.hpp
+    )
+endmacro()
+
+# collect source files.
+ascemu_source_collect(SRC_CONFIG_FILES        Config)
+ascemu_source_collect(SRC_CRYPTOGRAPHY_FILES  Cryptography)
+ascemu_source_collect(SRC_DATABASE_FILES      Database)
+ascemu_source_collect(SRC_DEBUGGING_FILES     Debugging)
+ascemu_source_collect(SRC_EXCEPTIONS_FILES    Exceptions)
+ascemu_source_collect(SRC_LOGGING_FILES       Logging)
+ascemu_source_collect(SRC_NETWORK_FILES       Network)
+ascemu_source_collect(SRC_THREADING_FILES     Threading)
+ascemu_source_collect(SRC_UTILITIES_FILES     Utilities)
+ascemu_source_collect(SRC_LOCAL_DIR           .)
+
+# platform-specific network sources.
 if (WIN32)
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/IOCP/*.cpp Network/IOCP/*.h Network/IOCP/*.hpp)
-elseif ((CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD") OR APPLE)
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/KQUEUE/*.cpp Network/KQUEUE/*.h Network/KQUEUE/*.hpp)
-else ()
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/EPOLL/*.cpp Network/EPOLL/*.h Network/EPOLL/*.hpp)
-endif ()
+    ascemu_source_collect(SRC_NETWORK_FILES_PLATFORM Network/IOCP)
+elseif (APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+    ascemu_source_collect(SRC_NETWORK_FILES_PLATFORM Network/KQUEUE)
+else()
+    ascemu_source_collect(SRC_NETWORK_FILES_PLATFORM Network/EPOLL)
+endif()
 
-file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.h Threading/*.hpp)
-file(GLOB SRC_UTILITIES_FILES Utilities/*.cpp Utilities/*.h Utilities/*.hpp)
-file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
-
+# aggregate all sources
 set(SHARED_SRCS
     ${SRC_CONFIG_FILES}
     ${SRC_CRYPTOGRAPHY_FILES}
@@ -37,11 +50,13 @@ set(SHARED_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-# source group.
-ascemu_source_group(${CMAKE_CURRENT_SOURCE_DIR})
-
+# create library
 add_library(${LIBRARY_NAME} STATIC ${SHARED_SRCS})
 
+# source group for IDEs.
+ascemu_source_group(${CMAKE_CURRENT_SOURCE_DIR})
+
+# include directories.
 target_include_directories(${LIBRARY_NAME} PUBLIC 
     ${OPENSSL_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIRS}
@@ -50,7 +65,7 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
     ${CMAKE_SOURCE_DIR}/dep/utf8cpp
 )
 
-# include library dependencies.
+# linked libraries.
 target_link_libraries(${LIBRARY_NAME}
   PUBLIC
     ${ZLIB_LIBRARIES}
@@ -60,19 +75,22 @@ target_link_libraries(${LIBRARY_NAME}
     fmt
 )
 
+# platform-specific libraries.
+if (APPLE)
+    target_link_libraries(${LIBRARY_NAME} PRIVATE c++)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+    target_link_libraries(${LIBRARY_NAME} PRIVATE c++experimental)
+endif ()
+
+# configure version files.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
-if (APPLE)
-    target_link_libraries(${LIBRARY_NAME} c++)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${LIBRARY_NAME} c++experimental)
-endif ()
-
 # generate precompiled header.
 if (AE_USE_PCH)
-    message(STATUS "Generate PCH for ${LIBRARY_NAME}")
+    message(STATUS "Generating PCH for ${LIBRARY_NAME}")
     target_precompile_headers(${LIBRARY_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/pchShared.hpp)
 endif ()
 
+# cleanup.
 unset(SHARED_SRCS)
