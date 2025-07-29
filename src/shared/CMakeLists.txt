@@ -33,7 +33,7 @@ else()
     ascemu_source_collect(SRC_NETWORK_FILES_PLATFORM Network/EPOLL)
 endif()
 
-# aggregate all sources
+# aggregate all sources.
 set(SHARED_SRCS
     ${SRC_CONFIG_FILES}
     ${SRC_CRYPTOGRAPHY_FILES}
@@ -48,7 +48,7 @@ set(SHARED_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-# create library
+# create library.
 add_library(${LIBRARY_NAME} STATIC ${SHARED_SRCS})
 
 # source group for IDEs.
