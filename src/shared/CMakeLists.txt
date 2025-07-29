@@ -3,8 +3,6 @@
 # set up our project name.
 set(LIBRARY_NAME shared)
 
-ascemu_source_group
-
 # helper macro to collect sources recursively.
 macro(ascemu_source_collect VAR DIR)
     file(GLOB_RECURSE ${VAR} CONFIGURE_DEPENDS
