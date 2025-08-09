@@ -22,8 +22,10 @@
 //   For formatting error messages
 #    include "G3D/format.h"
 #endif
+
 #include <vector>
 #include <algorithm>
+#include <type_traits>
 
 #ifdef _MSC_VER
 #   include <new>
@@ -33,7 +35,6 @@
 #   pragma warning( disable : 4312)
 #   pragma warning( disable : 4786)
 #endif
-
 
 namespace G3D {
 

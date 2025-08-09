@@ -41,9 +41,7 @@ target_link_libraries(${EXECUTABLE_NAME} PUBLIC
     ${ZLIB_LIBRARIES}
 )
 
-if (APPLE)
-    target_link_libraries(${EXECUTABLE_NAME} c++)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
+if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
     target_link_libraries(${EXECUTABLE_NAME} c++experimental)
 endif ()
 

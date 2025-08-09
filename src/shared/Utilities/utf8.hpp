@@ -9,6 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <locale>
 #include <string>
 #include <cstddef>
+#include <iostream>
 
 namespace AscEmu::Util::utf8 {
 
