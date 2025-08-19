@@ -758,16 +758,42 @@ void WorldSession::fullLogin(Player* player)
     sObjectMgr.addPlayer(player);
 }
 
-void WorldSession::handleSetPlayerDeclinedNamesOpcode(WorldPacket& recvPacket)
+void WorldSession::handleSetPlayerDeclinedNamesOpcode(WorldPacket& recv_data)
 {
-    CmsgSetPlayerDeclinedNames srlPacket;
-    if (!srlPacket.deserialise(recvPacket))
-        return;
+    uint64_t guid;
+    recv_data >> guid;
 
-    //\todo check utf8 and cyrillic chars
-    const uint32_t error = 0;     // 0 = success, 1 = error
+    std::string declined[5];
+    for (int i = 0; i < 5; ++i)
+        recv_data >> declined[i];
 
-    SendPacket(SmsgSetPlayerDeclinedNamesResult(error, srlPacket.guid).serialise().get());
+    for (int i = 0; i < 5; ++i)
+    {
+        if (declined[i].size() > 32)
+            declined[i].resize(32);
+        CharacterDatabase.EscapeString(declined[i]);
+    }
+
+    CharacterDatabase.Execute(
+        "REPLACE INTO character_declinedname "
+        "(guid, genitive, dative, accusative, instrumental, prepositional) "
+        "VALUES (%llu, '%s','%s','%s','%s','%s')",
+        guid,
+        declined[0].c_str(),
+        declined[1].c_str(),
+        declined[2].c_str(),
+        declined[3].c_str(),
+        declined[4].c_str()
+    );
+
+    sLogger.debug("Declined names saved for GUID {}", guid);
+
+    Player* p = GetPlayer();
+    if (p && p->getGuid() == guid)
+    {
+        p->m_declinedName = {declined[0], declined[1], declined[2], declined[3], declined[4]};
+        p->m_declinedNameLoaded = true;
+    }
 }
 
 void WorldSession::characterEnumProc(QueryResult* result)

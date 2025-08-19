@@ -345,7 +345,7 @@ protected:
         void handlePlayerLoginOpcode(WorldPacket& recvPacket);
         void handleCharRenameOpcode(WorldPacket& recvPacket);
         void handleCharCreateOpcode(WorldPacket& recvPacket);
-        void handleSetPlayerDeclinedNamesOpcode(WorldPacket& recvPacket); // declined names (Cyrillic client)
+        void handleSetPlayerDeclinedNamesOpcode(WorldPacket& recv_data); // declined names (Cyrillic client)
         void handleCharEnumOpcode(WorldPacket& /*recvPacket*/);
 
         void handleCharFactionOrRaceChange(WorldPacket& recvPacket);    //> TBC

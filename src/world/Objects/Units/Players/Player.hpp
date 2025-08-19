@@ -101,6 +101,19 @@ struct WoWPlayer;
 class SERVER_DECL Player : public Unit
 {
 public:
+    struct DeclinedName
+    {
+        std::string genitive, dative, accusative, instrumental, prepositional;
+    };
+
+    const DeclinedName& GetDeclinedName();
+
+private:
+    DeclinedName m_declinedName;
+    bool m_declinedNameLoaded = false;
+    void LoadDeclinedNames();
+
+public:
     friend class WorldSession;
     friend class Pet;
 

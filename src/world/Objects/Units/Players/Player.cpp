@@ -14572,6 +14572,48 @@ bool Player::loadFromDB(uint32_t guid)
     return true;
 }
 
+static bool HasCyrillic(const std::string& s)
+{
+    for (unsigned char c : s)
+        if ((c >= 0xD0 && c <= 0xDF) || (c >= 0xE0 && c <= 0xEF))
+            return true;
+    return false;
+}
+
+void Player::LoadDeclinedNames()
+{
+    const std::string& playerName = getName();
+    if (!HasCyrillic(playerName))
+        return;
+
+    uint64_t guid = getGuid();
+    auto result = CharacterDatabase.Query(
+        "SELECT genitive, dative, accusative, instrumental, prepositional "
+        "FROM character_declinedname WHERE guid = %llu",
+        guid);
+
+    if (!result || result->GetRowCount() == 0) return;
+
+    auto fields = result->Fetch();
+    if (!fields) return;
+
+    m_declinedName.genitive      = fields[0].asCString();
+    m_declinedName.dative        = fields[1].asCString();
+    m_declinedName.accusative    = fields[2].asCString();
+    m_declinedName.instrumental  = fields[3].asCString();
+    m_declinedName.prepositional = fields[4].asCString();
+
+    sLogger.debug("Declined names loaded for player [{}:{}]", guid, playerName);
+    m_declinedNameLoaded = true;
+}
+
+const Player::DeclinedName& Player::GetDeclinedName()
+{
+    if (!m_declinedNameLoaded)
+        LoadDeclinedNames();
+    return m_declinedName;
+}
+
 void Player::loadFromDBProc(QueryResultVector& results)
 {
     auto startTime = Util::TimeNow();
