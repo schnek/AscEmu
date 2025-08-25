@@ -132,9 +132,9 @@ bool handleServerInfoCommand(BaseConsole* baseConsole, int /*argumentCount*/, st
     int avgLatency = 0;
 
     std::lock_guard guard(sObjectMgr.m_playerLock);
-    for (const auto playerPair : sObjectMgr.getPlayerStorage())
+    for (const auto [fst, snd] : sObjectMgr.getPlayerStorage())
     {
-        const Player* player = playerPair.second;
+        const Player* player = snd;
         if (player->getSession())
         {
             onlineCount++;
@@ -181,9 +181,9 @@ bool handleOnlineGmsCommand(BaseConsole* baseConsole, int /*argumentCount*/, std
     baseConsole->Write("======================================================================\r\n");
 
     std::lock_guard guard(sObjectMgr.m_playerLock);
-    for (const auto playerPair : sObjectMgr.getPlayerStorage())
+    for (const auto [fst, snd] : sObjectMgr.getPlayerStorage())
     {
-        const Player* player = playerPair.second;
+        const Player* player = snd;
         if (player->getSession()->hasPermissions())
         {
             baseConsole->Write("| %21s | %15s | %03u ms |\r\n", player->getName().c_str(), player->getSession()->GetPermissions().get(),
@@ -255,9 +255,9 @@ bool handleListOnlinePlayersCommand(BaseConsole* baseConsole, int /*argumentCoun
     baseConsole->Write("======================================================================\r\n");
 
     std::lock_guard guard(sObjectMgr.m_playerLock);
-    for (const auto playerPair : sObjectMgr.getPlayerStorage())
+    for (const auto [fst, snd] : sObjectMgr.getPlayerStorage())
     {
-        const Player* player = playerPair.second;
+        const Player* player = snd;
         baseConsole->Write("| %21s | %15u | %03u ms                   |\r\n", player->getName().c_str(), player->getSession()->GetPlayer()->getLevel(),
             player->getSession()->GetLatency());
     }
@@ -299,9 +299,9 @@ bool handleShutDownServerCommand(BaseConsole* baseConsole, int /*argumentCount*/
     if (consoleInput.empty())
     {
         std::lock_guard guard(sObjectMgr.m_playerLock);
-        for (const auto playerPair : sObjectMgr.getPlayerStorage())
+        for (const auto [fst, snd] : sObjectMgr.getPlayerStorage())
         {
-            Player* player = playerPair.second;
+            Player* player = snd;
             if (player->getSession())
                 player->saveToDB(false);
         }

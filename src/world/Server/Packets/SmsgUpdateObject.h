@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "ManagedPacket.h"
 
-#ifdef AE_TBC
+#ifdef AE_TBC ///?
 namespace AscEmu::Packets
 {
     class SmsgUpdateObject : public ManagedPacket

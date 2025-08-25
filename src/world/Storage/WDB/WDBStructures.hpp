@@ -2025,7 +2025,7 @@ namespace WDB::Structures
         uint32_t activeIconID;                                      // 20
         uint32_t School;                                            // 25
 
-        //uint32_t SpellPowerId;                                      // 42 SpellPower.dbc
+        //uint32_t SpellPowerId;                                    // 42 SpellPower.dbc
     };
 #endif
 

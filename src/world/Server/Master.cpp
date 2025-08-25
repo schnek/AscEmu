@@ -70,7 +70,7 @@
 
 // DB version
 static const char* REQUIRED_CHAR_DB_VERSION = "20250516-00_characters";
-static const char* REQUIRED_WORLD_DB_VERSION = "20250516-00_creature_spawns";
+static const char* REQUIRED_WORLD_DB_VERSION = "20250606-00_world_db_version";
 
 volatile bool Master::m_stopEvent = false;
 
@@ -85,7 +85,7 @@ SERVER_DECL std::unique_ptr<SessionLog> Player_Log;
 
 ConfigMgr Config;
 
-void Master::_OnSignal(int s)
+void Master::_OnSignal(int s)///
 {
     switch (s)
     {
