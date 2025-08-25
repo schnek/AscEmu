@@ -12,6 +12,9 @@ endif ()
 
 message(STATUS "Applying settings for ${CMAKE_CXX_COMPILER}")
 
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-Winvalid-pch" COMPILER_SUPPORTS_PCH)
+
 # check support for unordered_map/set
 add_compile_options(-DHAS_CXX0X)
 

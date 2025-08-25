@@ -1,0 +1,75 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 19
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "AE_USE_PCH": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ninja-ccache",
+      "inherits": "release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER_LAUNCHER": "ccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      }
+    },
+    {
+      "name": "ninja-sccache",
+      "inherits": "release",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER_LAUNCHER": "sccache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "sccache"
+      }
+    },
+    {
+      "name": "dev",
+      "inherits": "debug",
+      "cacheVariables": {
+        "AE_DEV_BUILD": "ON",
+        "AE_FAST_COMPILE": "ON"
+      }
+    },
+    {
+      "name": "release-minimal",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "AE_USE_PCH": "OFF",
+        "AE_DEV_BUILD": "OFF",
+        "AE_FAST_COMPILE": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "debug", "configurePreset": "debug" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "ninja-ccache", "configurePreset": "ninja-ccache" },
+    { "name": "ninja-sccache", "configurePreset": "ninja-sccache" },
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "release-minimal", "configurePreset": "release-minimal" }
+  ]
+}
