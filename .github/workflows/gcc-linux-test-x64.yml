@@ -2,7 +2,7 @@ name: AscEmu CI (gcc)
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, haha1111last ]
   pull_request:
     branches: [ develop ]
 

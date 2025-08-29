@@ -57,7 +57,7 @@ target_link_libraries(${LIBRARY_NAME}
     ${MYSQL_LIBRARY}
     ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBS}
-    fmt
+    fmt::fmt
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)

@@ -5,7 +5,7 @@ message(STATUS "Applying settings for macOS system")
 set(LIBS_DIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_MACOSX_RPATH TRUE)
 
-add_compile_options(-DUSE_KQUEUE)
+add_compile_options(-DUSE_KQUEUE -Wl)
 
 # find required libraries
 find_package(ZLIB REQUIRED)
@@ -14,9 +14,9 @@ find_package(Threads REQUIRED)
 find_package(MySQL REQUIRED)
 find_package(BZip2 REQUIRED)
 
-if (CMAKE_COMPILER_IS_GNUCXX)
+if (CMAKE_C_COMPILER MATCHES "gcc" OR CMAKE_C_COMPILER_ID STREQUAL "GNU")
     include(${CMAKE_SOURCE_DIR}/cmake/Compilers/gcc.cmake)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+elseif (CMAKE_C_COMPILER MATCHES "clang" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     include(${CMAKE_SOURCE_DIR}/cmake/Compilers/clang.cmake)
 else ()
     message(FATAL_ERROR "Compiler is not supported")
