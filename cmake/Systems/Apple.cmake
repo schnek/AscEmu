@@ -5,7 +5,7 @@ message(STATUS "Applying settings for macOS system")
 set(LIBS_DIR ${CMAKE_INSTALL_PREFIX}/lib)
 set(CMAKE_MACOSX_RPATH TRUE)
 
-add_compile_options(-DUSE_KQUEUE -Wl)
+add_compile_options(-DUSE_KQUEUE)
 
 # find required libraries
 find_package(ZLIB REQUIRED)
