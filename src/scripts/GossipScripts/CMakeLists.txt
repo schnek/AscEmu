@@ -15,7 +15,7 @@ file(GLOB_RECURSE SRC_LOCAL_DIR *.cpp *.h *.hpp)
 ascemu_source_group(${CMAKE_CURRENT_SOURCE_DIR})
 
 # add shared library.
-add_library(${LIBRARY_NAME} SHARED ${SRC_LOCAL_DIR})
+add_library(${LIBRARY_NAME} STATIC ${SRC_LOCAL_DIR})
 
 # include directories.
 target_include_directories(${LIBRARY_NAME} PUBLIC

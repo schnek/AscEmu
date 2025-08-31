@@ -63,10 +63,6 @@ target_link_libraries(${LIBRARY_NAME}
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${LIBRARY_NAME} c++experimental)
-endif ()
-
 # generate precompiled header.
 if (AE_USE_PCH)
     message(STATUS "Generate PCH for ${LIBRARY_NAME}")

@@ -41,10 +41,6 @@ target_link_libraries(${EXECUTABLE_NAME} PUBLIC
     ${ZLIB_LIBRARIES}
 )
 
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD")
-    target_link_libraries(${EXECUTABLE_NAME} c++experimental)
-endif ()
-
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/LogonConf.hpp)
 
 # generate precompiled header.
