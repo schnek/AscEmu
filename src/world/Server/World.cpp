@@ -882,6 +882,7 @@ void World::loadMySQLStores()
     sMySQLStore.loadWordFilterCharacterNames();
     sMySQLStore.loadWordFilterChat();
 
+    sMySQLStore.loadLocalesAchievementReward();
     sMySQLStore.loadLocalesCreature();
     sMySQLStore.loadLocalesGameobject();
     sMySQLStore.loadLocalesGossipMenuOption();
@@ -889,6 +890,7 @@ void World::loadMySQLStores()
     sMySQLStore.loadLocalesItemPages();
     sMySQLStore.loadLocalesNpcScriptText();
     sMySQLStore.loadLocalesNpcText();
+    sMySQLStore.loadLocalesPointsOfInterest();
     sMySQLStore.loadLocalesQuest();
     sMySQLStore.loadLocalesWorldbroadcast();
     sMySQLStore.loadLocalesWorldmapInfo();
@@ -969,7 +971,7 @@ void World::loadMySQLTablesByTask()
     sGameEventMgr.LoadFromDB();
     sCalendarMgr.loadFromDB();
 
-    sCommandTableStorage.Load();
+    sCommandTableStorage.loadOverridePermission();
     sLogger.info("WordFilter : Loading...");
 
     g_chatFilter = std::make_unique<WordFilter>();

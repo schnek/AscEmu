@@ -95,16 +95,15 @@ public:
         colorSystemMessage(_session, MSG_COLOR_LIGHTBLUE, _format, std::forward<Args>(_args)...);
     }
 
-    bool hasStringAbbr(const char* s1, const char* s2);
     void SendMultilineMessage(WorldSession* m_session, const char* str);
 
-    bool ExecuteCommandInTable(ChatCommand* table, const char* text, WorldSession* m_session);
-    bool ShowHelpForCommand(WorldSession* m_session, ChatCommand* table, const char* cmd);
+    std::optional<std::string_view> normalizeCommandInput(const char* raw);
+    bool resolveTopLevelAbbrev(std::string_view tok0, WorldSession* s, std::string& outTop) const;
+    bool executeCommandFlat(std::string_view text, WorldSession* m_session);
+    bool executeCommand(std::string_view text, WorldSession* m_session);
+
     void SendHighlightedName(WorldSession* m_session, const char* prefix, const char* full_name, std::string & lowercase_name, std::string & highlight, uint32_t id);
     void SendItemLinkToPlayer(ItemProperties const* iProto, WorldSession* pSession, bool ItemCount, Player* owner, uint32_t language = 0/*LANG_UNIVERSAL*/);
-    bool HandleHelpCommand(const char* args, WorldSession* m_session);
-    bool HandleCommandsCommand(const char* args, WorldSession* m_session);
-    bool HandleGetSkillLevelCommand(const char* args, WorldSession* m_session);
 
     // Helper
     static Player* GetSelectedPlayer(WorldSession* m_session, bool showerror = true, bool auto_self = false);
@@ -119,6 +118,23 @@ public:
     std::string MyConvertFloatToString(const float arg);
     // For skill related GM commands
     std::unique_ptr<SkillNameMgr> SkillNameManager;
+
+    // AccountCommands
+    bool handleAccountCreate(const char* args, WorldSession* m_session);
+    bool handleAccountChangePassword(const char* args, WorldSession* m_session);
+    bool handleAccountBannedCommand(const char* args, WorldSession* m_session);
+    bool handleAccountSetGMCommand(const char* args, WorldSession* m_session);
+    bool handleAccountUnbanCommand(const char* args, WorldSession* m_session);
+    bool handleAccountMuteCommand(const char* args, WorldSession* m_session);
+    bool handleAccountUnmuteCommand(const char* args, WorldSession* m_session);
+    bool handleAccountGetAccountID(const char* args, WorldSession* m_session);
+
+#if VERSION_STRING > TBC
+    // Achievement
+    bool handleAchievementCompleteCommand(const char* args, WorldSession* m_session);
+    bool handleAchievementCriteriaCommand(const char* args, WorldSession* m_session);
+    bool handleAchievementResetCommand(const char* args, WorldSession* m_session);
+#endif
 
     // Admin commands
     bool HandleAdminCastAllCommand(const char* args, WorldSession* m_session);
@@ -489,6 +505,9 @@ public:
     bool HandleStopTransport(const char* args, WorldSession* m_session);
 
     // MiscCommands
+    bool handleCommandsCommand(const char* args, WorldSession* m_session);
+    bool showHelpForCommand(WorldSession* m_session, const char* args);
+    bool handleHelpCommand(const char* args, WorldSession* m_session);
     bool HandleKillCommand(const char* args, WorldSession* m_session);
     bool HandleReviveCommand(const char* args, WorldSession* m_session);
     bool HandleUnrootCommand(const char* /*args*/, WorldSession* m_session);

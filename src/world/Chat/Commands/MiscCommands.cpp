@@ -3,7 +3,6 @@ Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Account/AccountCommandBan.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
@@ -25,6 +24,264 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
 #include "Utilities/Strings.hpp"
+
+// .command
+bool ChatHandler::handleCommandsCommand(const char* args, WorldSession* m_session)
+{
+    std::string output;
+    uint32_t count = 0;
+
+    output = "Available commands: \n\n";
+
+    for (const auto table : sCommandTableStorage.Get())
+    {
+        std::string top;
+        if (*args && !resolveTopLevelAbbrev(args, m_session, top))
+            continue;
+
+        if (table.commandPermission == "z")
+        {
+            output += "|cffff6060";
+            output += table.command;
+            output += "|r, ";
+        }
+        else if (table.commandPermission == "m")
+        {
+            output += "|cff00ffff";
+            output += table.command;
+            output += "|r, ";
+        }
+        else if (table.commandPermission == "c")
+        {
+            output += "|cff00ff00";
+            output += table.command;
+            output += "|r, ";
+        }
+        else
+        {
+            output += "|cff00ccff";
+            output += table.command;
+            output += "|r, ";
+        }
+
+        count++;
+        if (count == 5)  // 5 per line
+        {
+            output += "\n";
+            count = 0;
+        }
+    }
+    if (count)
+        output += "\n";
+
+    SendMultilineMessage(m_session, output.c_str());
+
+    return true;
+}
+
+bool ChatHandler::showHelpForCommand(WorldSession* m_session, const char* args)
+{
+    auto &reg = sCommandTableStorage.Get();
+
+    // normalize input: strip leading spaces and an optional dot
+    std::string_view sv = args ? std::string_view(args) : std::string_view{};
+    size_t i = 0;
+
+    while (i < sv.size() && std::isspace(static_cast<unsigned char>(sv[i])))
+        ++i;
+
+    // be consequent if you allow '.' or '!' in the normalization, you need to allow it here too 
+    if (i < sv.size() && (sv[i] == '.' || sv[i] == '!'))
+        ++i;
+
+    while (i < sv.size() && std::isspace(static_cast<unsigned char>(sv[i])))
+        ++i;
+
+    sv.remove_prefix(i);
+    if (sv.empty())
+        return false;
+
+    // split input into tokens (views)
+    std::vector<std::string_view> tokens;
+    {
+        size_t p = 0;
+        while (p < sv.size())
+        {
+            while (p < sv.size() && std::isspace(static_cast<unsigned char>(sv[p])))
+                ++p;
+
+            if (p >= sv.size())
+                break;
+
+            size_t q = p;
+            while (q < sv.size() && !std::isspace(static_cast<unsigned char>(sv[q])))
+                ++q;
+
+            tokens.emplace_back(sv.substr(p, q - p));
+            p = q;
+        }
+    }
+
+    if (tokens.empty())
+        return false;
+
+    // resolve ONLY the first token to a top-level command
+    std::string top;
+    if (!resolveTopLevelAbbrev(tokens[0], m_session, top))
+        return false; // unknown/ambiguous top-level
+
+    auto lo = [](char c) {
+        return static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        };
+
+    auto istarts_with = [&](std::string_view a, std::string_view b) {
+        if (b.size() > a.size())
+            return false;
+
+        for (size_t k = 0; k < b.size(); ++k)
+            if (lo(a[k]) != lo(b[k]))
+                return false;
+
+        return true;
+    };
+
+    // exact depth we want help for (do NOT auto-descend)
+    const size_t wantedDepth = tokens.size();
+
+    // Try to find an entry exactly at that depth: first word == resolved top-level,
+    // the remaining words are matched by abbreviation.
+    const ChatCommandNEW* match = nullptr;
+    std::string matchCmd;
+
+    for (const auto& e : reg)
+    {
+        if (e.command.empty())
+            continue;
+
+        // split command into words
+        std::vector<std::string> words;
+        {
+            std::istringstream is(e.command);
+            for (std::string w; is >> w; )
+                words.push_back(std::move(w));
+        }
+
+        if (words.size() != wantedDepth)
+            continue;     // exact depth only
+
+        if (words.empty())
+            continue;
+
+        // first word must equal resolved top (case-insensitive)
+        if (words[0].size() != top.size())
+        {
+            // handled below by per-char compare anyway
+        }
+        {
+            bool eq = true;
+            for (size_t k=0; k<top.size(); ++k)
+                if (lo(words[0][k]) != lo(top[k])) { eq = false; break; }
+            if (!eq) continue;
+        }
+
+        // remaining words matched by abbreviation
+        bool ok = true;
+        for (size_t w = 1; w < wantedDepth; ++w)
+        {
+            if (!istarts_with(words[w], tokens[w]))
+            {
+                ok = false;
+                break;
+            }
+        }
+
+        if (!ok)
+            continue;
+
+        const char perm = e.commandPermission.empty() ? '0' : e.commandPermission[0];
+        if (perm != '0' && !m_session->CanUseCommand(perm))
+            continue;
+
+        match = &e;
+        matchCmd = e.command;
+        break;
+    }
+
+    if (match)
+    {
+        // exact-depth entry exists → show its help (or say there is none)
+        if (!match->help.empty())
+            SendMultilineMessage(m_session, match->help.c_str());
+        else
+            SystemMessage(m_session, "There is no help for that command");
+
+        return true;
+    }
+
+    // No exact-depth entry → treat as a node: list children under that prefix.
+    // Build the typed prefix string: <top> + the typed (abbrev) tokens joined by spaces.
+    std::string typedPrefix = top;
+    for (size_t t = 1; t < tokens.size(); ++t)
+    {
+        typedPrefix.push_back(' ');
+        typedPrefix.append(tokens[t].data(), tokens[t].size());
+    }
+
+    // But for listing children we need the *resolved* prefix (first word = resolved top),
+    // without auto-resolving further words. So children start with "<top> ".
+    const std::string listPrefix = top + ' ';
+
+    bool any = false;
+    for (const auto &cmd : reg)
+    {
+        if (cmd.command.size() <= listPrefix.size())
+            continue;
+
+        // starts with "<top> " (case-insensitive)
+        bool starts = true;
+        for (size_t k = 0; k < listPrefix.size(); ++k)
+        {
+            if (lo(cmd.command[k]) != lo(listPrefix[k]))
+            {
+                starts = false;
+                break;
+            }
+        }
+
+        if (!starts)
+            continue;
+
+        const char perm = cmd.commandPermission.empty() ? '0' : cmd.commandPermission[0];
+        if (perm != '0' && !m_session->CanUseCommand(perm))
+            continue;
+
+        // show only the remainder after "<top> "
+        const char* help = cmd.help.empty() ? "No Help Available" : cmd.help.c_str();
+
+        BlueSystemMessage(m_session, " %s - %s", cmd.command.substr(listPrefix.size()).c_str(), help);
+
+        any = true;
+    }
+
+    if (!any)
+        SystemMessage(m_session, "There is no help for that command");
+    else
+        GreenSystemMessage(m_session, "Available Subcommands:");
+
+    return true;
+}
+
+// .help
+bool ChatHandler::handleHelpCommand(const char* args, WorldSession* m_session)
+{
+    if (!args || !*args)
+        return false;
+
+    if (!showHelpForCommand(m_session, args))
+        RedSystemMessage(m_session, "Sorry, no help was found for this command, or that command does not exist.");
+
+    return true;
+}
 
 //.mount
 bool ChatHandler::HandleMountCommand(const char* args, WorldSession* m_session)
@@ -1095,14 +1352,17 @@ bool ChatHandler::HandleUnBanCharacterCommand(const char* args, WorldSession* m_
     if (!*args)
         return false;
 
-    char Character[255];
-    if (sscanf(args, "%s", Character) != 1)
+    std::string character;
+
+    std::istringstream iss(std::string{ args });
+
+    if (!(iss >> character))
     {
-        RedSystemMessage(m_session, "A character name and reason is required.");
+        RedSystemMessage(m_session, "A character name is required.");
         return true;
     }
 
-    Player* pPlayer = sObjectMgr.getPlayer(Character, false);
+    Player* pPlayer = sObjectMgr.getPlayer(character.c_str(), false);
     if (pPlayer != nullptr)
     {
         GreenSystemMessage(m_session, "Unbanned player %s ingame.", pPlayer->getName().c_str());
@@ -1110,13 +1370,13 @@ bool ChatHandler::HandleUnBanCharacterCommand(const char* args, WorldSession* m_
     }
     else
     {
-        GreenSystemMessage(m_session, "Player %s not found ingame.", Character);
+        GreenSystemMessage(m_session, "Player %s not found ingame.", character.c_str());
     }
 
-    CharacterDatabase.Execute("UPDATE characters SET banned = 0 WHERE name = '%s'", CharacterDatabase.EscapeString(std::string(Character)).c_str());
+    CharacterDatabase.Execute("UPDATE characters SET banned = 0 WHERE name = '%s'", CharacterDatabase.EscapeString(character).c_str());
 
-    SystemMessage(m_session, "Unbanned character %s in database.", Character);
-    sGMLog.writefromsession(m_session, "unbanned %s", Character);
+    SystemMessage(m_session, "Unbanned character %s in database.", character.c_str());
+    sGMLog.writefromsession(m_session, "unbanned %s", character.c_str());
 
     return true;
 }
@@ -1324,12 +1584,9 @@ bool ChatHandler::HandleBanAllCommand(const char* args, WorldSession* m_session)
     char pIPCmd[256];
     snprintf(pIPCmd, 254, "%s %s %s", pIP.c_str(), pDuration, pReason);
     HandleIPBanCommand(pIPCmd, m_session);
-
-    AccountCommandBan banCommand;
-    if (banCommand.execute({pAcc, pDuration, pReason }, m_session))
-        greenSystemMessage(m_session, "Execute account ban for '{}'.", pAcc);
-    else
-        redSystemMessage(m_session, "Cant execute account ban for '{}'", pAcc);
+    char pAccCmd[256];
+    snprintf(pAccCmd, 254, "%s %s %s", pAcc.c_str(), pDuration, pReason);
+    handleAccountBannedCommand(pAccCmd, m_session);
 
     return true;
 }

@@ -14,7 +14,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Map/Maps/WorldMap.hpp"
 #include "Objects/Container.hpp"
 #include "Objects/Item.hpp"
-#include "Objects/Units/Creatures/Pet.h"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/DatabaseDefinition.hpp"
 #include "Server/World.h"
@@ -1389,45 +1388,33 @@ bool ChatHandler::HandleCharSetLevelCommand(const char* args, WorldSession* m_se
 //.character set name
 bool ChatHandler::HandleCharSetNameCommand(const char* args, WorldSession* m_session)
 {
-    if (strlen(args) > 100)
+    if (!args)
         return false;
 
-    char current_name[100];
-    char new_name_cmd[100];
+    constexpr std::size_t maxNameLength = 100;
 
-    if (sscanf(args, "%s %s", current_name, new_name_cmd) != 2)
+    std::string current_name;
+    std::string new_name_cmd;
+
+    std::istringstream iss(std::string{ args });
+
+    if (!(iss >> current_name >> new_name_cmd))
         return false;
 
-    static const char* bannedCharacters = "\t\v\b\f\a\n\r\\\"\'\? <>[](){}_=+-|/!@#$%^&*~`.,0123456789\0";
-    static const char* allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    size_t nlen = strlen(new_name_cmd);
-
-    for (size_t i = 0; i < nlen; ++i)
+    if (current_name.empty() || current_name.size() > maxNameLength ||
+        new_name_cmd.empty() || new_name_cmd.size() > maxNameLength)
     {
-        const char* p = allowedCharacters;
-        for (; *p != 0; ++p)
-        {
-            if (new_name_cmd[i] == *p)
-                goto cont;
-        }
-        RedSystemMessage(m_session, "That name is invalid or contains invalid characters.");
-        return true;
-    cont:
-        continue;
+        return false;
     }
 
-    for (size_t i = 0; i < nlen; ++i)
-    {
-        const char* p = bannedCharacters;
-        while (*p != 0 && new_name_cmd[i] != *p && new_name_cmd[i] != 0)
-            ++p;
+    auto isAlphaAscii = [](unsigned char c) {
+        return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+        };
 
-        if (*p != 0)
-        {
-            RedSystemMessage(m_session, "That name is invalid or contains invalid characters.");
-            return true;
-        }
+    if (!std::all_of(new_name_cmd.begin(), new_name_cmd.end(), isAlphaAscii))
+    {
+        RedSystemMessage(m_session, "That name is invalid or contains invalid characters.");
+        return true;
     }
 
     std::string new_name = new_name_cmd;
@@ -1460,9 +1447,9 @@ bool ChatHandler::HandleCharSetNameCommand(const char* args, WorldSession* m_ses
         CharacterDatabase.Execute("UPDATE characters SET name = '%s' WHERE guid = %u", CharacterDatabase.EscapeString(new_name).c_str(), pi->guid);
     }
 
-    GreenSystemMessage(m_session, "Changed name of '%s' to '%s'.", current_name, new_name.c_str());
-    sGMLog.writefromsession(m_session, "renamed character %s (GUID: %u) to %s", current_name, pi->guid, new_name.c_str());
-    sPlrLog.writefromsession(m_session, "GM renamed character %s (GUID: %u) to %s", current_name, pi->guid, new_name.c_str());
+    GreenSystemMessage(m_session, "Changed name of '%s' to '%s'.", current_name.c_str(), new_name.c_str());
+    sGMLog.writefromsession(m_session, "renamed character %s (GUID: %u) to %s", current_name.c_str(), pi->guid, new_name.c_str());
+    sPlrLog.writefromsession(m_session, "GM renamed character %s (GUID: %u) to %s", current_name.c_str(), pi->guid, new_name.c_str());
     return true;
 }
 
