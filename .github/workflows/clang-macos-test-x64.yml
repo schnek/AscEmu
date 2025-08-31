@@ -1,4 +1,4 @@
-name: AscEmu CI (macos::clang)
+name: AscEmu CI (MacOS::clang)
 
 on:
   push:

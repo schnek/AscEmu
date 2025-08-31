@@ -1,4 +1,4 @@
-name: AscEmu CI (linux::clang)
+name: AscEmu CI (Linux::clang)
 
 on:
   push:
