@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <sstream>
 
 #include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/World.h"
@@ -14,7 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/WorldSessionLog.hpp"
 
 //.gm active
-bool ChatHandler::HandleGMActiveCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMActiveCommand(const char* args, WorldSession* m_session)
 {
     auto player = m_session->GetPlayer();
     bool toggle_no_notice = std::string(args) == "no_notice" ? true : false;
@@ -22,8 +22,8 @@ bool ChatHandler::HandleGMActiveCommand(const char* args, WorldSession* m_sessio
     {
         if (!toggle_no_notice)
         {
-            SystemMessage(m_session, "GM Flag removed.");
-            BlueSystemMessage(m_session, "<GM> Will no longer show in chat messages or above your name until you use this command again.");
+            systemMessage(m_session, "GM Flag removed.");
+            blueSystemMessage(m_session, "<GM> Will no longer show in chat messages or above your name until you use this command again.");
         }
         player->removePlayerFlags(PLAYER_FLAG_GM);
         player->setFaction(player->getInitialFactionId());
@@ -37,8 +37,8 @@ bool ChatHandler::HandleGMActiveCommand(const char* args, WorldSession* m_sessio
             HandleGMDevTagCommand("no_notice", m_session);
 #endif
 
-        SystemMessage(m_session, "GM Flag set.");
-        BlueSystemMessage(m_session, "<GM> will now appear above your name and in chat messages until you use this command again.");
+        systemMessage(m_session, "GM Flag set.");
+        blueSystemMessage(m_session, "<GM> will now appear above your name and in chat messages until you use this command again.");
         player->addPlayerFlags(PLAYER_FLAG_GM);
         player->setFaction(35);
         player->removePvpFlag();
@@ -48,36 +48,36 @@ bool ChatHandler::HandleGMActiveCommand(const char* args, WorldSession* m_sessio
 }
 
 //.gm allowwhispers
-bool ChatHandler::HandleGMAllowWhispersCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMAllowWhispersCommand(const char* args, WorldSession* m_session)
 {
     if (args == 0)
     {
-        RedSystemMessage(m_session, "No playername set.");
-        RedSystemMessage(m_session, "Use .gm allowwhispers <playername>");
+        redSystemMessage(m_session, "No playername set.");
+        redSystemMessage(m_session, "Use .gm allowwhispers <playername>");
         return true;
     }
 
     const auto playerTarget = sObjectMgr.getPlayer(args, false);
     if (playerTarget == nullptr)
     {
-        RedSystemMessage(m_session, "Player %s not found.", args);
+        redSystemMessage(m_session, "Player %s not found.", args);
         return true;
     }
 
     m_session->GetPlayer()->addToGMTargetList(playerTarget->getGuidLow());
     std::string name = playerTarget->getName();
-    BlueSystemMessage(m_session, "Now accepting whispers from %s.", name.c_str());
+    blueSystemMessage(m_session, "Now accepting whispers from {}.", name);
 
     return true;
 }
 
 //.gm announce
-bool ChatHandler::HandleGMAnnounceCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMAnnounceCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
     {
-        RedSystemMessage(m_session, "No announce set.");
-        RedSystemMessage(m_session, "Use .gm announce <your text>");
+        redSystemMessage(m_session, "No announce set.");
+        redSystemMessage(m_session, "Use .gm announce <your text>");
         return true;
     }
 
@@ -93,31 +93,31 @@ bool ChatHandler::HandleGMAnnounceCommand(const char* args, WorldSession* m_sess
 }
 
 //.gm blockwhispers
-bool ChatHandler::HandleGMBlockWhispersCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMBlockWhispersCommand(const char* args, WorldSession* m_session)
 {
     if (args == 0)
     {
-        RedSystemMessage(m_session, "No playername set.");
-        RedSystemMessage(m_session, "Use .gm blockwhispers <playername>");
+        redSystemMessage(m_session, "No playername set.");
+        redSystemMessage(m_session, "Use .gm blockwhispers <playername>");
         return true;
     }
 
     auto playerTarget = sObjectMgr.getPlayer(args, false);
     if (playerTarget == nullptr)
     {
-        RedSystemMessage(m_session, "Player %s not found.", args);
+        redSystemMessage(m_session, "Player {} not found.", args);
         return true;
     }
 
     m_session->GetPlayer()->removeFromGMTargetList(playerTarget->getGuidLow());
     std::string name = playerTarget->getName();
-    BlueSystemMessage(m_session, "Now blocking whispers from %s.", name.c_str());
+    blueSystemMessage(m_session, "Now blocking whispers from {}.", name);
 
     return true;
 }
 
 //.gm devtag
-bool ChatHandler::HandleGMDevTagCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMDevTagCommand(const char* args, WorldSession* m_session)
 {
     auto player = m_session->GetPlayer();
     bool toggle_no_notice = std::string(args) == "no_notice" ? true : false;
@@ -127,8 +127,8 @@ bool ChatHandler::HandleGMDevTagCommand(const char* args, WorldSession* m_sessio
     {
         if (!toggle_no_notice)
         {
-            SystemMessage(m_session, "DEV Flag removed.");
-            BlueSystemMessage(m_session, "<DEV> Will no longer show in chat messages or above your name until you use this command again.");
+            systemMessage(m_session, "DEV Flag removed.");
+            blueSystemMessage(m_session, "<DEV> Will no longer show in chat messages or above your name until you use this command again.");
         }
         player->removePlayerFlags(PLAYER_FLAG_DEVELOPER);
     }
@@ -137,8 +137,8 @@ bool ChatHandler::HandleGMDevTagCommand(const char* args, WorldSession* m_sessio
         if (player->isGMFlagSet())
             HandleGMActiveCommand("no_notice", m_session);
 
-        SystemMessage(m_session, "DEV Flag set.");
-        BlueSystemMessage(m_session, "<DEV> will now appear above your name and in chat messages until you use this command again.");
+        systemMessage(m_session, "DEV Flag set.");
+        blueSystemMessage(m_session, "<DEV> will now appear above your name and in chat messages until you use this command again.");
         player->addPlayerFlags(PLAYER_FLAG_DEVELOPER);
     }
 #endif
@@ -147,7 +147,7 @@ bool ChatHandler::HandleGMDevTagCommand(const char* args, WorldSession* m_sessio
 }
 
 //.gm list
-bool ChatHandler::HandleGMListCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMListCommand(const char* /*args*/, WorldSession* m_session)
 {
     bool print_headline = true;
 
@@ -162,12 +162,12 @@ bool ChatHandler::HandleGMListCommand(const char* /*args*/, WorldSession* m_sess
             if (!worldConfig.gm.listOnlyActiveGms)
             {
                 if (print_headline)
-                    GreenSystemMessage(m_session, "The following GMs are on this server:");
+                    greenSystemMessage(m_session, "The following GMs are on this server:");
 
                 if (worldConfig.gm.hidePermissions && !is_gamemaster)
-                    SystemMessage(m_session, " - %s", player->getName().c_str());
+                    systemMessage(m_session, " - {}", player->getName());
                 else
-                    SystemMessage(m_session, " - %s [%s]", player->getName().c_str(), player->getSession()->GetPermissions().get());
+                    systemMessage(m_session, " - {} [{}]", player->getName(), player->getSession()->GetPermissions().get());
 
                 print_headline = false;
             }
@@ -176,18 +176,18 @@ bool ChatHandler::HandleGMListCommand(const char* /*args*/, WorldSession* m_sess
                 if (player->isGMFlagSet())
                 {
                     if (print_headline)
-                        GreenSystemMessage(m_session, "The following GMs are active on this server:");
+                        greenSystemMessage(m_session, "The following GMs are active on this server:");
 
                     if (worldConfig.gm.hidePermissions && !is_gamemaster)
-                        SystemMessage(m_session, " - %s", player->getName().c_str());
+                        systemMessage(m_session, " - {}", player->getName());
                     else
-                        SystemMessage(m_session, " - %s [%s]", player->getName().c_str(), player->getSession()->GetPermissions().get());
+                        systemMessage(m_session, " - {} [{}]", player->getName(), player->getSession()->GetPermissions().get());
 
                     print_headline = false;
                 }
                 else
                 {
-                    SystemMessage(m_session, "No GMs are currently logged in on this server.");
+                    systemMessage(m_session, "No GMs are currently logged in on this server.");
                     print_headline = false;
                 }
             }
@@ -197,25 +197,25 @@ bool ChatHandler::HandleGMListCommand(const char* /*args*/, WorldSession* m_sess
     if (print_headline)
     {
         if (!worldConfig.gm.listOnlyActiveGms)
-            SystemMessage(m_session, "No GMs are currently logged in on this server.");
+            systemMessage(m_session, "No GMs are currently logged in on this server.");
         else
-            SystemMessage(m_session, "No GMs are currently active on this server.");
+            systemMessage(m_session, "No GMs are currently active on this server.");
     }
 
     return true;
 }
 
 //.gm logcomment
-bool ChatHandler::HandleGMLogCommentCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleGMLogCommentCommand(const char* args, WorldSession* m_session)
 {
     if (!args)
     {
-        RedSystemMessage(m_session, "No logcomment set.");
-        RedSystemMessage(m_session, "Use .gm logcomment <your comment message>");
+        redSystemMessage(m_session, "No logcomment set.");
+        redSystemMessage(m_session, "Use .gm logcomment <your comment message>");
         return true;
     }
 
-    BlueSystemMessage(m_session, "Added Logcomment: %s", args);
+    blueSystemMessage(m_session, "Added Logcomment: {}", args);
     sGMLog.writefromsession(m_session, "Comment: %s", args);
     return true;
 }

@@ -944,7 +944,7 @@ void AchievementMgr::updateAchievementCriteria(AchievementCriteriaTypes _type)
             case ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS:
             {
                 // achievementCriteria field4 = 777 for mounts, 778 for companion pets
-                SpellSet::iterator sl = getPlayer()->getSpellSet().begin();
+                auto sl = getPlayer()->getSpellSet().begin();
                 uint32_t nm = 0;
                 while (sl != getPlayer()->getSpellSet().end())
                 {
@@ -1910,8 +1910,13 @@ void AchievementMgr::giveAchievementReward(WDB::Structures::AchievementEntry con
 
         uint32_t sender = Reward->sender;
         uint64_t receiver = getPlayer()->getGuid();
-        std::string messageSubject = Reward->subject;
-        std::string messageBody = Reward->text;
+
+        const auto loc = (getPlayer()->getSession()->language > 0) ? sMySQLStore.getLocalizedAchievementReward(_entry->ID, getPlayer()->getGender(), getPlayer()->getSession()->language) : nullptr;
+        const auto subject = loc ? loc->subject : Reward->subject;
+        const auto rewardText = loc ? loc->text : Reward->text;
+
+        std::string messageSubject = subject;
+        std::string messageBody = rewardText;
 
         //Create Item
         auto item = sObjectMgr.createItem(Reward->itemId, getPlayer());

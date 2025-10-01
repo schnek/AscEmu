@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <sstream>
 
 #include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/DatabaseDefinition.hpp"
@@ -17,7 +17,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Utilities/Strings.hpp"
 
 //.recall port
-bool ChatHandler::HandleRecallGoCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallGoCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -35,7 +35,7 @@ bool ChatHandler::HandleRecallGoCommand(const char* args, WorldSession* m_sessio
 }
 
 //.recall portus
-bool ChatHandler::HandleRecallPortUsCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallPortUsCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -56,14 +56,14 @@ bool ChatHandler::HandleRecallPortUsCommand(const char* args, WorldSession* m_se
 }
 
 //.recall add
-bool ChatHandler::HandleRecallAddCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallAddCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
 
     if (const auto recall = sMySQLStore.getRecallByName(args))
     {
-        RedSystemMessage(m_session, "Name in use, please use another name for your location.");
+        redSystemMessage(m_session, "Name in use, please use another name for your location.");
         return true;
     }
 
@@ -83,10 +83,8 @@ bool ChatHandler::HandleRecallAddCommand(const char* args, WorldSession* m_sessi
 
     sMySQLStore.loadRecallTable();
 
-    char buf[256];
-    snprintf((char*)buf, 256, "Added location to DB with MapID: %u, X: %f, Y: %f, Z: %f, O: %f",
+    greenSystemMessage(m_session, "Added location to DB with MapID: {}, X: {}, Y: {}, Z: {}, O: {}",
              player->GetMapId(), player->GetPositionX(), player->GetPositionY(), player->GetPositionZ(), player->GetOrientation());
-    GreenSystemMessage(m_session, buf);
 
     sGMLog.writefromsession(m_session, "used recall add, added \'%s\' location to database.", args);
 
@@ -94,7 +92,7 @@ bool ChatHandler::HandleRecallAddCommand(const char* args, WorldSession* m_sessi
 }
 
 //.recall del
-bool ChatHandler::HandleRecallDelCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallDelCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -103,7 +101,7 @@ bool ChatHandler::HandleRecallDelCommand(const char* args, WorldSession* m_sessi
     {
         WorldDatabase.Execute("DELETE FROM recall WHERE name = %s;", recall->name.c_str());
 
-        GreenSystemMessage(m_session, "Recall location removed.");
+        greenSystemMessage(m_session, "Recall location removed.");
         sGMLog.writefromsession(m_session, "used recall delete, removed \'%s\' location from database.", args);
 
         sMySQLStore.loadRecallTable();
@@ -115,7 +113,7 @@ bool ChatHandler::HandleRecallDelCommand(const char* args, WorldSession* m_sessi
 }
 
 //.recall list
-bool ChatHandler::HandleRecallListCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallListCommand(const char* args, WorldSession* m_session)
 {
     uint32_t count = 0;
 
@@ -150,18 +148,23 @@ bool ChatHandler::HandleRecallListCommand(const char* args, WorldSession* m_sess
 }
 
 //.recall portplayer
-bool ChatHandler::HandleRecallPortPlayerCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleRecallPortPlayerCommand(const char* args, WorldSession* m_session)
 {
-    char location[255];
-    char playerName[255];
-    if (sscanf(args, "%s %s", playerName, location) != 2)
+    if (!args || !*args)
         return false;
 
-    Player* player = sObjectMgr.getPlayer(playerName, false);
+    std::istringstream iss(std::string{ args });
+    std::string playerName;
+    std::string location;
+
+    if (!(iss >> playerName >> location))
+        return false;
+
+    Player* player = sObjectMgr.getPlayer(playerName.c_str(), false);
     if (!player)
         return false;
 
-    if (const auto recall = sMySQLStore.getRecallByName(args))
+    if (const auto recall = sMySQLStore.getRecallByName(location))
     {
         sGMLog.writefromsession(m_session, "ported %s to %s ( map: %u, x: %f, y: %f, z: %f, 0: %f )", player->getName().c_str(), recall->name.c_str(), recall->mapId, recall->location.x, recall->location.y, recall->location.z, recall->location.o);
         if (player->getSession() && (player->getSession()->CanUseCommand('a') || !m_session->GetPlayer()->m_isGmInvisible))

@@ -13,7 +13,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Opcodes.hpp"
 #include "AEVersion.hpp"
 #include "CommonTypes.hpp"
-
+#include <cstdint>
+#include <string>
 #include <vector>
 
 class SERVER_DECL OpcodeTables
@@ -89,10 +90,9 @@ public:
         }
     }
 
-    uint32_t getInternalIdForHex(uint16_t hex, int versionId = -1)
+    uint32_t getInternalIdForHex(uint16_t hex)
     {
-        if (versionId == -1 || versionId >= MAX_VERSION_INDEX)
-            versionId = getVersionIdForAEVersion();
+        auto versionId = getVersionIdForAEVersion();
 
         for (const auto table : _versionHexTable[versionId])
             if (table.hexValue == hex)
@@ -101,9 +101,9 @@ public:
         return 0;
     }
 
-    std::string getNameForOpcode(uint16_t hex, int versionId = -1)
+    std::string getNameForOpcode(uint16_t hex)
     {
-        const auto internalId = getInternalIdForHex(hex, versionId);
+        const auto internalId = getInternalIdForHex(hex);
 
         auto multiversionTable = multiversionOpcodeStore.find(internalId);
         if (multiversionTable != multiversionOpcodeStore.end())
@@ -121,8 +121,10 @@ public:
         return "Unknown internal id!";
     }
 
-    uint16_t getHexValueForVersionId(int versionId, uint32_t internalId)
+    uint16_t getHexValueForVersionId(uint32_t internalId)
     {
+        auto versionId = getVersionIdForAEVersion();
+
         if (versionId >= 0 && versionId < MAX_VERSION_INDEX)
         {
             auto multiversionTable = multiversionOpcodeStore.find(internalId);

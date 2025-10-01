@@ -40,7 +40,7 @@
 #include "OpcodeTable.hpp"
 #include "World.h"
 #include "WorldSession.h"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 
 #if VERSION_STRING == Mop
 #include "Data/WoWDynamicObject.hpp"
@@ -69,8 +69,8 @@
 #include "Utilities/Benchmark.hpp"
 
 // DB version
-static const char* REQUIRED_CHAR_DB_VERSION = "20250516-00_characters";
-static const char* REQUIRED_WORLD_DB_VERSION = "20250516-00_creature_spawns";
+static const char* REQUIRED_CHAR_DB_VERSION = "20250921-00_playerpets";
+static const char* REQUIRED_WORLD_DB_VERSION = "20250922-00_itemset_cata";
 
 volatile bool Master::m_stopEvent = false;
 

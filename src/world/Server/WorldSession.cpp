@@ -21,7 +21,7 @@
 #include "WorldSession.h"
 
 #include "DatabaseDefinition.hpp"
-#include "ThreadSafeQueue.hpp"
+#include "Threading/ThreadSafeQueue.hpp"
 #include "WorldPacket.h"
 #include "Objects/Item.hpp"
 #include "Exceptions/PlayerExceptions.hpp"
@@ -80,7 +80,8 @@ WorldSession::WorldSession(uint32_t id, std::string name, WorldSocket* sock) :
     floodLines(0),
     floodTime(UNIXTIME),
     language(0),
-    m_muted(0)
+    m_muted(0),
+    m_loginTime(0)
 {
 #if VERSION_STRING >= Cata
     isAddonMessageFiltered = false;
@@ -117,6 +118,9 @@ uint8_t WorldSession::Update(uint32_t InstanceID)
 
     if (!((++_updatecount) % 2) && _socket)
         _socket->UpdateQueuedPackets();
+
+    if (m_loginTime == 0)
+        m_loginTime = Util::getMSTime();
 
     if (InstanceID != instanceId)
     {
@@ -214,6 +218,7 @@ void WorldSession::LogoutPlayer(bool Save)
         return;
 
     _loggingOut = true;
+    m_loginTime = 0;
 
     if (_player != nullptr)
     {
@@ -973,7 +978,7 @@ void WorldSession::registerOpcodeHandler()
     registry.registerOpcode(CMSG_CANCEL_CHANNELLING, &WorldSession::handleCancelChannellingOpcode, true, false, true, true, false);
     registry.registerOpcode(CMSG_CANCEL_AUTO_REPEAT_SPELL, &WorldSession::handleCancelAutoRepeatSpellOpcode, true, false, true, true, false);
     registry.registerOpcode(CMSG_TOTEM_DESTROYED, &WorldSession::handleCancelTotem, true, true, true, true, false);
-    registry.registerOpcode(CMSG_LEARN_TALENT, &WorldSession::handleLearnTalentOpcode, true, false, true, true, false);
+    registry.registerOpcode(CMSG_LEARN_TALENT, &WorldSession::handleLearnTalentOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_LEARN_TALENTS_MULTIPLE, &WorldSession::handleLearnMultipleTalentsOpcode, false, false, true, false, false);
     registry.registerOpcode(CMSG_UNLEARN_TALENTS, &WorldSession::handleUnlearnTalents, true, false, true, false, false);
     registry.registerOpcode(MSG_TALENT_WIPE_CONFIRM, &WorldSession::handleUnlearnTalents, true, false, true, true, false);
@@ -1107,7 +1112,7 @@ void WorldSession::registerOpcodeHandler()
     // Battlegrounds
     registry.registerOpcode(CMSG_BATTLEFIELD_PORT, &WorldSession::handleBattlefieldPortOpcode, true, true, true, false, false);
     registry.registerOpcode(CMSG_BATTLEFIELD_STATUS, &WorldSession::handleBattlefieldStatusOpcode, true, true, true, true, false);
-    registry.registerOpcode(CMSG_BATTLEFIELD_LIST, &WorldSession::handleBattlefieldListOpcode, true, true, true, true, false);
+    registry.registerOpcode<STATUS_LOGGEDIN>(CMSG_BATTLEFIELD_LIST, &WorldSession::handleBattlefieldListOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_BATTLEMASTER_HELLO, &WorldSession::handleBattleMasterHelloOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_BATTLEMASTER_JOIN_ARENA, &WorldSession::handleArenaJoinOpcode, true, true, true, false, false);
     registry.registerOpcode(CMSG_BATTLEMASTER_JOIN, &WorldSession::handleBattleMasterJoinOpcode, true, true, true, true, false);
@@ -1140,6 +1145,7 @@ void WorldSession::registerOpcodeHandler()
     registry.registerOpcode(MSG_SET_DUNGEON_DIFFICULTY, &WorldSession::handleDungeonDifficultyOpcode, true, true, true, true, false);
     registry.registerOpcode(MSG_SET_RAID_DIFFICULTY, &WorldSession::handleRaidDifficultyOpcode, false, false, true, true, false);
     registry.registerOpcode(CMSG_INSTANCE_LOCK_RESPONSE, &WorldSession::handleInstanceLockResponse, false, false, true, false, false);
+    registry.registerOpcode(CMSG_VIOLENCE_LEVEL, &WorldSession::handleViolenceLevel, false, false, false, true, false);
 
     // Misc
     registry.registerOpcode(CMSG_OPEN_ITEM, &WorldSession::handleOpenItemOpcode, true, true, true, true, false);

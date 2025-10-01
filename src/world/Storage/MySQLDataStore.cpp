@@ -38,7 +38,7 @@ void MySQLDataStore::finalize()
     _professionDiscoveryStore.clear();
 }
 
-static std::vector<std::string> ascemuTables = { "achievement_reward", "ai_threattospellid", "areatriggers", "auctionhouse", "battlemasters", "creature_ai_scripts", "creature_difficulty", "creature_formations", "creature_group_spawn", "creature_initial_equip", "creature_movement_override", "creature_properties", "creature_properties_movement", "creature_quest_finisher", "creature_quest_starter", "creature_script_waypoints", "creature_spawns", "creature_timed_emotes", "creature_waypoints", "display_bounding_boxes", "event_scripts", "fishing", "gameevent_properties", "gameobject_properties", "gameobject_quest_finisher", "gameobject_quest_item_binding", "gameobject_quest_pickup_binding", "gameobject_quest_starter", "gameobject_spawns", "gameobject_spawns_extra", "gameobject_spawns_overrides", "gameobject_teleports", "gossip_menu", "gossip_menu_items", "gossip_menu_option", "graveyards", "guild_rewards", "guild_xp_for_level", "instance_encounters", "item_pages", "item_properties", "item_quest_association", "item_randomprop_groups", "item_randomsuffix_groups", "itemset_linked_itemsetbonus", "lfg_dungeon_rewards", "locales_creature", "locales_gameobject", "locales_gossip_menu_option", "locales_item", "locales_item_pages", "locales_npc_gossip_texts", "locales_npc_script_text", "locales_quest", "locales_worldbroadcast", "locales_worldmap_info", "locales_worldstring_table", "loot_creatures", "loot_fishing", "loot_gameobjects", "loot_items", "loot_pickpocketing", "loot_skinning", "npc_gossip_properties", "npc_gossip_texts", "npc_script_text", "npc_spellclick_spells", "pet_level_abilities", "petdefaultspells", "player_classlevelstats", "player_levelstats", "player_xp_for_level", "playercreateinfo", "playercreateinfo_bars", "playercreateinfo_items", "playercreateinfo_skills", "playercreateinfo_spell_cast", "playercreateinfo_spell_learn", "points_of_interest", "professiondiscoveries", "quest_poi", "quest_poi_points", "quest_properties", "recall", "reputation_creature_onkill", "reputation_faction_onkill", "reputation_instance_onkill", "spawn_group_id", "spell_area", "spell_coefficient_override", "spell_custom_override", "spell_disable", "spell_disable_trainers", "spell_effects_override", "spell_ranks", "spell_required", "spell_teleport_coords", "spelloverride", "spelltargetconstraints", "totemdisplayids", "trainer_properties", "trainer_properties_spellset", "transport_data", "vehicle_accessories", "vehicle_seat_addon", "vendor_restrictions", "vendors", "weather", "wordfilter_character_names", "wordfilter_chat", "world_db_version", "worldbroadcast", "worldmap_info", "worldstate_templates", "worldstring_tables", "zoneguards" };
+static std::vector<std::string> ascemuTables = { "achievement_reward", "ai_threattospellid", "areatriggers", "auctionhouse", "battlemasters", "creature_ai_scripts", "creature_difficulty", "creature_formations", "creature_group_spawn", "creature_initial_equip", "creature_movement_override", "creature_properties", "creature_properties_movement", "creature_quest_finisher", "creature_quest_starter", "creature_script_waypoints", "creature_spawns", "creature_timed_emotes", "creature_waypoints", "display_bounding_boxes", "event_scripts", "fishing", "gameevent_properties", "gameobject_properties", "gameobject_quest_finisher", "gameobject_quest_item_binding", "gameobject_quest_pickup_binding", "gameobject_quest_starter", "gameobject_spawns", "gameobject_spawns_extra", "gameobject_spawns_overrides", "gameobject_teleports", "gossip_menu", "gossip_menu_items", "gossip_menu_option", "graveyards", "guild_rewards", "guild_xp_for_level", "instance_encounters", "item_pages", "item_properties", "item_quest_association", "item_randomprop_groups", "item_randomsuffix_groups", "itemset_linked_itemsetbonus", "lfg_dungeon_rewards", "locales_achievement_reward", "locales_creature", "locales_gameobject", "locales_gossip_menu_option", "locales_item", "locales_item_pages", "locales_npc_gossip_texts", "locales_npc_script_text", "locales_points_of_interest", "locales_quest", "locales_worldbroadcast", "locales_worldmap_info", "locales_worldstring_table", "loot_creatures", "loot_fishing", "loot_gameobjects", "loot_items", "loot_pickpocketing", "loot_skinning", "npc_gossip_properties", "npc_gossip_texts", "npc_script_text", "npc_spellclick_spells", "pet_level_abilities", "petdefaultspells", "player_classlevelstats", "player_levelstats", "player_xp_for_level", "playercreateinfo", "playercreateinfo_bars", "playercreateinfo_items", "playercreateinfo_skills", "playercreateinfo_spell_cast", "playercreateinfo_spell_learn", "points_of_interest", "professiondiscoveries", "quest_poi", "quest_poi_points", "quest_properties", "recall", "reputation_creature_onkill", "reputation_faction_onkill", "reputation_instance_onkill", "spawn_group_id", "spell_area", "spell_coefficient_override", "spell_custom_override", "spell_disable", "spell_disable_trainers", "spell_effects_override", "spell_ranks", "spell_required", "spell_teleport_coords", "spelloverride", "spelltargetconstraints", "totemdisplayids", "trainer_properties", "trainer_properties_spellset", "transport_data", "vehicle_accessories", "vehicle_seat_addon", "vendor_restrictions", "vendors", "weather", "wordfilter_character_names", "wordfilter_chat", "world_db_version", "worldbroadcast", "worldmap_info", "worldstate_templates", "worldstring_tables", "zoneguards" };
 
 void MySQLDataStore::loadAdditionalTableConfig()
 {
@@ -229,40 +229,6 @@ void MySQLDataStore::loadItemPropertiesTable()
     auto item_result = getWorldDBQuery("SELECT * FROM item_properties base "
         "WHERE build=(SELECT MAX(build) FROM item_properties spec WHERE base.entry = spec.entry AND build <= %u)", VERSION_STRING);
 
-    //                                                 0      1       2        3       4        5         6       7       8       9          10
-    /*auto item_result = WorldDatabase.Query("SELECT entry, class, subclass, field4, name1, displayid, quality, flags, flags2, buyprice, sellprice, "
-    //                                                   11             12              13           14            15            16               17
-                                                   "inventorytype, allowableclass, allowablerace, itemlevel, requiredlevel, RequiredSkill, RequiredSkillRank, "
-    //                                                   18                 19                    20                21                    22             23
-                                                   "RequiredSpell, RequiredPlayerRank1, RequiredPlayerRank2, RequiredFaction, RequiredFactionStanding, Unique, "
-    //                                                  24           25              26           27           28           29         30           31
-                                                   "maxcount, ContainerSlots, itemstatscount, stat_type1, stat_value1, stat_type2, stat_value2, stat_type3, "
-    //                                                  32           33          34           35          36           37           38          39
-                                                   "stat_value3, stat_type4, stat_value4, stat_type5, stat_value5, stat_type6, stat_value6, stat_type7, "
-    //                                                  40           41          42           43          44           45           46
-                                                   "stat_value7, stat_type8, stat_value8, stat_type9, stat_value9, stat_type10, stat_value10, "
-    //                                                          47                           48                 49        50        51         52        53
-                                                   "ScaledStatsDistributionId, ScaledStatsDistributionFlags, dmg_min1, dmg_max1, dmg_type1, dmg_min2, dmg_max2, "
-    //                                                 54       55       56        57         58          59         60          61       62        63
-                                                   "dmg_type2, armor, holy_res, fire_res, nature_res, frost_res, shadow_res, arcane_res, delay, ammo_type, "
-    //                                                64      65             66             67              68               69                   70
-                                                   "range, spellid_1, spelltrigger_1, spellcharges_1, spellcooldown_1, spellcategory_1, spellcategorycooldown_1, "
-    //                                                  71           72              73              74               75                   76
-                                                   "spellid_2, spelltrigger_2, spellcharges_2, spellcooldown_2, spellcategory_2, spellcategorycooldown_2, "
-    //                                                  77           78              79              80               81                   82
-                                                   "spellid_3, spelltrigger_3, spellcharges_3, spellcooldown_3, spellcategory_3, spellcategorycooldown_3, "
-    //                                                  83           84              85              86               87                   88
-                                                   "spellid_4, spelltrigger_4, spellcharges_4, spellcooldown_4, spellcategory_4, spellcategorycooldown_4, "
-    //                                                  89           90              91              92               93                   94
-                                                   "spellid_5, spelltrigger_5, spellcharges_5, spellcooldown_5, spellcategory_5, spellcategorycooldown_5, "
-    //                                                 95         96          97         98             99          100      101         102          103
-                                                   "bonding, description, page_id, page_language, page_material, quest_id, lock_id, lock_material, sheathID, "
-    //                                                 104          105        106     107         108           109      110      111         112
-                                                   "randomprop, randomsuffix, block, itemset, MaxDurability, ZoneNameID, mapid, bagfamily, TotemCategory, "
-    //                                                   113           114         115          116          117           118         119          120
-                                                   "socket_color_1, unk201_3, socket_color_2, unk201_5, socket_color_3, unk201_7, socket_bonus, GemProperties, "
-    //                                                      121                122                 123                 124             125        126
-                                                   "ReqDisenchantSkill, ArmorDamageModifier, existingduration, ItemLimitCategoryId, HolidayId, food_type FROM item_properties");*/
 
     if (item_result == nullptr)
     {
@@ -301,7 +267,7 @@ void MySQLDataStore::loadItemPropertiesTable()
         itemProperties.RequiredLevel = fields[16].asUint32();
         itemProperties.RequiredSkill = fields[17].asUint16();
         itemProperties.RequiredSkillRank = fields[18].asUint32();
-        itemProperties.RequiredSkillSubRank = fields[19].asUint32();
+        itemProperties.RequiredSpell = fields[19].asUint32();
         itemProperties.RequiredPlayerRank1 = fields[20].asUint32();
         itemProperties.RequiredPlayerRank2 = fields[21].asUint32();
         itemProperties.RequiredFaction = fields[22].asUint32();
@@ -309,48 +275,25 @@ void MySQLDataStore::loadItemPropertiesTable()
         itemProperties.Unique = fields[24].asUint32();
         itemProperties.MaxCount = fields[25].asUint32();
         itemProperties.ContainerSlots = fields[26].asUint32();
-        itemProperties.itemstatscount = fields[27].asUint32();
 
-        for (uint8_t i = 0; i < itemProperties.itemstatscount; ++i)
-        {
-            itemProperties.Stats[i].Type = fields[28 + i * 2].asUint32();
-            itemProperties.Stats[i].Value = fields[29 + i * 2].asInt32();
-        }
-
-        itemProperties.ScalingStatsEntry = fields[48].asUint32();
-        itemProperties.ScalingStatsFlag = fields[49].asUint32();
+        itemProperties.ScalingStatsEntry = fields[27].asUint32();
+        itemProperties.ScalingStatsFlag = fields[28].asUint32();
 
         for (uint8_t i = 0; i < MAX_ITEM_PROTO_DAMAGES; ++i)
         {
-            itemProperties.Damage[i].Min = fields[50 + i * 3].asFloat();
-            itemProperties.Damage[i].Max = fields[51 + i * 3].asFloat();
-            itemProperties.Damage[i].Type = fields[52 + i * 3].asUint32();
+            itemProperties.Damage[i].Min = fields[29 + i * 3].asFloat();
+            itemProperties.Damage[i].Max = fields[30 + i * 3].asFloat();
+            itemProperties.Damage[i].Type = fields[31 + i * 3].asUint32();
         }
 
-        itemProperties.Armor = fields[56].asUint32();
-        itemProperties.HolyRes = fields[57].asUint32();
-        itemProperties.FireRes = fields[58].asUint32();
-        itemProperties.NatureRes = fields[59].asUint32();
-        itemProperties.FrostRes = fields[60].asUint32();
-        itemProperties.ShadowRes = fields[61].asUint32();
-        itemProperties.ArcaneRes = fields[62].asUint32();
-        itemProperties.Delay = fields[63].asUint32();
-        itemProperties.AmmoType = fields[64].asUint32();
-        itemProperties.Range = fields[65].asFloat();
+        itemProperties.Armor = fields[35].asUint32();
+        itemProperties.Delay = fields[36].asUint32();
+        itemProperties.AmmoType = fields[37].asUint32();
+        itemProperties.Range = fields[38].asFloat();
 
-        for (uint8_t i = 0; i < MAX_ITEM_PROTO_SPELLS; ++i)
-        {
-            itemProperties.Spells[i].Id = fields[66 + i * 6].asUint32();
-            itemProperties.Spells[i].Trigger = fields[67 + i * 6].asUint32();
-            itemProperties.Spells[i].Charges = fields[68 + i * 6].asInt32();
-            itemProperties.Spells[i].Cooldown = fields[69 + i * 6].asInt32();
-            itemProperties.Spells[i].Category = fields[70 + i * 6].asUint32();
-            itemProperties.Spells[i].CategoryCooldown = fields[71 + i * 6].asInt32();
-        }
-
-        itemProperties.Bonding = fields[96].asUint32();
-        itemProperties.Description = fields[97].asCString();
-        uint32_t page_id = fields[98].asUint32();
+        itemProperties.Bonding = fields[39].asUint32();
+        itemProperties.Description = fields[40].asCString();
+        uint32_t page_id = fields[41].asUint32();
         if (page_id != 0)
         {
             MySQLStructure::ItemPage const* item_page = getItemPage(page_id);
@@ -369,36 +312,36 @@ void MySQLDataStore::loadItemPropertiesTable()
             itemProperties.PageId = page_id;
         }
 
-        itemProperties.PageLanguage = fields[99].asUint32();
-        itemProperties.PageMaterial = fields[100].asUint32();
-        itemProperties.QuestId = fields[101].asUint32();
-        itemProperties.LockId = fields[102].asUint32();
-        itemProperties.LockMaterial = fields[103].asUint32(true);
-        itemProperties.SheathID = fields[104].asUint32();
-        itemProperties.RandomPropId = fields[105].asUint32();
-        itemProperties.RandomSuffixId = fields[106].asUint32();
-        itemProperties.Block = fields[107].asUint32();
-        itemProperties.ItemSet = fields[108].asInt32();
-        itemProperties.MaxDurability = fields[109].asUint32();
-        itemProperties.ZoneNameID = fields[110].asUint32();
-        itemProperties.MapID = fields[111].asUint32();
-        itemProperties.BagFamily = fields[112].asUint32();
-        itemProperties.TotemCategory = fields[113].asUint32();
+        itemProperties.PageLanguage = fields[42].asUint32();
+        itemProperties.PageMaterial = fields[43].asUint32();
+        itemProperties.QuestId = fields[44].asUint32();
+        itemProperties.LockId = fields[45].asUint32();
+        itemProperties.LockMaterial = fields[46].asUint32(true);
+        itemProperties.SheathID = fields[47].asUint32();
+        itemProperties.RandomPropId = fields[48].asUint32();
+        itemProperties.RandomSuffixId = fields[49].asUint32();
+        itemProperties.Block = fields[50].asUint32();
+        itemProperties.ItemSet = fields[51].asInt32();
+        itemProperties.MaxDurability = fields[52].asUint32();
+        itemProperties.ZoneNameID = fields[53].asUint32();
+        itemProperties.MapID = fields[54].asUint32();
+        itemProperties.BagFamily = fields[55].asUint32();
+        itemProperties.TotemCategory = fields[56].asUint32();
 
         for (uint8_t i = 0; i < MAX_ITEM_PROTO_SOCKETS; ++i)
         {
-            itemProperties.Sockets[i].SocketColor = uint32_t(fields[114 + i * 2].asUint8());
-            itemProperties.Sockets[i].Unk = fields[115 + i * 2].asUint32();
+            itemProperties.Sockets[i].SocketColor = uint32_t(fields[57 + i * 2].asUint8());
+            itemProperties.Sockets[i].Unk = fields[58 + i * 2].asUint32();
         }
 
-        itemProperties.SocketBonus = fields[120].asUint32();
-        itemProperties.GemProperties = fields[121].asUint32();
-        itemProperties.DisenchantReqSkill = fields[122].asInt32();
-        itemProperties.ArmorDamageModifier = fields[123].asFloat();
-        itemProperties.ExistingDuration = fields[124].asUint32();
-        itemProperties.ItemLimitCategory = fields[125].asUint32();
-        itemProperties.HolidayId = fields[126].asUint32();
-        itemProperties.FoodType = fields[127].asUint32();
+        itemProperties.SocketBonus = fields[63].asUint32();
+        itemProperties.GemProperties = fields[64].asUint32();
+        itemProperties.DisenchantReqSkill = fields[65].asInt32();
+        itemProperties.ArmorDamageModifier = fields[66].asFloat();
+        itemProperties.ExistingDuration = fields[67].asUint32();
+        itemProperties.ItemLimitCategory = fields[68].asUint32();
+        itemProperties.HolidayId = fields[69].asUint32();
+        itemProperties.FoodType = fields[70].asUint32();
 
         //lowercase
         std::string lower_case_name = itemProperties.Name;
@@ -526,13 +469,148 @@ void MySQLDataStore::loadItemPropertiesTable()
             break;
         }
 
-
         // Check the data with itemdbc, spelldbc, factiondbc....
 
         ++item_count;
     } while (item_result->NextRow());
 
     sLogger.info("MySQLDataLoads : Loaded {} item_properties in {} ms!", item_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+
+void MySQLDataStore::loadItemPropertiesSpellsTable()
+{
+    auto startTime = Util::TimeNow();
+
+    uint32_t spell_count = 0;
+
+    auto item_result = getWorldDBQuery("SELECT * FROM item_properties_spells base "
+        "WHERE build=(SELECT MAX(build) FROM item_properties_spells spec WHERE base.entry = spec.entry AND build <= %u)", VERSION_STRING);
+
+    if (item_result == nullptr)
+    {
+        sLogger.info("MySQLDataLoads : Table `item_properties_spells` is empty!");
+        return;
+    }
+
+    sLogger.info("MySQLDataLoads : Table `item_properties_spells` has {} columns", item_result->GetFieldCount());
+
+    struct LoadItemSpell
+    {
+        uint32_t trigger;
+        int32_t charges;
+        int32_t cooldown;
+        uint32_t category;
+        int32_t categoryCooldown;
+    };
+
+    std::map<uint32_t, std::unordered_map<uint32_t, LoadItemSpell>> tempSpellStore;
+    do
+    {
+        Field* fields = item_result->Fetch();
+
+        uint32_t entry = fields[0].asUint32();
+        uint32_t spellid = fields[2].asUint32();
+
+        LoadItemSpell spellData;
+        spellData.trigger = fields[3].asUint32();
+        spellData.charges = fields[4].asInt32();
+        spellData.cooldown = fields[5].asInt32();
+        spellData.category = fields[6].asUint32();
+        spellData.categoryCooldown = fields[7].asInt32();
+
+        tempSpellStore[entry][spellid] = spellData;
+
+        ++spell_count;
+    } while (item_result->NextRow());
+
+    sLogger.info("MySQLDataLoads : Loaded {} item_properties_spells in {} ms!", spell_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+
+
+    startTime = Util::TimeNow();
+    uint32_t assignedCount = 0;
+
+    for (const auto& [entry, bySpellId] : tempSpellStore)
+    {
+        ItemProperties& ip = _itemPropertiesStore[entry];
+
+        size_t i = 0;
+        for (const auto& [spellId, data] : bySpellId)
+        {
+            if (i >= MAX_ITEM_PROTO_SPELLS)
+                break;
+
+            ip.Spells[i].Id = spellId;
+            ip.Spells[i].Trigger = data.trigger;
+            ip.Spells[i].Charges = data.charges;
+            ip.Spells[i].Cooldown = data.cooldown;
+            ip.Spells[i].Category = data.category;
+            ip.Spells[i].CategoryCooldown = data.categoryCooldown;
+
+            ++i;
+            ++assignedCount;
+        }
+    }
+
+    sLogger.info("MySQLDataLoads : assigned {} spells to item_properties in {} ms!", assignedCount, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+
+void MySQLDataStore::loadItemPropertiesStatsTable()
+{
+    auto startTime = Util::TimeNow();
+
+    uint32_t stat_count = 0;
+
+    auto item_result = getWorldDBQuery("SELECT * FROM item_properties_stats base "
+        "WHERE build=(SELECT MAX(build) FROM item_properties_stats spec WHERE base.entry = spec.entry AND build <= %u)", VERSION_STRING);
+
+
+    if (item_result == nullptr)
+    {
+        sLogger.info("MySQLDataLoads : Table `item_properties_stats` is empty!");
+        return;
+    }
+
+    sLogger.info("MySQLDataLoads : Table `item_properties_stats` has {} columns", item_result->GetFieldCount());
+
+    std::map<uint32_t, std::map<uint32_t, int32_t>> tempStatsStore;
+    do
+    {
+        Field* fields = item_result->Fetch();
+
+        uint32_t entry = fields[0].asUint32();
+        uint32_t type = fields[2].asUint32();
+        int32_t value = fields[3].asInt32();
+
+        tempStatsStore[entry][type] = value;
+
+        ++stat_count;
+    } while (item_result->NextRow());
+
+    sLogger.info("MySQLDataLoads : Loaded {} item_properties_stats in {} ms!", stat_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+
+
+    startTime = Util::TimeNow();
+    uint32_t assignedCount = 0;
+
+    for (const auto& statEntry : tempStatsStore)
+    {
+        uint32_t entry = statEntry.first;
+        const auto& typeMap = statEntry.second;
+
+        ItemProperties& itemProperties = _itemPropertiesStore[entry];
+
+        for (const auto& kv : typeMap)
+        {
+            uint32_t type = kv.first;
+            int32_t value = kv.second;
+
+            itemProperties.addStat(type, value);
+
+            ++assignedCount;
+        }
+    }
+
+    sLogger.info("MySQLDataLoads : assigned {} stats to item_properties in {} ms!", assignedCount, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
 
 ItemProperties const* MySQLDataStore::getItemProperties(uint32_t entry)
@@ -2814,8 +2892,10 @@ void MySQLDataStore::loadPlayerCreateInfoClassLevelstats()
 {
     auto startTime = Util::TimeNow();
 
+    // Zyres: load highest gamebuild version from table, otherwise we will have dead new characters
     //                                                                 0      1        2          3
-    auto player_classlevelstats_result = WorldDatabase.Query("SELECT class, level, BaseHealth, BaseMana FROM player_classlevelstats WHERE build = %u", VERSION_STRING);
+    auto player_classlevelstats_result = WorldDatabase.Query("SELECT class, level, BaseHealth, BaseMana FROM player_classlevelstats base "
+        "WHERE build=(SELECT MAX(build) FROM player_classlevelstats buildspecific WHERE base.class = buildspecific.class AND base.level = buildspecific.level AND build <= %u)", VERSION_STRING);
 
     if (player_classlevelstats_result)
     {
@@ -2843,9 +2923,7 @@ void MySQLDataStore::loadPlayerCreateInfoClassLevelstats()
     }
     else
     {
-#if VERSION_STRING < Cata
         sLogger.info("MySQLDataLoads : Table `player_classlevelstats` is empty!");
-#endif
     }
 
 #if VERSION_STRING > WotLK
@@ -3397,11 +3475,66 @@ void MySQLDataStore::loadWordFilterChat()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // locales
+
+void MySQLDataStore::loadLocalesAchievementReward()
+{
+    auto startTime = Util::TimeNow();
+    //                                          0       1          2           3       4
+    auto result = WorldDatabase.Query("SELECT entry, gender, language_code, subject, text FROM locales_achievement_reward");
+    if (result == nullptr)
+    {
+        sLogger.info("MySQLDataLoads : Table `locales_achievement_reward` is empty!");
+        return;
+    }
+
+    sLogger.info("MySQLDataLoads : Table `locales_achievement_reward` has {} columns", result->GetFieldCount());
+
+    uint32_t load_count = 0;
+    uint32_t i = 0;
+    do
+    {
+        ++i;
+        Field* fields = result->Fetch();
+
+        MySQLStructure::LocalesAchievementReward localAchievementReward;
+
+        localAchievementReward.entry = fields[0].asUint32();
+        localAchievementReward.gender = fields[1].asUint32();
+        std::string locString = fields[2].asCString();
+        localAchievementReward.languageCode = Util::getLanguagesIdFromString(locString);
+        localAchievementReward.subject = strdup(fields[3].asCString());
+        localAchievementReward.text = strdup(fields[4].asCString());
+
+        _localesAchievementRewardStore.push_back(localAchievementReward);
+
+        ++load_count;
+
+    } while (result->NextRow());
+
+    sLogger.info("MySQLDataLoads : Loaded {} rows from `locales_achievement_reward` table in {} ms!", load_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+
+MySQLStructure::LocalesAchievementReward const* MySQLDataStore::getLocalizedAchievementReward(uint32_t entry, uint32_t gender, uint32_t sessionLocale)
+{
+    for (const auto& localesAchievementReward : _localesAchievementRewardStore)
+    {
+        if (localesAchievementReward.entry == entry && localesAchievementReward.languageCode == sessionLocale)
+        {
+            if (localesAchievementReward.gender == gender || localesAchievementReward.gender == 2)
+            {
+                return &localesAchievementReward;
+            }
+        }
+    }
+    return nullptr;
+}
+
 void MySQLDataStore::loadLocalesCreature()
 {
     auto startTime = Util::TimeNow();
     //                                        0         1          2      3
-    auto result = WorldDatabase.Query("SELECT id, language_code, name, subname FROM locales_creature");
+    auto result = WorldDatabase.Query("SELECT id, language_code, name, subname FROM locales_creature base "
+        "WHERE build=(SELECT MAX(build) FROM locales_creature buildspecific WHERE base.id = buildspecific.id AND build <= %u)", VERSION_STRING);
     if (result == nullptr)
     {
         sLogger.info("MySQLDataLoads : Table `locales_creature` is empty!");
@@ -3770,6 +3903,57 @@ void MySQLDataStore::loadLocalesNpcText()
 MySQLStructure::LocalesNpcGossipText const* MySQLDataStore::getLocalizedNpcGossipText(uint32_t entry, uint32_t sessionLocale) const
 {
     for (LocalesNpcGossipTextContainer::const_iterator itr = _localesNpcGossipTextStore.begin(); itr != _localesNpcGossipTextStore.end(); ++itr)
+    {
+        if (itr->second.entry == entry)
+        {
+            if (itr->second.languageCode == sessionLocale)
+            {
+                return &itr->second;
+            }
+        }
+    }
+    return nullptr;
+}
+
+void MySQLDataStore::loadLocalesPointsOfInterest()
+{
+    auto startTime = Util::TimeNow();
+    //                                          0         1             2
+    auto result = WorldDatabase.Query("SELECT entry, language_code, icon_name FROM locales_points_of_interest");
+    if (result == nullptr)
+    {
+        sLogger.info("MySQLDataLoads : Table `locales_points_of_interest` is empty!");
+        return;
+    }
+
+    sLogger.info("MySQLDataLoads : Table `locales_points_of_interest` has {} columns", result->GetFieldCount());
+
+    _localesPointsOfInterestStore.rehash(result->GetRowCount());
+
+    uint32_t load_count = 0;
+    uint32_t i = 0;
+    do
+    {
+        ++i;
+        Field* fields = result->Fetch();
+
+        MySQLStructure::LocalesPointsOfInterest& localPointsOfInterest = _localesPointsOfInterestStore[i];
+
+        localPointsOfInterest.entry = fields[0].asUint32();
+        std::string locString = fields[1].asCString();
+        localPointsOfInterest.languageCode = Util::getLanguagesIdFromString(locString);
+        localPointsOfInterest.iconName = strdup(fields[2].asCString());
+
+        ++load_count;
+
+    } while (result->NextRow());
+
+    sLogger.info("MySQLDataLoads : Loaded {} rows from `locales_points_of_interest` table in {} ms!", load_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+
+MySQLStructure::LocalesPointsOfInterest const* MySQLDataStore::getLocalizedPointsOfInterest(uint32_t entry, uint32_t sessionLocale)
+{
+    for (LocalesPointsOfInterestContainer::const_iterator itr = _localesPointsOfInterestStore.begin(); itr != _localesPointsOfInterestStore.end(); ++itr)
     {
         if (itr->second.entry == entry)
         {

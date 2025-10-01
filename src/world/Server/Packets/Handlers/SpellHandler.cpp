@@ -3,7 +3,6 @@ Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/Battleground/Battleground.hpp"
 #include "Map/Management/MapMgr.hpp"
@@ -268,7 +267,7 @@ void WorldSession::handlePetCastSpell(WorldPacket& recvPacket)
     if (_player->getPet() == petUnit)
     {
         // Check does the pet have the spell
-        if (!dynamic_cast<Pet*>(petUnit)->HasSpell(srlPacket.spellId))
+        if (!dynamic_cast<Pet*>(petUnit)->hasSpell(srlPacket.spellId))
             return;
     }
     // If pet is charmed or possessed by player

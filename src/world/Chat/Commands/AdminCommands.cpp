@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Logging/Log.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Objects/Units/Players/Player.hpp"
@@ -19,11 +19,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/Definitions/SpellEffects.hpp"
 
 //.admin castall
-bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_session)
 {
     if (!args)
     {
-        RedSystemMessage(m_session, "No spellid specified.");
+        redSystemMessage(m_session, "No spellid specified.");
         return true;
     }
 
@@ -31,7 +31,7 @@ bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_se
     SpellInfo const* spell_entry = sSpellMgr.getSpellInfo(spell_id);
     if (!spell_entry)
     {
-        RedSystemMessage(m_session, "Spell %u is not a valid spell!", spell_id);
+        redSystemMessage(m_session, "Spell {} is not a valid spell!", spell_id);
         return true;
     }
 
@@ -40,7 +40,7 @@ bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_se
         if (spell_entry->getEffect(i) == SPELL_EFFECT_LEARN_SPELL)
         {
             sGMLog.writefromsession(m_session, "used learn spell stopped %u", spell_id);
-            RedSystemMessage(m_session, "Learn spell specified.");
+            redSystemMessage(m_session, "Learn spell specified.");
             return true;
         }
     }
@@ -66,12 +66,12 @@ bool ChatHandler::HandleAdminCastAllCommand(const char* args, WorldSession* m_se
         }
     }
 
-    BlueSystemMessage(m_session, "Casted spell %u on all players!", spell_id);
+    blueSystemMessage(m_session, "Casted spell {} on all players!", spell_id);
     return true;
 }
 
 //.admin dispellall
-bool ChatHandler::HandleAdminDispelAllCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAdminDispelAllCommand(const char* args, WorldSession* m_session)
 {
     uint32_t pos = 0;
     if (*args)
@@ -103,12 +103,12 @@ bool ChatHandler::HandleAdminDispelAllCommand(const char* args, WorldSession* m_
     }
     sGMLog.writefromsession(m_session, "used mass dispel");
 
-    BlueSystemMessage(m_session, "Dispel action done.");
+    blueSystemMessage(m_session, "Dispel action done.");
     return true;
 }
 
 //.admin masssummon
-bool ChatHandler::HandleAdminMassSummonCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAdminMassSummonCommand(const char* args, WorldSession* m_session)
 {
     sObjectMgr.m_playerLock.lock();
 
@@ -160,7 +160,7 @@ bool ChatHandler::HandleAdminMassSummonCommand(const char* args, WorldSession* m
 }
 
 //.admin playall
-bool ChatHandler::HandleAdminPlayGlobalSoundCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAdminPlayGlobalSoundCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -171,7 +171,7 @@ bool ChatHandler::HandleAdminPlayGlobalSoundCommand(const char* args, WorldSessi
 
     sWorld.playSoundToAllPlayers(sound_id);
 
-    BlueSystemMessage(m_session, "Broadcasted sound %u to server.", sound_id);
+    blueSystemMessage(m_session, "Broadcasted sound {} to server.", sound_id);
 
     sGMLog.writefromsession(m_session, "used play all command soundid %u", sound_id);
 

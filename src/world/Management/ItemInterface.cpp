@@ -26,7 +26,6 @@
 #include "Management/Loot/LootMgr.hpp"
 #include "ObjectMgr.hpp"
 #include "QuestMgr.h"
-#include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
 #include "Objects/Units/Creatures/Creature.h"
 #include "Objects/Units/Players/TradeData.hpp"
@@ -500,8 +499,8 @@ std::tuple<AddItemResult, std::unique_ptr<Item>> ItemInterface::m_AddItem(std::u
             SlotResult result = this->FindFreeInventorySlot(itemHolder->getItemProperties());
 
             // send message to player
-            sChatHandler.BlueSystemMessage(m_pOwner->getSession(), "A duplicated item, `%s` was found in your inventory. We've attempted to add it to a free slot in your inventory, if there is none this will fail. It will be attempted again the next time you log on.",
-                itemHolder->getItemProperties()->Name.c_str());
+            m_pOwner->getSession()->systemMessage("A duplicated item, `{}` was found in your inventory. We've attempted to add it to a free slot in your inventory, if there is none this will fail. It will be attempted again the next time you log on.",
+                itemHolder->getItemProperties()->Name);
             if (result.Result == true)
             {
                 // Found a new slot for that item.
@@ -2336,8 +2335,8 @@ int8_t ItemInterface::CanEquipItemInSlot(int8_t DstInvSlot, int8_t slot, ItemPro
             if (proto->RequiredSkillRank > m_pOwner->getSkillLineCurrent(proto->RequiredSkill, true))
                 return INV_ERR_SKILL_ISNT_HIGH_ENOUGH;
 
-        if (proto->RequiredSkillSubRank)
-            if (!m_pOwner->hasSpell(proto->RequiredSkillSubRank))
+        if (proto->RequiredSpell)
+            if (!m_pOwner->hasSpell(proto->RequiredSpell))
                 return INV_ERR_NO_REQUIRED_PROFICIENCY;
 
         // You are dead !

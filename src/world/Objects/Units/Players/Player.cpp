@@ -9,7 +9,6 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "TradeData.hpp"
 #include "Chat/ChatDefines.hpp"
-#include "Chat/ChatHandler.hpp"
 #include "Data/WoWPlayer.hpp"
 #include "Chat/Channel.hpp"
 #include "Chat/ChannelMgr.hpp"
@@ -80,6 +79,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgLootRemoved.h"
 #include "Server/Packets/SmsgInstanceReset.h"
 #include "Server/Packets/SmsgStableResult.h"
+#include "Server/Packets/SmsgPetSpells.h"
 #include "Server/World.h"
 #include "Server/WorldSocket.h"
 #include "Server/Packets/SmsgContactList.h"
@@ -2374,7 +2374,7 @@ void Player::eventKickFromServer()
         else
             m_kickDelay -= 1000;
 
-        sChatHandler.BlueSystemMessage(getSession(), "You will be removed from the server in %u seconds.", m_kickDelay / 1000);
+        getSession()->systemMessage("You will be removed from the server in {} seconds.", m_kickDelay / 1000);
     }
     else
     {
@@ -2491,7 +2491,7 @@ bool Player::create(CharCreate& charCreateContent)
     if (auto playerClassLevelStats = sMySQLStore.getPlayerClassLevelStats(1, charCreateContent._class))
         setMaxHealth(playerClassLevelStats->health);
     else
-        sLogger.failure("No class levelstatd found!");
+        sLogger.failure("No class levelstats found!");
 
     if (const auto raceEntry = sChrRacesStore.lookupEntry(charCreateContent._race))
         setFaction(raceEntry->faction_id);
@@ -2750,7 +2750,7 @@ void Player::applyLevelInfo(uint32_t newLevel)
         {
             pet->setLevel(newLevel);
             pet->applyStatsForLevel();
-            pet->UpdateSpellList();
+            pet->updateSpellList();
         }
     }
 
@@ -3939,7 +3939,7 @@ void Player::addSpell(uint32_t spellId, uint16_t fromSkill/* = 0*/)
 
 void Player::addDeletedSpell(uint32_t spellId)
 {
-    m_deletedSpellSet.insert(spellId);
+    m_deletedSpellSet.emplace(spellId);
 }
 
 bool Player::removeSpell(uint32_t spellId, bool moveToDeleted)
@@ -4061,7 +4061,7 @@ void Player::resetSpells()
 void Player::addShapeShiftSpell(uint32_t spellId)
 {
     SpellInfo const* spellInfo = sSpellMgr.getSpellInfo(spellId);
-    m_shapeshiftSpells.insert(spellId);
+    m_shapeshiftSpells.emplace(spellId);
 
     if (spellInfo->getRequiredShapeShift() && getShapeShiftMask() & spellInfo->getRequiredShapeShift())
     {
@@ -4089,33 +4089,24 @@ void Player::sendAvailSpells(WDB::Structures::SpellShapeshiftFormEntry const* sh
         if (!shapeshiftFormEntry)
             return;
 
-        WorldPacket data(SMSG_PET_SPELLS, 8 * 4 + 20);
-        data << getGuid();
-        data << uint32_t(0);
-        data << uint32_t(0);
-        data << uint8_t(0);
-        data << uint8_t(0);
-        data << uint16_t(0);
-
         // Send the spells
-        for (uint8_t i = 0; i < 8; i++)
+        SmsgPetActionsArray actions{};
+        for (uint8_t i = 0; i < 8; ++i)
         {
-#if VERSION_STRING > Classic
-            data << uint16_t(shapeshiftFormEntry->spells[i]);
+#if VERSION_STRING >= TBC
+            actions[i] = packPetActionButtonData(shapeshiftFormEntry->spells[i], PET_SPELL_STATE_DEFAULT);
+#else
+            actions[i] = 0;
 #endif
-            data << uint16_t(DEFAULT_SPELL_STATE);
         }
+        actions[8] = 0;
+        actions[9] = 0;
 
-        data << uint8_t(1);
-        data << uint8_t(0);
-        getSession()->SendPacket(&data);
+        getSession()->SendPacket(SmsgPetSpells(getGuid(), 0, 0, 0, 0, 0, std::move(actions), SmsgPetSpellsVector()).serialise().get());
     }
     else
     {
-        WorldPacket data(SMSG_PET_SPELLS, 10);
-        data << uint64_t(0);
-        data << uint32_t(0);
-        getSession()->SendPacket(&data);
+        sendEmptyPetSpellList();
     }
 }
 
@@ -4279,19 +4270,17 @@ void Player::setDualWield2H(bool enable)
 
 bool Player::isSpellFitByClassAndRace(uint32_t spell_id) const
 {
-    const auto spellSkillBounds = sSpellMgr.getSkillEntryForSpellBounds(spell_id);
+    const auto spellSkillRange = sSpellMgr.getSkillEntryRangeForSpell(spell_id);
 
     // If spell does not exist in sSkillLineAbilityStore assume it fits for player
-    if (spellSkillBounds.first == spellSkillBounds.second)
+    if (spellSkillRange.empty())
         return true;
 
     const auto raceMask = getRaceMask();
     const auto classMask = getClassMask();
 
-    for (auto spellSkillItr = spellSkillBounds.first; spellSkillItr != spellSkillBounds.second; ++spellSkillItr)
+    for (const auto& [_, skillEntry] : spellSkillRange)
     {
-        const auto skillEntry = spellSkillItr->second;
-
         // skip wrong race skills
         if (skillEntry->race_mask > 0 && !(skillEntry->race_mask & raceMask))
             continue;
@@ -4989,10 +4978,9 @@ void Player::learnSkillSpells(uint16_t skillLine, uint16_t currentValue)
     const auto raceMask = getRaceMask();
     const auto classMask = getClassMask();
 
-    const auto skillBounds = sSpellMgr.getSkillEntryForSkillBounds(skillLine);
-    for (auto skillItr = skillBounds.first; skillItr != skillBounds.second; ++skillItr)
+    const auto skillRange = sSpellMgr.getSkillEntryRangeForSkill(skillLine);
+    for (const auto& [_, skillEntry] : skillRange)
     {
-        const auto skillEntry = skillItr->second;
         if (skillEntry->acquireMethod != 1 && skillEntry->acquireMethod != 2)
             continue;
 
@@ -5156,11 +5144,9 @@ void Player::removeSkillLine(uint16_t skillLine)
 
 void Player::removeSkillSpells(uint16_t skillLine)
 {
-    const auto skillBounds = sSpellMgr.getSkillEntryForSkillBounds(skillLine);
-    for (auto skillItr = skillBounds.first; skillItr != skillBounds.second; ++skillItr)
+    const auto skillRange = sSpellMgr.getSkillEntryRangeForSkill(skillLine);
+    for (const auto& [_, skillEntry] : skillRange)
     {
-        const auto skillEntry = skillItr->second;
-
         // Check also from deleted spells
         if (!removeSpell(skillEntry->spell, false))
             removeDeletedSpell(skillEntry->spell);
@@ -5508,26 +5494,22 @@ void Player::_addSpell(uint32_t spellId, uint16_t fromSkill/* = 0*/, bool learni
     {
         // If spell can have only one rank known move all previous ranks to deleted spells
         const auto* previousRank = spellInfo->getRankInfo()->getPreviousSpell();
-        auto hadPreviousRank = false;
+        const auto moveToDeleted = !spellInfo->isTalent();
+        const auto silently = !spellInfo->isTalent();
         while (previousRank != nullptr)
         {
-            const auto moveToDeleted = !spellInfo->isTalent();
-            const auto silently = !spellInfo->isTalent();
             if (_removeSpell(previousRank->getId(), moveToDeleted, silently, true))
             {
                 if (!spellInfo->isTalent())
-                    hadPreviousRank = true;
+                    supercededSpellId = previousRank->getId();
                 break;
             }
 
             previousRank = previousRank->getRankInfo()->getPreviousSpell();
         }
-
-        if (hadPreviousRank)
-            supercededSpellId = previousRank->getId();
     }
 
-    m_spellSet.insert(spellInfo->getId());
+    m_spellSet.emplace(spellInfo->getId());
 
     if (IsInWorld())
     {
@@ -5566,11 +5548,9 @@ void Player::_addSpell(uint32_t spellId, uint16_t fromSkill/* = 0*/, bool learni
         const auto raceMask = getRaceMask();
         const auto classMask = getClassMask();
 
-        const auto spellSkillBounds = sSpellMgr.getSkillEntryForSpellBounds(spellId);
-        for (auto spellSkillItr = spellSkillBounds.first; spellSkillItr != spellSkillBounds.second; ++spellSkillItr)
+        const auto spellSkillRange = sSpellMgr.getSkillEntryRangeForSpell(spellId);
+        for (const auto& [_, skillEntry] : spellSkillRange)
         {
-            const auto skillEntry = spellSkillItr->second;
-
             if (skillEntry->race_mask > 0 && !(skillEntry->race_mask & raceMask))
                 continue;
 
@@ -5644,7 +5624,7 @@ bool Player::_removeSpell(uint32_t spellId, bool moveToDeleted, bool silently/* 
     removeAllAurasByIdForGuid(spellId, getGuid());
 
     if (moveToDeleted)
-        m_deletedSpellSet.insert(spellId);
+        m_deletedSpellSet.emplace(spellId);
 
     const auto* const spellInfo = sSpellMgr.getSpellInfo(spellId);
     auto activatedPreviousRank = false;
@@ -6672,6 +6652,9 @@ void Player::calculateHeirloomBonus(ItemProperties const* proto, int16_t slot, b
     if (!ssd || !ssvrow)
         return;
 
+    std::map<uint32_t, int32_t> tempStats;
+
+    // Loop through 10 proto stats and try to find matching scaling stats
     for (uint32_t id = 0; id < MAX_ITEM_PROTO_STATS; ++id)
     {
         uint32_t statType = 0;
@@ -6683,153 +6666,170 @@ void Player::calculateHeirloomBonus(ItemProperties const* proto, int16_t slot, b
                 continue;
             statType = ssd->stat[id];
             val = (ssvrow->getScalingStatDistributionMultiplier(proto->ScalingStatsFlag) * ssd->statmodifier[id]) / 10000;
-        }
-        else
-        {
-            if (id >= proto->itemstatscount)
-                continue;
 
-            statType = proto->Stats[id].Type;
-            val = proto->Stats[id].Value;
+            tempStats[statType] = val;
         }
+    }
+
+    // Loop through general stats from db and add all types not found
+    for (auto generalStats : proto->generalStatsMap)
+    {
+        if (tempStats.size() < MAX_ITEM_PROTO_STATS)
+        {
+            if (tempStats.find(generalStats.first) == tempStats.end())
+                tempStats[generalStats.first] = generalStats.second;
+        }
+    }
+
+    // Loop through all collected stats and apply them
+    auto it = tempStats.begin();
+    for (uint32_t id = 0; id < MAX_ITEM_PROTO_STATS; ++id)
+    {
+        uint32_t statType = it->first;
+        int32_t val = it->second;
 
         if (val == 0)
+        {
+            ++it;
             continue;
+        }
 
         switch (statType)
         {
-        case ITEM_MOD_MANA:
-            modifyBonuses(ITEM_MOD_MANA, val, apply);
-            break;
-        case ITEM_MOD_HEALTH:                           // modify HP
-            modifyBonuses(ITEM_MOD_HEALTH, val, apply);
-            break;
-        case ITEM_MOD_AGILITY:                          // modify agility
-            modifyBonuses(ITEM_MOD_AGILITY, val, apply);
-            break;
-        case ITEM_MOD_STRENGTH:                         //modify strength
-            modifyBonuses(ITEM_MOD_STRENGTH, val, apply);
-            break;
-        case ITEM_MOD_INTELLECT:                        //modify intellect
-            modifyBonuses(ITEM_MOD_INTELLECT, val, apply);
-            break;
-        case ITEM_MOD_SPIRIT:                           //modify spirit
-            modifyBonuses(ITEM_MOD_SPIRIT, val, apply);
-            break;
-        case ITEM_MOD_STAMINA:                          //modify stamina
-            modifyBonuses(ITEM_MOD_STAMINA, val, apply);
-            break;
-        case ITEM_MOD_DEFENSE_RATING:
-            modifyBonuses(ITEM_MOD_DEFENSE_RATING, val, apply);
-            break;
-        case ITEM_MOD_DODGE_RATING:
-            modifyBonuses(ITEM_MOD_DODGE_RATING, val, apply);
-            break;
-        case ITEM_MOD_PARRY_RATING:
-            modifyBonuses(ITEM_MOD_PARRY_RATING, val, apply);
-            break;
-        case ITEM_MOD_SHIELD_BLOCK_RATING:
-            modifyBonuses(ITEM_MOD_SHIELD_BLOCK_RATING, val, apply);
-            break;
-        case ITEM_MOD_MELEE_HIT_RATING:
-            modifyBonuses(ITEM_MOD_MELEE_HIT_RATING, val, apply);
-            break;
-        case ITEM_MOD_RANGED_HIT_RATING:
-            modifyBonuses(ITEM_MOD_RANGED_HIT_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_HIT_RATING:
-            modifyBonuses(ITEM_MOD_SPELL_HIT_RATING, val, apply);
-            break;
-        case ITEM_MOD_MELEE_CRITICAL_STRIKE_RATING:
-            modifyBonuses(ITEM_MOD_MELEE_CRITICAL_STRIKE_RATING, val, apply);
-            break;
-        case ITEM_MOD_RANGED_CRITICAL_STRIKE_RATING:
-            modifyBonuses(ITEM_MOD_RANGED_CRITICAL_STRIKE_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_CRITICAL_STRIKE_RATING:
-            modifyBonuses(ITEM_MOD_SPELL_CRITICAL_STRIKE_RATING, val, apply);
-            break;
-        case ITEM_MOD_MELEE_HIT_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_MELEE_HIT_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_RANGED_HIT_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_RANGED_HIT_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_HIT_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_SPELL_HIT_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_MELEE_CRITICAL_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_MELEE_CRITICAL_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_RANGED_CRITICAL_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_RANGED_CRITICAL_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_CRITICAL_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_SPELL_CRITICAL_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_MELEE_HASTE_RATING:
-            modifyBonuses(ITEM_MOD_MELEE_HASTE_RATING, val, apply);
-            break;
-        case ITEM_MOD_RANGED_HASTE_RATING:
-            modifyBonuses(ITEM_MOD_RANGED_HASTE_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_HASTE_RATING:
-            modifyBonuses(ITEM_MOD_SPELL_HASTE_RATING, val, apply);
-            break;
-        case ITEM_MOD_HIT_RATING:
-            modifyBonuses(ITEM_MOD_HIT_RATING, val, apply);
-            break;
-        case ITEM_MOD_CRITICAL_STRIKE_RATING:
-            modifyBonuses(ITEM_MOD_CRITICAL_STRIKE_RATING, val, apply);
-            break;
-        case ITEM_MOD_HIT_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_HIT_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_CRITICAL_AVOIDANCE_RATING:
-            modifyBonuses(ITEM_MOD_CRITICAL_AVOIDANCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_RESILIENCE_RATING:
-            modifyBonuses(ITEM_MOD_RESILIENCE_RATING, val, apply);
-            break;
-        case ITEM_MOD_HASTE_RATING:
-            modifyBonuses(ITEM_MOD_HASTE_RATING, val, apply);
-            break;
-        case ITEM_MOD_EXPERTISE_RATING:
-            modifyBonuses(ITEM_MOD_EXPERTISE_RATING, val, apply);
-            break;
-        case ITEM_MOD_ATTACK_POWER:
-            modifyBonuses(ITEM_MOD_ATTACK_POWER, val, apply);
-            break;
-        case ITEM_MOD_RANGED_ATTACK_POWER:
-            modifyBonuses(ITEM_MOD_RANGED_ATTACK_POWER, val, apply);
-            break;
-        case ITEM_MOD_MANA_REGENERATION:
-            modifyBonuses(ITEM_MOD_MANA_REGENERATION, val, apply);
-            break;
-        case ITEM_MOD_ARMOR_PENETRATION_RATING:
-            modifyBonuses(ITEM_MOD_ARMOR_PENETRATION_RATING, val, apply);
-            break;
-        case ITEM_MOD_SPELL_POWER:
-            modifyBonuses(ITEM_MOD_SPELL_POWER, val, apply);
-            break;
-        case ITEM_MOD_HEALTH_REGEN:
-            modifyBonuses(ITEM_MOD_HEALTH_REGEN, val, apply);
-            break;
-        case ITEM_MOD_SPELL_PENETRATION:
-            modifyBonuses(ITEM_MOD_SPELL_PENETRATION, val, apply);
-            break;
-        case ITEM_MOD_BLOCK_VALUE:
-            modifyBonuses(ITEM_MOD_BLOCK_VALUE, val, apply);
-            break;
-            // deprecated item mods
-        case ITEM_MOD_SPELL_HEALING_DONE:
-        case ITEM_MOD_SPELL_DAMAGE_DONE:
-            modifyBonuses(ITEM_MOD_SPELL_HEALING_DONE, val, apply);
-            modifyBonuses(ITEM_MOD_SPELL_DAMAGE_DONE, val, apply);
-            break;
-        default:
-            break;
+            case ITEM_MOD_MANA:
+                modifyBonuses(ITEM_MOD_MANA, val, apply);
+                break;
+            case ITEM_MOD_HEALTH:                           // modify HP
+                modifyBonuses(ITEM_MOD_HEALTH, val, apply);
+                break;
+            case ITEM_MOD_AGILITY:                          // modify agility
+                modifyBonuses(ITEM_MOD_AGILITY, val, apply);
+                break;
+            case ITEM_MOD_STRENGTH:                         //modify strength
+                modifyBonuses(ITEM_MOD_STRENGTH, val, apply);
+                break;
+            case ITEM_MOD_INTELLECT:                        //modify intellect
+                modifyBonuses(ITEM_MOD_INTELLECT, val, apply);
+                break;
+            case ITEM_MOD_SPIRIT:                           //modify spirit
+                modifyBonuses(ITEM_MOD_SPIRIT, val, apply);
+                break;
+            case ITEM_MOD_STAMINA:                          //modify stamina
+                modifyBonuses(ITEM_MOD_STAMINA, val, apply);
+                break;
+            case ITEM_MOD_DEFENSE_RATING:
+                modifyBonuses(ITEM_MOD_DEFENSE_RATING, val, apply);
+                break;
+            case ITEM_MOD_DODGE_RATING:
+                modifyBonuses(ITEM_MOD_DODGE_RATING, val, apply);
+                break;
+            case ITEM_MOD_PARRY_RATING:
+                modifyBonuses(ITEM_MOD_PARRY_RATING, val, apply);
+                break;
+            case ITEM_MOD_SHIELD_BLOCK_RATING:
+                modifyBonuses(ITEM_MOD_SHIELD_BLOCK_RATING, val, apply);
+                break;
+            case ITEM_MOD_MELEE_HIT_RATING:
+                modifyBonuses(ITEM_MOD_MELEE_HIT_RATING, val, apply);
+                break;
+            case ITEM_MOD_RANGED_HIT_RATING:
+                modifyBonuses(ITEM_MOD_RANGED_HIT_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_HIT_RATING:
+                modifyBonuses(ITEM_MOD_SPELL_HIT_RATING, val, apply);
+                break;
+            case ITEM_MOD_MELEE_CRITICAL_STRIKE_RATING:
+                modifyBonuses(ITEM_MOD_MELEE_CRITICAL_STRIKE_RATING, val, apply);
+                break;
+            case ITEM_MOD_RANGED_CRITICAL_STRIKE_RATING:
+                modifyBonuses(ITEM_MOD_RANGED_CRITICAL_STRIKE_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_CRITICAL_STRIKE_RATING:
+                modifyBonuses(ITEM_MOD_SPELL_CRITICAL_STRIKE_RATING, val, apply);
+                break;
+            case ITEM_MOD_MELEE_HIT_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_MELEE_HIT_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_RANGED_HIT_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_RANGED_HIT_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_HIT_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_SPELL_HIT_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_MELEE_CRITICAL_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_MELEE_CRITICAL_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_RANGED_CRITICAL_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_RANGED_CRITICAL_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_CRITICAL_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_SPELL_CRITICAL_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_MELEE_HASTE_RATING:
+                modifyBonuses(ITEM_MOD_MELEE_HASTE_RATING, val, apply);
+                break;
+            case ITEM_MOD_RANGED_HASTE_RATING:
+                modifyBonuses(ITEM_MOD_RANGED_HASTE_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_HASTE_RATING:
+                modifyBonuses(ITEM_MOD_SPELL_HASTE_RATING, val, apply);
+                break;
+            case ITEM_MOD_HIT_RATING:
+                modifyBonuses(ITEM_MOD_HIT_RATING, val, apply);
+                break;
+            case ITEM_MOD_CRITICAL_STRIKE_RATING:
+                modifyBonuses(ITEM_MOD_CRITICAL_STRIKE_RATING, val, apply);
+                break;
+            case ITEM_MOD_HIT_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_HIT_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_CRITICAL_AVOIDANCE_RATING:
+                modifyBonuses(ITEM_MOD_CRITICAL_AVOIDANCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_RESILIENCE_RATING:
+                modifyBonuses(ITEM_MOD_RESILIENCE_RATING, val, apply);
+                break;
+            case ITEM_MOD_HASTE_RATING:
+                modifyBonuses(ITEM_MOD_HASTE_RATING, val, apply);
+                break;
+            case ITEM_MOD_EXPERTISE_RATING:
+                modifyBonuses(ITEM_MOD_EXPERTISE_RATING, val, apply);
+                break;
+            case ITEM_MOD_ATTACK_POWER:
+                modifyBonuses(ITEM_MOD_ATTACK_POWER, val, apply);
+                break;
+            case ITEM_MOD_RANGED_ATTACK_POWER:
+                modifyBonuses(ITEM_MOD_RANGED_ATTACK_POWER, val, apply);
+                break;
+            case ITEM_MOD_MANA_REGENERATION:
+                modifyBonuses(ITEM_MOD_MANA_REGENERATION, val, apply);
+                break;
+            case ITEM_MOD_ARMOR_PENETRATION_RATING:
+                modifyBonuses(ITEM_MOD_ARMOR_PENETRATION_RATING, val, apply);
+                break;
+            case ITEM_MOD_SPELL_POWER:
+                modifyBonuses(ITEM_MOD_SPELL_POWER, val, apply);
+                break;
+            case ITEM_MOD_HEALTH_REGEN:
+                modifyBonuses(ITEM_MOD_HEALTH_REGEN, val, apply);
+                break;
+            case ITEM_MOD_SPELL_PENETRATION:
+                modifyBonuses(ITEM_MOD_SPELL_PENETRATION, val, apply);
+                break;
+            case ITEM_MOD_BLOCK_VALUE:
+                modifyBonuses(ITEM_MOD_BLOCK_VALUE, val, apply);
+                break;
+                // deprecated item mods
+            case ITEM_MOD_SPELL_HEALING_DONE:
+            case ITEM_MOD_SPELL_DAMAGE_DONE:
+                modifyBonuses(ITEM_MOD_SPELL_HEALING_DONE, val, apply);
+                modifyBonuses(ITEM_MOD_SPELL_DAMAGE_DONE, val, apply);
+                break;
+            default:
+                break;
         }
+
+        ++it;
     }
 
     // Apply Spell Power from ScalingStatValue if set
@@ -7056,50 +7056,39 @@ void Player::applyItemMods(Item* item, int16_t slot, bool apply, bool justBroked
         }
     }
 
-    //\todo: structure itemProperties to make this a for loop
-    if (itemProperties->FireRes)
+    for (auto resistanceStat : itemProperties->resistanceStatsMap)
     {
-        if (apply)
-            m_flatResistanceModifierPos[2] += itemProperties->FireRes;
-        else
-            m_flatResistanceModifierPos[2] -= itemProperties->FireRes;
-        calcResistance(2);
-    }
+        uint8_t spellSchool = SCHOOL_NORMAL;
+        switch (resistanceStat.first)
+        {
+            case ITEM_MOD_HOLY_RESISTANCE:
+                spellSchool = SCHOOL_HOLY;
+                break;
+            case ITEM_MOD_FIRE_RESISTANCE:
+                spellSchool = SCHOOL_FIRE;
+                break;
+            case ITEM_MOD_NATURE_RESISTANCE:
+                spellSchool = SCHOOL_NATURE;
+                break;
+            case ITEM_MOD_FROST_RESISTANCE:
+                spellSchool = SCHOOL_FROST;
+                break;
+            case ITEM_MOD_SHADOW_RESISTANCE:
+                spellSchool = SCHOOL_SHADOW;
+                break;
+            case ITEM_MOD_ARCANE_RESISTANCE:
+                spellSchool = SCHOOL_ARCANE;
+                break;
+            default:
+                continue;
+        }
 
-    if (itemProperties->NatureRes)
-    {
         if (apply)
-            m_flatResistanceModifierPos[3] += itemProperties->NatureRes;
+            m_flatResistanceModifierPos[spellSchool] += resistanceStat.second;
         else
-            m_flatResistanceModifierPos[3] -= itemProperties->NatureRes;
-        calcResistance(3);
-    }
+            m_flatResistanceModifierPos[spellSchool] -= resistanceStat.second;
 
-    if (itemProperties->FrostRes)
-    {
-        if (apply)
-            m_flatResistanceModifierPos[4] += itemProperties->FrostRes;
-        else
-            m_flatResistanceModifierPos[4] -= itemProperties->FrostRes;
-        calcResistance(4);
-    }
-
-    if (itemProperties->ShadowRes)
-    {
-        if (apply)
-            m_flatResistanceModifierPos[5] += itemProperties->ShadowRes;
-        else
-            m_flatResistanceModifierPos[5] -= itemProperties->ShadowRes;
-        calcResistance(5);
-    }
-
-    if (itemProperties->ArcaneRes)
-    {
-        if (apply)
-            m_flatResistanceModifierPos[6] += itemProperties->ArcaneRes;
-        else
-            m_flatResistanceModifierPos[6] -= itemProperties->ArcaneRes;
-        calcResistance(6);
+        calcResistance(spellSchool);
     }
 
 #if VERSION_STRING > TBC
@@ -7110,11 +7099,9 @@ void Player::applyItemMods(Item* item, int16_t slot, bool apply, bool justBroked
     else
 #endif
     {
-        for (uint8_t statsIndex = 0; statsIndex < itemProperties->itemstatscount; ++statsIndex)
-        {
-            int32_t val = itemProperties->Stats[statsIndex].Value;
-            modifyBonuses(itemProperties->Stats[statsIndex].Type, val, apply);
-        }
+        // apply general stat mods
+        for (auto stats : itemProperties->generalStatsMap)
+            modifyBonuses(stats.first, stats.second, apply);
 
         if (itemProperties->Armor)
         {
@@ -8578,7 +8565,7 @@ void Player::removeFromBgQueue()
         return;
 
     m_pendingBattleground->removePendingPlayer(this);
-    sChatHandler.SystemMessage(m_session, getSession()->LocalizedWorldSrv(ServerString::SS_BG_REMOVE_QUEUE_INF));
+    m_session->systemMessage(getSession()->LocalizedWorldSrv(ServerString::SS_BG_REMOVE_QUEUE_INF));
 }
 
 bool Player::hasWonRbgToday() const { return this->m_hasWonRbgToday; }
@@ -9653,7 +9640,12 @@ void Player::sendGossipPoiPacket(float posX, float posY, uint32_t icon, uint32_t
 void Player::sendPoiById(uint32_t id)
 {
     if (const auto pPoi = sMySQLStore.getPointOfInterest(id))
-        sendGossipPoiPacket(pPoi->x, pPoi->y, pPoi->icon, pPoi->flags, pPoi->data, pPoi->iconName);
+    {
+        const auto loc = (m_session->language > 0) ? sMySQLStore.getLocalizedPointsOfInterest(id, m_session->language) : nullptr;
+        const auto name = loc ? loc->iconName : pPoi->iconName;
+
+        sendGossipPoiPacket(pPoi->x, pPoi->y, pPoi->icon, pPoi->flags, pPoi->data, name);
+    }
 }
 
 void Player::sendStopMirrorTimerPacket(MirrorTimerTypes type)
@@ -9774,9 +9766,7 @@ void Player::sendEquipmentSetSaved(uint32_t setId, uint32_t setGuid)
 
 void Player::sendEmptyPetSpellList()
 {
-    WorldPacket data(SMSG_PET_SPELLS, 8);
-    data << uint64_t(0);
-    m_session->SendPacket(&data);
+    m_session->SendPacket(SmsgPetSpells(0).serialise().get());
 }
 
 void Player::sendInitialWorldstates()
@@ -13451,7 +13441,7 @@ bool Player::loadDeletedSpells(QueryResult* result)
         if (sSpellMgr.isSpellDisabled(spellid))
             continue;
 
-        m_deletedSpellSet.insert(spellid);
+        m_deletedSpellSet.emplace(spellid);
     } while (result->NextRow());
 
     return true;
@@ -13533,11 +13523,6 @@ bool Player::saveSkills(bool newCharacter, QueryBuffer* buf)
     }
 
     return true;
-}
-
-void Player::buildPetSpellList(WorldPacket& data)
-{
-    data << uint64_t(0);
 }
 
 void Player::_castSpellArea()
@@ -13838,9 +13823,9 @@ void Player::_savePet(QueryBuffer* buf, bool updateCurrentPetCache/* = false*/, 
             for (const auto& [spell, state] : summon->getSpellMap())
             {
                 if (buf == nullptr)
-                    CharacterDatabase.Execute("INSERT INTO playerpetspells VALUES(%u, %u, %u, %u)", getGuidLow(), pn, spell->getId(), state);
+                    CharacterDatabase.Execute("INSERT INTO playerpetspells VALUES(%u, %u, %u, %u)", getGuidLow(), pn, spell, state);
                 else
-                    buf->AddQuery("INSERT INTO playerpetspells VALUES(%u, %u, %u, %u)", getGuidLow(), pn, spell->getId(), state);
+                    buf->AddQuery("INSERT INTO playerpetspells VALUES(%u, %u, %u, %u)", getGuidLow(), pn, spell, state);
             }
         }
     }
@@ -15998,7 +15983,7 @@ void Player::_Relocate(uint32_t mapid, const LocationVector& v, bool sendpending
                         m_session->SendPacket(SmsgTransferAborted(mapid, INSTANCE_ABORT_HEROIC_MODE_NOT_AVAILABLE).serialise().get());
                         break;
                     case CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
-                        sChatHandler.SystemMessage(m_session, "Another group is already inside this instance of the dungeon.");
+                        m_session->systemMessage("Another group is already inside this instance of the dungeon.");
                         break;
                     case CANNOT_ENTER_TOO_MANY_INSTANCES:
                         m_session->SendPacket(SmsgTransferAborted(mapid, INSTANCE_ABORT_TOO_MANY).serialise().get());
@@ -16160,10 +16145,9 @@ void Player::clearCooldownsOnLine(uint32_t skillLine, uint32_t calledFrom)
         if (spellId == calledFrom)
             continue;
 
-        const auto spellSkillBounds = sSpellMgr.getSkillEntryForSpellBounds(spellId);
-        for (auto spellSkillItr = spellSkillBounds.first; spellSkillItr != spellSkillBounds.second; ++spellSkillItr)
+        const auto spellSkillRange = sSpellMgr.getSkillEntryRangeForSpell(spellId);
+        for (const auto& [_, skill_line_ability] : spellSkillRange)
         {
-            auto skill_line_ability = spellSkillItr->second;
             if (skill_line_ability->skilline == skillLine)
                 clearCooldownForSpell(spellId);
         }

@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "VMapFactory.h"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Management/WeatherMgr.hpp"
@@ -28,8 +28,53 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/MySQLDataStore.hpp"
 #include "Utilities/Narrow.hpp"
 #include "Utilities/Util.hpp"
+#include "Storage/WDB/WDBGlobals.hpp"
 
-bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldSession* session)
+bool ChatCommandHandler::HandleMoveDBCItemSetsToDB(const char* args, WorldSession* session)
+{
+#if VERSION_STRING >= Cata
+    std::string dumpTable = "CREATE TABLE IF NOT EXISTS `item_sets_dump` (`id` INT NOT NULL, `item1` INT NOT NULL, `item2` INT NOT NULL, `item3` INT NOT NULL, `item4` INT NOT NULL, `item5` INT NOT NULL, `item6` INT NOT NULL, `item7` INT NOT NULL, `item8` INT NOT NULL, `item9` INT NOT NULL, `item10` INT NOT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    auto result = WorldDatabase.Query(dumpTable.c_str());
+
+    for (uint32_t i = 0; i <= 960; ++i)
+    {
+        if (auto* item = sItemSetStore.lookupEntry(i))
+        {
+            if (sMySQLStore.getItemProperties(i) == nullptr)
+            {
+                std::string insertQuery = std::format("INSERT INTO `item_sets_dump` (`id`, `item1`, `item2`, `item3`, `item4`, `item5`, `item6`, `item7`, `item8`, `item9`, `item10`) VALUES ({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});", item->id, item->itemid[0], item->itemid[1], item->itemid[2], item->itemid[3], item->itemid[4], item->itemid[5], item->itemid[6], item->itemid[7], item->itemid[8], item->itemid[9]);
+                WorldDatabase.Query(insertQuery.c_str());
+            }
+        }
+    }
+#endif
+    return true;
+
+}
+
+bool ChatCommandHandler::HandleMoveDB2ItemsToDB(const char* args, WorldSession* session)
+{
+#if VERSION_STRING >= Cata
+    std::string dumpTable = "CREATE TABLE IF NOT EXISTS `item_dump` (`entry` INT NOT NULL, `class` INT NOT NULL, `subclass` INT NOT NULL, `material` INT NOT NULL, `displayId` INT NOT NULL, `inventoryType` INT NOT NULL, `sheath` INT NOT NULL, PRIMARY KEY (`entry`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+    auto result = WorldDatabase.Query(dumpTable.c_str());
+
+    for (uint32_t i = 0; i <= 79999; ++i)
+    {
+        if (auto* item = sItemStore.lookupEntry(i))
+        {
+            if (sMySQLStore.getItemProperties(i) == nullptr)
+            {
+                std::string insertQuery = std::format("INSERT INTO `item_dump` (`entry`, `class`, `subclass`, `material`, `displayId`, `inventoryType`, `sheath`) VALUES ({}, {}, {}, {}, {}, {}, {});", item->ID, item->Class, item->SubClass, item->Material, item->DisplayId, item->InventoryType, item->Sheath);
+                WorldDatabase.Query(insertQuery.c_str());
+            }
+        }
+    }
+#endif
+    return true;
+
+}
+
+bool ChatCommandHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldSession* session)
 {
     uint32_t map = uint32_t(atoi(args));
     if (map == 0)
@@ -67,7 +112,7 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
         auto creature_properties = sMySQLStore.getCreatureProperties(entry);
         if (creature_properties == nullptr)
         {
-            RedSystemMessage(session, "Creature with entry %u is not a valid entry (no properties information in database)", entry);
+            redSystemMessage(session, "Creature with entry {} is not a valid entry (no properties information in database)", entry);
             return true;
         }
 
@@ -112,7 +157,7 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
             if (map_cell != nullptr)
                 map_cell->setLoaded();
 
-            for (const auto& aiSpells : creature->getAIInterface()->mCreatureAISpells)
+            for (const auto& aiSpells : creature->getAIInterface()->getCreatureAISpells())
             {
                 if (aiSpells->fromDB)
                     continue;
@@ -153,12 +198,12 @@ bool ChatHandler::HandleMoveHardcodedScriptsToDBCommand(const char* args, WorldS
         }
     }
 
-    SystemMessage(session, "Dumped: %u hardcoded scripts to creature_ai_scripts_dump", count);
+    systemMessage(session, "Dumped: {} hardcoded scripts to creature_ai_scripts_dump", count);
 
     return true;
 }
 
-bool ChatHandler::HandleDoPercentDamageCommand(const char* args, WorldSession* session)
+bool ChatCommandHandler::HandleDoPercentDamageCommand(const char* args, WorldSession* session)
 {
     Creature* selected_unit = GetSelectedCreature(session);
     if (selected_unit == nullptr)
@@ -174,12 +219,12 @@ bool ChatHandler::HandleDoPercentDamageCommand(const char* args, WorldSession* s
 
     selected_unit->takeDamage(session->GetPlayer(), calculatedDamage, 0);
 
-    SystemMessage(session, "Send damage percent: %u (%u hp) for Creature %s", percentDamage, calculatedDamage, selected_unit->GetCreatureProperties()->Name.c_str());
+    systemMessage(session, "Send damage percent: {} ({} hp) for Creature {}", percentDamage, calculatedDamage, selected_unit->GetCreatureProperties()->Name);
 
     return true;
 }
 
-bool ChatHandler::HandleSetScriptPhaseCommand(const char* args, WorldSession* session)
+bool ChatCommandHandler::HandleSetScriptPhaseCommand(const char* args, WorldSession* session)
 {
     Creature* selected_unit = GetSelectedCreature(session);
     if (selected_unit == nullptr)
@@ -190,12 +235,12 @@ bool ChatHandler::HandleSetScriptPhaseCommand(const char* args, WorldSession* se
     if (auto creatureScript = selected_unit->GetScript())
     {
         creatureScript->setScriptPhase(scriptPhase);
-        SystemMessage(session, "ScriptPhase %u set for Creature %s", scriptPhase, selected_unit->GetCreatureProperties()->Name.c_str());
+        systemMessage(session, "ScriptPhase {} set for Creature {}", scriptPhase, selected_unit->GetCreatureProperties()->Name);
     }
     return true;
 }
 
-bool ChatHandler::HandleAiChargeCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleAiChargeCommand(const char* /*args*/, WorldSession* session)
 {
     Unit* selected_unit = GetSelectedUnit(session);
     if (selected_unit == nullptr)
@@ -205,7 +250,7 @@ bool ChatHandler::HandleAiChargeCommand(const char* /*args*/, WorldSession* sess
     return true;
 }
 
-bool ChatHandler::HandleAiKnockbackCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleAiKnockbackCommand(const char* /*args*/, WorldSession* session)
 {
     Unit* selected_unit = GetSelectedUnit(session);
     if (selected_unit == nullptr)
@@ -217,7 +262,7 @@ bool ChatHandler::HandleAiKnockbackCommand(const char* /*args*/, WorldSession* s
     return true;
 }
 
-bool ChatHandler::HandleAiJumpCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleAiJumpCommand(const char* /*args*/, WorldSession* session)
 {
     Unit* selected_unit = GetSelectedUnit(session);
     if (selected_unit == nullptr)
@@ -229,7 +274,7 @@ bool ChatHandler::HandleAiJumpCommand(const char* /*args*/, WorldSession* sessio
     return true;
 }
 
-bool ChatHandler::HandleAiFallingCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleAiFallingCommand(const char* /*args*/, WorldSession* session)
 {
     Unit* selected_unit = GetSelectedUnit(session);
     if (selected_unit == nullptr)
@@ -239,7 +284,7 @@ bool ChatHandler::HandleAiFallingCommand(const char* /*args*/, WorldSession* ses
     return true;
 }
 
-bool ChatHandler::HandleMoveToSpawnCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleMoveToSpawnCommand(const char* /*args*/, WorldSession* session)
 {
     Unit* selected_unit = GetSelectedUnit(session);
     if (selected_unit == nullptr)
@@ -250,7 +295,7 @@ bool ChatHandler::HandleMoveToSpawnCommand(const char* /*args*/, WorldSession* s
     return true;
 }
 
-bool ChatHandler::HandlePositionCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandlePositionCommand(const char* /*args*/, WorldSession* session)
 {
     Creature* selected_unit = GetSelectedCreature(session);
     if (selected_unit == nullptr)
@@ -259,23 +304,23 @@ bool ChatHandler::HandlePositionCommand(const char* /*args*/, WorldSession* sess
     LocationVector spawnPos = selected_unit->GetSpawnPosition();
     LocationVector pos = selected_unit->GetPosition();
 
-    SystemMessage(session, "=== Spawn Position ===");
-    SystemMessage(session, "spawnX: %f", spawnPos.x);
-    SystemMessage(session, "spawnY: %f", spawnPos.y);
-    SystemMessage(session, "spawnZ: %f", spawnPos.z);
-    SystemMessage(session, "spawnO: %f", spawnPos.o);
-    SystemMessage(session, "=== Packet Position ===");
-    SystemMessage(session, "posX: %f", pos.x);
-    SystemMessage(session, "posY: %f", pos.y);
-    SystemMessage(session, "posZ: %f", pos.z);
-    SystemMessage(session, "posO: %f", pos.o);
+    systemMessage(session, "=== Spawn Position ===");
+    systemMessage(session, "spawnX: {}", spawnPos.x);
+    systemMessage(session, "spawnY: {}", spawnPos.y);
+    systemMessage(session, "spawnZ: {}", spawnPos.z);
+    systemMessage(session, "spawnO: {}", spawnPos.o);
+    systemMessage(session, "=== Packet Position ===");
+    systemMessage(session, "posX: {}", pos.x);
+    systemMessage(session, "posY: {}", pos.y);
+    systemMessage(session, "posZ: {}", pos.z);
+    systemMessage(session, "posO: {}", pos.o);
 
-    SystemMessage(session, "Outdoor: %u", selected_unit->isOutdoors());
-    SystemMessage(session, "posZ_floor: %f", selected_unit->getFloorZ());
+    systemMessage(session, "Outdoor: {}", selected_unit->isOutdoors());
+    systemMessage(session, "posZ_floor: {}", selected_unit->getFloorZ());
     return true;
 }
 
-bool ChatHandler::HandleSetOrientationCommand(const char* args, WorldSession* session)
+bool ChatCommandHandler::HandleSetOrientationCommand(const char* args, WorldSession* session)
 {
     Creature* selected_unit = GetSelectedCreature(session);
     if (selected_unit == nullptr)
@@ -284,23 +329,23 @@ bool ChatHandler::HandleSetOrientationCommand(const char* args, WorldSession* se
     float orientation = float(atof(args));
     if (orientation == 0.0f)
     {
-        SystemMessage(session, "No orientation set, applying yours on npc.");
+        systemMessage(session, "No orientation set, applying yours on npc.");
         orientation = session->GetPlayer()->GetOrientation();
     }
 
     selected_unit->SetOrientation(orientation);
-    SystemMessage(session, "Orientation %f set on npc %s", orientation, selected_unit->GetCreatureProperties()->Name.c_str());
+    systemMessage(session, "Orientation {} set on npc {}", orientation, selected_unit->GetCreatureProperties()->Name);
     return true;
 }
 
-bool ChatHandler::HandleDebugDumpState(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleDebugDumpState(const char* /*args*/, WorldSession* session)
 {
     auto state = ServerState::instance();
-    SystemMessage(session, "Delta: %u", static_cast<uint32_t>(state->getDelta()));
+    systemMessage(session, "Delta: {}", static_cast<uint32_t>(state->getDelta()));
     return true;
 }
 
-bool ChatHandler::HandleDebugMoveInfo(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugMoveInfo(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
@@ -315,25 +360,25 @@ bool ChatHandler::HandleDebugMoveInfo(const char* /*args*/, WorldSession* m_sess
     uint32_t attackerscount = static_cast<uint32_t>(selected_unit->getThreatManager().getThreatListSize());
 
     if (selected_unit->isCreature())
-        BlueSystemMessage(m_session, "Showing creature moveinfo for %s", static_cast<Creature*>(selected_unit)->GetCreatureProperties()->Name.c_str());
+        blueSystemMessage(m_session, "Showing creature moveinfo for {}", static_cast<Creature*>(selected_unit)->GetCreatureProperties()->Name);
     else
-        BlueSystemMessage(m_session, "Showing player moveinfo for %s", static_cast<Player*>(selected_unit)->getName().c_str());
+        blueSystemMessage(m_session, "Showing player moveinfo for {}", static_cast<Player*>(selected_unit)->getName());
 
-    SystemMessage(m_session, "=== Facing ===");
-    SystemMessage(m_session, "Target is in front: %u", creature_in_front);
-    SystemMessage(m_session, "In front of the target: %u", in_front_of_creature);
-    SystemMessage(m_session, "Current distance to target: %f", distance_to_creature);
-    SystemMessage(m_session, "=== States ===");
-    SystemMessage(m_session, "AIAgent: %u", ai_agent);
-    SystemMessage(m_session, "=== Misc ===");
-    SystemMessage(m_session, "Attackers count: %u", attackerscount);
-    SystemMessage(m_session, "=== UnitMovementFlags ===");
-    SystemMessage(m_session, "MovementFlags: %u", selected_unit->getUnitMovementFlags());
+    systemMessage(m_session, "=== Facing ===");
+    systemMessage(m_session, "Target is in front: {}", creature_in_front);
+    systemMessage(m_session, "In front of the target: {}", in_front_of_creature);
+    systemMessage(m_session, "Current distance to target: {}", distance_to_creature);
+    systemMessage(m_session, "=== States ===");
+    systemMessage(m_session, "AIAgent: {}", ai_agent);
+    systemMessage(m_session, "=== Misc ===");
+    systemMessage(m_session, "Attackers count: {}", attackerscount);
+    systemMessage(m_session, "=== UnitMovementFlags ===");
+    systemMessage(m_session, "MovementFlags: {}", selected_unit->getUnitMovementFlags());
     return true;
 }
 
 //.debug hover
-bool ChatHandler::HandleDebugHover(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugHover(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
@@ -341,12 +386,12 @@ bool ChatHandler::HandleDebugHover(const char* /*args*/, WorldSession* m_session
 
     if (selected_unit->hasUnitMovementFlag(MOVEFLAG_HOVER))
     {
-        GreenSystemMessage(m_session, "Unset Hover for target.");
+        greenSystemMessage(m_session, "Unset Hover for target.");
         selected_unit->setMoveHover(false);
     }
     else
     {
-        GreenSystemMessage(m_session, "Set Hover for target.");
+        greenSystemMessage(m_session, "Set Hover for target.");
         selected_unit->setMoveHover(true);
     }
 
@@ -354,19 +399,19 @@ bool ChatHandler::HandleDebugHover(const char* /*args*/, WorldSession* m_session
 }
 
 //.debug states
-bool ChatHandler::HandleDebugState(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugState(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
         return false;
 
-    GreenSystemMessage(m_session, "Display unitStateFlag: %u", selected_unit->getUnitStateFlags());
+    greenSystemMessage(m_session, "Display unitStateFlag: {}", selected_unit->getUnitStateFlags());
     
     return true;
 }
 
 //.debug swim
-bool ChatHandler::HandleDebugSwim(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSwim(const char* /*args*/, WorldSession* m_session)
 {
     Creature* selected_creature = GetSelectedCreature(m_session);
     if (selected_creature == nullptr)
@@ -374,12 +419,12 @@ bool ChatHandler::HandleDebugSwim(const char* /*args*/, WorldSession* m_session)
 
     if (selected_creature->hasUnitMovementFlag(MOVEFLAG_SWIMMING))
     {
-        GreenSystemMessage(m_session, "Unset Swim for creature %s.", selected_creature->GetCreatureProperties()->Name.c_str());
+        greenSystemMessage(m_session, "Unset Swim for creature {}.", selected_creature->GetCreatureProperties()->Name);
         selected_creature->setMoveSwim(false);
     }
     else
     {
-        GreenSystemMessage(m_session, "Set Swim for creature %s.", selected_creature->GetCreatureProperties()->Name.c_str());
+        greenSystemMessage(m_session, "Set Swim for creature {}.", selected_creature->GetCreatureProperties()->Name);
         selected_creature->setMoveSwim(true);
     }
 
@@ -387,7 +432,7 @@ bool ChatHandler::HandleDebugSwim(const char* /*args*/, WorldSession* m_session)
 }
 
 //.debug fly
-bool ChatHandler::HandleDebugFly(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugFly(const char* /*args*/, WorldSession* m_session)
 {
     Creature* selected_creature = GetSelectedCreature(m_session);
     if (selected_creature == nullptr)
@@ -395,19 +440,19 @@ bool ChatHandler::HandleDebugFly(const char* /*args*/, WorldSession* m_session)
 
     if (selected_creature->hasUnitMovementFlag(MOVEFLAG_CAN_FLY))
     {
-        GreenSystemMessage(m_session, "Unset Fly for creature %s.", selected_creature->GetCreatureProperties()->Name.c_str());
+        greenSystemMessage(m_session, "Unset Fly for creature {}.", selected_creature->GetCreatureProperties()->Name);
         selected_creature->setMoveCanFly(false);
     }
     else
     {
-        GreenSystemMessage(m_session, "Set Fly for creature %s.", selected_creature->GetCreatureProperties()->Name.c_str());
+        greenSystemMessage(m_session, "Set Fly for creature {}.", selected_creature->GetCreatureProperties()->Name);
         selected_creature->setMoveCanFly(true);
     }
     return true;
 }
 
 //.debug disablegravity
-bool ChatHandler::HandleDebugDisableGravity(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugDisableGravity(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
@@ -415,12 +460,12 @@ bool ChatHandler::HandleDebugDisableGravity(const char* /*args*/, WorldSession* 
 
     if (selected_unit->hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
     {
-        GreenSystemMessage(m_session, "Enable Gravity for target.");
+        greenSystemMessage(m_session, "Enable Gravity for target.");
         selected_unit->setMoveDisableGravity(false);
     }
     else
     {
-        GreenSystemMessage(m_session, "Disable Gravity  for target.");
+        greenSystemMessage(m_session, "Disable Gravity for target.");
         selected_unit->setMoveDisableGravity(true);
     }
 
@@ -428,7 +473,7 @@ bool ChatHandler::HandleDebugDisableGravity(const char* /*args*/, WorldSession* 
 }
 
 //.debug waterwalk
-bool ChatHandler::HandleDebugWaterWalk(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugWaterWalk(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
@@ -436,12 +481,12 @@ bool ChatHandler::HandleDebugWaterWalk(const char* /*args*/, WorldSession* m_ses
 
     if (selected_unit->hasUnitMovementFlag(MOVEFLAG_WATER_WALK))
     {
-        GreenSystemMessage(m_session, "Disable WaterWalking for target.");
+        greenSystemMessage(m_session, "Disable WaterWalking for target.");
         selected_unit->setMoveLandWalk();
     }
     else
     {
-        GreenSystemMessage(m_session, "Enabled WaterWalking for target.");
+        greenSystemMessage(m_session, "Enabled WaterWalking for target.");
         selected_unit->setMoveWaterWalk();
     }
 
@@ -449,7 +494,7 @@ bool ChatHandler::HandleDebugWaterWalk(const char* /*args*/, WorldSession* m_ses
 }
 
 //.debug featherfall
-bool ChatHandler::HandleDebugFeatherFall(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugFeatherFall(const char* /*args*/, WorldSession* m_session)
 {
     Unit* selected_unit = GetSelectedUnit(m_session);
     if (selected_unit == nullptr)
@@ -457,12 +502,12 @@ bool ChatHandler::HandleDebugFeatherFall(const char* /*args*/, WorldSession* m_s
 
     if (selected_unit->hasUnitMovementFlag(MOVEFLAG_FEATHER_FALL))
     {
-        GreenSystemMessage(m_session, "Disable FeatherFall for target.");
+        greenSystemMessage(m_session, "Disable FeatherFall for target.");
         selected_unit->setMoveNormalFall();
     }
     else
     {
-        GreenSystemMessage(m_session, "Enabled FeatherFall for target.");
+        greenSystemMessage(m_session, "Enabled FeatherFall for target.");
         selected_unit->setMoveFeatherFall();
     }
 
@@ -470,12 +515,12 @@ bool ChatHandler::HandleDebugFeatherFall(const char* /*args*/, WorldSession* m_s
 }
 
 //.debug speed
-bool ChatHandler::HandleDebugSpeed(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSpeed(const char* args, WorldSession* m_session)
 {
     float speed = float(atof(args));
     if (speed == 0.0f || speed > 255.0f || speed < 0.1f)
     {
-        RedSystemMessage(m_session, "Invalid speed set. Value range 0.1f ... 255.0f Use .debug speed <speed>");
+        redSystemMessage(m_session, "Invalid speed set. Value range 0.1f ... 255.0f Use .debug speed <speed>");
         return true;
     }
 
@@ -483,7 +528,7 @@ bool ChatHandler::HandleDebugSpeed(const char* args, WorldSession* m_session)
     if (selected_unit == nullptr)
         return false;
 
-    BlueSystemMessage(m_session, "Setting speeds of selected unit to %3.2f.", speed);
+    blueSystemMessage(m_session, "Setting speeds of selected unit to {}.", speed);
 
     selected_unit->setSpeedRate(TYPE_WALK, speed, true);
     selected_unit->setSpeedRate(TYPE_RUN, (speed + speed / 2), true);
@@ -495,13 +540,13 @@ bool ChatHandler::HandleDebugSpeed(const char* args, WorldSession* m_session)
 }
 
 //.debug pvpcredit
-bool ChatHandler::HandleDebugPVPCreditCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugPVPCreditCommand(const char* args, WorldSession* m_session)
 {
     uint32_t rank;
     uint32_t points;
     if (sscanf(args, "%u %u", &rank, &points) != 2)
     {
-        RedSystemMessage(m_session, "Command must be in format <rank> <points>.");
+        redSystemMessage(m_session, "Command must be in format <rank> <points>.");
         return true;
     }
 
@@ -511,7 +556,7 @@ bool ChatHandler::HandleDebugPVPCreditCommand(const char* args, WorldSession* m_
 
     points *= 10;
 
-    GreenSystemMessage(m_session, "Building packet with Rank %u, Points %u, for Player %s.", rank, points, player_target->getName().c_str());
+    greenSystemMessage(m_session, "Building packet with Rank {}, Points {}, for Player {}.", rank, points, player_target->getName());
 
     m_session->GetPlayer()->sendPvpCredit(points, player_target->getGuid(), rank);
 
@@ -519,14 +564,14 @@ bool ChatHandler::HandleDebugPVPCreditCommand(const char* args, WorldSession* m_
 }
 
 //.debug setunitbyte
-bool ChatHandler::HandleDebugSetUnitByteCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSetUnitByteCommand(const char* args, WorldSession* m_session)
 {
     uint32_t bytes;
     uint32_t offset;
     uint32_t value;
     if (sscanf(args, "%u %u %u", &bytes, &offset, &value) != 3)
     {
-        RedSystemMessage(m_session, "Command must be in format <bytes> <offset> <value>.");
+        redSystemMessage(m_session, "Command must be in format <bytes> <offset> <value>.");
         return true;
     }
 
@@ -553,23 +598,23 @@ bool ChatHandler::HandleDebugSetUnitByteCommand(const char* args, WorldSession* 
         } break;
         default:
         {
-            RedSystemMessage(m_session, "Bytes %u are not existent. Choose from 0, 1 or 2", bytes);
+            redSystemMessage(m_session, "Bytes {} are not existent. Choose from 0, 1 or 2", bytes);
             return true;
         }
     }
 
-    GreenSystemMessage(m_session, "Unit Bytes %u Offset %u set to Value %u", bytes, offset, value);
+    greenSystemMessage(m_session, "Unit Bytes {} Offset {} set to Value {}", bytes, offset, value);
 
     return true;
 }
 
 //.debug setplayerflag
-bool ChatHandler::HandleDebugSetPlayerFlagsCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSetPlayerFlagsCommand(const char* args, WorldSession* m_session)
 {
     uint32_t flags;
     if (sscanf(args, "%u", &flags) != 1)
     {
-        RedSystemMessage(m_session, "Command must contain at least 1 flag.");
+        redSystemMessage(m_session, "Command must contain at least 1 flag.");
         return true;
     }
 
@@ -581,13 +626,13 @@ bool ChatHandler::HandleDebugSetPlayerFlagsCommand(const char* args, WorldSessio
 
     player_target->addPlayerFlags(flags);
 
-    GreenSystemMessage(m_session, "Player flag %u added (before %u)", flags, current_flags);
+    greenSystemMessage(m_session, "Player flag {} added (before {})", flags, current_flags);
 
     return true;
 }
 
 //.debug getplayerflag
-bool ChatHandler::HandleDebugGetPlayerFlagsCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugGetPlayerFlagsCommand(const char* /*args*/, WorldSession* m_session)
 {
     const auto player_target = GetSelectedPlayer(m_session, true);
     if (player_target == nullptr)
@@ -595,13 +640,13 @@ bool ChatHandler::HandleDebugGetPlayerFlagsCommand(const char* /*args*/, WorldSe
 
     const auto current_flags = player_target->getPlayerFlags();
 
-    GreenSystemMessage(m_session, "Current player flags: %u", current_flags);
+    greenSystemMessage(m_session, "Current player flags: {}", current_flags);
 
     return true;
 }
 
 //.playmovie
-bool ChatHandler::HandlePlayMovie(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandlePlayMovie(const char* args, WorldSession* m_session)
 {
     Player* selected_player = GetSelectedPlayer(m_session, true, true);
     if (selected_player == nullptr)
@@ -612,13 +657,13 @@ bool ChatHandler::HandlePlayMovie(const char* args, WorldSession* m_session)
     selected_player->sendMovie(movie);
 
     if (selected_player != m_session->GetPlayer())
-        GreenSystemMessage(selected_player->getSession(), "Movie started for player %s", selected_player->getName().c_str());
+        greenSystemMessage(selected_player->getSession(), "Movie started for player {}", selected_player->getName());
 
     return true;
 }
 
 //.sendfail
-bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleSendCastFailed(const char* args, WorldSession* m_session)
 {
     Player* selected_player = GetSelectedPlayer(m_session, true, true);
     if (selected_player == nullptr)
@@ -627,7 +672,7 @@ bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session
     uint32_t fail = std::stoul(args);
     if (fail > SPELL_FAILED_UNKNOWN)
     {
-        RedSystemMessage(m_session, "Argument %u is out of range!", fail);
+        redSystemMessage(m_session, "Argument {} is out of range!", fail);
         return false;
     }
     selected_player->sendCastFailedPacket(1, static_cast<uint8_t>(fail), 0, 0);
@@ -635,7 +680,7 @@ bool ChatHandler::HandleSendCastFailed(const char* args, WorldSession* m_session
     return true;
 }
 
-bool ChatHandler::HandleDebugSendCreatureMove(const char* /*args*/, WorldSession * m_session)
+bool ChatCommandHandler::HandleDebugSendCreatureMove(const char* /*args*/, WorldSession * m_session)
 {
     const auto target = GetSelectedUnit(m_session);
     if (!target)
@@ -647,14 +692,14 @@ bool ChatHandler::HandleDebugSendCreatureMove(const char* /*args*/, WorldSession
 }
 
 //.debug setweather
-bool ChatHandler::HandleDebugSetWeatherCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSetWeatherCommand(const char* args, WorldSession* m_session)
 {
     uint32_t type;
     float density;
 
     if (sscanf(args, "%u %f", &type, &density) != 2)
     {
-        RedSystemMessage(m_session, "Command must be in format <type> <density>.");
+        redSystemMessage(m_session, "Command must be in format <type> <density>.");
         return true;
     }
 
@@ -665,22 +710,22 @@ bool ChatHandler::HandleDebugSetWeatherCommand(const char* args, WorldSession* m
 
     sWeatherMgr.sendWeatherForPlayer(type, density, m_session->GetPlayer());
 
-    GreenSystemMessage(m_session, "Weather changed to %u with density %f", type, density);
+    greenSystemMessage(m_session, "Weather changed to {} with density {}", type, density);
 
     return true;
 }
 
 //.debug dumpmovement
-bool ChatHandler::HandleDebugDumpMovementCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleDebugDumpMovementCommand(const char* /*args*/, WorldSession* session)
 {
     try
     {
         auto me = session->GetPlayerOrThrow();
 
-        SystemMessage(session, "Position: [%f, %f, %f, %f]", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
-        SystemMessage(session, "On transport: %s", me->obj_movement_info.transport_guid != 0 ? "yes" : "no");
-        SystemMessage(session, "Transport GUID: %lu", uint64_t(me->obj_movement_info.transport_guid));
-        SystemMessage(session, "Transport relative position: [%f, %f, %f, %f]", me->obj_movement_info.transport_position.x,
+        systemMessage(session, "Position: [{}, {}, {}, {}]", me->GetPositionX(), me->GetPositionY(), me->GetPositionZ(), me->GetOrientation());
+        systemMessage(session, "On transport: {}", me->obj_movement_info.transport_guid != 0 ? "yes" : "no");
+        systemMessage(session, "Transport GUID: {}", uint64_t(me->obj_movement_info.transport_guid)); //important cast since versions >= Cata use ObjectGuid instead of uint64_t
+        systemMessage(session, "Transport relative position: [{}, {}, {}, {}]", me->obj_movement_info.transport_position.x,
             me->obj_movement_info.transport_position.y, me->obj_movement_info.transport_position.z, me->obj_movement_info.transport_position.o);
 
         return true;
@@ -692,7 +737,7 @@ bool ChatHandler::HandleDebugDumpMovementCommand(const char* /*args*/, WorldSess
 }
 
 //.debug infront
-bool ChatHandler::HandleDebugInFrontCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugInFrontCommand(const char* /*args*/, WorldSession* m_session)
 {
     Object* obj;
 
@@ -701,7 +746,7 @@ bool ChatHandler::HandleDebugInFrontCommand(const char* /*args*/, WorldSession* 
     {
         if ((obj = m_session->GetPlayer()->getWorldMap()->getUnit(guid)) == 0)
         {
-            SystemMessage(m_session, "You should select a character or a creature.");
+            systemMessage(m_session, "You should select a character or a creature.");
             return true;
         }
     }
@@ -710,16 +755,13 @@ bool ChatHandler::HandleDebugInFrontCommand(const char* /*args*/, WorldSession* 
         obj = m_session->GetPlayer();
     }
 
-    char buf[256];
-    snprintf((char*)buf, 256, "%d", m_session->GetPlayer()->isInFront(obj));
-
-    SystemMessage(m_session, buf);
+    systemMessage(m_session, "In front result: {}", m_session->GetPlayer()->isInFront(obj));
 
     return true;
 }
 
 //.debug showreact
-bool ChatHandler::HandleShowReactionCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleShowReactionCommand(const char* args, WorldSession* m_session)
 {
     Object* obj = nullptr;
 
@@ -733,7 +775,7 @@ bool ChatHandler::HandleShowReactionCommand(const char* args, WorldSession* m_se
 
     if (!obj)
     {
-        SystemMessage(m_session, "You should select a creature.");
+        systemMessage(m_session, "You should select a creature.");
         return true;
     }
 
@@ -746,15 +788,12 @@ bool ChatHandler::HandleShowReactionCommand(const char* args, WorldSession* m_se
 
     obj->SendAIReaction(Reaction);
 
-    std::stringstream sstext;
-    sstext << "Sent Reaction of " << Reaction << " to " << obj->GetUIdFromGUID() << '\0';
-
-    SystemMessage(m_session, sstext.str().c_str());
+    systemMessage(m_session, "Sent Reaction of {} to {}", Reaction, obj->GetUIdFromGUID());
     return true;
 }
 
 //.debug dist
-bool ChatHandler::HandleDistanceCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDistanceCommand(const char* /*args*/, WorldSession* m_session)
 {
     Object* obj;
 
@@ -763,7 +802,7 @@ bool ChatHandler::HandleDistanceCommand(const char* /*args*/, WorldSession* m_se
     {
         if ((obj = m_session->GetPlayer()->getWorldMap()->getUnit(guid)) == 0)
         {
-            SystemMessage(m_session, "You should select a character or a creature.");
+            systemMessage(m_session, "You should select a character or a creature.");
             return true;
         }
     }
@@ -773,15 +812,13 @@ bool ChatHandler::HandleDistanceCommand(const char* /*args*/, WorldSession* m_se
     }
 
     float dist = m_session->GetPlayer()->CalcDistance(obj);
-    std::stringstream sstext;
-    sstext << "Distance is: " << dist << '\0';
 
-    SystemMessage(m_session, sstext.str().c_str());
+    systemMessage(m_session, "Distance is: {}", dist);
     return true;
 }
 
 //.debug aimove
-bool ChatHandler::HandleAIMoveCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAIMoveCommand(const char* args, WorldSession* m_session)
 {
     Creature* creature = nullptr;
     auto player = m_session->GetPlayer();
@@ -794,7 +831,7 @@ bool ChatHandler::HandleAIMoveCommand(const char* args, WorldSession* m_session)
 
     if (creature == nullptr)
     {
-        SystemMessage(m_session, "You should select a creature.");
+        systemMessage(m_session, "You should select a creature.");
         return true;
     }
 
@@ -902,7 +939,7 @@ bool ChatHandler::HandleAIMoveCommand(const char* args, WorldSession* m_session)
 }
 
 //.debug face
-bool ChatHandler::HandleFaceCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleFaceCommand(const char* args, WorldSession* m_session)
 {
     Object* obj = nullptr;
 
@@ -916,7 +953,7 @@ bool ChatHandler::HandleFaceCommand(const char* args, WorldSession* m_session)
 
     if (obj == nullptr)
     {
-        SystemMessage(m_session, "You should select a creature.");
+        systemMessage(m_session, "You should select a creature.");
         return true;
     }
 
@@ -936,23 +973,21 @@ bool ChatHandler::HandleFaceCommand(const char* args, WorldSession* m_session)
 }
 
 //.debug landwalk
-bool ChatHandler::HandleDebugLandWalk(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugLandWalk(const char* /*args*/, WorldSession* m_session)
 {
     Player* chr = GetSelectedPlayer(m_session, true, true);
     if (chr == nullptr)
         return true;
 
-    char buf[256];
-
     chr->setMoveLandWalk();
-    snprintf((char*)buf, 256, "Land Walk Test Ran.");
-    SystemMessage(m_session, buf);
+
+    systemMessage(m_session, "Land Walk Test Ran.");
 
     return true;
 }
 
 //.debug aggrorange
-bool ChatHandler::HandleAggroRangeCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleAggroRangeCommand(const char* /*args*/, WorldSession* m_session)
 {
     Unit* unit = GetSelectedUnit(m_session, true);
     if (unit == nullptr)
@@ -960,13 +995,13 @@ bool ChatHandler::HandleAggroRangeCommand(const char* /*args*/, WorldSession* m_
 
     float aggroRange = unit->getAIInterface()->calcAggroRange(m_session->GetPlayer());
 
-    GreenSystemMessage(m_session, "Aggrorange is %f", aggroRange);
+    greenSystemMessage(m_session, "Aggrorange is {}", aggroRange);
 
     return true;
 }
 
 //.debug knockback
-bool ChatHandler::HandleKnockBackCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleKnockBackCommand(const char* args, WorldSession* m_session)
 {
     float f = args ? (float)atof(args) : 0.0f;
     if (f == 0.0f)
@@ -982,45 +1017,41 @@ bool ChatHandler::HandleKnockBackCommand(const char* args, WorldSession* m_sessi
 }
 
 //.debug fade
-bool ChatHandler::HandleFadeCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleFadeCommand(const char* args, WorldSession* m_session)
 {
     Unit* target = m_session->GetPlayer()->getWorldMap()->getUnit(m_session->GetPlayer()->getTargetGuid());
     if (!target)
         target = m_session->GetPlayer();
+
     char* v = strtok((char*)args, " ");
     if (!v)
         return false;
 
     target->modThreatModifyer(atoi(v));
 
-    std::stringstream sstext;
-    sstext << "threat is now reduced by: " << target->getThreatModifyer() << '\0';
-
-    SystemMessage(m_session, sstext.str().c_str());
+    systemMessage(m_session, "threat is now reduced by: {}", target->getThreatModifyer());
     return true;
 }
 
 //.debug threatMod
-bool ChatHandler::HandleThreatModCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleThreatModCommand(const char* args, WorldSession* m_session)
 {
     Unit* target = m_session->GetPlayer()->getWorldMap()->getUnit(m_session->GetPlayer()->getTargetGuid());
     if (!target)
         target = m_session->GetPlayer();
+
     char* v = strtok((char*)args, " ");
     if (!v)
         return false;
 
     target->modGeneratedThreatModifyer(0, atoi(v));
 
-    std::stringstream sstext;
-    sstext << "new threat caused is now reduced by: " << target->getGeneratedThreatModifyer(0) << "%" << '\0';
-
-    SystemMessage(m_session, sstext.str().c_str());
+    systemMessage(m_session, "new threat caused is now reduced by: {} %", target->getGeneratedThreatModifyer(0));
     return true;
 }
 
 //.debug movefall
-bool ChatHandler::HandleMoveFallCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleMoveFallCommand(const char* /*args*/, WorldSession* m_session)
 {
     Unit* target = m_session->GetPlayer()->getWorldMap()->getUnit(m_session->GetPlayer()->getTargetGuid());
     if (!target)
@@ -1037,13 +1068,13 @@ bool ChatHandler::HandleMoveFallCommand(const char* /*args*/, WorldSession* m_se
 }
 
 //.debug threatList
-bool ChatHandler::HandleThreatListCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleThreatListCommand(const char* /*args*/, WorldSession* m_session)
 {
     Unit* target = nullptr;
     target = m_session->GetPlayer()->getWorldMap()->getUnit(m_session->GetPlayer()->getTargetGuid());
     if (!target)
     {
-        SystemMessage(m_session, "You should select a creature.");
+        systemMessage(m_session, "You should select a creature.");
         return true;
     }
 
@@ -1063,7 +1094,7 @@ bool ChatHandler::HandleThreatListCommand(const char* /*args*/, WorldSession* m_
 }
 
 //.debug dumpcoords
-bool ChatHandler::HandleDebugDumpCoordsCommmand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugDumpCoordsCommmand(const char* /*args*/, WorldSession* m_session)
 {
     Player* p = m_session->GetPlayer();
     //char buffer[200] = {0};
@@ -1078,7 +1109,7 @@ bool ChatHandler::HandleDebugDumpCoordsCommmand(const char* /*args*/, WorldSessi
 }
 
 //.debug spawnwar
-bool ChatHandler::HandleDebugSpawnWarCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleDebugSpawnWarCommand(const char* args, WorldSession* m_session)
 {
     uint32_t count, npcid;
     uint32_t health = 0;
@@ -1135,11 +1166,11 @@ bool ChatHandler::HandleDebugSpawnWarCommand(const char* args, WorldSession* m_s
 }
 
 //.debug updateworldstate
-bool ChatHandler::HandleUpdateWorldStateCommand(const char *args, WorldSession* session)
+bool ChatCommandHandler::HandleUpdateWorldStateCommand(const char *args, WorldSession* session)
 {
     if (*args == '\0')
     {
-        RedSystemMessage(session, "You need to specify the worldstate field and the new value.");
+        redSystemMessage(session, "You need to specify the worldstate field and the new value.");
         return true;
     }
 
@@ -1151,14 +1182,14 @@ bool ChatHandler::HandleUpdateWorldStateCommand(const char *args, WorldSession* 
     ss >> field;
     if (ss.fail())
     {
-        RedSystemMessage(session, "You need to specify the worldstate field and the new value.");
+        redSystemMessage(session, "You need to specify the worldstate field and the new value.");
         return true;
     }
 
     ss >> state;
     if (ss.fail())
     {
-        RedSystemMessage(session, "You need to specify the worldstate field and the new value.");
+        redSystemMessage(session, "You need to specify the worldstate field and the new value.");
         return true;
     }
 
@@ -1168,7 +1199,7 @@ bool ChatHandler::HandleUpdateWorldStateCommand(const char *args, WorldSession* 
 }
 
 //.debug initworldstates
-bool ChatHandler::HandleInitWorldStatesCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleInitWorldStatesCommand(const char* /*args*/, WorldSession* session)
 {
     Player* p = session->GetPlayer();
 
@@ -1176,7 +1207,7 @@ bool ChatHandler::HandleInitWorldStatesCommand(const char* /*args*/, WorldSessio
     if (zone == 0)
         zone = p->getAreaId();
 
-    BlueSystemMessage(session, "Sending initial worldstates for zone %u", zone);
+    blueSystemMessage(session, "Sending initial worldstates for zone {}", zone);
 
     p->sendInitialWorldstates();
 
@@ -1184,7 +1215,7 @@ bool ChatHandler::HandleInitWorldStatesCommand(const char* /*args*/, WorldSessio
 }
 
 //.debug clearworldstates
-bool ChatHandler::HandleClearWorldStatesCommand(const char* /*args*/, WorldSession* session)
+bool ChatCommandHandler::HandleClearWorldStatesCommand(const char* /*args*/, WorldSession* session)
 {
     Player* p = session->GetPlayer();
 
@@ -1192,7 +1223,7 @@ bool ChatHandler::HandleClearWorldStatesCommand(const char* /*args*/, WorldSessi
     if (zone == 0)
         zone = p->getAreaId();
 
-    BlueSystemMessage(session, "Clearing worldstates for zone %u", zone);
+    blueSystemMessage(session, "Clearing worldstates for zone {}", zone);
 
     WorldPacket data(SMSG_INIT_WORLD_STATES, 16);
 
@@ -1207,7 +1238,7 @@ bool ChatHandler::HandleClearWorldStatesCommand(const char* /*args*/, WorldSessi
 }
 
 //.debug auraremove
-bool ChatHandler::HandleAuraUpdateRemove(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAuraUpdateRemove(const char* args, WorldSession* m_session)
 {
     if (!args)
         return false;
@@ -1220,16 +1251,16 @@ bool ChatHandler::HandleAuraUpdateRemove(const char* args, WorldSession* m_sessi
     Aura* AuraPtr = Pl->getAuraWithId(Pl->getVisualAuraList().at(VisualSlot));
     if (!AuraPtr)
     {
-        SystemMessage(m_session, "No auraid found in slot %u", VisualSlot);
+        systemMessage(m_session, "No auraid found in slot %u", VisualSlot);
         return true;
     }
-    SystemMessage(m_session, "SMSG_AURA_UPDATE (remove): VisualSlot %u - SpellID 0", VisualSlot);
+    systemMessage(m_session, "SMSG_AURA_UPDATE (remove): VisualSlot {} - SpellID 0", VisualSlot);
     AuraPtr->removeAura();
     return true;
 }
 
 //.debug auraupdate
-bool ChatHandler::HandleAuraUpdateAdd(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleAuraUpdateAdd(const char* args, WorldSession* m_session)
 {
     if (!args)
         return false;
@@ -1245,19 +1276,19 @@ bool ChatHandler::HandleAuraUpdateAdd(const char* args, WorldSession* m_session)
     {
         uint8_t VisualSlot = AuraPtr->m_visualSlot;
         Pl->sendAuraUpdate(AuraPtr, false);
-        SystemMessage(m_session, "SMSG_AURA_UPDATE (update): VisualSlot %u - SpellID %u - Flags %i (0x%04X) - StackCount %i", VisualSlot, SpellID, Flags, Flags, StackCount);
+        systemMessage(m_session, "SMSG_AURA_UPDATE (update): VisualSlot {} - SpellID {} - Flags {} - StackCount {}", VisualSlot, SpellID, Flags, StackCount);
     }
     else
     {
         SpellInfo const* Sp = sSpellMgr.getSpellInfo(SpellID);
         if (!Sp)
         {
-            SystemMessage(m_session, "SpellID %u is invalid.", SpellID);
+            systemMessage(m_session, "SpellID {} is invalid.", SpellID);
             return true;
         }
         Spell* SpellPtr = sSpellMgr.newSpell(Pl, Sp, false, nullptr);
         auto auraHolder = sSpellMgr.newAura(Sp, SpellPtr->getDuration(), Pl, Pl);
-        SystemMessage(m_session, "SMSG_AURA_UPDATE (add): VisualSlot %u - SpellID %u - Flags %i (0x%04X) - StackCount %i", auraHolder->m_visualSlot, SpellID, Flags, Flags, StackCount);
+        systemMessage(m_session, "SMSG_AURA_UPDATE (add): VisualSlot {} - SpellID {} - Flags {} - StackCount {}", auraHolder->m_visualSlot, SpellID, Flags, StackCount);
         Pl->addAura(std::move(auraHolder));       // Serves purpose to just add the aura to our auraslots
 
         delete SpellPtr;
@@ -1274,7 +1305,7 @@ float CalculateDistance(float x1, float y1, float z1, float x2, float y2, float 
 }
 
 //.debug calcdist
-bool ChatHandler::HandleSimpleDistanceCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleSimpleDistanceCommand(const char* args, WorldSession* m_session)
 {
     float toX, toY, toZ;
     if (sscanf(args, "%f %f %f", &toX, &toY, &toZ) != 3)
@@ -1295,7 +1326,7 @@ bool ChatHandler::HandleSimpleDistanceCommand(const char* args, WorldSession* m_
 }
 
 //.debug rangecheck
-bool ChatHandler::HandleRangeCheckCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleRangeCheckCommand(const char* /*args*/, WorldSession* m_session)
 {
     uint64_t guid = m_session->GetPlayer()->getTargetGuid();
     m_session->SystemMessage("=== RANGE CHECK ===");
@@ -1322,23 +1353,23 @@ bool ChatHandler::HandleRangeCheckCommand(const char* /*args*/, WorldSession* m_
 }
 
 //.debug testindoor
-bool ChatHandler::HandleCollisionTestIndoor(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleCollisionTestIndoor(const char* /*args*/, WorldSession* m_session)
 {
     if (worldConfig.terrainCollision.isCollisionEnabled)
     {
         Player* plr = m_session->GetPlayer();
         const LocationVector & loc = plr->GetPosition();
         bool res = !MapManagement::AreaManagement::AreaStorage::IsOutdoor(plr->GetMapId(), loc.x, loc.y, loc.z + 2.0f);
-        SystemMessage(m_session, "Result was: %s.", res ? "indoors" : "outside");
+        systemMessage(m_session, "Result was: {}.", res ? "indoors" : "outside");
         return true;
     }
 
-    SystemMessage(m_session, "Collision is not enabled.");
+    systemMessage(m_session, "Collision is not enabled.");
     return true;
 }
 
 //.debug testlos
-bool ChatHandler::HandleCollisionTestLOS(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleCollisionTestLOS(const char* /*args*/, WorldSession* m_session)
 {
     if (worldConfig.terrainCollision.isCollisionEnabled)
     {
@@ -1352,22 +1383,22 @@ bool ChatHandler::HandleCollisionTestLOS(const char* /*args*/, WorldSession* m_s
 
         if (pObj == nullptr)
         {
-            SystemMessage(m_session, "Invalid target.");
+            systemMessage(m_session, "Invalid target.");
             return true;
         }
 
         bool res = pObj->IsWithinLOSInMap(m_session->GetPlayer());
 
-        SystemMessage(m_session, "Result was: %s.", res ? "in LOS" : "not in LOS");
+        systemMessage(m_session, "Result was: {}.", res ? "in LOS" : "not in LOS");
         return true;
     }
 
-    SystemMessage(m_session, "Collision is not enabled.");
+    systemMessage(m_session, "Collision is not enabled.");
     return true;
 }
 
 //.debug getheight
-bool ChatHandler::HandleCollisionGetHeight(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleCollisionGetHeight(const char* /*args*/, WorldSession* m_session)
 {
     if (worldConfig.terrainCollision.isCollisionEnabled)
     {
@@ -1390,22 +1421,22 @@ bool ChatHandler::HandleCollisionGetHeight(const char* /*args*/, WorldSession* m
         float z4 = plr->getWorldMap()->getGridHeight(plr->GetPositionX(), plr->GetPositionY());
         bool fp = mgr->getObjectHitPos(plr->GetMapId(), src.x, src.y, src.z, dest.x, dest.y, dest.z, dest.x, dest.y, dest.z, -1.5f);
 
-        SystemMessage(m_session, "Results were: %f(offset2.0f) | %f(offset5.0f) | %f(org) | landheight:%f | target radius5 FP:%d", z, z2, z3, z4, fp);
+        systemMessage(m_session, "Results were: {}(offset2.0f) | {}(offset5.0f) | {}(org) | landheight:{} | target radius5 FP:{}", z, z2, z3, z4, fp);
         return true;
     }
 
-    SystemMessage(m_session, "Collision is not enabled.");
+    systemMessage(m_session, "Collision is not enabled.");
     return true;
 }
 
 //.debug deathstate
-bool ChatHandler::HandleGetDeathState(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleGetDeathState(const char* /*args*/, WorldSession* m_session)
 {
     Player* SelectedPlayer = GetSelectedPlayer(m_session, true, true);
     if (!SelectedPlayer)
         return true;
 
-    SystemMessage(m_session, "Death State: %d", SelectedPlayer->getDeathState());
+    systemMessage(m_session, "Death State: {}", SelectedPlayer->getDeathState());
     return true;
 }
 
@@ -1446,7 +1477,7 @@ SpellCastTargets SetTargets(SpellInfo const* /*sp*/, uint32_t /*type*/, uint32_t
 };
 
 //.debug castspell
-bool ChatHandler::HandleCastSpellCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleCastSpellCommand(const char* args, WorldSession* m_session)
 {
     Unit* caster = m_session->GetPlayer();
     Unit* target = GetSelectedPlayer(m_session, true, true);
@@ -1454,7 +1485,7 @@ bool ChatHandler::HandleCastSpellCommand(const char* args, WorldSession* m_sessi
         target = GetSelectedCreature(m_session, false);
     if (!target)
     {
-        RedSystemMessage(m_session, "Must select a char or creature.");
+        redSystemMessage(m_session, "Must select a char or creature.");
         return false;
     }
 
@@ -1462,13 +1493,13 @@ bool ChatHandler::HandleCastSpellCommand(const char* args, WorldSession* m_sessi
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellid);
     if (!spellentry)
     {
-        RedSystemMessage(m_session, "Invalid spell id!");
+        redSystemMessage(m_session, "Invalid spell id!");
         return false;
     }
 
     Spell* sp = sSpellMgr.newSpell(caster, spellentry, false, nullptr);
 
-    BlueSystemMessage(m_session, "Casting spell %d on target.", spellid);
+    blueSystemMessage(m_session, "Casting spell {} on target.", spellid);
     SpellCastTargets targets(target->getGuid());
     sp->prepare(&targets);
 
@@ -1487,7 +1518,7 @@ bool ChatHandler::HandleCastSpellCommand(const char* args, WorldSession* m_sessi
 }
 
 //.debug castspellne
-bool ChatHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_session)
 {
     Unit* caster = m_session->GetPlayer();
     Unit* target = GetSelectedPlayer(m_session, true, true);
@@ -1495,7 +1526,7 @@ bool ChatHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_ses
         target = GetSelectedCreature(m_session, false);
     if (!target)
     {
-        RedSystemMessage(m_session, "Must select a char or creature.");
+        redSystemMessage(m_session, "Must select a char or creature.");
         return false;
     }
 
@@ -1503,10 +1534,10 @@ bool ChatHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_ses
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellId);
     if (!spellentry)
     {
-        RedSystemMessage(m_session, "Invalid spell id!");
+        redSystemMessage(m_session, "Invalid spell id!");
         return false;
     }
-    BlueSystemMessage(m_session, "Casting spell %d on target.", spellId);
+    blueSystemMessage(m_session, "Casting spell {} on target.", spellId);
 
     WorldPacket data;
 
@@ -1547,14 +1578,14 @@ bool ChatHandler::HandleCastSpellNECommand(const char* args, WorldSession* m_ses
 }
 
 //.debug castself
-bool ChatHandler::HandleCastSelfCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleCastSelfCommand(const char* args, WorldSession* m_session)
 {
     Unit* target = GetSelectedPlayer(m_session, true, true);
     if (!target)
         target = GetSelectedCreature(m_session, false);
     if (!target)
     {
-        RedSystemMessage(m_session, "Must select a char or creature.");
+        redSystemMessage(m_session, "Must select a char or creature.");
         return false;
     }
 
@@ -1562,13 +1593,13 @@ bool ChatHandler::HandleCastSelfCommand(const char* args, WorldSession* m_sessio
     SpellInfo const* spellentry = sSpellMgr.getSpellInfo(spellid);
     if (!spellentry)
     {
-        RedSystemMessage(m_session, "Invalid spell id!");
+        redSystemMessage(m_session, "Invalid spell id!");
         return false;
     }
 
     Spell* sp = sSpellMgr.newSpell(target, spellentry, false, nullptr);
 
-    BlueSystemMessage(m_session, "Target is casting spell %d on himself.", spellid);
+    blueSystemMessage(m_session, "Target is casting spell {} on himself.", spellid);
     SpellCastTargets targets(target->getGuid());
     sp->prepare(&targets);
 

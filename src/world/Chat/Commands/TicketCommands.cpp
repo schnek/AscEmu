@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <sstream>
 
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Logging/Log.hpp"
 #include "Management/MailMgr.h"
 #include "Management/ObjectMgr.hpp"
@@ -20,7 +20,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 using namespace AscEmu::Packets;
 
-bool ChatHandler::HandleTicketListCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleTicketListCommand(const char* /*args*/, WorldSession* m_session)
 {
     auto result = CharacterDatabase.Query("SELECT * FROM gm_tickets WHERE deleted=0");
 
@@ -44,7 +44,7 @@ bool ChatHandler::HandleTicketListCommand(const char* /*args*/, WorldSession* m_
     return true;
 }
 
-bool ChatHandler::HandleTicketListAllCommand(const char* /*args*/, WorldSession* m_session)
+bool ChatCommandHandler::HandleTicketListAllCommand(const char* /*args*/, WorldSession* m_session)
 {
     auto result = CharacterDatabase.Query("SELECT * FROM gm_tickets");
 
@@ -68,11 +68,11 @@ bool ChatHandler::HandleTicketListAllCommand(const char* /*args*/, WorldSession*
     return true;
 }
 
-bool ChatHandler::HandleTicketGetCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleTicketGetCommand(const char* args, WorldSession* m_session)
 {
     if (!args)
     {
-        RedSystemMessage(m_session, "You need to specify a ticket ID!");
+        redSystemMessage(m_session, "You need to specify a ticket ID!");
         return false;
     }
 
@@ -109,11 +109,11 @@ void ParseTicketArgs(char* args, char** insertComment)
     *insertComment = Comment;
 }
 
-bool ChatHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_session)
 {
     if (!args)
     {
-        RedSystemMessage(m_session, "You need to specify a ticket ID and a comment! Use .ticket close <ID> <comment text>");
+        redSystemMessage(m_session, "You need to specify a ticket ID and a comment! Use .ticket close <ID> <comment text>");
         return false;
     }
 
@@ -123,7 +123,7 @@ bool ChatHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_ses
 
     if (comment == nullptr)
     {
-        RedSystemMessage(m_session, "You need to add a comment for closing an ticket!");
+        redSystemMessage(m_session, "You need to add a comment for closing an ticket!");
         return false;
     }
 
@@ -134,7 +134,7 @@ bool ChatHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_ses
     auto result = CharacterDatabase.Query("SELECT * FROM gm_tickets WHERE ticketid = %u AND deleted = 0", ticketID);
     if (!result)
     {
-        RedSystemMessage(m_session, "Ticket %u is already closed!", ticketID);
+        redSystemMessage(m_session, "Ticket {} is already closed!", ticketID);
         return false;
     }
     Field* fields = result->Fetch();
@@ -143,7 +143,7 @@ bool ChatHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_ses
     GM_Ticket* gm_ticket = sTicketMgr.getGMTicketByPlayer(playerGuid);
     if (gm_ticket == nullptr)
     {
-        RedSystemMessage(m_session, "Ticket not found.");
+        redSystemMessage(m_session, "Ticket not found.");
         return true;
     }
 
@@ -169,16 +169,16 @@ bool ChatHandler::HandleTicketCloseCommand(const char* args, WorldSession* m_ses
     }
 
     CharacterDatabase.Execute("UPDATE gm_tickets SET deleted = 1, comment = 'GM: %s %s', assignedto = %u WHERE ticketid = %u", player->getName().c_str(), comment, player->getGuid(), ticketID);
-    GreenSystemMessage(m_session, "Ticket %u is now closed and assigned to you.", ticketID);
+    greenSystemMessage(m_session, "Ticket {} is now closed and assigned to you.", ticketID);
     sGMLog.writefromsession(m_session, "closed ticket %u ", ticketID);
     return true;
 }
 
-bool ChatHandler::HandleTicketDeleteCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::HandleTicketDeleteCommand(const char* args, WorldSession* m_session)
 {
     if (!args)
     {
-        RedSystemMessage(m_session, "You need to specify a ticket ID");
+        redSystemMessage(m_session, "You need to specify a ticket ID");
         return false;
     }
 
@@ -187,12 +187,12 @@ bool ChatHandler::HandleTicketDeleteCommand(const char* args, WorldSession* m_se
     auto result = CharacterDatabase.Query("SELECT * FROM gm_tickets WHERE ticketid = %u AND deleted = 1", ticketID);
     if (!result)
     {
-        RedSystemMessage(m_session, "Ticket %u is not available in gm_tickets table or not closed!", ticketID);
+        redSystemMessage(m_session, "Ticket {} is not available in gm_tickets table or not closed!", ticketID);
         return false;
     }
 
     CharacterDatabase.Execute("DELETE FROM gm_tickets WHERE ticketid = %u", ticketID);
-    GreenSystemMessage(m_session, "Ticket %u is deleted", ticketID);
+    greenSystemMessage(m_session, "Ticket {} is deleted", ticketID);
     sGMLog.writefromsession(m_session, "deleted ticket %u ", ticketID);
 
     return true;

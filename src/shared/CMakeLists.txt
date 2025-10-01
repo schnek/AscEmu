@@ -65,12 +65,11 @@ target_include_directories(${LIBRARY_NAME} PUBLIC
 
 # linked libraries.
 target_link_libraries(${LIBRARY_NAME}
-  PUBLIC
     ${ZLIB_LIBRARIES}
     ${MYSQL_LIBRARY}
     ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBS}
-    fmt
+    fmt::fmt
 )
 
 # platform-specific libraries.

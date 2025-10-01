@@ -3,7 +3,6 @@ Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/AchievementMgr.h"
 #include "Management/Charter.hpp"
@@ -138,7 +137,7 @@ void WorldSession::handleUseItemOpcode(WorldPacket& recvPacket)
         }
     }
 
-    if (itemProto->RequiredSkillSubRank != 0 && !_player->hasSpell(itemProto->RequiredSkillSubRank))
+    if (itemProto->RequiredSpell != 0 && !_player->hasSpell(itemProto->RequiredSpell))
     {
         _player->getItemInterface()->buildInventoryChangeError(tmpItem, nullptr, INV_ERR_NO_REQUIRED_PROFICIENCY);
         return;
@@ -1529,7 +1528,7 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     data << itemProto->RequiredLevel;
     data << uint32_t(itemProto->RequiredSkill);
     data << itemProto->RequiredSkillRank;
-    data << itemProto->RequiredSkillSubRank;
+    data << itemProto->RequiredSpell;
     data << itemProto->RequiredPlayerRank1;
     data << itemProto->RequiredPlayerRank2;
     data << itemProto->RequiredFaction;
@@ -1537,14 +1536,24 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     data << itemProto->Unique;
     data << itemProto->MaxCount;
     data << itemProto->ContainerSlots;
-    for (uint8_t i = 0; i < 10; i++) //itemProto->itemstatscount
+
+    // we have 10 * 8 bytes of stat data
+    auto it = itemProto->generalStatsMap.begin();
+    for (uint8_t i = 0; i < MAX_ITEM_PROTO_STATS; ++i)
     {
-        data << itemProto->Stats[i].Type;
-        data << itemProto->Stats[i].Value;
+        if (it != itemProto->generalStatsMap.end())
+        {
+            data << it->first;
+            data << it->second;
+            ++it;
+        }
+        else
+        {
+            data << uint32_t(0);
+            data << int32_t(0);
+        }
     }
 
-    //data << itemProto->ScalingStatsEntry;
-    //data << itemProto->ScalingStatsFlag;
     for (uint8_t i = 0; i < 2; i++)
     {
         data << itemProto->Damage[i].Min;
@@ -1560,12 +1569,14 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     }
 
     data << itemProto->Armor;
-    data << itemProto->HolyRes;
-    data << itemProto->FireRes;
-    data << itemProto->NatureRes;
-    data << itemProto->FrostRes;
-    data << itemProto->ShadowRes;
-    data << itemProto->ArcaneRes;
+
+    data << uint32_t(itemProto->getStat(ITEM_MOD_HOLY_RESISTANCE));
+    data << uint32_t(itemProto->getStat(ITEM_MOD_FIRE_RESISTANCE));
+    data << uint32_t(itemProto->getStat(ITEM_MOD_NATURE_RESISTANCE));
+    data << uint32_t(itemProto->getStat(ITEM_MOD_FROST_RESISTANCE));
+    data << uint32_t(itemProto->getStat(ITEM_MOD_SHADOW_RESISTANCE));
+    data << uint32_t(itemProto->getStat(ITEM_MOD_ARCANE_RESISTANCE));
+
     data << itemProto->Delay;
     data << itemProto->AmmoType;
     data << itemProto->Range;
@@ -1669,7 +1680,7 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     data << itemProperties->RequiredLevel;
     data << uint32_t(itemProperties->RequiredSkill);
     data << itemProperties->RequiredSkillRank;
-    data << itemProperties->RequiredSkillSubRank;
+    data << itemProperties->RequiredSpell;
     data << itemProperties->RequiredPlayerRank1;
     data << itemProperties->RequiredPlayerRank2;
     data << itemProperties->RequiredFaction;
@@ -1677,14 +1688,17 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
     data << itemProperties->Unique;
     data << itemProperties->MaxCount;
     data << itemProperties->ContainerSlots;
-    data << itemProperties->itemstatscount;
-    for (uint8_t i = 0; i < itemProperties->itemstatscount; i++)
+
+    data << uint32_t(itemProperties->generalStatsMap.size());
+    for (auto const& stat : itemProperties->generalStatsMap)
     {
-        data << itemProperties->Stats[i].Type;
-        data << itemProperties->Stats[i].Value;
+        data << stat.first;
+        data << stat.second;
     }
+
     data << itemProperties->ScalingStatsEntry;
     data << itemProperties->ScalingStatsFlag;
+
     // originally this went up to 5, now only to 2
     for (uint8_t i = 0; i < 2; i++)
     {
@@ -1693,12 +1707,14 @@ void WorldSession::handleItemQuerySingleOpcode(WorldPacket& recvPacket)
         data << itemProperties->Damage[i].Type;
     }
     data << itemProperties->Armor;
-    data << itemProperties->HolyRes;
-    data << itemProperties->FireRes;
-    data << itemProperties->NatureRes;
-    data << itemProperties->FrostRes;
-    data << itemProperties->ShadowRes;
-    data << itemProperties->ArcaneRes;
+
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_HOLY_RESISTANCE));
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_FIRE_RESISTANCE));
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_NATURE_RESISTANCE));
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_FROST_RESISTANCE));
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_SHADOW_RESISTANCE));
+    data << uint32_t(itemProperties->getStat(ITEM_MOD_ARCANE_RESISTANCE));
+
     data << itemProperties->Delay;
     data << itemProperties->AmmoType;
     data << itemProperties->Range;
@@ -2299,9 +2315,8 @@ void WorldSession::sendInventoryList(Creature* unit)
 {
     if (!unit->HasItems())
     {
-        sChatHandler.BlueSystemMessage(_player->getSession(),
-            "No sell template found. Report this to database's devs: %d (%s)",
-            unit->getEntry(), unit->GetCreatureProperties()->Name.c_str());
+        _player->getSession()->systemMessage("No sell template found. Report this to database's devs: {} ({})",
+            unit->getEntry(), unit->GetCreatureProperties()->Name);
         sLogger.failure("'{}' discovered that a creature with entry {} ({}) has no sell template.",
             _player->getName(), unit->getEntry(), unit->GetCreatureProperties()->Name);
         GossipMenu::senGossipComplete(_player);

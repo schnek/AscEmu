@@ -1,10 +1,11 @@
 ﻿# ![logo](http://ascemu.org/images/logo.png)
 
-Master                                                      | Development
-:---------------------------------------------------------: | :--------------------------------------------------------------:
-[![AscEmuClangCI][AscEmuClangBadge]][AscEmuBadgeClangUrl]   | [![AscEmuClangCI][AscEmuClangBadge]][AscEmuBadgeClangUrl]      |
-[![AscEmuGccCI][AscEmuGccBadge]][AscEmuBadgeGccUrl]         | [![AscEmuGccCI][AscEmuGccBadge]][AscEmuBadgeGccUrl]            |
-[![MasterAppYeyor][MasterAppYeyorBadge]][MasterAppYeyorUrl] | [![DevelopAppYeyor][DevelopAppYeyorBadge]][DevelopAppYeyorUrl] |
+Master                                                                       | Development
+:--------------------------------------------------------------------------: | :-------------------------------------------------------------------------------:
+[![AscEmuClangCI][AscEmuClangMasterMacOSBadge]][AscEmuBadgeClangMacOSUrl]    | [![AscEmuClangCI][AscEmuClangDevelopMacOSBadge]][AscEmuBadgeClangMacOSUrl]      |
+[![AscEmuClangCI][AscEmuClangMasterLinuxBadge]][AscEmuBadgeClangLinuxUrl]    | [![AscEmuClangCI][AscEmuClangDevelopLinuxBadge]][AscEmuBadgeClangLinuxUrl]      |
+[![AscEmuGccCI][AscEmuGccMasterLinuxBadge]][AscEmuBadgeGccLinuxUrl]          | [![AscEmuGccCI][AscEmuGccDevelopLinuxBadge]][AscEmuBadgeGccLinuxUrl]            |
+[![AppYeyorMaster][AppYeyorMasterBadge]][AppYeyorMasterUrl]                  | [![AppYeyorDevelop][AppYeyorDevelopBadge]][AppYeyorDevelopUrl]                  |
 
 ## Introduction
 AscEmu is derived from ArcEmu to keep up the Antrix-Ascent-Arcemu way of Framework.
@@ -22,12 +23,13 @@ AscEmu supports several versions as listed below. We achieved to handle differen
 
 Beside our multiversion-core we developed our world database with this attitude. Compared to other projects we are still a small project but with one core and database we are able to work on different versions at the same time. Beside all that we are able to show the changes to the game side by side in our code and database.
 
-Description      | Classic  | TBC      | WotLK    | Cata     | MoP
-:---------------:|:--------:|:--------:|:--------:|:--------:|:--------:
-Authentification | ✔️       | ✔️       | ✔️       | ✔️       | ✔️
-Worldsocket      | ✔️       | ✔️       | ✔️       | ✔️       | ✔️
-Char Enum        | ✔️       | ✔️       | ✔️       | ✔️       | ✔️
-Log into world   | ✔️       | ✔️       | ✔️       | ✔️       | ❌
+Description       | Classic    | TBC        | WotLK      | Cata       | MoP
+:---------------: | :--------: | :--------: | :--------: | :--------: | :--------:
+Authentification  | ✔️         | ✔️         | ✔️         | ✔️         | ✔️
+Worldsocket       | ✔️         | ✔️         | ✔️         | ✔️         | ✔️
+Char Enum         | ✔️         | ✔️         | ✔️         | ✔️         | ✔️
+Log into world    | ✔️         | ✔️         | ✔️         | ✔️         | ❌
+
 
 ## Contributing
 Feel free to contribute any corrections but make sure it is useful and tested before opening PRs.
@@ -42,7 +44,7 @@ We strive to make all in-game content to be blizzlike!
 
 Feel free to join our [Discord server](https://discord.com/invite/CBdgrh7).
 
-Click on the "⭐ Star" button to help us gain more visibility on Github!
+Click on the "🌟 Star" button to help us gain more visibility on Github!
 
 ## Opening new issues
 Be patient with us and give us details.
@@ -53,6 +55,7 @@ Be patient with us and give us details.
 ## Install
 HowTo install - detailed guides on our wiki.
 * [Linux](https://ascemu.github.io/Wiki/docs/installation/linux/)
+* [macOS](https://ascemu.github.io/Wiki/docs/installation/macOS/)
 * [Windows](https://ascemu.github.io/Wiki/docs/installation/windows/)
 
 ## Links
@@ -73,17 +76,24 @@ HowTo install - detailed guides on our wiki.
 [PVS-Studio](https://pvs-studio.com/en/pvs-studio/?utm_source=website&utm_medium=github&utm_campaign=open_source) - Static analyzer for C, C++, C#, and Java code.
 
 <!-- Undercover:start:status -->
-[AscEmuGccBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml/badge.svg
-[AscEmuClangBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-linux-test-x64.yml/badge.svg
+[AscEmuClangMasterMacOSBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-macos-test-x64.yml/badge.svg?branch=master
+[AscEmuClangDevelopMacOSBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-macos-test-x64.yml/badge.svg?branch=develop
 
-[MasterAppYeyorBadge]: https://ci.appveyor.com/api/projects/status/h70t5a5rd56y8ute/branch/master?svg=true
-[DevelopAppYeyorBadge]: https://ci.appveyor.com/api/projects/status/h70t5a5rd56y8ute/branch/develop?svg=true
+[AscEmuClangMasterLinuxBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-linux-test-x64.yml/badge.svg?branch=master
+[AscEmuClangDevelopLinuxBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-linux-test-x64.yml/badge.svg?branch=develop
 
-[MasterAppYeyorUrl]: https://ci.appveyor.com/project/Zyres/ascemu
-[DevelopAppYeyorUrl]: https://ci.appveyor.com/project/Zyres/ascemu
+[AscEmuGccMasterLinuxBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml/badge.svg?branch=master
+[AscEmuGccDevelopLinuxBadge]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml/badge.svg?branch=develop
 
-[AscEmuBadgeGccUrl]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml
-[AscEmuBadgeClangUrl]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-linux-test-x64.yml
+[AppYeyorMasterBadge]: https://ci.appveyor.com/api/projects/status/h70t5a5rd56y8ute/branch/master?svg=true
+[AppYeyorDevelopBadge]: https://ci.appveyor.com/api/projects/status/h70t5a5rd56y8ute/branch/develop?svg=true
+
+[AppYeyorMasterUrl]: https://ci.appveyor.com/project/Zyres/ascemu
+[AppYeyorDevelopUrl]: https://ci.appveyor.com/project/Zyres/ascemu
+
+[AscEmuBadgeGccLinuxUrl]: https://github.com/AscEmu/AscEmu/actions/workflows/gcc-linux-test-x64.yml
+[AscEmuBadgeClangLinuxUrl]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-linux-test-x64.yml
+[AscEmuBadgeClangMacOSUrl]: https://github.com/AscEmu/AscEmu/actions/workflows/clang-macos-test-x64.yml
 <!-- Undercover:end:status -->
 
 <!-- Undercover:start:community -->

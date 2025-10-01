@@ -22,7 +22,7 @@
 #define WORLDSESSION_H
 
 #include "Server/Opcodes.hpp"
-#include "ThreadSafeQueue.hpp"
+#include "Threading/ThreadSafeQueue.hpp"
 #include "Server/CharacterErrors.h"
 #include "Objects/Units/Players/PlayerDefines.hpp"
 #include "Data/Flags.hpp"
@@ -107,6 +107,7 @@ class SERVER_DECL WorldSession
 
         uint32_t m_currMsTime;
         uint32_t m_lastPing;
+        uint32_t m_loginTime;
 
         uint32_t GetAccountId() const { return _accountId; }
         Player* GetPlayer() { return _player; }
@@ -642,6 +643,7 @@ protected:
         void handleDungeonDifficultyOpcode(WorldPacket& recvPacket);
         void handleRaidDifficultyOpcode(WorldPacket& recvPacket);
         void handleInstanceLockResponse(WorldPacket& recvPacket);
+        void handleViolenceLevel(WorldPacket& recvPacket);                  //>= Cata
         void handleSetAutoLootPassOpcode(WorldPacket& recvPacket);
         void handleSetActionBarTogglesOpcode(WorldPacket& recvPacket);
         void handleLootRollOpcode(WorldPacket& recvPacket);
