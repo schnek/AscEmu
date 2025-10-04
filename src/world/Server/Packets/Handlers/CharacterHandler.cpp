@@ -758,16 +758,29 @@ void WorldSession::fullLogin(Player* player)
     sObjectMgr.addPlayer(player);
 }
 
-void WorldSession::handleSetPlayerDeclinedNamesOpcode(WorldPacket& recvPacket)
+void WorldSession::handleDeclinedPlayerNameOpcode(WorldPacket& recvPacket)
 {
     CmsgSetPlayerDeclinedNames srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    //\todo check utf8 and cyrillic chars
-    const uint32_t error = 0;     // 0 = success, 1 = error
+    Player* player = GetPlayer();
+    if (!player)
+        return;
 
-    SendPacket(SmsgSetPlayerDeclinedNamesResult(error, srlPacket.guid).serialise().get());
+    for (uint8_t i = 0; i < 5/*MAX_DECLINED_NAME_CASES*/; ++i)
+    {
+        if (srlPacket.declined[i].size() > 15/*MAX_DECLINED_NAME_LENGTH*/)
+            srlPacket.declined[i].resize(15/*MAX_DECLINED_NAME_LENGTH*/);
+
+        CharacterDatabase.EscapeString(srlPacket.declined[i]);
+    }
+
+    player->SaveDeclinedNames(srlPacket.declined);
+
+    sLogger.debug("Declined names saved for player GUID {}", player->getGuid());
+
+    SendPacket(SmsgSetPlayerDeclinedNamesResult(0, player->getGuid()).serialise().get());
 }
 
 void WorldSession::characterEnumProc(QueryResult* result)

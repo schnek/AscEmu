@@ -16923,3 +16923,36 @@ Creature* Player::getCreatureWhenICanInteract(WoWGuid const& guid, uint32_t npcf
 
     return creature;
 }
+
+void Player::LoadDeclinedNames()
+{
+    auto result = CharacterDatabase.Query(
+        "SELECT genitive, dative, accusative, instrumental, prepositional "
+        "FROM character_declinedname WHERE guid = %u",
+        static_cast<uint32_t>(getGuid()));
+
+    if (!result)
+    {
+        for (auto& s : m_declinedNames) s.clear();
+        return;
+    }
+
+    auto fields = result->Fetch();
+    for (uint8_t i = 0; i < 5/*MAX_DECLINED_NAME_CASES*/; ++i)
+        m_declinedNames[i] = fields[i].asCString();
+}
+
+void Player::SaveDeclinedNames(const std::array<std::string, 5/*MAX_DECLINED_NAME_CASES*/>& declined)
+{
+    CharacterDatabase.Execute(
+        "REPLACE INTO `character_declinedname` "
+        "(guid, genitive, dative, accusative, instrumental, prepositional) "
+        "VALUES (%u, '%s','%s','%s','%s','%s')",
+        static_cast<uint32_t>(getGuid()),
+        declined[0].c_str(),
+        declined[1].c_str(),
+        declined[2].c_str(),
+        declined[3].c_str(),
+        declined[4].c_str()
+    );
+}
