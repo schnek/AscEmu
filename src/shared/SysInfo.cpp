@@ -40,10 +40,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include <mach/mach.h>
 #endif
 
-
-namespace Ascemu
+namespace AscEmu
 {
-
 #ifdef WIN32
 
     long SysInfo::GetCPUCount()

@@ -6,26 +6,26 @@ This file is released under the MIT license. See README-MIT for more information
 #include "PerformanceCounter.hpp"
 #include "SysInfo.hpp"
 
-namespace Ascemu
+namespace AscEmu
 {
     PerformanceCounter::PerformanceCounter()
     {
-        cpu_count = Ascemu::SysInfo::GetCPUCount();
-        last_update = Ascemu::SysInfo::GetTickCount();
-        last_cpu_usage = Ascemu::SysInfo::GetCPUUsage();
+        cpu_count = AscEmu::SysInfo::GetCPUCount();
+        last_update = AscEmu::SysInfo::GetTickCount();
+        last_cpu_usage = AscEmu::SysInfo::GetCPUUsage();
     }
 
     float PerformanceCounter::GetCurrentRAMUsage()
     {
-        unsigned long long usage = Ascemu::SysInfo::GetRAMUsage();
+        unsigned long long usage = AscEmu::SysInfo::GetRAMUsage();
 
         return static_cast< float >(usage / (1024.0 * 1024.0));
     }
 
     float PerformanceCounter::GetCurrentCPUUsage()
     {
-        unsigned long long now = Ascemu::SysInfo::GetTickCount();
-        unsigned long long now_cpu_usage = Ascemu::SysInfo::GetCPUUsage();
+        unsigned long long now = AscEmu::SysInfo::GetTickCount();
+        unsigned long long now_cpu_usage = AscEmu::SysInfo::GetCPUUsage();
         unsigned long long cpu_usage = now_cpu_usage - last_cpu_usage; // micro seconds
         unsigned long long time_elapsed = now - last_update; // milli seconds
 
