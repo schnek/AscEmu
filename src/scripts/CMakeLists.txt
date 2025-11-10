@@ -1,7 +1,7 @@
-# Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+# Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 
 # all script libraries have SCRIPTLIB defined.
-add_definitions(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
+add_compile_options(-DSCRIPTLIB -DSKIP_ALLOCATOR_SHARING)
 
 # add our modules.
 add_subdirectory(Battlegrounds)
@@ -14,7 +14,6 @@ if (NOT ${BUILD_ASCEMUSCRIPTS})
 endif ()
 
 add_subdirectory(EventScripts)
-add_subdirectory(ExtraScripts)
 add_subdirectory(GossipScripts)
 add_subdirectory(InstanceScripts)
 add_subdirectory(LuaEngine)

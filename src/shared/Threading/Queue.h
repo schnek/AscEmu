@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #ifndef FQUEUE_H
 #define FQUEUE_H
 
-#include "Mutex.h"
+#include "Mutex.hpp"
 
 template<class T>
 class FQueue
@@ -30,11 +30,11 @@ class FQueue
         FQueue() { first = last = NULL; size = 0; }
         volatile unsigned int size;
 
-        uint32 get_size()
+        uint32_t get_size()
         {
-            lock.Acquire();
-            ::uint32 retval = size;
-            lock.Release();
+            lock.acquire();
+            ::uint32_t retval = size;
+            lock.release();
             return retval;
         }
 
@@ -44,7 +44,7 @@ class FQueue
             p->value = item;
             p->pNext = NULL;
 
-            lock.Acquire();
+            lock.acquire();
             if(last != NULL)//have some items
             {
                 last->pNext = (h*)p;
@@ -56,24 +56,24 @@ class FQueue
                 last = first = p;
                 size = 1;
             }
-            lock.Release();
+            lock.release();
         }
 
         T pop_nowait() { return pop(); }
 
         T pop()
         {
-            lock.Acquire();
+            lock.acquire();
             if(size == 0)
             {
-                lock.Release();
+                lock.release();
                 return NULL;
             }
 
             h* tmp = first;
             if(tmp == NULL)
             {
-                lock.Release();
+                lock.release();
                 return NULL;
             }
 
@@ -84,7 +84,7 @@ class FQueue
                 first = last = NULL;
             }
 
-            lock.Release();
+            lock.release();
 
             T returnVal = tmp->value;
             delete tmp;

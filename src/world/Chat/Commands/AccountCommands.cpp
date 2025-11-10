@@ -1,16 +1,17 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Server/World.h"
 #include "Server/WorldSession.h"
 #include "Server/WorldSessionLog.hpp"
 #include "Server/LogonCommClient/LogonCommHandler.h"
 #include "Storage/MySQLDataStore.hpp"
+#include "Utilities/Util.hpp"
 
-bool ChatHandler::HandleAccountCreate(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountCreate(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -29,7 +30,7 @@ bool ChatHandler::HandleAccountCreate(const char* args, WorldSession* m_session)
     return true;
 }
 
-bool ChatHandler::HandleAccountSetGMCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountSetGMCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -48,7 +49,7 @@ bool ChatHandler::HandleAccountSetGMCommand(const char* args, WorldSession* m_se
     return true;
 }
 
-bool ChatHandler::HandleAccountMuteCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountMuteCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -69,8 +70,7 @@ bool ChatHandler::HandleAccountMuteCommand(const char* args, WorldSession* m_ses
     sLogonCommHandler.setAccountMute(pAccount, banned);
 
     std::string tsstr = Util::GetDateTimeStringFromTimeStamp(timeperiod + (uint32_t)UNIXTIME);
-    GreenSystemMessage(m_session, "Account '%s' has been muted until %s. The change will be effective immediately.", pAccount,
-                       tsstr.c_str());
+    greenSystemMessage(m_session, "Account '{}' has been muted until {}. The change will be effective immediately.", pAccount, tsstr);
 
     sGMLog.writefromsession(m_session, "mutex account %s until %s", pAccount, Util::GetDateTimeStringFromTimeStamp(timeperiod + (uint32_t)UNIXTIME).c_str());
 
@@ -84,11 +84,11 @@ bool ChatHandler::HandleAccountMuteCommand(const char* args, WorldSession* m_ses
     return true;
 }
 
-bool ChatHandler::HandleAccountUnmuteCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountUnmuteCommand(const char* args, WorldSession* m_session)
 {
     sLogonCommHandler.setAccountMute(args, 0);
 
-    GreenSystemMessage(m_session, "Account '%s' has been unmuted.", args);
+    greenSystemMessage(m_session, "Account '%s' has been unmuted.", args);
     sGMLog.writefromsession(m_session, "unmuted account %s", args);
     WorldSession* pSession = sWorld.getSessionByAccountName(args);
     if (pSession != nullptr)
@@ -129,7 +129,7 @@ void ParseAccBanArgs(char* args, char** BanDuration, char** BanReason)
     *BanReason = pReason;
 }
 
-bool ChatHandler::HandleAccountBannedCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountBannedCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -150,28 +150,28 @@ bool ChatHandler::HandleAccountBannedCommand(const char* args, WorldSession* m_s
 
     sLogonCommHandler.setAccountBanned(pAccount, banned, reason.c_str());
 
-    GreenSystemMessage(m_session, "Account '%s' has been banned %s%s for reason : %s. The change will be effective immediately.", pAccount,
-                       timeperiod ? "until " : "forever", timeperiod ? Util::GetDateTimeStringFromTimeStamp(timeperiod + (uint32_t)UNIXTIME).c_str() : "", reason.c_str());
+    greenSystemMessage(m_session, "Account '{}' has been banned {}{} for reason : {}. The change will be effective immediately.",
+        pAccount, timeperiod ? "until " : "forever", timeperiod ? Util::GetDateTimeStringFromTimeStamp(timeperiod + (uint32_t)UNIXTIME) : "", reason);
 
     sWorld.disconnectSessionByAccountName(pAccount, m_session);
     sGMLog.writefromsession(m_session, "banned account %s until %s", pAccount, timeperiod ? Util::GetDateTimeStringFromTimeStamp(timeperiod + (uint32_t)UNIXTIME).c_str() : "permanent");
     return true;
 }
 
-bool ChatHandler::HandleAccountUnbanCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountUnbanCommand(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
     char* pAccount = (char*)args;
 
     sLogonCommHandler.setAccountBanned(pAccount, 0, "");
-    GreenSystemMessage(m_session, "Account '%s' has been unbanned. This change will be effective immediately.", pAccount);
+    greenSystemMessage(m_session, "Account '{}' has been unbanned. This change will be effective immediately.", pAccount);
 
     sGMLog.writefromsession(m_session, "unbanned account %s", pAccount);
     return true;
 }
 
-bool ChatHandler::HandleAccountChangePassword(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountChangePassword(const char* args, WorldSession* m_session)
 {
     if (!*args)
         return false;
@@ -182,13 +182,13 @@ bool ChatHandler::HandleAccountChangePassword(const char* args, WorldSession* m_
     int argc = sscanf(args, "%s %s %s", old_password, new_password_1, new_password_2);
     if (argc != 3)
     {
-        RedSystemMessage(m_session, "Please type in <old_password> <new_password> <new_password>");
+        redSystemMessage(m_session, "Please type in <old_password> <new_password> <new_password>");
         return false;
     }
 
     if (std::string(new_password_1) != std::string(new_password_2))
     {
-        RedSystemMessage(m_session, "Your new password inputs doesn't match!");
+        redSystemMessage(m_session, "Your new password inputs doesn't match!");
         return false;
     }
     auto account_name = m_session->GetAccountNameS();
@@ -198,7 +198,7 @@ bool ChatHandler::HandleAccountChangePassword(const char* args, WorldSession* m_
     return true;
 }
 
-bool ChatHandler::HandleAccountGetAccountID(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAccountGetAccountID(const char* args, WorldSession* m_session)
 {
     if (!*args)
     {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -28,7 +28,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Packets/SmsgAreaTriggerMessage.h"
 #include "Packets/SmsgZoneUnderAttack.h"
 #include "OpcodeTable.hpp"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Management/GameEventMgr.hpp"
 #include "Objects/Units/Creatures/CreatureGroups.h"
 #include "Objects/Units/Creatures/AIInterface.h"
@@ -53,6 +53,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Storage/WDB/WDBStores.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
 
+#include <exception>
+
 #if VERSION_STRING >= Cata
 #include "Management/Guild/GuildFinderMgr.hpp"
 #endif
@@ -62,6 +64,9 @@ std::unique_ptr<DayWatcherThread> dw = nullptr;
 std::unique_ptr<BroadcastMgr> broadcastMgr = nullptr;
 
 extern void LoadGameObjectModelList(std::string const& dataPath);
+
+World::World() = default;
+World::~World() = default;
 
 World& World::getInstance()
 {
@@ -96,8 +101,8 @@ void World::initialize()
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // General Functions
-    mEventableObjectHolder = new EventableObjectHolder(WORLD_INSTANCE);
-    m_holder = mEventableObjectHolder;
+    mEventableObjectHolder = std::make_unique<EventableObjectHolder>(WORLD_INSTANCE);
+    m_holder = mEventableObjectHolder.get();
     m_event_Instanceid = mEventableObjectHolder->GetInstanceID();
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -113,8 +118,6 @@ void World::finalize()
     sLogger.info("TransportHandler : unload()");
     sTransportHandler.unload();
 #endif
-    sLogger.info("ObjectMgr : ~ObjectMgr()");
-    sObjectMgr.finalize();
 
     sLogger.info("TicketMgr : ~TicketMgr()");
     sTicketMgr.finalize();
@@ -131,17 +134,14 @@ void World::finalize()
     sLogger.info("WeatherMgr : ~WeatherMgr()");
     sWeatherMgr.finalize();
 
-#if VERSION_STRING >= Cata
-    // todo: shouldn't this be deleted also on other versions?
     sLogger.info("GuildMgr", "~GuildMgr()");
     sGuildMgr.finalize();
-#endif
 
     sLogger.info("MapMgr : ~MapMgr()");
     sMapMgr.shutdown();
 
     sLogger.info("WordFilter : ~WordFilter()");
-    delete g_chatFilter;
+    g_chatFilter = nullptr;
 
     sLogger.info("SpellMgr : ~SpellMgr()");
     sSpellMgr.finalize();
@@ -154,10 +154,13 @@ void World::finalize()
 
     broadcastMgr.reset();
 
-    delete mEventableObjectHolder;
+    mEventableObjectHolder = nullptr;
 
-    for (std::list<SpellInfo const*>::iterator itr = dummySpellList.begin(); itr != dummySpellList.end(); ++itr)
-        delete *itr;
+    dummySpellList.clear();
+
+    // Finalizing ObjectMgr must be last
+    sLogger.info("ObjectMgr : ~ObjectMgr()");
+    sObjectMgr.finalize();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -284,13 +287,14 @@ float World::getRAMUsage()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Session functions
-void World::addSession(WorldSession* worldSession)
+void World::addSession(std::unique_ptr<WorldSession> sessionHolder)
 {
-    if (worldSession)
+    if (sessionHolder)
     {
         std::lock_guard<std::mutex> guard(mSessionLock);
 
-        mActiveSessionMapStore[worldSession->GetAccountId()] = worldSession;
+        auto* worldSession = sessionHolder.get();
+        mActiveSessionMapStore[sessionHolder->GetAccountId()] = std::move(sessionHolder);
 
         if (static_cast<uint32_t>(mActiveSessionMapStore.size()) > getPeakSessionCount())
             setNewPeakSessionCount(static_cast<uint32_t>(mActiveSessionMapStore.size()));
@@ -309,7 +313,7 @@ WorldSession* World::getSessionByAccountId(uint32_t accountId)
 
     auto activeSessions = mActiveSessionMapStore.find(accountId);
     if (activeSessions != mActiveSessionMapStore.end())
-        worldSession = activeSessions->second;
+        worldSession = activeSessions->second.get();
 
 
     return worldSession;
@@ -325,7 +329,7 @@ WorldSession* World::getSessionByAccountName(const std::string& accountName)
     {
         if (accountName == activeSessions->second->GetAccountName())
         {
-            worldSession = activeSessions->second;
+            worldSession = activeSessions->second.get();
             break;
         }
     }
@@ -337,14 +341,14 @@ void World::sendCharacterEnumToAccountSession(QueryResultVector& results, uint32
 {
     WorldSession* worldSession = getSessionByAccountId(accountId);
     if (worldSession != nullptr)
-        worldSession->characterEnumProc(results[0].result);
+        worldSession->characterEnumProc(results[0].result.get());
 }
 
 void World::loadAccountDataProcForId(QueryResultVector& results, uint32_t accountId)
 {
     WorldSession* worldSession = getSessionByAccountId(accountId);
     if (worldSession != nullptr)
-        worldSession->loadAccountDataProc(results[0].result);
+        worldSession->loadAccountDataProc(results[0].result.get());
 }
 
 size_t World::getSessionCount()
@@ -361,8 +365,6 @@ void World::deleteSession(WorldSession* worldSession)
     std::lock_guard<std::mutex> guard(mSessionLock);
 
     mActiveSessionMapStore.erase(worldSession->GetAccountId());
-
-    delete worldSession;
 }
 
 void World::deleteSessions(std::list<WorldSession*>& slist)
@@ -374,12 +376,6 @@ void World::deleteSessions(std::list<WorldSession*>& slist)
         WorldSession* session = *sessionList;
         mActiveSessionMapStore.erase(session->GetAccountId());
     }
-
-    for (auto sessionList = slist.begin(); sessionList != slist.end(); ++sessionList)
-    {
-        WorldSession* session = *sessionList;
-        delete session;
-    }
 }
 
 void World::disconnectSessionByAccountName(const std::string& accountName, WorldSession* worldSession)
@@ -390,7 +386,7 @@ void World::disconnectSessionByAccountName(const std::string& accountName, World
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        WorldSession* session = activeSessions->second;
+        WorldSession* session = activeSessions->second.get();
         if (accountName == session->GetAccountName())
         {
             isUserFound = true;
@@ -413,7 +409,7 @@ void World::disconnectSessionByIp(const std::string& ipString, WorldSession* wor
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        WorldSession* session = activeSessions->second;
+        WorldSession* session = activeSessions->second.get();
         if (!session->GetSocket())
             continue;
 
@@ -440,7 +436,7 @@ void World::disconnectSessionByPlayerName(const std::string& playerName, WorldSe
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        WorldSession* session = activeSessions->second;
+        WorldSession* session = activeSessions->second.get();
         if (!session->GetPlayer())
             continue;
 
@@ -512,13 +508,14 @@ void World::updateQueuedSessions(uint32_t diff)
         while (mActiveSessionMapStore.size() < settings.getPlayerLimit() && getQueuedSessions())
         {
             QueuedWorldSocketList::iterator iter = mQueuedSessions.begin();
-            WorldSocket* QueuedSocket = *iter;
+            WorldSocket* QueuedSocket = (*iter).first;
+            auto&& sessionHolder = std::move((*iter).second);
             mQueuedSessions.erase(iter);
 
-            if (QueuedSocket->GetSession())
+            if (QueuedSocket->GetSession() && sessionHolder != nullptr)
             {
                 std::lock_guard guard(QueuedSocket->GetSession()->deleteMutex);
-                QueuedSocket->Authenticate();
+                QueuedSocket->Authenticate(std::move(sessionHolder));
             }
         }
 
@@ -531,7 +528,7 @@ void World::updateQueuedSessions(uint32_t diff)
         uint32_t queuPosition = 1;
         while (iter != mQueuedSessions.end())
         {
-            (*iter)->UpdateQueuePosition(queuPosition++);
+            (*iter).first->UpdateQueuePosition(queuPosition++);
             if (iter == mQueuedSessions.end())
                 break;
 
@@ -544,11 +541,11 @@ void World::updateQueuedSessions(uint32_t diff)
     }
 }
 
-uint32_t World::addQueuedSocket(WorldSocket* socket)
+uint32_t World::addQueuedSocket(WorldSocket* socket, std::unique_ptr<WorldSession> sessionHolder)
 {
     std::lock_guard lock(queueMutex);
 
-    mQueuedSessions.push_back(socket);
+    mQueuedSessions.emplace_back(socket, std::move(sessionHolder));
 
     return getQueuedSessions();
 }
@@ -559,7 +556,7 @@ void World::removeQueuedSocket(WorldSocket* socket)
 
     for (QueuedWorldSocketList::iterator iter = mQueuedSessions.begin(); iter != mQueuedSessions.end(); ++iter)
     {
-        if ((*iter) == socket)
+        if ((*iter).first == socket)
         {
             mQueuedSessions.erase(iter);
             return;
@@ -577,7 +574,7 @@ void World::sendMessageToOnlineGms(const std::string& message, WorldSession* sen
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second != sendToSelf)
+        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second.get() != sendToSelf)
         {
             if (activeSessions->second->CanUseCommand('u'))
                 activeSessions->second->SendPacket(data.get());
@@ -609,7 +606,7 @@ void World::sendGlobalMessage(WorldPacket* worldPacket, WorldSession* sendToSelf
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
         if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld()
-            && activeSessions->second != sendToSelf && (team == 3 || activeSessions->second->GetPlayer()->GetTeam() == team))
+            && activeSessions->second.get() != sendToSelf && (team == 3 || activeSessions->second->GetPlayer()->GetTeam() == team))
             activeSessions->second->SendPacket(worldPacket);
     }
 }
@@ -620,7 +617,7 @@ void World::sendZoneMessage(WorldPacket* worldPacket, uint32_t zoneId, WorldSess
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second != sendToSelf)
+        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second.get() != sendToSelf)
         {
             if (activeSessions->second->GetPlayer()->getZoneId() == zoneId)
                 activeSessions->second->SendPacket(worldPacket);
@@ -634,9 +631,9 @@ void World::sendInstanceMessage(WorldPacket* worldPacket, uint32_t instanceId, W
 
     for (auto activeSessions = mActiveSessionMapStore.begin(); activeSessions != mActiveSessionMapStore.end(); ++activeSessions)
     {
-        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second != sendToSelf)
+        if (activeSessions->second->GetPlayer() && activeSessions->second->GetPlayer()->IsInWorld() && activeSessions->second.get() != sendToSelf)
         {
-            if (activeSessions->second->GetPlayer()->GetInstanceID() == static_cast<int32>(instanceId))
+            if (activeSessions->second->GetPlayer()->GetInstanceID() == static_cast<int32_t>(instanceId))
                 activeSessions->second->SendPacket(worldPacket);
         }
     }
@@ -696,6 +693,8 @@ bool World::setInitialWorldSettings()
     auto localeString = Util::getLanguagesStringFromId(mDbcLocaleId);
     if (mDbcLocaleId == 0)
         localeString.append("/enUS");
+    else if (mDbcLocaleId == 10)
+        localeString.append("/ptPT");
 
     sLogger.info("World : Using {} DBC locale", localeString);
 #endif
@@ -829,6 +828,37 @@ uint8_t World::getDbcLocaleLanguageId() const
 }
 #endif
 
+inline void runParallel(const std::vector<std::function<void()>>& tasks)
+{
+    if (tasks.empty())
+        return;
+
+    std::atomic<bool> had_error{false};
+    std::exception_ptr first_exc = nullptr;
+    std::mutex exc_mtx;
+
+    std::vector<std::thread> threads;
+    threads.reserve(tasks.size());
+
+    for (auto fn : tasks)
+    {
+        threads.emplace_back([&, fn]{
+            try {
+                fn();
+            } catch (...) {
+                had_error = true;
+                std::lock_guard<std::mutex> lk(exc_mtx);
+                if (!first_exc) first_exc = std::current_exception();
+            }
+        });
+    }
+    for (auto &t : threads)
+        t.join();
+
+    if (had_error && first_exc)
+        std::rethrow_exception(first_exc);
+}
+
 void World::loadMySQLStores()
 {
     auto startTime = Util::TimeNow();
@@ -837,6 +867,8 @@ void World::loadMySQLStores()
 
     sMySQLStore.loadItemPagesTable();
     sMySQLStore.loadItemPropertiesTable();
+    sMySQLStore.loadItemPropertiesSpellsTable();
+    sMySQLStore.loadItemPropertiesStatsTable();
     sMySQLStore.loadCreaturePropertiesMovementTable();
     sMySQLStore.loadCreaturePropertiesTable();
     sMySQLStore.loadGameObjectPropertiesTable();
@@ -844,62 +876,72 @@ void World::loadMySQLStores()
     sMySQLStore.loadGameObjectQuestItemBindingTable();
     sMySQLStore.loadGameObjectQuestPickupBindingTable();
 
-    sMySQLStore.loadCreatureDifficultyTable();
-    sMySQLStore.loadDisplayBoundingBoxesTable();
-    sMySQLStore.loadVendorRestrictionsTable();
+    runParallel({
+        []{
+            sMySQLStore.loadCreatureDifficultyTable();
+            sMySQLStore.loadDisplayBoundingBoxesTable();
+            sMySQLStore.loadVendorRestrictionsTable();
+        },
+        []{
+            sMySQLStore.loadNpcTextTable();
+            sMySQLStore.loadNpcScriptTextTable();
+            sMySQLStore.loadGossipMenuOptionTable();
+            sMySQLStore.loadGraveyardsTable();
+            sMySQLStore.loadTeleportCoordsTable();
+            sMySQLStore.loadFishingTable();
+            sMySQLStore.loadWorldMapInfoTable();
+            sMySQLStore.loadZoneGuardsTable();
+            sMySQLStore.loadBattleMastersTable();
+            sMySQLStore.loadTotemDisplayIdsTable();
+            sMySQLStore.loadSpellClickSpellsTable();
+        },
+        []{
+            sMySQLStore.loadWorldStringsTable();
+            sMySQLStore.loadPointsOfInterestTable();
+            sMySQLStore.loadItemSetLinkedSetBonusTable();
+            sMySQLStore.loadCreatureInitialEquipmentTable();
+        },
+        []{
+            sMySQLStore.loadPlayerCreateInfoTable();
+            sMySQLStore.loadPlayerCreateInfoBars();
+            sMySQLStore.loadPlayerCreateInfoItems();
+            sMySQLStore.loadPlayerCreateInfoSkills();
+            sMySQLStore.loadPlayerCreateInfoSpellLearn();
+            sMySQLStore.loadPlayerCreateInfoSpellCast();
+            sMySQLStore.loadPlayerCreateInfoLevelstats();
+            sMySQLStore.loadPlayerCreateInfoClassLevelstats();
+            sMySQLStore.loadPlayerXpToLevelTable();
+        },
+        []{
+            sMySQLStore.loadSpellOverrideTable();
 
-    sMySQLStore.loadNpcTextTable();
-    sMySQLStore.loadNpcScriptTextTable();
-    sMySQLStore.loadGossipMenuOptionTable();
-    sMySQLStore.loadGraveyardsTable();
-    sMySQLStore.loadTeleportCoordsTable();
-    sMySQLStore.loadFishingTable();
-    sMySQLStore.loadWorldMapInfoTable();
-    sMySQLStore.loadZoneGuardsTable();
-    sMySQLStore.loadBattleMastersTable();
-    sMySQLStore.loadTotemDisplayIdsTable();
-    sMySQLStore.loadSpellClickSpellsTable();
+            sMySQLStore.loadNpcGossipTextIdTable();
+            sMySQLStore.loadPetLevelAbilitiesTable();
+            sMySQLStore.loadBroadcastTable();
 
-    sMySQLStore.loadWorldStringsTable();
-    sMySQLStore.loadPointsOfInterestTable();
-    sMySQLStore.loadItemSetLinkedSetBonusTable();
-    sMySQLStore.loadCreatureInitialEquipmentTable();
+            sMySQLStore.loadAreaTriggerTable();
+            sMySQLStore.loadWordFilterCharacterNames();
+            sMySQLStore.loadWordFilterChat();
+        },
+        []{
+            sMySQLStore.loadLocalesAchievementReward();
+            sMySQLStore.loadLocalesCreature();
+            sMySQLStore.loadLocalesGameobject();
+            sMySQLStore.loadLocalesGossipMenuOption();
+            sMySQLStore.loadLocalesItem();
+            sMySQLStore.loadLocalesItemPages();
+            sMySQLStore.loadLocalesNpcScriptText();
+            sMySQLStore.loadLocalesNpcText();
+            sMySQLStore.loadLocalesPointsOfInterest();
+            sMySQLStore.loadLocalesQuest();
+            sMySQLStore.loadLocalesWorldbroadcast();
+            sMySQLStore.loadLocalesWorldmapInfo();
+            sMySQLStore.loadLocalesWorldStringTable();
 
-    sMySQLStore.loadPlayerCreateInfoTable();
-    sMySQLStore.loadPlayerCreateInfoBars();
-    sMySQLStore.loadPlayerCreateInfoItems();
-    sMySQLStore.loadPlayerCreateInfoSkills();
-    sMySQLStore.loadPlayerCreateInfoSpellLearn();
-    sMySQLStore.loadPlayerCreateInfoSpellCast();
-    sMySQLStore.loadPlayerCreateInfoLevelstats();
-    sMySQLStore.loadPlayerCreateInfoClassLevelstats();
-    sMySQLStore.loadPlayerXpToLevelTable();
-
-    sMySQLStore.loadSpellOverrideTable();
-
-    sMySQLStore.loadNpcGossipTextIdTable();
-    sMySQLStore.loadPetLevelAbilitiesTable();
-    sMySQLStore.loadBroadcastTable();
-
-    sMySQLStore.loadAreaTriggerTable();
-    sMySQLStore.loadWordFilterCharacterNames();
-    sMySQLStore.loadWordFilterChat();
-
-    sMySQLStore.loadLocalesCreature();
-    sMySQLStore.loadLocalesGameobject();
-    sMySQLStore.loadLocalesGossipMenuOption();
-    sMySQLStore.loadLocalesItem();
-    sMySQLStore.loadLocalesItemPages();
-    sMySQLStore.loadLocalesNpcScriptText();
-    sMySQLStore.loadLocalesNpcText();
-    sMySQLStore.loadLocalesQuest();
-    sMySQLStore.loadLocalesWorldbroadcast();
-    sMySQLStore.loadLocalesWorldmapInfo();
-    sMySQLStore.loadLocalesWorldStringTable();
-
-    //sMySQLStore.loadDefaultPetSpellsTable();      Zyres 2017/07/16 not used
-    sMySQLStore.loadProfessionDiscoveriesTable();
-
+            //sMySQLStore.loadDefaultPetSpellsTable();      Zyres 2017/07/16 not used
+            sMySQLStore.loadProfessionDiscoveriesTable();
+        }
+        });
     sMySQLStore.loadTransportDataTable();
     sMySQLStore.loadTransportEntrys();
     sMySQLStore.loadGossipMenuItemsTable();
@@ -923,59 +965,65 @@ void World::loadMySQLTablesByTask()
     sTicketMgr.initialize();
     sGameEventMgr.initialize();
 
+    runParallel({
+        []{
+            sObjectMgr.generateLevelUpInfo();
+            sObjectMgr.loadCharacters();
 
-    sObjectMgr.generateLevelUpInfo();
-    sObjectMgr.loadCharacters();
-
-    sMySQLStore.loadCreatureSpawns();
-    sMySQLStore.loadGameobjectSpawns();
-    sMySQLStore.loadGameObjectSpawnsExtraTable();
-    sMySQLStore.loadGameObjectSpawnsOverrideTable();
-
-    sMySQLStore.loadCreatureGroupSpawns();
-    sMySQLStore.loadCreatureSplineChains();
-
-    sObjectMgr.loadInstanceEncounters();
-    sObjectMgr.loadCreatureTimedEmotes();
-    sObjectMgr.loadVendors();
-    sObjectMgr.loadTrainerSpellSets();
-    sObjectMgr.loadTrainers();
-    sObjectMgr.loadPetSpellCooldowns();
-    sObjectMgr.loadCharters();
-    sTicketMgr.loadGMTickets();
-    sObjectMgr.setHighestGuids();
-    sObjectMgr.loadReputationModifiers();
-    sObjectMgr.loadGroups();
-    sObjectMgr.loadGroupInstances();
-    sObjectMgr.loadArenaTeams();
+            sMySQLStore.loadCreatureSpawns();
+            sMySQLStore.loadGameobjectSpawns();
+            sMySQLStore.loadGameObjectSpawnsExtraTable();
+            sMySQLStore.loadGameObjectSpawnsOverrideTable();
+        },
+        []{
+            sMySQLStore.loadCreatureGroupSpawns();
+            sMySQLStore.loadCreatureSplineChains();
+        },
+        []{
+            sObjectMgr.loadInstanceEncounters();
+            sObjectMgr.loadCreatureTimedEmotes();
+            sObjectMgr.loadVendors();
+            sObjectMgr.loadTrainerSpellSets();
+            sObjectMgr.loadTrainers();
+            sObjectMgr.loadPetSpellCooldowns();
+            sObjectMgr.loadCharters();
+            sTicketMgr.loadGMTickets();
+            sObjectMgr.setHighestGuids();
+            sObjectMgr.loadReputationModifiers();
+            sObjectMgr.loadGroups();
+            sObjectMgr.loadGroupInstances();
+            sObjectMgr.loadArenaTeams();
 #ifdef FT_VEHICLES
-    sObjectMgr.loadVehicleAccessories();
-    sObjectMgr.loadVehicleSeatAddon();
+            sObjectMgr.loadVehicleAccessories();
+            sObjectMgr.loadVehicleSeatAddon();
 #endif
-    sObjectMgr.loadWorldStateTemplates();
+            sObjectMgr.loadWorldStateTemplates();
 
 #if VERSION_STRING > TBC
-    sObjectMgr.loadAchievementRewards();
+            sObjectMgr.loadAchievementRewards();
 #endif
-
-    sLootMgr.loadAndGenerateLoot(0);
-    sLootMgr.loadAndGenerateLoot(1);
-    sLootMgr.loadAndGenerateLoot(2);
-    sLootMgr.loadAndGenerateLoot(3);
-    sLootMgr.loadAndGenerateLoot(4);
-    sLootMgr.loadAndGenerateLoot(5);
-
-    sQuestMgr.LoadExtraQuestStuff();
-    sObjectMgr.loadEventScripts();
-    sWeatherMgr.loadFromDB();
-    sAddonMgr.LoadFromDB();
-    sGameEventMgr.LoadFromDB();
-    sCalendarMgr.loadFromDB();
-
-    sCommandTableStorage.Load();
+        },
+        []{
+            sLootMgr.loadAndGenerateLoot(0);
+            sLootMgr.loadAndGenerateLoot(1);
+            sLootMgr.loadAndGenerateLoot(2);
+            sLootMgr.loadAndGenerateLoot(3);
+            sLootMgr.loadAndGenerateLoot(4);
+            sLootMgr.loadAndGenerateLoot(5);
+        },
+        []{
+            sQuestMgr.LoadExtraQuestStuff();
+            sObjectMgr.loadEventScripts();
+            sWeatherMgr.loadFromDB();
+            sAddonMgr.LoadFromDB();
+            sGameEventMgr.LoadFromDB();
+            sCalendarMgr.loadFromDB();
+            sCommandTableStorage.loadOverridePermission();
+        }
+    });
     sLogger.info("WordFilter : Loading...");
 
-    g_chatFilter = new WordFilter();
+    g_chatFilter = std::make_unique<WordFilter>();
 
     sLogger.info("Done. Database loaded in {} ms.", static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
@@ -997,7 +1045,7 @@ void World::Update(unsigned long timePassed)
     updateQueuedSessions(static_cast<uint32_t>(timePassed));
     sMapMgr.update();
     sInstanceMgr.update();
-    sGuildMgr.update(static_cast<uint32>(timePassed));
+    sGuildMgr.update(static_cast<uint32_t>(timePassed));
 }
 
 void World::saveAllPlayersToDb()
@@ -1028,7 +1076,7 @@ void World::playSoundToAllPlayers(uint32_t soundId)
 
     for (activeSessionMap::iterator itr = mActiveSessionMapStore.begin(); itr != mActiveSessionMapStore.end(); ++itr)
     {
-        WorldSession* worldSession = itr->second;
+        WorldSession* worldSession = itr->second.get();
         if ((worldSession->GetPlayer() != nullptr) && worldSession->GetPlayer()->IsInWorld())
             worldSession->SendPacket(AscEmu::Packets::SmsgPlaySound(soundId).serialise().get());
     }
@@ -1043,7 +1091,7 @@ void World::logoutAllPlayers()
     sLogger.info("World : Deleting sessions...");
     for (activeSessionMap::iterator i = mActiveSessionMapStore.begin(); i != mActiveSessionMapStore.end();)
     {
-        WorldSession* worldSession = i->second;
+        WorldSession* worldSession = i->second.get();
         ++i;
         deleteSession(worldSession);
     }

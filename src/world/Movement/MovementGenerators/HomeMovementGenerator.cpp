@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -66,8 +66,6 @@ void HomeMovementGenerator<Creature>::doInitialize(Creature* owner)
 {
     removeFlag(MOVEMENTGENERATOR_FLAG_INITIALIZATION_PENDING | MOVEMENTGENERATOR_FLAG_DEACTIVATED);
     addFlag(MOVEMENTGENERATOR_FLAG_INITIALIZED);
-
-    owner->getAIInterface()->setNoSearchAssistance(false);
 
     setTargetLocation(owner);
 }

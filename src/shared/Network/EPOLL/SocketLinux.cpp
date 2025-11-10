@@ -10,7 +10,7 @@
 
 #ifdef CONFIG_USE_EPOLL
 
-void Socket::PostEvent(uint32 events)
+void Socket::PostEvent(uint32_t events)
 {
     int epoll_fd = sSocketMgr.GetEpollFd();
 
@@ -24,19 +24,19 @@ void Socket::PostEvent(uint32 events)
         sLogger.warning("epoll : Could not post event on fd {}", m_fd);
 }
 
-void Socket::ReadCallback(uint32 len)
+void Socket::ReadCallback(uint32_t len)
 {
     if(IsDeleted() || !IsConnected())
         return;
 
     // We have to lock here.
-    m_readMutex.Acquire();
+    m_readMutex.acquire();
 
     size_t space = readBuffer.GetSpace();
     int bytes = recv(m_fd, readBuffer.GetBuffer(), space, 0);
     if(bytes <= 0)
     {
-        m_readMutex.Release();
+        m_readMutex.release();
         Disconnect();
         return;
     }
@@ -49,7 +49,7 @@ void Socket::ReadCallback(uint32 len)
     }
     m_BytesRecieved += bytes;
 
-    m_readMutex.Release();
+    m_readMutex.release();
 }
 
 void Socket::WriteCallback()

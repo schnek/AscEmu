@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -39,17 +39,17 @@ void AccountMgr::finalize()
 
 void AccountMgr::addAccount(Field* field)
 {
-    auto account = std::make_shared<Account>();
+    auto account = std::make_unique<Account>();
 
-    account->AccountId = field[0].GetUInt32();
+    account->AccountId = field[0].asUint32();
 
-    std::string accountName = field[1].GetString();
-    std::string encryptedPassword = field[2].GetString();
+    std::string accountName = field[1].asCString();
+    std::string encryptedPassword = field[2].asCString();
 
-    account->AccountFlags = field[3].GetUInt8();
-    account->Banned = field[4].GetUInt32();
-    account->forcedLanguage = field[5].GetString();
-    account->Muted = field[6].GetUInt32();
+    account->AccountFlags = field[3].asUint8();
+    account->Banned = field[4].asUint32();
+    account->forcedLanguage = field[5].asCString();
+    account->Muted = field[6].asUint32();
 
     if (static_cast<uint32_t>(UNIXTIME) > account->Banned && account->Banned != 0 && account->Banned != 1)
     {
@@ -96,10 +96,10 @@ void AccountMgr::addAccount(Field* field)
 
     AscEmu::Util::Strings::toUpperCase(accountName);
 
-    _accountMap[accountName] = account;
+    _accountMap.insert_or_assign(accountName, std::move(account));
 }
 
-std::shared_ptr<Account> AccountMgr::getAccountByName(std::string& Name)
+Account* AccountMgr::getAccountByName(std::string const& Name) const
 {
     std::lock_guard lock(accountMgrMutex);
 
@@ -108,11 +108,11 @@ std::shared_ptr<Account> AccountMgr::getAccountByName(std::string& Name)
     return pAccount;
 }
 
-void AccountMgr::updateAccount(std::shared_ptr<Account> account, Field* field)
+void AccountMgr::updateAccount(Account* account, Field* field) const
 {
-    const uint32_t id = field[0].GetUInt32();
-    std::string accountName = field[1].GetString();
-    std::string encryptedPassword = field[2].GetString();
+    const uint32_t id = field[0].asUint32();
+    std::string accountName = field[1].asCString();
+    std::string encryptedPassword = field[2].asCString();
 
     if (id != account->AccountId)
     {
@@ -121,10 +121,10 @@ void AccountMgr::updateAccount(std::shared_ptr<Account> account, Field* field)
         return;
     }
 
-    account->AccountFlags = field[3].GetUInt8();
-    account->Banned = field[4].GetUInt32();
-    account->forcedLanguage = field[5].GetString();
-    account->Muted = field[6].GetUInt32();
+    account->AccountFlags = field[3].asUint8();
+    account->Banned = field[4].asUint32();
+    account->forcedLanguage = field[5].asCString();
+    account->Muted = field[6].asUint32();
 
     if (static_cast<uint32_t>(UNIXTIME) > account->Banned && account->Banned != 0 && account->Banned != 1)
     {
@@ -179,13 +179,13 @@ void AccountMgr::reloadAccounts(bool silent)
 
     std::set<std::string> account_list;
 
-    QueryResult* result = sLogonSQL->Query("SELECT id, acc_name, encrypted_password, flags, banned, forceLanguage, muted FROM accounts");
+    auto result = sLogonSQL->Query("SELECT id, acc_name, encrypted_password, flags, banned, forceLanguage, muted FROM accounts");
     if (result)
     {
         do
         {
             Field* field = result->Fetch();
-            std::string accountName = field[1].GetString();
+            std::string accountName = field[1].asCString();
 
             AscEmu::Util::Strings::toUpperCase(accountName);
 
@@ -198,8 +198,6 @@ void AccountMgr::reloadAccounts(bool silent)
             account_list.insert(accountName);
 
         } while (result->NextRow());
-
-        delete result;
     }
 
     for (auto accounts = _accountMap.begin(); accounts != _accountMap.end();)
@@ -222,16 +220,16 @@ size_t AccountMgr::getCount() const
     return _accountMap.size();
 }
 
-std::map<std::string, std::shared_ptr<Account>> AccountMgr::getAccountMap() const
+std::map<std::string, std::unique_ptr<Account>> const& AccountMgr::getAccountMap() const
 {
     return _accountMap;
 }
 
-std::shared_ptr<Account> AccountMgr::_getAccountByNameLockFree(std::string& Name)
+Account* AccountMgr::_getAccountByNameLockFree(std::string const& Name) const
 {
     const auto itr = _accountMap.find(Name);
     if (itr == _accountMap.end())
         return nullptr;
 
-    return itr->second;
+    return itr->second.get();
 }

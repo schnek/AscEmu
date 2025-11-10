@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,6 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "CommonTypes.hpp"
 #include <mutex>
+#include <cstdio>
 
 class WorldPacket;
 
@@ -66,4 +67,5 @@ public:
 
     // WorldSession.cpp
     void writefromsession(WorldSession* session, const char* format, ...);
+    void write(WorldSession* session, const char* format, ...);
 };

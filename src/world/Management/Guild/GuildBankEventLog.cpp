@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -100,26 +100,26 @@ void GuildBankEventLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer& 
 #else
 void GuildBankEventLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer& /*content*/) const
 {
-    data << uint8(mEventType);
+    data << uint8_t(mEventType);
     data << WoWGuid(mPlayerGuid, 0, HIGHGUID_TYPE_PLAYER);
 
     switch (mEventType)
     {
         case GB_LOG_DEPOSIT_ITEM:
         case GB_LOG_WITHDRAW_ITEM:
-            data << uint32(mItemOrMoney);
-            data << uint32(mItemStackCount);
+            data << uint32_t(mItemOrMoney);
+            data << uint32_t(mItemStackCount);
             break;
         case GB_LOG_MOVE_ITEM:
         case GB_LOG_MOVE_ITEM2:
-            data << uint32(mItemOrMoney);
-            data << uint32(mItemStackCount);
-            data << uint8(mDestTabId);
+            data << uint32_t(mItemOrMoney);
+            data << uint32_t(mItemStackCount);
+            data << uint8_t(mDestTabId);
             break;
         default:
-            data << uint32(mItemOrMoney);
+            data << uint32_t(mItemOrMoney);
     }
 
-    data << uint32(time(nullptr) - mTimestamp);
+    data << uint32_t(time(nullptr) - mTimestamp);
 #endif
 }

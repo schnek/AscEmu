@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,10 +7,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Macros/ItemMacros.hpp"
 #include "Objects/ItemDefines.hpp"
-#include "Utilities/Util.hpp"
 
-#include <cstdint>
 #include <string>
+#include <math.h>
+#include <map>
 
 class Spell;
 
@@ -34,7 +34,7 @@ struct ItemProperties
     uint32_t RequiredLevel;
     uint16_t RequiredSkill;
     uint32_t RequiredSkillRank;
-    uint32_t RequiredSkillSubRank; // required spell
+    uint32_t RequiredSpell;
     uint32_t RequiredPlayerRank1;
     uint32_t RequiredPlayerRank2;
     uint32_t RequiredFaction;
@@ -42,18 +42,18 @@ struct ItemProperties
     uint32_t Unique;
     uint32_t MaxCount;
     uint32_t ContainerSlots; // uint8_t
-    uint32_t itemstatscount;
-    ItemStat Stats[MAX_ITEM_PROTO_STATS];
+    //uint32_t itemstatscount = 0;
+    //ItemStat Stats[MAX_ITEM_PROTO_STATS];
     uint32_t ScalingStatsEntry;
     uint32_t ScalingStatsFlag;
     ItemDamage Damage[MAX_ITEM_PROTO_DAMAGES];
     uint32_t Armor;
-    uint32_t HolyRes;
-    uint32_t FireRes;
-    uint32_t NatureRes;
-    uint32_t FrostRes;
-    uint32_t ShadowRes;
-    uint32_t ArcaneRes;
+    /*uint32_t HolyRes = 0;
+    uint32_t FireRes = 0;
+    uint32_t NatureRes = 0;
+    uint32_t FrostRes = 0;
+    uint32_t ShadowRes = 0;
+    uint32_t ArcaneRes = 0;*/
     uint32_t Delay;
     uint32_t AmmoType;
     float Range;
@@ -80,7 +80,7 @@ struct ItemProperties
     uint32_t SocketBonus;
     uint32_t GemProperties;
     int32_t DisenchantReqSkill;
-    uint32_t ArmorDamageModifier;
+    float ArmorDamageModifier;
     uint32_t ExistingDuration;
     uint32_t ItemLimitCategory;
     uint32_t HolidayId;
@@ -89,56 +89,25 @@ struct ItemProperties
     std::string lowercase_name; // used in auctions
     int32_t ForcedPetId;
 
-    bool HasFlag(uint32_t flag) const
-    {
-        if ((Flags & flag) != 0)
-            return true;
-
-        return false;
-    }
+    bool HasFlag(uint32_t flag) const;
     
-    bool HasFlag2(uint32_t flag) const
-    {
-        if ((Flags2 & flag) != 0)
-            return true;
-        
-        return false;
-    }
+    bool HasFlag2(uint32_t flag) const;
 
-    bool isPotion() const { return Class == ITEM_CLASS_CONSUMABLE && SubClass == ITEM_SUBCLASS_POTION; }
-    bool isVellum() const { return Class == ITEM_CLASS_TRADEGOODS && SubClass == ITEM_SUBCLASS_ARMOR_ENCHANTMENT; }
-    bool isConjuredConsumable() const { return Class == ITEM_CLASS_CONSUMABLE && (Flags & ITEM_FLAG_CONJURED); }
-    bool isCurrencyToken() const { return BagFamily & ITEM_TYPE_CURRENCY; }
+    bool isPotion() const;
+    bool isVellum() const;
+    bool isConjuredConsumable() const;
+    bool isCurrencyToken() const;
 
-    bool isRangedWeapon() const
-    {
-        return Class == ITEM_CLASS_WEAPON ||
-            SubClass == ITEM_SUBCLASS_WEAPON_BOW ||
-            SubClass == ITEM_SUBCLASS_WEAPON_GUN ||
-            SubClass == ITEM_SUBCLASS_WEAPON_CROSSBOW;
-    }
+    bool isRangedWeapon() const;
 
-    uint32_t getBuyPriceForItem(uint32_t count, uint32_t factionStanding) const
-    {
-        const float pricemod[9] =
-        {
-            1.0f,        // HATED
-            1.0f,        // HOSTILE
-            1.0f,        // UNFRIENDLY
-            1.0f,        // NEUTRAL
-            0.95f,       // FRIENDLY
-            0.90f,       // HONORED
-            0.85f,       // REVERED
-            0.80f        // EXHALTED
-        };
+    uint32_t getBuyPriceForItem(uint32_t count, uint32_t factionStanding) const;
 
-        int32_t cost = BuyPrice;
+    std::map<uint32_t, int32_t> generalStatsMap;
+    std::map<uint32_t, int32_t> resistanceStatsMap;
 
-        if (factionStanding && factionStanding <= 8)
-            cost = Util::float2int32(ceilf(BuyPrice * pricemod[factionStanding]));
-
-        return cost * count;
-    }
+    void addStat(uint32_t type, int32_t value);
+    int32_t getStat(uint32_t type) const;
+    bool hasStat(uint32_t type) const;
 };
 
 struct ItemSet

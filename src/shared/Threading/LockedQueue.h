@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 #ifndef _THREADING_LOCKEDQUEUE_H
 #define _THREADING_LOCKEDQUEUE_H
 
-#include "Mutex.h"
+#include "Mutex.hpp"
 #include <deque>
 
 template<class TYPE>
@@ -31,54 +31,54 @@ class LockedQueue
 
         inline void add(const TYPE & element)
         {
-            mutex.Acquire();
+            mutex.acquire();
             queue.push_back(element);
-            mutex.Release();
+            mutex.release();
         }
 
         inline TYPE next()
         {
-            mutex.Acquire();
+            mutex.acquire();
             assert(queue.size() > 0);
             TYPE t = queue.front();
             queue.pop_front();
-            mutex.Release();
+            mutex.release();
             return t;
         }
 
         inline size_t size()
         {
-            mutex.Acquire();
+            mutex.acquire();
             size_t c = queue.size();
-            mutex.Release();
+            mutex.release();
             return c;
         }
 
         inline TYPE get_first_element()
         {
-            mutex.Acquire();
+            mutex.acquire();
             TYPE t;
             if(queue.size() == 0)
                 t = reinterpret_cast<TYPE>(0);
             else
                 t = queue.front();
-            mutex.Release();
+            mutex.release();
             return t;
         }
 
         inline void pop()
         {
-            mutex.Acquire();
+            mutex.acquire();
             ASSERT(queue.size() > 0);
             queue.pop_front();
-            mutex.Release();
+            mutex.release();
         }
 
         inline void clear()
         {
-            mutex.Acquire();
+            mutex.acquire();
             queue.resize(0);
-            mutex.Release();
+            mutex.release();
         }
 
     protected:

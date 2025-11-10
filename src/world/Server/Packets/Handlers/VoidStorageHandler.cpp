@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -14,18 +14,18 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Management/ObjectMgr.hpp"
 #include "Objects/Item.hpp"
 
-
-#if VERSION_STRING >= Cata
-
 void WorldSession::sendVoidStorageTransferResult(uint8_t result)
 {
+#if VERSION_STRING >= Cata
     WorldPacket data(SMSG_VOID_TRANSFER_RESULT, 4);
     data << uint32_t(result);
     SendPacket(&data);
+#endif
 }
 
 void WorldSession::handleVoidStorageUnlock(WorldPacket& recvData)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_VOID_STORAGE_UNLOCK");
 
     Player* player = GetPlayer();
@@ -71,10 +71,12 @@ void WorldSession::handleVoidStorageUnlock(WorldPacket& recvData)
 
     player->modCoinage(-int64_t(VOID_STORAGE_UNLOCK));
     player->unlockVoidStorage();
+#endif
 }
 
 void WorldSession::handleVoidStorageQuery(WorldPacket& recvData)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_VOID_STORAGE_QUERY");
     Player* player = GetPlayer();
 
@@ -187,10 +189,12 @@ void WorldSession::handleVoidStorageQuery(WorldPacket& recvData)
     data.append(itemData);
 
     SendPacket(&data);
+#endif
 }
 
 void WorldSession::handleVoidStorageTransfer(WorldPacket& recvData)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_VOID_STORAGE_TRANSFER");
     Player* player = GetPlayer();
 
@@ -337,7 +341,7 @@ void WorldSession::handleVoidStorageTransfer(WorldPacket& recvData)
         Item* item = player->getItemInterface()->GetItemByGUID(*itr);
         if (!item)
         {
-            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) wants to deposit an invalid item (item guid: %I64u).", player->getGuidLow(), player->getName(), uint64(*itr));
+            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) wants to deposit an invalid item (item guid: %I64u).", player->getGuidLow(), player->getName(), uint64_t(*itr));
             continue;
         }
 
@@ -363,17 +367,18 @@ void WorldSession::handleVoidStorageTransfer(WorldPacket& recvData)
         VoidStorageItem* itemVS = player->getVoidStorageItem(*itr, slot);
         if (!itemVS)
         {
-            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) tried to withdraw an invalid item (id: %I64u)", player->getGuidLow(), player->getName(), uint64(*itr));
+            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) tried to withdraw an invalid item (id: %I64u)", player->getGuidLow(), player->getName(), uint64_t(*itr));
             continue;
         }
 
-        Item* item = sObjectMgr.createItem(itemVS->itemEntry, player);
+        auto itemHolder = sObjectMgr.createItem(itemVS->itemEntry, player);
 
-        AddItemResult msg = player->getItemInterface()->AddItemToFreeSlot(item);
+        auto* item = itemHolder.get();
+        const auto [msg, _] = player->getItemInterface()->AddItemToFreeSlot(std::move(itemHolder));
         if (msg != ADD_ITEM_RESULT_OK)
         {
             sendVoidStorageTransferResult(VOID_TRANSFER_ERROR_INVENTORY_FULL);
-            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) couldn't withdraw item id %I64u because inventory was full.", player->getGuidLow(), player->getName(), uint64(*itr));
+            sLogger.debug("handleVoidStorageTransfer - Player (GUID: {}, name: {}) couldn't withdraw item id %I64u because inventory was full.", player->getGuidLow(), player->getName(), uint64_t(*itr));
             return;
         }
 
@@ -479,10 +484,12 @@ void WorldSession::handleVoidStorageTransfer(WorldPacket& recvData)
     sendVoidStorageTransferResult(VOID_TRANSFER_ERROR_NO_ERROR);
 
     player->saveVoidStorage();
+#endif
 }
 
 void WorldSession::handleVoidSwapItem(WorldPacket& recvData)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_VOID_SWAP_ITEM");
 
     Player* player = GetPlayer();
@@ -549,7 +556,7 @@ void WorldSession::handleVoidSwapItem(WorldPacket& recvData)
     uint8_t oldSlot;
     if (!player->getVoidStorageItem(itemId, oldSlot))
     {
-        sLogger.debug("handleVoidSwapItem - Player (GUID: {}, name: {}) requested swapping an invalid item (slot: {}, itemid: %I64u).", player->getGuidLow(), player->getName(), newSlot, uint64(itemId));
+        sLogger.debug("handleVoidSwapItem - Player (GUID: {}, name: {}) requested swapping an invalid item (slot: {}, itemid: %I64u).", player->getGuidLow(), player->getName(), newSlot, uint64_t(itemId));
         return;
     }
 
@@ -633,5 +640,6 @@ void WorldSession::handleVoidSwapItem(WorldPacket& recvData)
     SendPacket(&data);
 
     player->saveVoidStorage();
-}
 #endif
+}
+

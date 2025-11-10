@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,7 +7,6 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "AEVersion.hpp"
 #include "WorldConf.h"
-#include "CommonTypes.hpp"
 #include "CreatureAIScript.hpp"
 #include "Management/GameEvent.hpp"
 #include "Management/ObjectMgr.hpp"
@@ -22,9 +21,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <fstream>
 
-#include <git_version.h>
+#include <git_version.hpp>
 
 #include "AchievementScript.hpp"
+#include "DynLib.hpp"
 #include "QuestScript.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/GameEventMgr.hpp"
@@ -33,6 +33,19 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/ServerState.h"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellInfo.hpp"
+
+#ifdef WIN32
+    #define LIBMASK ".dll";
+#else
+    #ifndef __APPLE__
+        #define LIBMASK ".so";
+    #else
+        #define LIBMASK ".dylib";
+    #endif
+#endif
+
+ScriptMgr::ScriptMgr() = default;
+ScriptMgr::~ScriptMgr() = default;
 
 ScriptMgr& ScriptMgr::getInstance()
 {
@@ -401,16 +414,9 @@ void ScriptMgr::_register_spell_script(uint32_t spellId, SpellScript* ss)
 
 struct ScriptingEngine_dl
 {
-    Arcemu::DynLib* dl;
-    exp_script_register InitializeCall;
-    uint32_t Type;
-
-    ScriptingEngine_dl()
-    {
-        dl = nullptr;
-        InitializeCall = nullptr;
-        Type = 0;
-    }
+    std::unique_ptr<Arcemu::DynLib> dl = nullptr;
+    exp_script_register InitializeCall = nullptr;
+    uint32_t Type = 0;
 };
 
 void ScriptMgr::LoadScripts()
@@ -431,7 +437,7 @@ void ScriptMgr::LoadScripts()
     {
         std::stringstream loadMessageStream;
         auto fileName = modulePath + content.second;
-        auto dynLib = new Arcemu::DynLib(fileName.c_str());
+        auto dynLib = std::make_unique<Arcemu::DynLib>(fileName.c_str());
 
         loadMessageStream << dynLib->GetName() << " : ";
 
@@ -439,7 +445,6 @@ void ScriptMgr::LoadScripts()
         {
             loadMessageStream << "ERROR: Cannot open library.";
             sLogger.failure(loadMessageStream.str());
-            delete dynLib;
             continue;
         }
 
@@ -448,7 +453,6 @@ void ScriptMgr::LoadScripts()
         {
             loadMessageStream << "ERROR: Cannot find set_serverstate_call function.";
             sLogger.failure(loadMessageStream.str());
-            delete dynLib;
             continue;
         }
 
@@ -461,38 +465,36 @@ void ScriptMgr::LoadScripts()
         {
             loadMessageStream << "ERROR: Cannot find version functions.";
             sLogger.failure(loadMessageStream.str());
-            delete dynLib;
             continue;
         }
 
         std::string dllVersion = versionCall();
         uint32_t scriptType = typeCall();
 
-        if (dllVersion != BUILD_HASH_STR)
+        if (dllVersion != AE_BUILD_HASH)
         {
             loadMessageStream << "ERROR: Version mismatch.";
             sLogger.failure(loadMessageStream.str());
-            delete dynLib;
             continue;
         }
 
-        loadMessageStream << std::string(BUILD_HASH_STR) << " : ";
+        loadMessageStream << std::string(AE_BUILD_HASH) << " : ";
 
         if ((scriptType & SCRIPT_TYPE_SCRIPT_ENGINE) != 0)
         {
             ScriptingEngine_dl scriptingEngineDl;
-            scriptingEngineDl.dl = dynLib;
+            scriptingEngineDl.dl = std::move(dynLib);
             scriptingEngineDl.InitializeCall = registerCall;
             scriptingEngineDl.Type = scriptType;
 
-            scriptingEngineDls.push_back(scriptingEngineDl);
+            scriptingEngineDls.push_back(std::move(scriptingEngineDl));
 
             loadMessageStream << "delayed load";
         }
         else
         {
             registerCall(this);
-            dynamiclibs.push_back(dynLib);
+            dynamiclibs.push_back(std::move(dynLib));
 
             loadMessageStream << "loaded";
         }
@@ -513,7 +515,7 @@ void ScriptMgr::LoadScripts()
         for (auto& engineDl : scriptingEngineDls)
         {
             engineDl.InitializeCall(this);
-            dynamiclibs.push_back(engineDl.dl);
+            dynamiclibs.push_back(std::move(engineDl.dl));
         }
 
         sLogger.info("ScriptMgr : Done loading scripting engine(s)...");
@@ -539,9 +541,6 @@ void ScriptMgr::UnloadScripts()
         itr = _spellScripts.erase(itr);
 
     UnloadScriptEngines();
-
-    for (DynamicLibraryMap::iterator itr = dynamiclibs.begin(); itr != dynamiclibs.end(); ++itr)
-        delete *itr;
 
     dynamiclibs.clear();
 }
@@ -796,7 +795,6 @@ CreatureAIScript* ScriptMgr::CreateAIScriptClassForEntry(Creature* pCreature)
 {
     uint32_t entry = pCreature->getEntry();
 
-    std::lock_guard lock(m_creaturesMutex);
     CreatureCreateMap::iterator itr = _creatures.find(entry);
     if (itr == _creatures.end())
         return nullptr;
@@ -1014,7 +1012,7 @@ void ScriptMgr::ReloadScriptEngines()
 
     for (DynamicLibraryMap::iterator itr = dynamiclibs.begin(); itr != dynamiclibs.end(); ++itr)
     {
-        Arcemu::DynLib* dl = *itr;
+        const auto& dl = *itr;
 
         version_function = reinterpret_cast<exp_get_script_type>(dl->GetAddressForSymbol("_exp_get_script_type"));
         if (version_function == nullptr)
@@ -1037,7 +1035,7 @@ void ScriptMgr::UnloadScriptEngines()
 
     for (DynamicLibraryMap::iterator itr = dynamiclibs.begin(); itr != dynamiclibs.end(); ++itr)
     {
-        Arcemu::DynLib* dl = *itr;
+        const auto& dl = *itr;
 
         version_function = reinterpret_cast<exp_get_script_type>(dl->GetAddressForSymbol("_exp_get_script_type"));
         if (version_function == nullptr)

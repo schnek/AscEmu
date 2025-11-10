@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -90,13 +90,13 @@ namespace AscEmu::Packets
             packet.WriteByteSeq(guid[3]);
             packet.WriteByteSeq(guid[2]);
 
-            packet << uint32(1);                // size phaseIds
-            packet << uint16(phaseId);
+            packet << uint32_t(1);                // size phaseIds
+            packet << uint16_t(phaseId);
 
             packet.WriteByteSeq(guid[0]);
             packet.WriteByteSeq(guid[6]);
 
-            packet << uint32(0);                // unknown
+            packet << uint32_t(0);                // unknown
 
             packet.WriteByteSeq(guid[1]);
             packet.WriteByteSeq(guid[7]);

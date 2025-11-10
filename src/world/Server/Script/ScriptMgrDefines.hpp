@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -9,6 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <cstdint>
 #include <list>
+#include <memory>
 #include <set>
 #include <unordered_map>
 #include <utility>
@@ -76,7 +77,7 @@ typedef std::unordered_map<uint32_t, GossipScript*> GossipMap;
 typedef std::set<EventScript*> EventScripts;
 typedef std::set<QuestScript*> QuestScripts;
 
-typedef std::list< Arcemu::DynLib* > DynamicLibraryMap;
+typedef std::list<std::unique_ptr<Arcemu::DynLib>> DynamicLibraryMap;
 
 enum RangeStatus
 {

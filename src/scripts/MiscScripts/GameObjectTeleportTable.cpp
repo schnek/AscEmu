@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -83,32 +83,30 @@ public:
 
 void InitializeGameObjectTeleportTable(ScriptMgr* mgr)
 {
-    QueryResult* result = WorldDatabase.Query("SELECT entry, mapid, x_pos, y_pos, z_pos, orientation, required_level, required_class, required_achievement FROM gameobject_teleports");
+    auto result = WorldDatabase.Query("SELECT entry, mapid, x_pos, y_pos, z_pos, orientation, required_level, required_class, required_achievement FROM gameobject_teleports");
     if (result != NULL)
     {
         // Check if the SQL table is setup correctly
         if (result->GetFieldCount() < 9)
         {
             DLLLogDetail("Error: Custom portals disabled, invalid 'gameobject_teleports' table.");
-            delete result;
             return;
         }
         do
         {
             GameobjectTeleport* gt = new GameobjectTeleport;
             Field* fields = result->Fetch();
-            uint32_t entry = fields[0].GetUInt32();
-            gt->mapid = fields[1].GetUInt32();
-            gt->x = fields[2].GetFloat();
-            gt->y = fields[3].GetFloat();
-            gt->z = fields[4].GetFloat();
-            gt->o = fields[5].GetFloat();
-            gt->req_level = fields[6].GetUInt32();
-            gt->req_class = fields[7].GetUInt8();
-            gt->req_achievement = fields[8].GetUInt32();
+            uint32_t entry = fields[0].asUint32();
+            gt->mapid = fields[1].asUint32();
+            gt->x = fields[2].asFloat();
+            gt->y = fields[3].asFloat();
+            gt->z = fields[4].asFloat();
+            gt->o = fields[5].asFloat();
+            gt->req_level = fields[6].asUint32();
+            gt->req_class = fields[7].asUint8();
+            gt->req_achievement = fields[8].asUint32();
             m_teleStorage[entry] = gt;
             mgr->register_gameobject_script(entry, &CustomTeleport::Create);
         } while (result->NextRow());
-        delete result;
     }
 }

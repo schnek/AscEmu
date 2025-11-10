@@ -1,9 +1,9 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Management/AchievementMgr.h"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/WorldSessionLog.hpp"
@@ -12,7 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #if VERSION_STRING > TBC
 //.achieve complete
-bool ChatHandler::HandleAchievementCompleteCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAchievementCompleteCommand(const char* args, WorldSession* m_session)
 {
     Player* selected_player = GetSelectedPlayer(m_session, true, true);
     if (selected_player == nullptr)
@@ -24,18 +24,18 @@ bool ChatHandler::HandleAchievementCompleteCommand(const char* args, WorldSessio
     if (AscEmu::Util::Strings::isEqual(args, "all"))
     {
         selected_player->getAchievementMgr()->gmCompleteAchievement(m_session, 0, true);
-        SystemMessage(m_session, "All achievements have now been completed for that player.");
+        systemMessage(m_session, "All achievements have now been completed for that player.");
         sGMLog.writefromsession(m_session, "completed all achievements for player %s", selected_player->getName().c_str());
         return true;
     }
 
-    uint32_t achievement_id = atol(args);
+    uint32_t achievement_id = std::stoul(args);
     if (achievement_id == 0)
         return false;
 
     if (selected_player->getAchievementMgr()->gmCompleteAchievement(m_session, achievement_id))
     {
-        SystemMessage(m_session, "The achievement has now been completed for that player.");
+        systemMessage(m_session, "The achievement has now been completed for that player.");
         sGMLog.writefromsession(m_session, "completed achievement %u for player %s", achievement_id, selected_player->getName().c_str());
     }
 
@@ -43,7 +43,7 @@ bool ChatHandler::HandleAchievementCompleteCommand(const char* args, WorldSessio
 }
 
 //.achieve criteria
-bool ChatHandler::HandleAchievementCriteriaCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAchievementCriteriaCommand(const char* args, WorldSession* m_session)
 {
     Player* selected_player = GetSelectedPlayer(m_session, true, true);
     if (selected_player == nullptr)
@@ -52,13 +52,13 @@ bool ChatHandler::HandleAchievementCriteriaCommand(const char* args, WorldSessio
     if (!*args)
         return false;
 
-    uint32_t criteria_id = atol(args);
+    uint32_t criteria_id = std::stoul(args);
     if (criteria_id == 0)
     {
         if (AscEmu::Util::Strings::isEqual(args, "all"))
         {
             selected_player->getAchievementMgr()->gmCompleteCriteria(m_session, 0, true);
-            SystemMessage(m_session, "All achievement criteria have now been completed for that player.");
+            systemMessage(m_session, "All achievement criteria have now been completed for that player.");
             sGMLog.writefromsession(m_session, "completed all achievement criteria for player %s", selected_player->getName().c_str());
             return true;
         }
@@ -67,7 +67,7 @@ bool ChatHandler::HandleAchievementCriteriaCommand(const char* args, WorldSessio
     
     if (selected_player->getAchievementMgr()->gmCompleteCriteria(m_session, criteria_id))
     {
-        SystemMessage(m_session, "The achievement criteria has now been completed for that player.");
+        systemMessage(m_session, "The achievement criteria has now been completed for that player.");
         sGMLog.writefromsession(m_session, "completed achievement criteria %u for player %s", criteria_id, selected_player->getName().c_str());
     }
 
@@ -75,7 +75,7 @@ bool ChatHandler::HandleAchievementCriteriaCommand(const char* args, WorldSessio
 }
 
 //.achieve reset
-bool ChatHandler::HandleAchievementResetCommand(const char* args, WorldSession* m_session)
+bool ChatCommandHandler::handleAchievementResetCommand(const char* args, WorldSession* m_session)
 {
     Player* selected_player = GetSelectedPlayer(m_session, true, true);
     if (selected_player == nullptr)
@@ -89,9 +89,11 @@ bool ChatHandler::HandleAchievementResetCommand(const char* args, WorldSession* 
     bool resetAll = false;
     uint32_t achievement_id = 0;
 
-    if (strnicmp(args, "criteria ", 9) == 0)
+    std::string criteria(args, 9);
+
+    if (AscEmu::Util::Strings::isEqual(criteria, "criteria "))
     {
-        achievement_id = atol(args + 9);
+        achievement_id = std::stoul(args + 9);
         if (achievement_id == 0)
         {
             if (!AscEmu::Util::Strings::isEqual(args + 9, "all"))
@@ -109,7 +111,7 @@ bool ChatHandler::HandleAchievementResetCommand(const char* args, WorldSession* 
     }
     else
     {
-        achievement_id = atol(args);
+        achievement_id = std::stoul(args);
         if (achievement_id == 0)
         {
             if (args == nullptr)
@@ -120,7 +122,7 @@ bool ChatHandler::HandleAchievementResetCommand(const char* args, WorldSession* 
                 return false;
 
             // achievement id is just past "|Hachievement:" (14 bytes)
-            achievement_id = atol(ptr + 14);
+            achievement_id = std::stoul(ptr + 14);
 
             if (achievement_id == 0)
                 return false;

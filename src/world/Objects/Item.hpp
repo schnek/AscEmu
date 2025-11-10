@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -27,6 +27,9 @@ struct EnchantmentInstance
 {
     // Durations for temporary enchantments are stored in ItemInterface and WoWItem data
     WDB::Structures::SpellItemEnchantmentEntry const* Enchantment;
+#if VERSION_STRING >= Cata
+    std::unique_ptr<WDB::Structures::SpellItemEnchantmentEntry> customEnchantmentHolder;
+#endif
     bool BonusApplied;
     EnchantmentSlot Slot;
     bool RemoveAtLogout;
@@ -108,6 +111,18 @@ public:
 #endif
 
     //////////////////////////////////////////////////////////////////////////////////////////
+    // Override Object functions
+
+    // Returns unit owner
+    Unit* getUnitOwner() override;
+    // Returns unit owner
+    Unit const* getUnitOwner() const override;
+    // Returns player owner
+    Player* getPlayerOwner() override;
+    // Returns player owner
+    Player const* getPlayerOwner() const override;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
     // m_enchantments
     EnchantmentInstance* getEnchantment(EnchantmentSlot slot);
     EnchantmentInstance const* getEnchantment(EnchantmentSlot slot) const;
@@ -178,6 +193,7 @@ protected:
 public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // Misc
+    // TODO: remove this and replace it with virtual Object::getPlayerOwner()
     Player* getOwner() const;
     void setOwner(Player* owner);
 
@@ -228,7 +244,6 @@ public:
     void saveToDB(int8_t containerslot, int8_t slot, bool firstsave, QueryBuffer* buf);
     bool loadAuctionItemFromDB(uint64_t guid);
     void deleteFromDB();
-    void deleteMe();
     bool isEligibleForRefund();
 
     uint32_t getChargesLeft() const;
@@ -238,7 +253,7 @@ public:
     uint32_t getSellPrice(uint32_t count);
     void removeFromWorld();
 
-    Loot* m_loot = nullptr;
+    std::unique_ptr<Loot> m_loot;
     bool m_isLocked = false;
     bool m_isDirty = false;
 

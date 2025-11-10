@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -44,6 +44,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellTarget.h"
 #include "Storage/MySQLDataStore.hpp"
 #include "Objects/Units/Creatures/Pet.h"
+#include "Objects/Units/Creatures/Summons/SummonHandler.hpp"
 #include "Objects/Units/Creatures/Vehicle.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Movement/Spline/MoveSpline.h"
@@ -54,7 +55,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgMoveKnockBack.h"
 #include "Server/Script/ScriptMgr.hpp"
 #include "Creatures/CreatureGroups.h"
-#include "Creatures/Summons/SummonHandler.hpp"
 #include "Management/AchievementMgr.h"
 #include "Management/Group.h"
 #include "Management/ItemInterface.h"
@@ -77,6 +77,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/HookInterface.hpp"
 #include "Spell/Spell.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
+#include "Utilities/Narrow.hpp"
+#include "Utilities/Random.hpp"
 
 #if VERSION_STRING <= TBC
 #include "Server/Packets/SmsgUpdateAuraDuration.h"
@@ -86,11 +88,15 @@ This file is released under the MIT license. See README-MIT for more information
 using namespace AscEmu::Packets;
 
 Unit::Unit() :
-    movespline(new MovementMgr::MoveSpline()),
-    i_movementManager(new MovementManager(this)),
-    m_summonInterface(new SummonHandler),
+    movespline(std::make_unique<MovementMgr::MoveSpline>()),
+    i_movementManager(std::make_unique<MovementManager>(this)),
+    m_summonInterface(std::make_unique<SummonHandler>(this)),
     m_combatHandler(this),
-    m_aiInterface(new AIInterface())
+    m_aiInterface(std::make_unique<AIInterface>()),
+#ifdef FT_VEHICLES
+    m_vehicleKit(nullptr),
+#endif
+    m_damageSplitTarget(nullptr)
 {
     m_objectType |= TYPE_UNIT;
 
@@ -102,7 +108,8 @@ Unit::Unit() :
 
     m_lastAiInterfaceUpdateTime = Util::getMSTime();
 
-    m_summonInterface->setUnitOwner(this);
+    std::fill(m_auraList.begin(), m_auraList.end(), nullptr);
+
     m_aiInterface->Init(this);
     getThreatManager().initialize();
 }
@@ -110,15 +117,6 @@ Unit::Unit() :
 Unit::~Unit()
 {
     removeAllAuras();
-
-    delete movespline;
-    movespline = nullptr;
-
-    delete i_movementManager;
-    i_movementManager = nullptr;
-
-    delete m_aiInterface;
-    m_aiInterface = nullptr;
 
     for (uint8_t i = 0; i < CURRENT_SPELL_MAX; ++i)
     {
@@ -129,23 +127,10 @@ Unit::~Unit()
     for (uint8_t i = 0; i < MAX_SPELLMOD_TYPE; ++i)
         m_spellModifiers[i].clear();
 
-    if (m_damageSplitTarget)
-    {
-        delete m_damageSplitTarget;
-        m_damageSplitTarget = nullptr;
-    }
-
-    // reflects not created by auras need to be deleted manually
-    for (auto reflectSpellSchool = m_reflectSpellSchool.begin(); reflectSpellSchool != m_reflectSpellSchool.end(); ++reflectSpellSchool)
-        delete* reflectSpellSchool;
-
-    m_reflectSpellSchool.clear();
-
     for (auto extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
     {
-        ExtraStrike* extraStrike = *extraStrikeTarget;
+        const auto& extraStrike = *extraStrikeTarget;
         sLogger.failure("ExtraStrike added to Unit {} by Spell ID {} wasn't removed when removing the Aura", getGuid(), extraStrike->spell_info->getId());
-        delete extraStrike;
     }
     m_extraStrikeTargets.clear();
 
@@ -155,15 +140,11 @@ Unit::~Unit()
 
     m_tempAuraMap.clear();
 
-    for (auto procSpell = m_procSpells.begin(); procSpell != m_procSpells.end(); ++procSpell)
-        delete* procSpell;
-
     m_procSpells.clear();
 
     m_singleTargetAura.clear();
 
-    delete m_summonInterface;
-    m_summonInterface = nullptr;
+    m_summonInterface->removeAllSummons();
 
     clearHealthBatch();
 
@@ -178,7 +159,11 @@ void Unit::Update(unsigned long time_passed)
     const auto msTime = Util::getMSTime();
 
     auto diff = msTime - m_lastSpellUpdateTime;
-    if (diff >= 100)
+    if (m_lastSpellUpdateTime == 0)
+    {
+        m_lastSpellUpdateTime = msTime;
+    }
+    else if (diff >= 100)
     {
         // Spells and auras are updated every 100ms
         _UpdateSpells(diff);
@@ -231,7 +216,7 @@ void Unit::Update(unsigned long time_passed)
             {
                 m_powerRegenerationInterruptTime = 0;
 
-#if VERSION_STRING != Classic
+#if VERSION_STRING > TBC
                 if (isPlayer())
                     setUnitFlags2(UNIT_FLAG2_ENABLE_POWER_REGEN);
 #endif
@@ -246,9 +231,13 @@ void Unit::Update(unsigned long time_passed)
         if (m_aiInterface != nullptr)
         {
             diff = msTime - m_lastAiInterfaceUpdateTime;
-            if (diff >= 100)
+            if (m_lastAiInterfaceUpdateTime == 0)
             {
-                m_aiInterface->Update(diff);
+                m_lastAiInterfaceUpdateTime = msTime;
+            }
+            else if (diff >= 100)
+            {
+                m_aiInterface->update(diff);
                 m_lastAiInterfaceUpdateTime = msTime;
             }
         }
@@ -316,6 +305,8 @@ void Unit::RemoveFromWorld(bool free_guid)
     }
 #endif
 
+    m_summonInterface->removeAllSummons();
+
     if (m_dynamicObject != nullptr)
         m_dynamicObject->remove();
 
@@ -382,11 +373,6 @@ void Unit::OnPushToWorld()
 
 void Unit::die(Unit* /*pAttacker*/, uint32_t /*damage*/, uint32_t /*spellid*/)
 {}
-
-void Unit::buildPetSpellList(WorldPacket& data)
-{
-    data << static_cast<uint64_t>(0);
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // WoWData
@@ -1032,64 +1018,64 @@ void Unit::setVirtualItemSlotId(uint8_t slot, uint32_t item_id)
     unit_virtual_item_info virtualItemInfo{};
 
     uint32_t displayId = 0;
-    virtualItemInfo.fields.itemClass = 0;
-    virtualItemInfo.fields.itemSubClass = 0;
+    virtualItemInfo.fields.item_class = 0;
+    virtualItemInfo.fields.item_subclass = 0;
     // Seems to be always -1
     virtualItemInfo.fields.unk0 = -1;
     virtualItemInfo.fields.material = 0;
-    virtualItemInfo.fields.inventoryType = 0;
+    virtualItemInfo.fields.inventory_type = 0;
     virtualItemInfo.fields.sheath = 0;
     if (const auto itemProperties = sMySQLStore.getItemProperties(item_id))
     {
         displayId = itemProperties->DisplayInfoID;
-        virtualItemInfo.fields.itemClass = static_cast<uint8_t>(itemProperties->Class);
-        virtualItemInfo.fields.itemSubClass = static_cast<uint8_t>(itemProperties->SubClass);
+        virtualItemInfo.fields.item_class = static_cast<uint8_t>(itemProperties->Class);
+        virtualItemInfo.fields.item_subclass = static_cast<uint8_t>(itemProperties->SubClass);
         virtualItemInfo.fields.material = static_cast<uint8_t>(itemProperties->LockMaterial);
-        virtualItemInfo.fields.inventoryType = static_cast<uint8_t>(itemProperties->InventoryType);
+        virtualItemInfo.fields.inventory_type = static_cast<uint8_t>(itemProperties->InventoryType);
         virtualItemInfo.fields.sheath = static_cast<uint8_t>(itemProperties->SheathID);
     }
     else if (const auto itemDbc = sItemStore.lookupEntry(item_id))
     {
         displayId = itemDbc->DisplayId;
-        virtualItemInfo.fields.inventoryType = static_cast<uint8_t>(itemDbc->InventoryType);
+        virtualItemInfo.fields.inventory_type = static_cast<uint8_t>(itemDbc->InventoryType);
         virtualItemInfo.fields.sheath = static_cast<uint8_t>(itemDbc->Sheath);
 
         // Following values do not exist in dbcs and must be "hackfixed"
         virtualItemInfo.fields.material = ITEM_MATERIAL_METAL;
-        switch (virtualItemInfo.fields.inventoryType)
+        switch (virtualItemInfo.fields.inventory_type)
         {
             case INVTYPE_WEAPON:
             case INVTYPE_WEAPONMAINHAND:
             case INVTYPE_WEAPONOFFHAND:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_WEAPON;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_SWORD;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_WEAPON;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_SWORD;
                 break;
             case INVTYPE_SHIELD:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_ARMOR;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_ARMOR_SHIELD;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_ARMOR;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_ARMOR_SHIELD;
                 break;
             case INVTYPE_RANGED:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_WEAPON;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_BOW;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_WEAPON;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_BOW;
                 break;
             case INVTYPE_RANGEDRIGHT:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_WEAPON;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_GUN;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_WEAPON;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_GUN;
                 break;
             case INVTYPE_2HWEAPON:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_WEAPON;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_WEAPON;
                 if (virtualItemInfo.fields.sheath == ITEM_SHEATH_STAFF)
-                    virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_STAFF;
+                    virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_STAFF;
                 else
-                    virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_TWOHAND_SWORD;
+                    virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_TWOHAND_SWORD;
                 break;
             case INVTYPE_HOLDABLE:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_MISCELLANEOUS;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_MISC_JUNK;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_MISCELLANEOUS;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_MISC_JUNK;
                 break;
             case INVTYPE_THROWN:
-                virtualItemInfo.fields.itemClass = ITEM_CLASS_WEAPON;
-                virtualItemInfo.fields.itemSubClass = ITEM_SUBCLASS_WEAPON_THROWN;
+                virtualItemInfo.fields.item_class = ITEM_CLASS_WEAPON;
+                virtualItemInfo.fields.item_subclass = ITEM_SUBCLASS_WEAPON_THROWN;
                 break;
             default:
                 return;
@@ -1104,7 +1090,7 @@ void Unit::setVirtualItemSlotId(uint8_t slot, uint32_t item_id)
     {
         dynamic_cast<Creature*>(this)->setVirtualItemEntry(slot, item_id);
         if (slot == OFFHAND)
-            dynamic_cast<Creature*>(this)->toggleDualwield(isProperOffhandWeapon(virtualItemInfo.fields.itemClass, virtualItemInfo.fields.itemSubClass));
+            dynamic_cast<Creature*>(this)->toggleDualwield(isProperOffhandWeapon(virtualItemInfo.fields.item_class, virtualItemInfo.fields.item_subclass));
     }
 
     write(unitData()->virtual_item_slot_display[slot], displayId);
@@ -1138,7 +1124,11 @@ bool Unit::canSwim()
 #endif
     if (isPet() && hasUnitFlags(UNIT_FLAG_PET_IN_COMBAT))
         return true;
+#if VERSION_STRING == Classic
+    return hasUnitFlags(UNIT_FLAG_SWIMMING);
+#else
     return hasUnitFlags(UNIT_FLAG_UNKNOWN_5 | UNIT_FLAG_SWIMMING);
+#endif
 }
 
 #if VERSION_STRING > Classic
@@ -1311,11 +1301,25 @@ uint8_t Unit::getBytes1ByOffset(uint32_t offset) const
         case 0:
             return getStandState();
         case 1:
+#if VERSION_STRING < WotLK
+            return getPetLoyalty();
+#elif VERSION_STRING < Mop
             return getPetTalentPoints();
+#else
+            return unitData()->field_bytes_1.s.unk1;
+#endif
         case 2:
+#if VERSION_STRING == Classic
+            return getShapeShiftForm();
+#else
             return getStandStateFlags();
+#endif
         case 3:
+#if VERSION_STRING == Classic
+            return getStandStateFlags();
+#else
             return getAnimationFlags();
+#endif
         default:
             sLogger.failure("Offset {} is not a valid offset value for byte_1 data (max 3). Returning 0", offset);
             return 0;
@@ -1330,13 +1334,27 @@ void Unit::setBytes1ForOffset(uint32_t offset, uint8_t value)
             setStandState(value);
             break;
         case 1:
+#if VERSION_STRING < WotLK
+            setPetLoyalty(value);
+#elif VERSION_STRING < Mop
             setPetTalentPoints(value);
+#else
+            write(unitData()->field_bytes_1.s.unk1, value);
+#endif
             break;
         case 2:
+#if VERSION_STRING == Classic
+            setShapeShiftForm(value);
+#else
             setStandStateFlags(value);
+#endif
             break;
         case 3:
-            setAnimationTier(AnimationTier(value));
+#if VERSION_STRING == Classic
+            setStandStateFlags(value);
+#else
+            setAnimationFlags(value);
+#endif
             break;
         default:
             sLogger.failure("Offset {} is not a valid offset value for byte_1 data (max 3)", offset);
@@ -1356,14 +1374,28 @@ void Unit::setStandState(uint8_t standState)
         removeAllAurasByAuraInterruptFlag(AURA_INTERRUPT_ON_STAND_UP);
 }
 
+#if VERSION_STRING < WotLK
+uint8_t Unit::getPetLoyalty() const { return unitData()->field_bytes_1.s.pet_loyalty; }
+void Unit::setPetLoyalty(uint8_t loyalty) { write(unitData()->field_bytes_1.s.pet_loyalty, loyalty); }
+#elif VERSION_STRING < Mop
 uint8_t Unit::getPetTalentPoints() const { return unitData()->field_bytes_1.s.pet_talent_points; }
 void Unit::setPetTalentPoints(uint8_t talentPoints) { write(unitData()->field_bytes_1.s.pet_talent_points, talentPoints); }
+#endif
+
+#if VERSION_STRING == Classic
+uint8_t Unit::getShapeShiftForm() const { return unitData()->field_bytes_1.s.shape_shift_form; }
+void Unit::setShapeShiftForm(uint8_t shapeShiftForm) { write(unitData()->field_bytes_1.s.shape_shift_form, shapeShiftForm); }
+#endif
 
 uint8_t Unit::getStandStateFlags() const { return unitData()->field_bytes_1.s.stand_state_flag; }
 void Unit::setStandStateFlags(uint8_t standStateFlags) { write(unitData()->field_bytes_1.s.stand_state_flag, standStateFlags); }
+void Unit::addStandStateFlags(uint8_t standStateFlags) { setStandStateFlags(getStandStateFlags() | standStateFlags); }
+void Unit::removeStandStateFlags(uint8_t standStateFlags) { setStandStateFlags(getStandStateFlags() & ~standStateFlags); }
 
+#if VERSION_STRING != Classic
 uint8_t Unit::getAnimationFlags() const { return unitData()->field_bytes_1.s.animation_flag; }
 void Unit::setAnimationFlags(uint8_t animationFlags) { write(unitData()->field_bytes_1.s.animation_flag, animationFlags); }
+#endif
 //bytes_1 end
 
 uint32_t Unit::getPetNumber() const { return unitData()->pet_number; }
@@ -1452,11 +1484,25 @@ uint8_t Unit::getBytes2ByOffset(uint32_t offset) const
         case 0:
             return getSheathType();
         case 1:
+#if VERSION_STRING == Classic
+            return unitData()->field_bytes_2.s.unk1;
+#elif VERSION_STRING == TBC
+            return getPositiveAuraLimit();
+#else
             return getPvpFlags();
+#endif
         case 2:
+#if VERSION_STRING == Classic
+            return unitData()->field_bytes_2.s.unk2;
+#else
             return getPetFlags();
+#endif
         case 3:
+#if VERSION_STRING == Classic
+            return unitData()->field_bytes_2.s.unk3;
+#else
             return getShapeShiftForm();
+#endif
         default:
             sLogger.failure("Offset {} is not a valid offset value for byte_2 data (max 3). Returning 0", offset);
             return 0;
@@ -1471,13 +1517,27 @@ void Unit::setBytes2ForOffset(uint32_t offset, uint8_t value)
             setSheathType(value);
             break;
         case 1:
+#if VERSION_STRING == Classic
+            write(unitData()->field_bytes_2.s.unk1, value);
+#elif VERSION_STRING == TBC
+            setPositiveAuraLimit(value);
+#else
             setPvpFlags(value);
+#endif
             break;
         case 2:
+#if VERSION_STRING == Classic
+            write(unitData()->field_bytes_2.s.unk2, value);
+#else
             setPetFlags(value);
+#endif
             break;
         case 3:
+#if VERSION_STRING == Classic
+            write(unitData()->field_bytes_2.s.unk3, value);
+#else
             setShapeShiftForm(value);
+#endif
             break;
         default:
             sLogger.failure("Offset {} is not a valid offset value for byte_2 data (max 3)", offset);
@@ -1488,15 +1548,14 @@ void Unit::setBytes2ForOffset(uint32_t offset, uint8_t value)
 uint8_t Unit::getSheathType() const { return unitData()->field_bytes_2.s.sheath_type; }
 void Unit::setSheathType(uint8_t sheathType) { write(unitData()->field_bytes_2.s.sheath_type, sheathType); }
 
+#if VERSION_STRING == TBC
+uint8_t Unit::getPositiveAuraLimit() const { return unitData()->field_bytes_2.s.positive_aura_limit; }
+void Unit::setPositiveAuraLimit(uint8_t limit) { write(unitData()->field_bytes_2.s.positive_aura_limit, limit); }
+#elif VERSION_STRING >= WotLK
 uint8_t Unit::getPvpFlags() const { return unitData()->field_bytes_2.s.pvp_flag; }
 void Unit::setPvpFlags(uint8_t pvpFlags)
 {
     write(unitData()->field_bytes_2.s.pvp_flag, pvpFlags);
-
-#if VERSION_STRING == TBC
-    // TODO Fix this later
-    return;
-#endif
 
     // Update pvp flags also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -1515,12 +1574,17 @@ void Unit::removePvpFlags(uint8_t pvpFlags)
     auto flags = getPvpFlags();
     setPvpFlags(flags &= ~pvpFlags);
 }
+#endif
 
+#if VERSION_STRING >= TBC
 uint8_t Unit::getPetFlags() const { return unitData()->field_bytes_2.s.pet_flag; }
 void Unit::setPetFlags(uint8_t petFlags) { write(unitData()->field_bytes_2.s.pet_flag, petFlags); }
+void Unit::addPetFlags(uint8_t petFlags) { setPetFlags(getPetFlags() | petFlags); }
+void Unit::removePetFlags(uint8_t petFlags) { setPetFlags(getPetFlags() & ~petFlags); }
 
 uint8_t Unit::getShapeShiftForm() const { return unitData()->field_bytes_2.s.shape_shift_form; }
 void Unit::setShapeShiftForm(uint8_t shapeShiftForm) { write(unitData()->field_bytes_2.s.shape_shift_form, shapeShiftForm); }
+#endif
 //bytes_2 end
 
 uint32_t Unit::getAttackPower() const { return unitData()->attack_power; }
@@ -1700,10 +1764,7 @@ float Unit::getMeleeRange(Unit* target)
 
 bool Unit::isInInstance() const
 {
-    if (MySQLStructure::MapInfo const* mapInfo = sMySQLStore.getWorldMapInfo(this->GetMapId()))
-        return !mapInfo->isNonInstanceMap();
-
-    return false;
+    return IsInWorld() && !getWorldMap()->getBaseMap()->isWorldMap();
 }
 
 bool Unit::isInWater() const
@@ -2100,12 +2161,14 @@ void Unit::setMoveHover(bool set_hover)
             sendMessageToSet(&data, false);
         }
 
+#if VERSION_STRING >= TBC
         if (hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
-            setAnimationTier(AnimationTier::Fly);
+            setAnimationFlags(ANIMATION_FLAG_FLY);
         else if (isHovering())
-            setAnimationTier(AnimationTier::Hover);
+            setAnimationFlags(ANIMATION_FLAG_HOVER);
         else
-            setAnimationTier(AnimationTier::Ground);
+            setAnimationFlags(ANIMATION_FLAG_GROUND);
+#endif
     }
 }
 
@@ -2325,11 +2388,11 @@ void Unit::setMoveDisableGravity(bool disable_gravity)
         if (isAlive() && !hasUnitStateFlag(UNIT_STATE_ROOTED))
         {
             if (hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
-                setAnimationTier(AnimationTier::Fly);
+                setAnimationFlags(ANIMATION_FLAG_FLY);
             else if (isHovering())
-                setAnimationTier(AnimationTier::Hover);
+                setAnimationFlags(ANIMATION_FLAG_HOVER);
             else
-                setAnimationTier(AnimationTier::Ground);
+                setAnimationFlags(ANIMATION_FLAG_GROUND);
         }
 
         if (!movespline->Initialized())
@@ -2480,14 +2543,6 @@ void Unit::handleFall(MovementInfo const& movementInfo)
     m_zAxisPosition = 0.0f;
 }
 
-void Unit::setAnimationTier(AnimationTier tier)
-{
-    if (!isCreature())
-        return;
-
-    setAnimationFlags(static_cast<uint8_t>(tier));
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Speed
 
@@ -2559,23 +2614,14 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
     };
 #endif
 
-    if (getObjectTypeId() == TYPEID_PLAYER)
+    if (auto* const plr = isPlayer() ? dynamic_cast<Player*>(this) : nullptr)
     {
         // register forced speed changes for WorldSession::HandleForceSpeedChangeAck
         // and do it only for real sent packets and use run for run/mounted as client expected
-        ++ToPlayer()->m_forced_speed_changes[mtype];
+        ++plr->m_forced_speed_changes[mtype];
 
         if (!isInCombat())
-        {
-            std::list<Pet*> ownerSummons = ToPlayer()->getSummons();
-            if (ownerSummons.size())
-            {
-                for (std::list<Pet*>::iterator itr = ownerSummons.begin(); itr != ownerSummons.end(); ++itr)
-                {
-                    (*itr)->setSpeedRate(mtype, m_UnitSpeedInfo.m_currentSpeedRate[mtype], false);
-                }
-            }
-        }
+            plr->getSummonInterface()->notifyOnOwnerSpeedChange(mtype, m_UnitSpeedInfo.m_currentSpeedRate[mtype], false);
     }
 
     Player* player_mover = getWorldMapPlayer(getCharmedByGuid());
@@ -2636,23 +2682,14 @@ void Unit::setSpeedRate(UnitSpeedType type, float value, bool current)
     // Update Also For Movement Generators
     propagateSpeedChange();
 
-    if (getObjectTypeId() == TYPEID_PLAYER)
+    if (auto* const plr = isPlayer() ? dynamic_cast<Player*>(this) : nullptr)
     {
         // register forced speed changes for WorldSession::HandleForceSpeedChangeAck
         // and do it only for real sent packets and use run for run/mounted as client expected
-        ++ToPlayer()->m_forced_speed_changes[type];
+        ++plr->m_forced_speed_changes[type];
 
         if (!isInCombat())
-        {
-            std::list<Pet*> ownerSummons = ToPlayer()->getSummons();
-            if (ownerSummons.size())
-            {
-                for (std::list<Pet*>::iterator itr = ownerSummons.begin(); itr != ownerSummons.end(); ++itr)
-                {
-                    (*itr)->setSpeedRate(type, m_UnitSpeedInfo.m_currentSpeedRate[type], false);
-                }
-            }
-        }
+            plr->getSummonInterface()->notifyOnOwnerSpeedChange(type, m_UnitSpeedInfo.m_currentSpeedRate[type], false);
     }
 
     WorldPacket data;
@@ -3263,7 +3300,7 @@ void Unit::jumpTo(float speedXY, float speedZ, bool forward, Optional<LocationVe
     if (dest)
         angle += getRelativeAngle(*dest);
 
-    if (getObjectTypeId() == TYPEID_UNIT)
+    if (isCreature())
     {
         getMovementManager()->moveJumpTo(angle, speedXY, speedZ);
     }
@@ -3524,58 +3561,58 @@ void Unit::setDualWield(bool enable)
     }
 }
 
-void Unit::castSpell(uint64_t targetGuid, uint32_t spellId, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(uint64_t targetGuid, uint32_t spellId, bool triggered/* = false*/)
 {
     const SpellForcedBasePoints forcedBasePoints;
-    castSpell(targetGuid, spellId, forcedBasePoints, triggered);
+    return castSpell(targetGuid, spellId, forcedBasePoints, triggered);
 }
 
-void Unit::castSpell(Unit* target, uint32_t spellId, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(Unit* target, uint32_t spellId, bool triggered/* = false*/)
 {
     const SpellForcedBasePoints forcedBasePoints;
-    castSpell(target, spellId, forcedBasePoints, triggered);
+    return castSpell(target, spellId, forcedBasePoints, triggered);
 }
 
-void Unit::castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, bool triggered/* = false*/)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     const SpellForcedBasePoints forcedBasePoints;
-    castSpell(targetGuid, spellInfo, forcedBasePoints, triggered);
+    return castSpell(targetGuid, spellInfo, forcedBasePoints, triggered);
 }
 
-void Unit::castSpell(Unit* target, SpellInfo const* spellInfo, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(Unit* target, SpellInfo const* spellInfo, bool triggered/* = false*/)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
     
     const SpellForcedBasePoints forcedBasePoints;
-    castSpell(target, spellInfo, forcedBasePoints, triggered);
+    return castSpell(target, spellInfo, forcedBasePoints, triggered);
 }
 
-void Unit::castSpell(uint64_t targetGuid, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(uint64_t targetGuid, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered/* = false*/)
 {
     const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
-    castSpell(targetGuid, spellInfo, forcedBasepoints, triggered);
+    return castSpell(targetGuid, spellInfo, forcedBasepoints, triggered);
 }
 
-void Unit::castSpell(Unit* target, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(Unit* target, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered/* = false*/)
 {
     const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
-    castSpell(target, spellInfo, forcedBasepoints, triggered);
+    return castSpell(target, spellInfo, forcedBasepoints, triggered);
 }
 
-void Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasePoints, int32_t spellCharges, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasePoints, int32_t spellCharges, bool triggered/* = false*/)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     Spell* newSpell = sSpellMgr.newSpell(this, spellInfo, triggered, nullptr);
     newSpell->forced_basepoints = std::make_shared<SpellForcedBasePoints>(forcedBasePoints);
@@ -3591,34 +3628,34 @@ void Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePo
         newSpell->GenerateTargets(&targets);
 
     // Prepare the spell
-    newSpell->prepare(&targets);
+    return newSpell->prepare(&targets);
 }
 
-void Unit::castSpell(SpellCastTargets targets, uint32_t spellId, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(SpellCastTargets targets, uint32_t spellId, bool triggered/* = false*/)
 {
     const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
-    castSpell(targets, spellInfo, triggered);
+    return castSpell(targets, spellInfo, triggered);
 }
 
-void Unit::castSpell(SpellCastTargets targets, SpellInfo const* spellInfo, bool triggered/* = false*/)
+SpellCastResult Unit::castSpell(SpellCastTargets targets, SpellInfo const* spellInfo, bool triggered/* = false*/)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     Spell* newSpell = sSpellMgr.newSpell(this, spellInfo, triggered, nullptr);
-    newSpell->prepare(&targets);
+    return newSpell->prepare(&targets);
 }
 
-void Unit::castSpellLoc(const LocationVector location, uint32_t spellId, bool triggered/* = false*/)
+SpellCastResult Unit::castSpellLoc(const LocationVector location, uint32_t spellId, bool triggered/* = false*/)
 {
     const auto spellInfo = sSpellMgr.getSpellInfo(spellId);
-    castSpellLoc(location, spellInfo, triggered);
+    return castSpellLoc(location, spellInfo, triggered);
 }
 
-void Unit::castSpellLoc(const LocationVector location, SpellInfo const* spellInfo, bool triggered/* = false*/)
+SpellCastResult Unit::castSpellLoc(const LocationVector location, SpellInfo const* spellInfo, bool triggered/* = false*/)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     SpellCastTargets targets;
     targets.setDestination(location);
@@ -3626,7 +3663,7 @@ void Unit::castSpellLoc(const LocationVector location, SpellInfo const* spellInf
 
     // Prepare the spell
     Spell* newSpell = sSpellMgr.newSpell(this, spellInfo, triggered, nullptr);
-    newSpell->prepare(&targets);
+    return newSpell->prepare(&targets);
 }
 
 void Unit::eventCastSpell(Unit* target, SpellInfo const* spellInfo)
@@ -3638,10 +3675,10 @@ void Unit::eventCastSpell(Unit* target, SpellInfo const* spellInfo)
         sLogger.failure("Unit::eventCastSpell tried to cast invalid spell with no spellInfo (nullptr)");
 }
 
-void Unit::castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered)
+SpellCastResult Unit::castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     Spell* newSpell = sSpellMgr.newSpell(this, spellInfo, triggered, nullptr);
     newSpell->forced_basepoints = std::make_shared<SpellForcedBasePoints>(forcedBasepoints);
@@ -3649,13 +3686,13 @@ void Unit::castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, SpellForce
     SpellCastTargets targets(targetGuid);
 
     // Prepare the spell
-    newSpell->prepare(&targets);
+    return newSpell->prepare(&targets);
 }
 
-void Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered)
+SpellCastResult Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered)
 {
     if (spellInfo == nullptr)
-        return;
+        return SPELL_FAILED_UNKNOWN;
 
     Spell* newSpell = sSpellMgr.newSpell(this, spellInfo, triggered, nullptr);
     newSpell->forced_basepoints = std::make_shared<SpellForcedBasePoints>(forcedBasepoints);
@@ -3670,7 +3707,7 @@ void Unit::castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePo
         newSpell->GenerateTargets(&targets);
 
     // Prepare the spell
-    newSpell->prepare(&targets);
+    return newSpell->prepare(&targets);
 }
 
 SpellProc* Unit::addProcTriggerSpell(uint32_t spellId, uint32_t originalSpellId, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask/* = nullptr*/, Aura* createdByAura/* = nullptr*/, Object* obj/* = nullptr*/)
@@ -3707,17 +3744,18 @@ SpellProc* Unit::addProcTriggerSpell(SpellInfo const* spellInfo, SpellInfo const
         return spellProc;
 
     // Create new proc since one did not exist
-    spellProc = sSpellProcMgr.newSpellProc(this, spellInfo, originalSpellInfo, casterGuid, procChance, procFlags, exProcFlags, spellFamilyMask, procClassMask, createdByAura, obj);
-    if (spellProc == nullptr)
+    auto spellProcHolder = sSpellProcMgr.newSpellProc(this, spellInfo, originalSpellInfo, casterGuid, procChance, procFlags, exProcFlags, spellFamilyMask, procClassMask, createdByAura, obj);
+    if (spellProcHolder == nullptr)
     {
         if (originalSpellInfo != nullptr)
-            sLogger.failure("Unit::addProcTriggerSpell : Spell id {} tried to add a non-existent spell to Unit %p as SpellProc", originalSpellInfo->getId(), fmt::ptr(this));
+            sLogger.failure("Unit::addProcTriggerSpell : Spell id {} tried to add a non-existent spell to Unit {} as SpellProc", originalSpellInfo->getId(), fmt::ptr(this));
         else
-            sLogger.failure("Unit::addProcTriggerSpell : Something tried to add a non-existent spell to Unit %p as SpellProc", fmt::ptr(this));
+            sLogger.failure("Unit::addProcTriggerSpell : Something tried to add a non-existent spell to Unit {} as SpellProc", fmt::ptr(this));
         return nullptr;
     }
 
-    m_procSpells.push_back(spellProc);
+    spellProc = spellProcHolder.get();
+    m_procSpells.emplace_back(std::move(spellProcHolder));
     return spellProc;
 }
 
@@ -3726,7 +3764,7 @@ SpellProc* Unit::getProcTriggerSpell(uint32_t spellId, uint64_t casterGuid) cons
     for (const auto& spellProc : m_procSpells)
     {
         if (spellProc->getSpell()->getId() == spellId && (casterGuid == 0 || spellProc->getCasterGuid() == casterGuid))
-            return spellProc;
+            return spellProc.get();
     }
 
     return nullptr;
@@ -3736,7 +3774,7 @@ void Unit::removeProcTriggerSpell(uint32_t spellId, uint64_t casterGuid/* = 0*/,
 {
     for (auto& spellProc : m_procSpells)
     {
-        if (sScriptMgr.callScriptedSpellProcCanDelete(spellProc, spellId, casterGuid, misc))
+        if (sScriptMgr.callScriptedSpellProcCanDelete(spellProc.get(), spellId, casterGuid, misc))
         {
             spellProc->deleteProc();
             return;
@@ -4497,76 +4535,68 @@ bool Unit::hasSpellImmunity(SpellImmunityMask immunityMask) const
 //////////////////////////////////////////////////////////////////////////////////////////
 // Aura
 
-void Unit::addAura(Aura* aur)
+void Unit::addAura(std::unique_ptr<Aura> auraHolder)
 {
-    if (aur == nullptr)
+    if (auraHolder == nullptr)
         return;
 
-    if (!isAlive() && !aur->getSpellInfo()->isDeathPersistent())
-    {
-        delete aur;
+    if (!isAlive() && !auraHolder->getSpellInfo()->isDeathPersistent())
         return;
-    }
 
     // Check school immunity
-    const auto school = aur->getSpellInfo()->getFirstSchoolFromSchoolMask();
-    if (school != SCHOOL_NORMAL && m_schoolImmunityList[school] && aur->getCasterGuid() != getGuid())
+    const auto school = auraHolder->getSpellInfo()->getFirstSchoolFromSchoolMask();
+    if (school != SCHOOL_NORMAL && m_schoolImmunityList[school] && auraHolder->getCasterGuid() != getGuid())
     {
         ///\ todo: notify client that aura did not apply
-        delete aur;
         return;
     }
 
     // Check if aura has effects
-    if (aur->getAppliedEffectCount() == 0)
+    if (auraHolder->getAppliedEffectCount() == 0)
     {
         ///\ todo: notify client that aura did not apply
-        delete aur;
         return;
     }
 
     // Check for flying mount
     // This is already checked in Spell::canCast but this could happen on teleport or login
-    if (isPlayer() && aur->getSpellInfo()->getAttributesExD() & ATTRIBUTESEXD_ONLY_IN_OUTLANDS)
+    if (isPlayer() && auraHolder->getSpellInfo()->getAttributesExD() & ATTRIBUTESEXD_ONLY_IN_OUTLANDS)
     {
         if (!dynamic_cast<Player*>(this)->canUseFlyingMountHere())
         {
-            if (GetMapId() != 571 || !(aur->getSpellInfo()->getAttributesExG() & ATTRIBUTESEXG_IGNORE_COLD_WEATHER_FLYING))
-            {
-                delete aur;
+            if (GetMapId() != 571 || !(auraHolder->getSpellInfo()->getAttributesExG() & ATTRIBUTESEXG_IGNORE_COLD_WEATHER_FLYING))
                 return;
-            }
         }
     }
 
     // Check for single target aura
     ///\ todo: this supports only single auras. Missing paladin seals, warlock curses etc
-    if (aur->getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_SINGLE_TARGET_AURA)
+    if (auraHolder->getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_SINGLE_TARGET_AURA)
     {
         uint64_t previousTargetGuid = 0;
 
-        const auto caster = aur->GetUnitCaster();
+        const auto caster = auraHolder->GetUnitCaster();
         if (caster != nullptr)
         {
-            previousTargetGuid = caster->getSingleTargetGuidForAura(aur->getSpellId());
+            previousTargetGuid = caster->getSingleTargetGuidForAura(auraHolder->getSpellId());
 
             // Check if aura is applied on different unit
-            if (previousTargetGuid != 0 && previousTargetGuid != aur->getOwner()->getGuid())
+            if (previousTargetGuid != 0 && previousTargetGuid != auraHolder->getOwner()->getGuid())
             {
                 const auto previousTarget = getWorldMapUnit(previousTargetGuid);
                 if (previousTarget != nullptr)
-                    previousTarget->removeAllAurasByIdForGuid(aur->getSpellId(), caster->getGuid());
+                    previousTarget->removeAllAurasByIdForGuid(auraHolder->getSpellId(), caster->getGuid());
             }
         }
     }
 
-    const auto spellInfo = aur->getSpellInfo();
+    const auto spellInfo = auraHolder->getSpellInfo();
     uint16_t auraSlot = 0xFFFF;
 
-    if (!aur->IsPassive())
+    if (!auraHolder->IsPassive())
     {
         uint16_t startLimit = 0, endLimit = 0;
-        if (aur->isNegative())
+        if (auraHolder->isNegative())
         {
             startLimit = AuraSlots::NEGATIVE_SLOT_START;
             endLimit = AuraSlots::NEGATIVE_SLOT_END;
@@ -4582,7 +4612,7 @@ void Unit::addAura(Aura* aur)
         // Find available slot for new aura
         for (auto i = startLimit; i < endLimit; ++i)
         {
-            auto* _aura = m_auraList[i];
+            auto* _aura = m_auraList[i].get();
             if (_aura == nullptr)
             {
                 // Found an empty slot
@@ -4594,10 +4624,10 @@ void Unit::addAura(Aura* aur)
             }
 
             // Check if unit has same aura by same caster or is stackable from multiple casters
-            if (_aura->getSpellId() == aur->getSpellId())
+            if (_aura->getSpellId() == auraHolder->getSpellId())
             {
-                if (_aura->getCasterGuid() != aur->getCasterGuid() &&
-                    !aur->getSpellInfo()->isStackableFromMultipleCasters())
+                if (_aura->getCasterGuid() != auraHolder->getCasterGuid() &&
+                    !auraHolder->getSpellInfo()->isStackableFromMultipleCasters())
                     continue;
 
                 // The auras are casted by same unit or aura is stackable from multiple units, reapply all effects
@@ -4608,14 +4638,14 @@ void Unit::addAura(Aura* aur)
                     _aura->removeAuraEffect(x, true);
 
                     // Do not add empty effects
-                    if (aur->getAuraEffect(x)->getAuraEffectType() == SPELL_AURA_NONE)
+                    if (auraHolder->getAuraEffect(x)->getAuraEffectType() == SPELL_AURA_NONE)
                         continue;
 
-                    _aura->addAuraEffect(aur->getAuraEffect(x), true);
+                    _aura->addAuraEffect(auraHolder->getAuraEffect(x), true);
                 }
 
                 // On reapply get duration from new aura
-                _aura->setOriginalDuration(aur->getOriginalDuration());
+                _aura->setOriginalDuration(auraHolder->getOriginalDuration());
 
                 // Refresh duration and apply new stack if stackable
                 _aura->refreshOrModifyStack(false, 1);
@@ -4624,17 +4654,17 @@ void Unit::addAura(Aura* aur)
                 break;
             }
             // If this is a proc spell, it should not remove its mother aura
-            else if (aur->pSpellId != _aura->getSpellId())
+            else if (auraHolder->pSpellId != _aura->getSpellId())
             {
                 // Check for auras by specific type
-                if (aur->getSpellInfo()->getMaxstack() == 0 && spellInfo->custom_BGR_one_buff_on_target > 0 && aur->getSpellInfo()->custom_BGR_one_buff_on_target & spellInfo->custom_BGR_one_buff_on_target)
+                if (auraHolder->getSpellInfo()->getMaxstack() == 0 && spellInfo->custom_BGR_one_buff_on_target > 0 && auraHolder->getSpellInfo()->custom_BGR_one_buff_on_target & spellInfo->custom_BGR_one_buff_on_target)
                 {
-                    deleteAur = hasAuraWithSpellType(static_cast<SpellTypes>(spellInfo->getCustom_BGR_one_buff_on_target()), aur->getCasterGuid(), 0);
+                    deleteAur = hasAuraWithSpellType(static_cast<SpellTypes>(spellInfo->getCustom_BGR_one_buff_on_target()), auraHolder->getCasterGuid(), 0);
                 }
                 // Check for auras with the same name and a different rank
                 else
                 {
-                    AuraCheckResponse checkResponse = auraCheck(spellInfo, _aura, aur->getCaster());
+                    AuraCheckResponse checkResponse = auraCheck(spellInfo, _aura, auraHolder->getCaster());
                     if (checkResponse.Error == AURA_CHECK_RESULT_HIGHER_BUFF_PRESENT)
                     {
                         // Existing aura is stronger, delete new aura
@@ -4654,10 +4684,7 @@ void Unit::addAura(Aura* aur)
         }
 
         if (deleteAur)
-        {
-            delete aur;
             return;
-        }
     }
     else
     {
@@ -4675,18 +4702,16 @@ void Unit::addAura(Aura* aur)
 
     // Could not find an empty slot, remove aura
     if (auraSlot == 0xFFFF)
-    {
-        delete aur;
         return;
-    }
 
     // Find a visual slot for aura
-    const auto visualSlot = findVisualSlotForAura(aur);
+    const auto visualSlot = findVisualSlotForAura(auraHolder.get());
 
-    aur->m_visualSlot = visualSlot;
-    aur->setAuraSlot(auraSlot);
+    auraHolder->m_visualSlot = visualSlot;
+    auraHolder->setAuraSlot(auraSlot);
 
-    _addAura(aur);
+    auto* aur = auraHolder.get();
+    _addAura(std::move(auraHolder));
 
     if (visualSlot < AuraSlots::NEGATIVE_VISUAL_SLOT_END)
     {
@@ -4826,7 +4851,7 @@ Aura* Unit::getAuraWithId(uint32_t spell_id) const
     for (const auto& aur : getAuraList())
     {
         if (aur && aur->getSpellId() == spell_id)
-            return aur;
+            return aur.get();
     }
 
     return nullptr;
@@ -4842,7 +4867,7 @@ Aura* Unit::getAuraWithId(uint32_t const* auraId) const
         for (int i = 0; auraId[i] != 0; ++i)
         {
             if (aur->getSpellId() == auraId[i])
-                return aur;
+                return aur.get();
         }
     }
 
@@ -4859,7 +4884,7 @@ Aura* Unit::getAuraWithIdForGuid(uint32_t const* auraId, uint64_t guid) const
         for (int i = 0; auraId[i] != 0; ++i)
         {
             if (aur->getSpellId() == auraId[i])
-                return aur;
+                return aur.get();
         }
     }
 
@@ -4871,7 +4896,7 @@ Aura* Unit::getAuraWithIdForGuid(uint32_t spell_id, uint64_t target_guid) const
     for (const auto& aur : getAuraList())
     {
         if (aur && aur->getSpellId() == spell_id && aur->getCasterGuid() == target_guid)
-            return aur;
+            return aur.get();
     }
 
     return nullptr;
@@ -4888,12 +4913,29 @@ Aura* Unit::getAuraWithAuraEffect(AuraEffect aura_effect) const
     return getAuraEffectList(aura_effect).front()->getAura();
 }
 
+Aura* Unit::getAuraWithAuraEffectForGuid(AuraEffect aura_effect, uint64_t guid) const
+{
+    if (aura_effect >= TOTAL_SPELL_AURAS)
+        return nullptr;
+
+    if (m_auraEffectList[aura_effect].empty())
+        return nullptr;
+
+    for (const auto& aurEff : m_auraEffectList[aura_effect])
+    {
+        if (aurEff->getAura()->getCasterGuid() == guid)
+            return aurEff->getAura();
+    }
+
+    return nullptr;
+}
+
 Aura* Unit::getAuraWithVisualSlot(uint8_t visualSlot) const
 {
     for (const auto& aur : getAuraList())
     {
         if (aur && aur->m_visualSlot == visualSlot)
-            return aur;
+            return aur.get();
     }
 
     return nullptr;
@@ -4904,7 +4946,7 @@ Aura* Unit::getAuraWithAuraSlot(uint16_t auraSlot) const
     if (auraSlot >= AuraSlots::TOTAL_SLOT_END)
         return nullptr;
 
-    return m_auraList[auraSlot];
+    return m_auraList[auraSlot].get();
 }
 
 int32_t Unit::getTotalIntDamageForAuraEffect(AuraEffect aura_effect) const
@@ -4987,12 +5029,54 @@ bool Unit::hasAurasWithId(uint32_t const* auraId) const
     return false;
 }
 
+bool Unit::hasAurasWithIdForGuid(uint32_t auraId, uint64_t guid) const
+{
+    for (const auto& aur : m_auraList)
+    {
+        if (aur && aur->getSpellId() == auraId && aur->getCasterGuid() == guid)
+            return true;
+    }
+
+    return false;
+}
+
+bool Unit::hasAurasWithIdForGuid(uint32_t const* auraId, uint64_t guid) const
+{
+    for (const auto& aur : m_auraList)
+    {
+        if (aur == nullptr)
+            continue;
+
+        for (int i = 0; auraId[i] != 0; ++i)
+        {
+            if (aur->getSpellId() == auraId[i] && aur->getCasterGuid() == guid)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 bool Unit::hasAuraWithAuraEffect(AuraEffect type) const
 {
     if (type >= TOTAL_SPELL_AURAS)
         return false;
 
     return !getAuraEffectList(type).empty();
+}
+
+bool Unit::hasAuraWithAuraEffectForGuid(AuraEffect type, uint64_t guid) const
+{
+    if (type >= TOTAL_SPELL_AURAS)
+        return false;
+
+    for (const auto& aurEff : m_auraEffectList[type])
+    {
+        if (aurEff->getAura()->getCasterGuid() == guid)
+            return true;
+    }
+
+    return false;
 }
 
 bool Unit::hasAuraWithMechanic(SpellMechanic mechanic) const
@@ -5496,12 +5580,13 @@ void Unit::sendAuraUpdate(Aura* aur, bool remove)
         if (isPlayer() && !aur->IsPassive())
             static_cast<Player*>(this)->sendMessageToSet(SmsgUpdateAuraDuration(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
 #else
+
         if (isPlayer() && !aur->IsPassive() && !(aur->getSpellInfo()->getAttributesExE() & ATTRIBUTESEXE_HIDE_DURATION))
         {
             static_cast<Player*>(this)->sendMessageToSet(SmsgUpdateAuraDuration(aur->m_visualSlot, aur->getTimeLeft()).serialise().get(), true);
 
             auto guid = GetNewGUID();
-            static_cast<Player*>(this)->sendMessageToSet(SmsgSetExtraAuraInfo(&guid, aur->m_visualSlot, aur->getSpellId(), aur->getMaxDuration(), aur->getTimeLeft()).serialise().get(), true);
+            static_cast<Player*>(this)->sendMessageToSet(SmsgSetExtraAuraInfo(guid, aur->m_visualSlot, aur->getSpellId(), aur->getMaxDuration(), aur->getTimeLeft()).serialise().get(), true);
         }
 
         const auto caster = aur->GetUnitCaster();
@@ -5704,7 +5789,7 @@ bool Unit::isDazed() const
     return false;
 }
 
-void Unit::_addAura(Aura* aur)
+void Unit::_addAura(std::unique_ptr<Aura> aur)
 {
     if (aur == nullptr)
         return;
@@ -5718,7 +5803,7 @@ void Unit::_addAura(Aura* aur)
         _addAuraEffect(aurEff);
     }
 
-    m_auraList[aur->getAuraSlot()] = aur;
+    m_auraList[aur->getAuraSlot()] = std::move(aur);
 }
 
 void Unit::_addAuraEffect(AuraEffectModifier const* aurEff)
@@ -5729,12 +5814,13 @@ void Unit::_addAuraEffect(AuraEffectModifier const* aurEff)
     m_auraEffectList[aurEff->getAuraEffectType()].push_back(aurEff);
 }
 
-void Unit::_removeAura(Aura* aur)
+std::unique_ptr<Aura> Unit::_removeAura(Aura* aur)
 {
     if (aur == nullptr)
-        return;
+        return nullptr;
 
-    m_auraList[aur->getAuraSlot()] = nullptr;
+    auto&& tmp = std::move(m_auraList[aur->getAuraSlot()]);
+    return tmp;
 }
 
 void Unit::_removeAuraEffect(AuraEffectModifier const* aurEff)
@@ -5774,7 +5860,7 @@ bool Unit::canSee(Object* const obj)
     // Get map view distance (WIP: usually 100 yards for open world and 500 yards for instanced maps)
     //\ todo: there are some objects which should be visible even further and some objects which should always be visible
     // should cover all Instances with 5000 * 5000 easyier for far Gameobjects / Creatures to Handle, also Loaded Cells affect the Distance standart 2 Cells equal 500.0f * 500.0f : aaron02
-    const auto viewDistance = getWorldMap()->getBaseMap()->getMapInfo()->isInstanceMap() ? 5000.0f * 5000.0f : getWorldMap()->getVisibilityRange();
+    const auto viewDistance = getWorldMap()->getBaseMap()->isInstanceMap() ? 5000.0f * 5000.0f : getWorldMap()->getVisibilityRange();
     if (obj->isGameObject())
     {
         // TODO: for now, all maps have 500 yard view distance
@@ -6577,7 +6663,7 @@ bool Unit::isHealthRegenerationInterrupted() const
 #if VERSION_STRING < Cata
 void Unit::interruptPowerRegeneration(uint32_t timeInMS)
 {
-#if VERSION_STRING != Classic
+#if VERSION_STRING > TBC
     if (isPlayer() && !isPowerRegenerationInterrupted())
         removeUnitFlags2(UNIT_FLAG2_ENABLE_POWER_REGEN);
 #endif
@@ -6851,15 +6937,15 @@ void Unit::sendEnvironmentalDamageLogPacket(uint64_t guid, uint8_t type, uint32_
     sendMessageToSet(SmsgEnvironmentalDamageLog(guid, type, damage, unk).serialise().get(), true, false);
 }
 
-bool Unit::isPvpFlagSet() { return false; }
+bool Unit::isPvpFlagSet() const { return false; }
 void Unit::setPvpFlag() {}
 void Unit::removePvpFlag() {}
 
-bool Unit::isFfaPvpFlagSet() { return false; }
+bool Unit::isFfaPvpFlagSet() const { return false; }
 void Unit::setFfaPvpFlag() {}
 void Unit::removeFfaPvpFlag() {}
 
-bool Unit::isSanctuaryFlagSet() { return false; }
+bool Unit::isSanctuaryFlagSet() const { return false; }
 void Unit::setSanctuaryFlag() {}
 void Unit::removeSanctuaryFlag() {}
 
@@ -7017,7 +7103,7 @@ void Unit::dealDamage(Unit* victim, uint32_t damage, uint32_t spellId, bool remo
         if (isPlayer())
         {
             const auto plr = dynamic_cast<Player*>(this);
-            if (!plr->getSession()->HasPermissions() && worldConfig.limit.isLimitSystemEnabled != 0)
+            if (!plr->getSession()->hasPermissions() && worldConfig.limit.isLimitSystemEnabled != 0)
                 damage = plr->checkDamageLimits(damage, spellId);
         }
 
@@ -7032,30 +7118,17 @@ void Unit::dealDamage(Unit* victim, uint32_t damage, uint32_t spellId, bool remo
             }
         }
 
-        if (victim->isPlayer())
-        {
-            // Make victim's pet react to attacker
-            ///\ todo: what about other summons?
-            const auto summons = dynamic_cast<Player*>(victim)->getSummons();
-            for (const auto& pet : summons)
-            {
-                if (pet->getAIInterface()->getReactState() != REACT_PASSIVE)
-                {
-                    // Start Combat
-                    pet->getAIInterface()->onHostileAction(this);
-                    pet->HandleAutoCastEvent(AUTOCAST_EVENT_OWNER_ATTACKED);
-                }
-            }
-        }
+        // Make victim's pets react to attacker
+        victim->getSummonInterface()->notifyOnOwnerAttacked(this);
     }
 
     victim->setStandState(STANDSTATE_STAND);
 
     // Tagging should happen when damage packets are sent
     const auto plrOwner = getPlayerOwnerOrSelf();
-    if (plrOwner != nullptr && victim->isCreature() && victim->isTaggable())
+    if (plrOwner != nullptr && victim->isCreature() && victim->isTaggableFor(this))
     {
-        victim->setTaggerGuid(getGuid());
+        victim->setTaggerGuid(this);
         plrOwner->tagUnit(victim);
     }
 
@@ -7234,13 +7307,12 @@ void Unit::takeDamage(Unit* attacker, uint32_t damage, uint32_t spellId)
                         if (xp > 0)
                         {
                             tagger->giveXp(xp, getGuid(), true);
-
                             // Give XP to pets also
-                            if (tagger->getFirstPetFromSummons() != nullptr && tagger->getFirstPetFromSummons()->CanGainXP())
+                            if (tagger->getPet() != nullptr && tagger->getPet()->canGainXp())
                             {
-                                xp = CalculateXpToGive(this, tagger->getFirstPetFromSummons());
+                                xp = CalculateXpToGive(this, tagger->getPet());
                                 if (xp > 0)
-                                    tagger->getFirstPetFromSummons()->giveXp(xp);
+                                    tagger->getPet()->giveXp(xp);
                             }
                         }
                     }
@@ -7298,17 +7370,17 @@ void Unit::takeDamage(Unit* attacker, uint32_t damage, uint32_t spellId)
 
 void Unit::addSimpleDamageBatchEvent(uint32_t damage, Unit* attacker/* = nullptr*/, SpellInfo const* spellInfo/* = nullptr*/)
 {
-    auto batch = new HealthBatchEvent;
+    auto batch = std::make_unique<HealthBatchEvent>();
     batch->caster = attacker;
     batch->damageInfo.realDamage = damage;
     batch->spellInfo = spellInfo;
     
-    addHealthBatchEvent(batch);
+    addHealthBatchEvent(std::move(batch));
 }
 
 void Unit::addSimpleEnvironmentalDamageBatchEvent(EnviromentalDamage type, uint32_t damage, uint32_t absorbedDamage/* = 0*/)
 {
-    auto batch = new HealthBatchEvent;
+    auto batch = std::make_unique<HealthBatchEvent>();
     batch->damageInfo.realDamage = damage;
     batch->isEnvironmentalDamage = true;
     batch->environmentType = type;
@@ -7317,55 +7389,42 @@ void Unit::addSimpleEnvironmentalDamageBatchEvent(EnviromentalDamage type, uint3
     if (type == DAMAGE_FIRE || type == DAMAGE_LAVA)
         batch->damageInfo.absorbedDamage = absorbedDamage;
 
-    addHealthBatchEvent(batch);
+    addHealthBatchEvent(std::move(batch));
 }
 
 void Unit::addSimpleHealingBatchEvent(uint32_t heal, Unit* healer/* = nullptr*/, SpellInfo const* spellInfo/* = nullptr*/)
 {
-    auto batch = new HealthBatchEvent;
+    auto batch = std::make_unique<HealthBatchEvent>();
     batch->caster = healer;
     batch->damageInfo.realDamage = heal;
     batch->spellInfo = spellInfo;
     batch->isHeal = true;
 
-    addHealthBatchEvent(batch);
+    addHealthBatchEvent(std::move(batch));
 }
 
-void Unit::addHealthBatchEvent(HealthBatchEvent* batch)
+void Unit::addHealthBatchEvent(std::unique_ptr<HealthBatchEvent> batch)
 {
-    if (batch != nullptr)
+    if (batch == nullptr)
+        return;
+
+    // Do some checks before adding the health event into batch list
+    if (!isAlive() || !IsInWorld() || m_isInvincible)
+        return;
+
+    if (isPlayer())
     {
-        // Do some checks before adding the health event into batch list
-        if (!isAlive() || !IsInWorld() || m_isInvincible)
-        {
-            delete batch;
+        const auto plr = dynamic_cast<Player*>(this);
+        if (!batch->isHeal && plr->m_cheats.hasGodModeCheat)
             return;
-        }
-
-        if (isPlayer())
-        {
-            const auto plr = dynamic_cast<Player*>(this);
-            if (!batch->isHeal && plr->m_cheats.hasGodModeCheat)
-            {
-                delete batch;
-                return;
-            }
-        }
-        else if (isCreature())
-        {
-            if (dynamic_cast<Creature*>(this)->isSpiritHealer())
-            {
-                delete batch;
-                return;
-            }
-        }
-
-        m_healthBatch.push_back(batch);
     }
-    else
+    else if (isCreature())
     {
-        sLogger.failure("Unit::addHealthBatchEvent tried to add batch for nullptr!");
+        if (dynamic_cast<Creature*>(this)->isSpiritHealer())
+            return;
     }
+
+    m_healthBatch.push_back(std::move(batch));
 }
 
 uint32_t Unit::calculateEstimatedOverKillForCombatLog(uint32_t damage) const
@@ -7428,9 +7487,6 @@ uint32_t Unit::calculateEstimatedOverHealForCombatLog(uint32_t heal) const
 
 void Unit::clearHealthBatch()
 {
-    for (auto& itr : m_healthBatch)
-        delete itr;
-
     m_healthBatch.clear();
 
     // This function is also called on unit death so make sure to remove health based aurastates
@@ -7461,7 +7517,7 @@ uint32_t Unit::absorbDamage(SchoolMask schoolMask, uint32_t* dmg, bool checkOnly
         if (aur == nullptr || !aur->isAbsorbAura())
             continue;
 
-        AbsorbAura* abs = dynamic_cast<AbsorbAura*>(aur);
+        AbsorbAura* abs = dynamic_cast<AbsorbAura*>(aur.get());
         totalAbsorbedDamage += abs->absorbDamage(schoolMask, dmg, checkOnly);
     }
 
@@ -7620,12 +7676,12 @@ void Unit::_updateHealth()
     auto batchItr = m_healthBatch.begin();
     while (batchItr != m_healthBatch.end())
     {
-        auto batch = *batchItr;
+        const auto& batch = *batchItr;
 
         if (batch->isHeal)
         {
             uint32_t absorbedHeal = 0;
-            const auto heal = _handleBatchHealing(batch, &absorbedHeal);
+            const auto heal = _handleBatchHealing(batch.get(), &absorbedHeal);
             healthVal += heal;
 
             const int32_t diff = curHealth + healthVal;
@@ -7639,7 +7695,7 @@ void Unit::_updateHealth()
         else
         {
             uint32_t rageGenerated = 0;
-            const auto damage = _handleBatchDamage(batch, &rageGenerated);
+            const auto damage = _handleBatchDamage(batch.get(), &rageGenerated);
             healthVal -= damage;
 
             singleDamager = batch->caster;
@@ -7656,7 +7712,6 @@ void Unit::_updateHealth()
             }
         }
 
-        delete *batchItr;
         batchItr = m_healthBatch.erase(batchItr);
     }
 
@@ -7713,7 +7768,7 @@ uint32_t Unit::_handleBatchDamage(HealthBatchEvent const* batch, uint32_t* rageG
         if (attacker->isPlayer())
         {
             const auto plr = dynamic_cast<Player*>(attacker);
-            if (!plr->getSession()->HasPermissions() && worldConfig.limit.isLimitSystemEnabled != 0)
+            if (!plr->getSession()->hasPermissions() && worldConfig.limit.isLimitSystemEnabled != 0)
                 damage = plr->checkDamageLimits(damage, spellId);
         }
 
@@ -7745,22 +7800,8 @@ uint32_t Unit::_handleBatchDamage(HealthBatchEvent const* batch, uint32_t* rageG
             }
         }
 
-        if (isPlayer())
-        {
-            // Make victim's pet react to attacker
-            ///\ todo: what about other summons?
-            const auto summons = dynamic_cast<Player*>(this)->getSummons();
-            for (const auto& pet : summons)
-            {
-                if (pet->getAIInterface()->getReactState() != REACT_PASSIVE)
-                {
-                    // Start Combat
-                    // todo: handle this in pet system
-                    pet->getAIInterface()->onHostileAction(attacker);
-                    pet->HandleAutoCastEvent(AUTOCAST_EVENT_OWNER_ATTACKED);
-                }
-            }
-        }
+        // Make victim's pets react to attacker
+        m_summonInterface->notifyOnOwnerAttacked(attacker);
     }
 
     // Create heal effect for leech effects
@@ -7885,17 +7926,28 @@ DeathState Unit::getDeathState() const { return m_deathState; }
 //////////////////////////////////////////////////////////////////////////////////////////
 // Summons
 
-TotemSummon* Unit::getTotem(SummonSlot slot) const
+Pet* Unit::getPet() const
 {
-    if (slot >= SUMMON_SLOT_MINIPET)
-        return nullptr;
-
-    return getSummonInterface()->getTotemInSlot(slot);
+    return m_summonInterface->getPet();
 }
 
-SummonHandler* Unit::getSummonInterface() const
+TotemSummon* Unit::getTotem(SummonSlot slot) const
 {
-    return m_summonInterface;
+    auto* const totem = m_summonInterface->getSummonInSlot(slot);
+    if (totem == nullptr || !totem->isTotem())
+        return nullptr;
+
+    return dynamic_cast<TotemSummon*>(totem);
+}
+
+SummonHandler* Unit::getSummonInterface()
+{
+    return m_summonInterface.get();
+}
+
+SummonHandler const* Unit::getSummonInterface() const
+{
+    return m_summonInterface.get();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -8048,16 +8100,19 @@ void Unit::wipeTargetList()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Tagging (helper for dynamic flags)
 
-void Unit::setTaggerGuid(uint64_t guid)
+void Unit::setTaggerGuid(Unit const* tagger)
 {
-    if (guid)
+    if (tagger != nullptr)
     {
-        this->m_taggerGuid = guid;
-        addDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER);
+        this->m_taggerGuid = tagger->getGuid();
+        m_taggedBySummon = tagger->isSummon();
+        if (!m_taggedBySummon)
+            addDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER);
     }
     else
     {
         this->m_taggerGuid = 0;
+        m_taggedBySummon = false;
         removeDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER);
     }
 }
@@ -8069,15 +8124,30 @@ uint64_t Unit::getTaggerGuid() const
 
 bool Unit::isTagged() const
 {
-    return hasDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER);
+    return hasDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER) || (m_taggerGuid != 0 && m_taggedBySummon);
 }
 
-bool Unit::isTaggable() const
+bool Unit::isTaggableFor(Unit const* unit) const
 {
-    if (!isPet() && !hasDynamicFlags(U_DYN_FLAG_TAGGED_BY_OTHER))
-        return true;
+    if (isPet())
+        return false;
 
-    return false;
+    if (isTagged())
+    {
+        if (m_taggedBySummon && unit != nullptr)
+        {
+            // If tagged by summon, owner can tag it for themself
+            for (const auto* summon : unit->getSummonInterface()->getSummons())
+            {
+                if (summon->getGuid() == m_taggerGuid)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    return true;
 }
 
 bool Unit::isTaggedByPlayerOrItsGroup(Player* tagger)
@@ -8126,7 +8196,7 @@ bool Unit::createVehicleKit(uint32_t id, uint32_t creatureEntry)
     if (!vehInfo)
         return false;
 
-    m_vehicleKit = new Vehicle(this, vehInfo, creatureEntry);
+    m_vehicleKit = std::make_unique<Vehicle>(this, vehInfo, creatureEntry);
     m_updateFlag |= UPDATEFLAG_VEHICLE;
     return true;
 }
@@ -8137,8 +8207,6 @@ void Unit::removeVehicleKit()
         return;
 
     m_vehicleKit->deactivate();
-    delete m_vehicleKit;
-
     m_vehicleKit = nullptr;
 
     m_updateFlag &= ~UPDATEFLAG_VEHICLE;
@@ -8285,13 +8353,13 @@ void Unit::enterVehicle(Vehicle* vehicle, int8_t seatId)
 
     if (Player* player = ToPlayer())
     {
-        if (vehicle->getBase()->getObjectTypeId() == TYPEID_PLAYER && player->isInCombat())
+        if (vehicle->getBase()->isPlayer() && player->isInCombat())
         {
             vehicle->getBase()->removeAllAurasByAuraEffect(SPELL_AURA_CONTROL_VEHICLE);
             return;
         }
 
-        if (vehicle->getBase()->getObjectTypeId() == TYPEID_UNIT)
+        if (vehicle->getBase()->isCreature())
         {
             // If a player entered a vehicle that is part of a formation, remove it from the formation
             if (CreatureGroup* creatureGroup = vehicle->getBase()->ToCreature()->getFormation())
@@ -8411,10 +8479,10 @@ void Unit::exitVehicle(LocationVector const* exitPosition)
 
     // Spawn active Pets
     if (player)
-        player->spawnActivePet();
+        player->summonTemporarilyUnsummonedPet();
 
     // Despawn Accessories
-    if (vehicle->getBase()->hasUnitStateFlag(UNIT_STATE_ACCESSORY) && vehicle->getBase()->getObjectTypeId() == TYPEID_UNIT)
+    if (vehicle->getBase()->hasUnitStateFlag(UNIT_STATE_ACCESSORY) && vehicle->getBase()->isCreature())
         if ((vehicle->getBase())->getVehicleKit()->getBase() == this)
             vehicle->getBase()->ToCreature()->Despawn(2000, 0);
 
@@ -8470,8 +8538,21 @@ void Unit::handleSpellClick(Unit* clicker)
 }
 #endif
 
+bool Unit::isMounted() const
+{
+#if VERSION_STRING == Classic
+    // TODO
+    return false;
+#else
+    return hasUnitFlags(UNIT_FLAG_MOUNT);
+#endif
+}
+
 void Unit::mount(uint32_t mount, uint32_t VehicleId, uint32_t creatureEntry)
 {
+#if VERSION_STRING == Classic
+    // TODO
+#else
     if (mount)
         setMountDisplayId(mount);
 
@@ -8496,11 +8577,12 @@ void Unit::mount(uint32_t mount, uint32_t VehicleId, uint32_t creatureEntry)
         }
 #endif
         // unsummon pet
-        player->dismissActivePets();
+        if (player->isPetRequiringTemporaryUnsummon())
+            player->unSummonPetTemporarily();
 
         // if we have charmed npc, stun him also (everywhere)
         if (Unit* charm = getWorldMapUnit(getCharmGuid()))
-            if (charm->getObjectTypeId() == TYPEID_UNIT)
+            if (charm->isCreature())
                 charm->addUnitFlags(UNIT_FLAG_STUNNED);
 
         ByteBuffer guidData;
@@ -8514,13 +8596,17 @@ void Unit::mount(uint32_t mount, uint32_t VehicleId, uint32_t creatureEntry)
     }
 
     removeAllAurasByAuraInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
+#endif
 }
 
-void Unit::dismount()
+void Unit::dismount(bool resummonPet/* = true*/)
 {
     if (!isMounted())
         return;
 
+#if VERSION_STRING == Classic
+    // TODO
+#else
     setMountDisplayId(0);
     removeUnitFlags(UNIT_FLAG_MOUNT);
 
@@ -8539,6 +8625,10 @@ void Unit::dismount()
             removeAllAurasById(player->getMountSpellId());
             player->setMountSpellId(0);
         }
+
+        //if we had pet then respawn
+        if (resummonPet)
+            player->summonTemporarilyUnsummonedPet();
     }
 
     WorldPacket data(SMSG_DISMOUNT, 8);
@@ -8556,12 +8646,13 @@ void Unit::dismount()
     }
 #endif
 
-    removeAllAurasByAuraInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
+    removeAllAurasByAuraInterruptFlag(AURA_INTERRUPT_ON_DISMOUNT);
 
     // if we have charmed npc, remove stun also
     if (Unit* charm = getWorldMapUnit(getCharmGuid()))
-        if (charm->getObjectTypeId() == TYPEID_UNIT && charm->hasUnitFlags(UNIT_FLAG_STUNNED) && !charm->hasUnitStateFlag(UNIT_STATE_STUNNED))
+        if (charm->isCreature() && charm->hasUnitFlags(UNIT_FLAG_STUNNED) && !charm->hasUnitStateFlag(UNIT_STATE_STUNNED))
             charm->removeUnitFlags(UNIT_FLAG_STUNNED);
+#endif
 }
 
 // Returns collisionheight of the unit. If it is 0, it returns DEFAULT_COLLISION_HEIGHT.
@@ -8834,9 +8925,6 @@ void Unit::buildMovementPacket(ByteBuffer* data, float x, float y, float z, floa
 
 void Unit::removeGarbage()
 {
-    for (auto aur : m_GarbageAuras)
-        delete aur;
-
     for (auto pet : m_GarbagePets)
         delete pet;
 
@@ -8844,9 +8932,9 @@ void Unit::removeGarbage()
     m_GarbagePets.clear();
 }
 
-void Unit::addGarbageAura(Aura* aur)
+void Unit::addGarbageAura(std::unique_ptr<Aura> aur)
 {
-    m_GarbageAuras.push_back(aur);
+    m_GarbageAuras.push_back(std::move(aur));
 }
 
 void Unit::addGarbagePet(Pet* pet)
@@ -8909,11 +8997,10 @@ void Unit::possess(Unit* unitTarget, uint32_t delay)
 
     unitTarget->updateInRangeOppositeFactionSet();
 
-    if (!(unitTarget->isPet() && dynamic_cast<Pet*>(unitTarget) == playerController->getFirstPetFromSummons()))
+    if (!(unitTarget->isPet() && dynamic_cast<Pet*>(unitTarget) == playerController->getPet()))
     {
-        WorldPacket data(SMSG_PET_SPELLS, 4 * 4 + 20);
-        unitTarget->buildPetSpellList(data);
-        playerController->getSession()->SendPacket(&data);
+        if (auto* creatureTarget = unitTarget->ToCreature())
+            creatureTarget->sendSpellsToController(playerController, 0);
     }
 }
 
@@ -8959,7 +9046,7 @@ void Unit::unPossess()
 
     playerController->sendClientControlPacket(unitTarget, 0);
 
-    if (!(unitTarget->isPet() && dynamic_cast<Pet*>(unitTarget) == playerController->getFirstPetFromSummons()))
+    if (!(unitTarget->isPet() && dynamic_cast<Pet*>(unitTarget) == playerController->getPet()))
         playerController->sendEmptyPetSpellList();
 
     setMoveRoot(false);
@@ -9010,17 +9097,6 @@ void Unit::eventModelChange()
         m_modelHalfSize = displayBoundingBox->high[2] / 2;
     else
         m_modelHalfSize = 1.0f;
-}
-
-void Unit::removeFieldSummon()
-{
-    const uint64_t guid = getSummonGuid();
-    if (guid && getWorldMap())
-    {
-        if (Creature* summon = dynamic_cast<Creature*>(getWorldMap()->getUnit(guid)))
-            summon->RemoveFromWorld(false, true);
-        setSummonGuid(0);
-    }
 }
 
 void Unit::aggroPvPGuards()
@@ -9150,14 +9226,12 @@ void Unit::eventChill(Unit* unitProcTarget, bool isVictim)
 
 void Unit::removeExtraStrikeTarget(SpellInfo const* spellInfo)
 {
-    for (std::list<ExtraStrike*>::iterator extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
+    for (auto extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
     {
-        ExtraStrike* extraStrike = *extraStrikeTarget;
-        if (spellInfo == extraStrike->spell_info)
+        if (spellInfo == (*extraStrikeTarget)->spell_info)
         {
             m_extraStrikeTargetC--;
             m_extraStrikeTargets.erase(extraStrikeTarget);
-            delete extraStrike;
             break;
         }
     }
@@ -9165,7 +9239,7 @@ void Unit::removeExtraStrikeTarget(SpellInfo const* spellInfo)
 
 void Unit::addExtraStrikeTarget(SpellInfo const* spellInfo, uint32_t charges)
 {
-    for (std::list<ExtraStrike*>::iterator extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
+    for (auto extraStrikeTarget = m_extraStrikeTargets.begin(); extraStrikeTarget != m_extraStrikeTargets.end(); ++extraStrikeTarget)
     {
         //a pointer check or id check ...should be the same
         if (spellInfo == (*extraStrikeTarget)->spell_info)
@@ -9175,30 +9249,23 @@ void Unit::addExtraStrikeTarget(SpellInfo const* spellInfo, uint32_t charges)
         }
     }
 
-    ExtraStrike* extraStrike = new ExtraStrike;
-    extraStrike->spell_info = spellInfo;
-    extraStrike->charges = charges;
-
-    m_extraStrikeTargets.push_back(extraStrike);
-
+    m_extraStrikeTargets.emplace_back(std::make_unique<ExtraStrike>(spellInfo, charges));
     m_extraStrikeTargetC++;
 }
 
 uint32_t Unit::doDamageSplitTarget(uint32_t res, SchoolMask schoolMask, bool isMeleeDmg)
 {
-    DamageSplitTarget* damageSplitTarget = m_damageSplitTarget;
-
-    Unit* splittarget = (getWorldMap() != nullptr) ? getWorldMap()->getUnit(damageSplitTarget->m_target) : nullptr;
+    Unit* splittarget = (getWorldMap() != nullptr) ? getWorldMap()->getUnit(m_damageSplitTarget->m_target) : nullptr;
     if (splittarget != nullptr && res > 0)
     {
         // calculate damage
-        uint32_t tmpsplit = damageSplitTarget->m_flatDamageSplit;
+        uint32_t tmpsplit = m_damageSplitTarget->m_flatDamageSplit;
         if (tmpsplit > res)
             tmpsplit = res;
 
         uint32_t splitdamage = tmpsplit;
         res -= tmpsplit;
-        tmpsplit = Util::float2int32(damageSplitTarget->m_pctDamageSplit * res);
+        tmpsplit = Util::float2int32(m_damageSplitTarget->m_pctDamageSplit * res);
         if (tmpsplit > res)
             tmpsplit = res;
 
@@ -9222,7 +9289,7 @@ uint32_t Unit::doDamageSplitTarget(uint32_t res, SchoolMask schoolMask, bool isM
                 if (splitdamage > splittarget->getHealth())
                     overKill = splitdamage - splittarget->getHealth();
 
-                splittarget->sendSpellNonMeleeDamageLog(this, splittarget, sSpellMgr.getSpellInfo(damageSplitTarget->m_spellId), splitdamage, 0, 0, 0, overKill, false, false);
+                splittarget->sendSpellNonMeleeDamageLog(this, splittarget, sSpellMgr.getSpellInfo(m_damageSplitTarget->m_spellId), splitdamage, 0, 0, 0, overKill, false, false);
             }
         }
     }
@@ -9240,7 +9307,6 @@ void Unit::removeReflect(uint32_t spellId, bool apply)
     {
         if (spellId == (*reflectSpellSchool)->spellId)
         {
-            delete* reflectSpellSchool;
             reflectSpellSchool = m_reflectSpellSchool.erase(reflectSpellSchool);
         }
         else
@@ -9434,11 +9500,11 @@ void Unit::giveGroupXP(Unit* unitVictim, Player* playerInGroup)
                 sEventMgr.ModifyEventTimeLeft(activePlayerList[i], EVENT_LASTKILLWITHHONOR_FLAG_EXPIRE, 20000);
             }
 
-            if (plr->getFirstPetFromSummons() && plr->getFirstPetFromSummons()->CanGainXP())
+            if (plr->getPet() && plr->getPet()->canGainXp())
             {
-                const auto petXP = static_cast<uint32_t>(static_cast<float>(CalculateXpToGive(unitVictim, plr->getFirstPetFromSummons())) * xpMod);
+                const auto petXP = static_cast<uint32_t>(static_cast<float>(CalculateXpToGive(unitVictim, plr->getPet())) * xpMod);
                 if (petXP > 0)
-                    plr->getFirstPetFromSummons()->giveXp(petXP);
+                    plr->getPet()->giveXp(petXP);
             }
         }
     }
@@ -10984,9 +11050,11 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
                 }
             }
 
+#if VERSION_STRING < Cata
             //pet happiness state dmg modifier
-            if (isPet() && !static_cast<Pet*>(this)->IsSummonedPet())
-                dmg.fullDamage = (dmg.fullDamage <= 0) ? 0 : Util::float2int32(dmg.fullDamage * static_cast<Pet*>(this)->GetHappinessDmgMod());
+            if (isPet() && static_cast<Pet*>(this)->isHunterPet())
+                dmg.fullDamage = (dmg.fullDamage <= 0) ? 0 : Util::float2int32(dmg.fullDamage * static_cast<Pet*>(this)->getHappinessDamageMod());
+#endif
 
             if (dmg.fullDamage < 0)
                 dmg.fullDamage = 0;
@@ -11392,12 +11460,12 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     {
         if (dmg.realDamage)
         {
-            auto batch = new HealthBatchEvent;
+            auto batch = std::make_unique<HealthBatchEvent>();
             batch->caster = this;
             batch->damageInfo = dmg;
             batch->spellInfo = ability;
 
-            pVictim->addHealthBatchEvent(batch);
+            pVictim->addHealthBatchEvent(std::move(batch));
             //pVictim->HandleProcDmgShield(PROC_ON_MELEE_ATTACK_VICTIM,this);
             // HandleProcDmgShield(PROC_ON_MELEE_ATTACK_VICTIM,pVictim);
 
@@ -11413,9 +11481,9 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
 
     // Tagging should happen when damage packets are sent
     const auto plrOwner = getPlayerOwnerOrSelf();
-    if (plrOwner != nullptr && pVictim->isCreature() && pVictim->isTaggable())
+    if (plrOwner != nullptr && pVictim->isCreature() && pVictim->isTaggableFor(this))
     {
-        pVictim->setTaggerGuid(getGuid());
+        pVictim->setTaggerGuid(this);
         plrOwner->tagUnit(pVictim);
     }
 
@@ -11496,10 +11564,10 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     {
         m_extraStrikeTarget = true;
 
-        for (std::list<ExtraStrike*>::iterator itx = m_extraStrikeTargets.begin(); itx != m_extraStrikeTargets.end();)
+        for (auto itx = m_extraStrikeTargets.begin(); itx != m_extraStrikeTargets.end();)
         {
-            std::list<ExtraStrike*>::iterator itx2 = itx++;
-            ExtraStrike* ex = *itx2;
+            auto itx2 = itx++;
+            const auto& ex = *itx2;
 
             for (const auto& itr : getInRangeObjectsSet())
             {
@@ -11525,7 +11593,6 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
                 {
                     m_extraStrikeTargetC--;
                     m_extraStrikeTargets.erase(itx2);
-                    delete ex;
                 }
             }
         }
@@ -11547,12 +11614,10 @@ uint32_t Unit::handleProc(uint32_t flag, Unit* victim, SpellInfo const* CastingS
 
     std::list<SpellProc*> happenedProcs;
 
-    for (std::list<SpellProc*>::iterator itr = m_procSpells.begin(); itr != m_procSpells.end();)    // Proc Trigger Spells for Victim
+    for (auto itr = m_procSpells.begin(); itr != m_procSpells.end();)    // Proc Trigger Spells for Victim
     {
-        std::list<SpellProc*>::iterator itr2 = itr;
-        ++itr;
-
-        SpellProc* spell_proc = *itr2;
+        auto itr2 = itr++;
+        SpellProc* spell_proc = itr2->get();
 
         // Check if list item was deleted elsewhere, so here it's removed and freed
         if (spell_proc->isDeleted())
@@ -11560,7 +11625,6 @@ uint32_t Unit::handleProc(uint32_t flag, Unit* victim, SpellInfo const* CastingS
             if (can_delete)
             {
                 m_procSpells.erase(itr2);
-                delete spell_proc;
             }
             continue;
         }
@@ -13008,10 +13072,9 @@ uint32_t Unit::handleProc(uint32_t flag, Unit* victim, SpellInfo const* CastingS
 
                 //only trigger effect for specified spells
                 auto _continue = false;
-                const auto spellSkillBounds = sSpellMgr.getSkillEntryForSpellBounds(CastingSpell->getId());
-                for (auto spellSkillItr = spellSkillBounds.first; spellSkillItr != spellSkillBounds.second; ++spellSkillItr)
+                const auto spellSkillRange = sSpellMgr.getSkillEntryRangeForSpell(CastingSpell->getId());
+                for (const auto& [_, skill_line_ability] : spellSkillRange)
                 {
-                    auto skill_line_ability = spellSkillItr->second;
                     if (skill_line_ability->skilline != SKILL_DESTRUCTION)
                     {
                         _continue = true;

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -29,6 +29,8 @@
 #include "Objects/Units/Creatures/Summons/Summon.hpp"
 #include "Objects/Units/Creatures/Summons/SummonHandler.hpp"
 #include "Objects/Units/Players/Player.hpp"
+#include "Utilities/Random.hpp"
+#include "Utilities/Util.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Mage Scripts
@@ -39,7 +41,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new FirestarterTalent(Caster, info, triggered, aur); }
 
-    void DoAfterHandleEffect(Unit* target, uint32 /*i*/) override
+    void DoAfterHandleEffect(Unit* target, uint32_t /*i*/) override
     {
         if (p_caster != NULL && target != NULL && p_caster->hasAurasWithId(54741)) // Cronicman: Player has "Firestarter" aura so we remove it AFTER casting Flamestrike.
         {
@@ -55,7 +57,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new MissileBarrage(Caster, info, triggered, aur); }
 
-    void DoAfterHandleEffect(Unit* target, uint32 /*i*/) override
+    void DoAfterHandleEffect(Unit* target, uint32_t /*i*/) override
     {
         if (p_caster != NULL && target != NULL && p_caster->hasAurasWithId(44401)) // Player has "Missile Barrage" aura so we remove it AFTER casting arcane missles.
         {
@@ -89,30 +91,12 @@ public:
         {
             if (u_caster)
             {
-                // If someone has a better solutionen, your welcome :-)
-                int totem_ids[32] = {
-                    //Searing Totems
-                    2523, 3902, 3903, 3904, 7400, 7402, 15480, 31162, 31164, 31165,
-                    //Magma Totems
-                    8929, 7464, 7435, 7466, 15484, 31166, 31167,
-                    //Fire Elementel
-                    15439,
-                    //Flametongue Totems
-                    5950, 6012, 7423, 10557, 15485, 31132, 31158, 31133,
-                    //Frost Resistance Totems
-                    5926, 7412, 7413, 15486, 31171, 31172
-                };
-                Unit* totem;
-                for (uint8 i = 0; i < 32; i++)
+                auto* totem = u_caster->getTotem(SUMMON_SLOT_TOTEM_FIRE);
+                if (totem != nullptr)
                 {
-                    totem = u_caster->getSummonInterface()->getSummonWithEntry(totem_ids[i]);   // Get possible firetotem
-                    if (totem != NULL)
-                    {
-                        HasFireTotem = true;
-                        CastSpell(totem);
-                    }
+                    CastSpell(totem);
                 }
-                if (!HasFireTotem)
+                else
                 {
                     *parameter1 = SPELL_EXTRA_ERROR_MUST_HAVE_FIRE_TOTEM;
                     result = SPELL_FAILED_CUSTOM_ERROR;
@@ -125,7 +109,7 @@ public:
 
     void CastSpell(Unit* totem)
     {
-        uint32 fireNovaSpells = Spell::getSpellInfo()->getId();
+        uint32_t fireNovaSpells = Spell::getSpellInfo()->getId();
         //Cast spell. NOTICE All ranks are linked with a extra spell in HackFixes.cpp
         totem->castSpellLoc(totem->GetPosition(), sSpellMgr.getSpellInfo(fireNovaSpells), true);
     }
@@ -136,15 +120,15 @@ public:
 class CheatDeathAura : public AbsorbAura
 {
 public:
-    CheatDeathAura(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    CheatDeathAura(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
         : AbsorbAura(proto, duration, caster, target, temporary, i_caster)
     {
         dSpell = sSpellMgr.getSpellInfo(31231);
     }
 
-    static Aura* Create(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    static std::unique_ptr<Aura> Create(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
     {
-        return new CheatDeathAura(proto, duration, caster, target, temporary, i_caster);
+        return std::make_unique<CheatDeathAura>(proto, duration, caster, target, temporary, i_caster);
     }
 
     uint32_t absorbDamage(SchoolMask /*School*/, uint32_t* dmg, bool checkOnly) override
@@ -158,15 +142,15 @@ public:
             return 0;
 
         // Check if damage will kill player.
-        uint32 cur_hlth = getPlayerOwner()->getHealth();
+        uint32_t cur_hlth = getPlayerOwner()->getHealth();
         if ((*dmg) < cur_hlth)
             return 0;
 
         if (checkOnly)
             return 0;
 
-        uint32 max_hlth = getPlayerOwner()->getMaxHealth();
-        uint32 min_hlth = max_hlth / 10;
+        uint32_t max_hlth = getPlayerOwner()->getMaxHealth();
+        uint32_t min_hlth = max_hlth / 10;
 
         /*
         looks like the following lines are not so good, we check and cast on spell id 31231_
@@ -186,8 +170,8 @@ public:
         getPlayerOwner()->addSpellCooldown(dSpell, nullptr, nullptr, 60000);
 
         // Calc abs and applying it
-        uint32 real_dmg = (cur_hlth > min_hlth ? cur_hlth - min_hlth : 0);
-        uint32 absorbed_dmg = *dmg - real_dmg;
+        uint32_t real_dmg = (cur_hlth > min_hlth ? cur_hlth - min_hlth : 0);
+        uint32_t absorbed_dmg = *dmg - real_dmg;
 
         *dmg = real_dmg;
         return absorbed_dmg;
@@ -206,7 +190,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new DispersionSpell(Caster, info, triggered, aur); }
 
-    void DoAfterHandleEffect(Unit* target, uint32 /*i*/)
+    void DoAfterHandleEffect(Unit* target, uint32_t /*i*/)
     {
         if (p_caster != NULL)
         {
@@ -227,10 +211,10 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new InnervateSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* target, int32 value)
+    int32_t DoCalculateEffect(uint32_t i, Unit* target, int32_t value)
     {
         if (p_caster != NULL && i == 0 && target != NULL)
-            value = (uint32)(p_caster->getBaseMana() * 0.225f);
+            value = (uint32_t)(p_caster->getBaseMana() * 0.225f);
 
         return value;
     }
@@ -245,10 +229,10 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new BloodPlagueSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* /*target*/, int32 value)
+    int32_t DoCalculateEffect(uint32_t i, Unit* /*target*/, int32_t value)
     {
         if (p_caster != NULL && i == 0)
-            value += (uint32)(p_caster->getCalculatedAttackPower() * 0.055 * 1.15);
+            value += (uint32_t)(p_caster->getCalculatedAttackPower() * 0.055 * 1.15);
 
         return value;
     }
@@ -261,10 +245,10 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new IcyTouchSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* /*target*/, int32 value) override
+    int32_t DoCalculateEffect(uint32_t i, Unit* /*target*/, int32_t value) override
     {
         if (p_caster != NULL && i == 0)
-            value += (uint32)(p_caster->getCalculatedAttackPower() * 0.1);
+            value += (uint32_t)(p_caster->getCalculatedAttackPower() * 0.1);
 
         return value;
     }
@@ -277,10 +261,10 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new FrostFeverSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* /*target*/, int32 value) override
+    int32_t DoCalculateEffect(uint32_t i, Unit* /*target*/, int32_t value) override
     {
         if (p_caster != NULL && i == 0)
-            value += (uint32)(p_caster->getCalculatedAttackPower() * 0.055 * 1.15);
+            value += (uint32_t)(p_caster->getCalculatedAttackPower() * 0.055 * 1.15);
 
         return value;
     }
@@ -293,17 +277,17 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new BloodBoilSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* target, int32 value)
+    int32_t DoCalculateEffect(uint32_t i, Unit* target, int32_t value)
     {
         if (p_caster != NULL && i == 0)
         {
-            int32 ap = p_caster->getCalculatedAttackPower();
+            int32_t ap = p_caster->getCalculatedAttackPower();
 
-            value += (uint32)(ap * 0.08);
+            value += (uint32_t)(ap * 0.08);
 
             // Does additional damage if target has diseases (http://www.tankspot.com/forums/f14/48814-3-1-blood-boil-mechanics-tested.html)
             if (target != NULL && (target->hasAurasWithId(55078) || target->hasAurasWithId(55095)))
-                value += (uint32)(ap * 0.015 + 95);
+                value += (uint32_t)(ap * 0.015 + 95);
         }
 
         return value;
@@ -317,11 +301,11 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new BloodStrikeSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 /*i*/, Unit* target, int32 value)
+    int32_t DoCalculateEffect(uint32_t /*i*/, Unit* target, int32_t value)
     {
         if (target != NULL)
         {
-            uint32 count = target->getAuraCountWithDispelType(DISPEL_DISEASE, m_caster->getGuid());
+            uint32_t count = target->getAuraCountWithDispelType(DISPEL_DISEASE, m_caster->getGuid());
             if (count)
                 value += value * count * (getSpellInfo()->calculateEffectValue(2)) / 200;
         }
@@ -329,12 +313,12 @@ public:
         return value;
     }
 
-    void DoAfterHandleEffect(Unit* target, uint32 i)
+    void DoAfterHandleEffect(Unit* target, uint32_t i)
     {
         if (p_caster == NULL || i != 1)
             return;
 
-        uint32 suddenDoom[] =
+        uint32_t suddenDoom[] =
         {
             //SPELL_HASH_SUDDEN_DOOM
             49018,
@@ -387,7 +371,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new RuneStrileSpell(Caster, info, triggered, aur); }
 
-    void DoAfterHandleEffect(Unit* /*target*/, uint32 /*i*/)
+    void DoAfterHandleEffect(Unit* /*target*/, uint32_t /*i*/)
     {
         if (u_caster != NULL)
             u_caster->removeAllAurasById(56817);
@@ -397,15 +381,15 @@ public:
 class AntiMagicShellAura : public AbsorbAura
 {
 public:
-    AntiMagicShellAura(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    AntiMagicShellAura(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
         : AbsorbAura(proto, duration, caster, target, temporary, i_caster) {}
 
-    static Aura* Create(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    static std::unique_ptr<Aura> Create(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
     {
-        return new AntiMagicShellAura(proto, duration, caster, target, temporary, i_caster);
+        return std::make_unique<AntiMagicShellAura>(proto, duration, caster, target, temporary, i_caster);
     }
 
-    int32 CalcAbsorbAmount(AuraEffectModifier* aurEff)
+    int32_t CalcAbsorbAmount(AuraEffectModifier* aurEff)
     {
         Player* caster = GetPlayerCaster();
         if (caster != NULL)
@@ -424,12 +408,12 @@ class SpellDeflectionAura : public AbsorbAura
 {
 #if VERSION_STRING >= TBC // support classic
 public:
-    SpellDeflectionAura(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    SpellDeflectionAura(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
         : AbsorbAura(proto, duration, caster, target, temporary, i_caster) {}
 
-    static Aura* Create(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    static std::unique_ptr<Aura> Create(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
     {
-        return new SpellDeflectionAura(proto, duration, caster, target, temporary, i_caster);
+        return std::make_unique<SpellDeflectionAura>(proto, duration, caster, target, temporary, i_caster);
     }
 
     uint32_t absorbDamage(SchoolMask schoolMask, uint32_t* dmg, bool /*checkOnly*/) override
@@ -445,7 +429,7 @@ public:
         if (!Util::checkChance(caster->getParryChance()))
             return 0;
 
-        uint32 dmg_absorbed = *dmg * getEffectDamage(0) / 100;
+        uint32_t dmg_absorbed = *dmg * getEffectDamage(0) / 100;
         *dmg -= dmg_absorbed;
 
         return dmg_absorbed;
@@ -460,7 +444,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new BloodwormSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 /*i*/, Unit* /*target*/, int32 /*value*/)
+    int32_t DoCalculateEffect(uint32_t /*i*/, Unit* /*target*/, int32_t /*value*/)
     {
         return 2 + Util::getRandomUInt(2);
     }
@@ -469,12 +453,12 @@ public:
 class WillOfTheNecropolisAura : public AbsorbAura
 {
 public:
-    WillOfTheNecropolisAura(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    WillOfTheNecropolisAura(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
         : AbsorbAura(proto, duration, caster, target, temporary, i_caster) {}
 
-    static Aura* Create(SpellInfo* proto, int32 duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
+    static std::unique_ptr<Aura> Create(SpellInfo* proto, int32_t duration, Object* caster, Unit* target, bool temporary = false, Item* i_caster = nullptr)
     {
-        return new WillOfTheNecropolisAura(proto, duration, caster, target, temporary, i_caster);
+        return std::make_unique<WillOfTheNecropolisAura>(proto, duration, caster, target, temporary, i_caster);
     }
 
     uint32_t absorbDamage(SchoolMask /*School*/, uint32_t* dmg, bool /*checkOnly*/) override
@@ -484,14 +468,14 @@ public:
             return 0;
 
         int health_pct = caster->getHealthPct();
-        uint32 cur_health = caster->getHealth();
-        uint32 max_health = caster->getMaxHealth();
-        uint32 new_health_pct = (cur_health - *dmg) * 100 / max_health;
+        uint32_t cur_health = caster->getHealth();
+        uint32_t max_health = caster->getMaxHealth();
+        uint32_t new_health_pct = (cur_health - *dmg) * 100 / max_health;
 
         // "Damage that would take you below $s1% health or taken while you are at $s1% health is reduced by $52284s1%."
         if ((health_pct > 35 && new_health_pct < 35) || health_pct == 35)
         {
-            uint32 dmg_absorbed = *dmg * (getSpellInfo()->calculateEffectValue(0)) / 100;
+            uint32_t dmg_absorbed = *dmg * (getSpellInfo()->calculateEffectValue(0)) / 100;
             *dmg -= dmg_absorbed;
 
             return dmg_absorbed;
@@ -508,7 +492,7 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new VampiricBloodSpell(Caster, info, triggered, aur); }
 
-    int32 DoCalculateEffect(uint32 i, Unit* /*target*/, int32 value) override
+    int32_t DoCalculateEffect(uint32_t i, Unit* /*target*/, int32_t value) override
     {
         if (i == 1 && p_caster != NULL)
             value = p_caster->getMaxHealth() * (getSpellInfo()->getEffectBasePoints(static_cast<uint8_t>(i)) + 1) / 100;
@@ -524,12 +508,12 @@ public:
 
     static Spell* Create(Object* Caster, SpellInfo *info, bool triggered, Aura* aur) { return new HeartStrikeSpell(Caster, info, triggered, aur); }
 
-    void DoAfterHandleEffect(Unit* target, uint32 i)
+    void DoAfterHandleEffect(Unit* target, uint32_t i)
     {
         if (p_caster == NULL || i != 1)
             return;
 
-        uint32 suddenDoom[] =
+        uint32_t suddenDoom[] =
         {
             // SPELL_HASH_SUDDEN_DOOM
             49018,

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,6 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Portal_Intro.hpp"
 #include "Instance_TheVioletHold.hpp"
 #include "CommonTime.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Intro Portal AI
@@ -25,7 +26,7 @@ void IntroPortalAI::OnLoad()
     if (!getCreature()->isSummon())
         getCreature()->Despawn(10, 0);
 
-    getCreature()->getAIInterface()->setImmuneToNPC(true);
+    getCreature()->getAIInterface()->setIgnoreCreatureCombat(true);
     getCreature()->setUnitFlags(UNIT_FLAG_NOT_SELECTABLE);
 }
 

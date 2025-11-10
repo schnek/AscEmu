@@ -1,12 +1,12 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "LuaGlobalFunctions.hpp"
 
 #include "Common.hpp"
-#include "git_version.h"
+#include "git_version.hpp"
 #include "LUAEngine.hpp"
 #include "LuaGlobal.hpp"
 #include "LuaMacros.h"
@@ -141,47 +141,55 @@ int LuaGlobalFunctions::logcol(lua_State* L)
 
 int LuaGlobalFunctions::WorldDBQuery(lua_State* L)
 {
-    const char* qStr = luaL_checkstring(L, 1);
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*const char* qStr = luaL_checkstring(L, 1);
     //uint32_t fID = static_cast<uint32_t>(luaL_optinteger(L, 2, 0)); //column
     //uint32_t rID = static_cast<uint32_t>(luaL_optinteger(L, 3, 0)); //row
     if (!qStr)
         return 0;
-    QueryResult* result = WorldDatabase.Query(qStr);
+    auto result = WorldDatabase.Query(qStr);
     lua_settop(L, 0);
-    PUSH_SQLRESULT(L, result);
+    PUSH_SQLRESULT(L, result);*/
     return 1;
 }
 
 int LuaGlobalFunctions::CharDBQuery(lua_State* L)
 {
-    const char* qStr = luaL_checkstring(L, 1);
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*const char* qStr = luaL_checkstring(L, 1);
     //uint32_t fID = static_cast<uint32_t>(luaL_optinteger(L, 2, 0)); //column
     //uint32_t rID = static_cast<uint32_t>(luaL_optinteger(L, 3, 0)); //row
     if (!qStr)
         return 0;
-    QueryResult* result = CharacterDatabase.Query(qStr);
+    auto result = CharacterDatabase.Query(qStr);
     lua_settop(L, 0);
-    PUSH_SQLRESULT(L, result);
+    PUSH_SQLRESULT(L, result);*/
     return 1;
 }
 
 int LuaGlobalFunctions::WorldDBQueryTable(lua_State* L)
 {
-    const char* qStr = luaL_checkstring(L, 1);
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*const char* qStr = luaL_checkstring(L, 1);
     lua_newtable(L);
     if (!qStr) return 0;
-    QueryResult* result = WorldDatabase.Query(qStr);
-    PUSH_SQLRESULT(L, result);
+    auto result = WorldDatabase.Query(qStr);
+    PUSH_SQLRESULT(L, result);*/
     return 1;
 }
 
 int LuaGlobalFunctions::CharDBQueryTable(lua_State* L)
 {
-    const char* qStr = luaL_checkstring(L, 1);
+    // TODO: possibly needs rewrite of LuaEngine to handle unique_ptr<T> -Appled
+
+    /*const char* qStr = luaL_checkstring(L, 1);
     lua_newtable(L);
     if (!qStr) return 0;
-    QueryResult* result = CharacterDatabase.Query(qStr);
-    PUSH_SQLRESULT(L, result);
+    auto result = CharacterDatabase.Query(qStr);
+    PUSH_SQLRESULT(L, result);*/
     return 1;
 }
 
@@ -205,24 +213,22 @@ int LuaGlobalFunctions::SendWorldMessage(lua_State* L)
 
 int LuaGlobalFunctions::ReloadTable(lua_State* L)
 {
-    const char* TableName = luaL_checkstring(L, 1);
-    if (AscEmu::Util::Strings::isEqual(TableName, "spell_disable"))
-    {
-        sSpellMgr.reloadSpellDisabled();
-    }
-    else if (AscEmu::Util::Strings::isEqual(TableName, "vendors"))
-    {
-        sObjectMgr.loadVendors();
-    }
-    else
-    {
-        if (AscEmu::Util::Strings::isEqual(TableName, "command_overrides"))    // Command Overrides
-        {
-            sCommandTableStorage.Dealloc();
-            sCommandTableStorage.Init();
-            sCommandTableStorage.Load();
-        }
-    }
+    //const char* TableName = luaL_checkstring(L, 1);
+    //if (AscEmu::Util::Strings::isEqual(TableName, "spell_disable"))
+    //{
+    //    sSpellMgr.reloadSpellDisabled();
+    //}
+    //else if (AscEmu::Util::Strings::isEqual(TableName, "vendors"))
+    //{
+    //    sObjectMgr.loadVendors();
+    //}
+    //else
+    //{
+    //    if (AscEmu::Util::Strings::isEqual(TableName, "command_overrides"))    // Command Overrides
+    //    {
+    //        sCommandTableStorage.loadOverridePermission();
+    //    }
+    //}
     return 0;
 }
 
@@ -283,7 +289,7 @@ int LuaGlobalFunctions::GetClientVersion(lua_State* L)
 
 int LuaGlobalFunctions::GetAERevision(lua_State* L)
 {
-    lua_pushstring(L, BUILD_HASH_STR);
+    lua_pushstring(L, AE_BUILD_HASH);
     return 1;
 }
 
@@ -605,7 +611,7 @@ int LuaGlobalFunctions::SendPacketToChannel(lua_State* L)
     WorldPacket* pack = CHECK_PACKET(L, 1);
     const char* channelName = luaL_checkstring(L, 2);
     uint32_t team = CHECK_ULONG(L, 3);
-    std::shared_ptr<Channel> channel = sChannelMgr.getChannel(channelName, team);
+    auto channel = sChannelMgr.getChannel(channelName, team);
     if (!channel || !pack)
         return 0;
 

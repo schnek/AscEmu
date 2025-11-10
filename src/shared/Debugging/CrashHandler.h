@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #define _CRASH_HANDLER_H
 
 #include <cstdint>
-#include "Common.hpp"
+#include "Threading/ConditionVariable.h"
 
 bool HookCrashReporter(bool logon);
 void OutputCrashLogLine(const char* format, ...);
@@ -32,7 +32,7 @@ void OutputCrashLogLine(const char* format, ...);
 #include "StackWalker.h"
 #include "CircularQueue.h"
 
-extern CircularQueue<uint32, 30> last_spells;
+extern CircularQueue<uint32_t, 30> last_spells;
 
 class CStackWalker : public StackWalker
 {

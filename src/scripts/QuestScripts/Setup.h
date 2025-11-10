@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -29,6 +29,7 @@ void SetupBloodmystIsle(ScriptMgr* mgr);
 void SetupBurningSteppes(ScriptMgr* mgr);
 void SetupDesolace(ScriptMgr* mgr);
 void SetupDragonblight(ScriptMgr* mgr);
+void SetupDurotar(ScriptMgr* mgr);
 void SetupDuskwood(ScriptMgr* mgr);
 void SetupDustwallowMarsh(ScriptMgr* mgr);
 void SetupEasternPlaguelands(ScriptMgr* mgr);

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/InstanceScript.hpp"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellInfo.hpp"
+#include "Utilities/Random.hpp"
 
 // ToDo
 // Cannot Get Submerge Phase to Work
@@ -162,7 +163,7 @@ void AnubarakAI::onSummonedCreature(Creature* summon)
             summon->setDisplayId(summon->GetCreatureProperties()->Male_DisplayID);
             if (Unit* target = selectUnitTarget(FilterArgs(TargetFilter_Player)))
             {
-                summon->getAIInterface()->attackStart(target);
+                summon->getAIInterface()->attackStartIfCan(target);
                 addMessage(Message(anubarak::EMOTE_SPIKE, target), DoOnceScheduler());
             }
         } break;
@@ -532,7 +533,7 @@ void SpikeAI::handlePermafrostHit(Creature* pCreature)
 
 void SpikeAI::AIUpdate(unsigned long time_passed)
 {
-    if (!getCreature()->getAIInterface()->updateTarget())
+    if (!getCreature()->getAIInterface()->getCurrentTarget())
     {
         despawn();
         return;
@@ -598,7 +599,7 @@ void SpikeAI::startChase(Unit* target)
     setZoneWideCombat();
     addThreat(target, 1000000.0f);
     getCreature()->getAIInterface()->onHostileAction(target);
-    getCreature()->getAIInterface()->attackStart(target);
+    getCreature()->getAIInterface()->attackStartIfCan(target);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

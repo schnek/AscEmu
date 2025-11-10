@@ -1,9 +1,10 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "Common.hpp"
+#include "Threading/ConditionVariable.h"
 #include "Threading/AEThreadPool.h"
 #include "Utilities/Util.hpp"
 #include "Database/DatabaseUpdater.hpp"
@@ -13,25 +14,28 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Auth/AuthSocket.h"
 #include "Server/LogonServerDefines.hpp"
 #include "Server/Master.hpp"
+
+#include <csignal>
 #include <Logging/Logger.hpp>
 #include "Auth/AutoPatcher.h"
 #include <Network/Network.h>
 
-#include "git_version.h"
+#include "git_version.hpp"
 #include "Console/LogonConsole.h"
 #include "LogonConf.hpp"
 #include "Database/Database.h"
 #include "Utilities/Strings.hpp"
+#include "Threading/LegacyThreading.h"
 
 using std::chrono::milliseconds;
 
 // Database impl
-Database* sLogonSQL;
+std::unique_ptr<Database> sLogonSQL;
 std::atomic<bool> mrunning(true);
 
 ConfigMgr Config;
 
-static const char* REQUIRED_LOGON_DB_VERSION = "20200221-00_utf8mb4_unicode_ci";
+static const char* REQUIRED_LOGON_DB_VERSION = "20250119-00_logon_db_version";
 
 MasterLogon& MasterLogon::getInstance()
 {
@@ -96,12 +100,13 @@ void MasterLogon::Run(int /*argc*/, char** /*argv*/)
     m_clientMinBuild = 5875;
     m_clientMaxBuild = 15595;
 
-    ThreadPool.ExecuteTask(new LogonConsoleThread);
+    auto logonConsole = std::make_unique<LogonConsoleThread>();
+    ThreadPool.ExecuteTask(logonConsole.get());
 
     sSocketMgr.initialize();
 
-    auto realmlistSocket = new ListenSocket<AuthSocket>(logonConfig.listen.host.c_str(), logonConfig.listen.realmListPort);
-    auto logonServerSocket = new ListenSocket<LogonCommServerSocket>(logonConfig.listen.interServerHost.c_str(), logonConfig.listen.port);
+    auto realmlistSocket = std::make_unique<ListenSocket<AuthSocket>>(logonConfig.listen.host.c_str(), logonConfig.listen.realmListPort);
+    auto logonServerSocket = std::make_unique<ListenSocket<LogonCommServerSocket>>(logonConfig.listen.interServerHost.c_str(), logonConfig.listen.port);
 
     sSocketMgr.SpawnWorkerThreads();
 
@@ -112,14 +117,14 @@ void MasterLogon::Run(int /*argc*/, char** /*argv*/)
     if (isAuthsockCreated && isIntersockCreated)
     {
 #ifdef WIN32
-        ThreadPool.ExecuteTask(realmlistSocket);
-        ThreadPool.ExecuteTask(logonServerSocket);
+        ThreadPool.ExecuteTask(realmlistSocket.get());
+        ThreadPool.ExecuteTask(logonServerSocket.get());
 #endif
         _HookSignals();
 
         WritePidFile();
 
-        uint32 loop_counter = 0;
+        uint32_t loop_counter = 0;
 
         sLogger.info("Success! Ready for connections");
         while (mrunning)
@@ -166,7 +171,7 @@ void MasterLogon::Run(int /*argc*/, char** /*argv*/)
     sLogger.info("Waiting for database to close..");
     sLogonSQL->EndThreads();
     sLogonSQL->Shutdown();
-    delete sLogonSQL;
+    sLogonSQL = nullptr;
 
     ThreadPool.Shutdown();
 
@@ -179,8 +184,6 @@ void MasterLogon::Run(int /*argc*/, char** /*argv*/)
     sSocketMgr.finalize();
     sSocketGarbageCollector.finalize();
     //delete periodicReloadAccounts;
-    delete realmlistSocket;
-    delete logonServerSocket;
     sLogger.info("Shutdown complete.");
     sLogger.finalize();
 }
@@ -212,7 +215,7 @@ void MasterLogon::CheckForDeadSockets()
 
 void MasterLogon::PrintBanner()
 {
-    sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "<< AscEmu {}/{}-{} {} :: Logon Server >>", BUILD_HASH_STR, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+    sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "<< AscEmu {}/{}-{} {} :: Logon Server >>", AE_BUILD_HASH, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
     sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "========================================================");
 }
 
@@ -221,7 +224,7 @@ void MasterLogon::WritePidFile()
     FILE* pidFile = fopen("logonserver.pid", "w");
     if (pidFile)
     {
-        uint32 pid;
+        uint32_t pid;
 #ifdef WIN32
         pid = GetCurrentProcessId();
 #else
@@ -326,7 +329,7 @@ bool MasterLogon::StartDb()
     // Initialize it
     if (!sLogonSQL->Initialize(dbHostname.c_str(), (unsigned int)dbPort, dbUsername.c_str(),
         dbPassword.c_str(), dbDatabase.c_str(), logonConfig.logonDb.connections,
-        16384))
+        16384, logonConfig.logonDb.isLegacyAuth))
     {
         sLogger.fatal("sql: Logon database initialization failed. Exiting.");
         return false;
@@ -337,18 +340,7 @@ bool MasterLogon::StartDb()
 
 bool MasterLogon::CheckDBVersion()
 {
-    QueryResult* versionQuery = sLogonSQL->QueryNA("SELECT LastUpdate FROM logon_db_version;");
-    if (!versionQuery)
-    {
-        sLogger.failure("Database : logon database is missing the table `logon_db_version`. AE will create one for you now!");
-        std::string createTable = "CREATE TABLE `logon_db_version` (`LastUpdate` varchar(255) NOT NULL DEFAULT '', PRIMARY KEY(`LastUpdate`)) ENGINE = InnoDB DEFAULT CHARSET = utf8;";
-        sLogonSQL->ExecuteNA(createTable.c_str());
-
-        std::string insertData = "INSERT INTO `logon_db_version` VALUES ('20180729-00_logon_db_version');";
-        sLogonSQL->ExecuteNA(insertData.c_str());
-    }
-
-    QueryResult* cqr = sLogonSQL->QueryNA("SELECT LastUpdate FROM logon_db_version;");
+    auto cqr = sLogonSQL->QueryNA("SELECT LastUpdate FROM logon_db_version ORDER BY id DESC LIMIT 1;");
     if (cqr == nullptr)
     {
         sLogger.failure("Database : logon database is missing the table `logon_db_version` OR the table doesn't contain any rows. Can't validate database version. Exiting.");
@@ -357,7 +349,7 @@ bool MasterLogon::CheckDBVersion()
     }
 
     Field* f = cqr->Fetch();
-    const char *LogonDBVersion = f->GetString();
+    const char *LogonDBVersion = f->asCString();
 
     sLogger.info("Database : Last logon database update: {}", LogonDBVersion);
     int result = strcmp(LogonDBVersion, REQUIRED_LOGON_DB_VERSION);
@@ -372,11 +364,8 @@ bool MasterLogon::CheckDBVersion()
         else
             sLogger.failure("Database : Your logon database is too new for this AscEmu version, you need to update your server. Exiting.");
 
-        delete cqr;
         return false;
     }
-
-    delete cqr;
 
     sLogger.info("Database : Database successfully validated.");
 
@@ -427,7 +416,7 @@ bool MasterLogon::SetLogonConfiguration()
         std::string stmp = allowedIP.substr(0, i);
         std::string smask = allowedIP.substr(i + 1);
 
-        const unsigned int ipraw = MakeIP(stmp.c_str());
+        const unsigned int ipraw = Util::makeIP(stmp.c_str());
         const unsigned char ipmask = static_cast<char>(atoi(smask.c_str()));
         if (ipraw == 0 || ipmask == 0)
         {
@@ -453,7 +442,7 @@ bool MasterLogon::SetLogonConfiguration()
         std::string stmp = allowedModIP.substr(0, i);
         std::string smask = allowedModIP.substr(i + 1);
 
-        unsigned int ipraw = MakeIP(stmp.c_str());
+        unsigned int ipraw = Util::makeIP(stmp.c_str());
         unsigned char ipmask = static_cast<char>(atoi(smask.c_str()));
         if (ipraw == 0 || ipmask == 0)
         {
@@ -478,7 +467,7 @@ bool MasterLogon::IsServerAllowed(unsigned int IP)
 
     for (auto itr = m_allowedIps.begin(); itr != m_allowedIps.end(); ++itr)
     {
-        if (ParseCIDRBan(IP, itr->IP, itr->Bytes))
+        if (Util::parseCIDRBan(IP, itr->IP, itr->Bytes))
             return true;
     }
 
@@ -491,7 +480,7 @@ bool MasterLogon::IsServerAllowedMod(unsigned int IP)
 
     for (auto itr = m_allowedModIps.begin(); itr != m_allowedModIps.end(); ++itr)
     {
-        if (ParseCIDRBan(IP, itr->IP, itr->Bytes))
+        if (Util::parseCIDRBan(IP, itr->IP, itr->Bytes))
             return true;
     }
 

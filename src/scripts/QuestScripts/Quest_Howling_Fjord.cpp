@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
@@ -94,24 +94,7 @@ public:
         {
             case 1:
             {
-                Item* item = sObjectMgr.createItem(33634, plr);
-                if (item == nullptr)
-                    return;
-
-                item->setStackCount(10);
-
-                if (!plr->getItemInterface()->AddItemToFreeSlot(item))
-                {
-                    plr->getSession()->SendNotification("No free slots were found in your inventory!");
-                    item->deleteMe();
-                }
-                else
-                {
-                    plr->sendItemPushResultPacket(false, true, false, plr->getItemInterface()->LastSearchResult()->ContainerSlot,
-                        plr->getItemInterface()->LastSearchResult()->Slot, 1, item->getEntry(), item->getPropertySeed(),
-                        item->getRandomPropertiesId(), item->getStackCount());
-
-                }
+                plr->getItemInterface()->AddItemById(33634, 10, 0);
 
                 if (pCreature->getEntry() == 23859)
                 {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,7 +12,10 @@ This file is released under the MIT license. See README-MIT for more information
 #include <set>
 #include <cstdio>
 #include <cstdlib>
+#include <cstdint>
 #include <cstring>
+#include <utility>
+#include <sstream>
 #include "AEVersion.hpp"
 #include "CommonDefines.hpp"
 #include "CommonTypes.hpp"
@@ -27,6 +30,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "LocationVector.h"
 #include "Utilities/Strings.hpp"
 #include "Utilities/Util.hpp"
+#include "Utilities/Narrow.hpp"
+#include "Utilities/Random.hpp"
 #include "Cryptography/BigNumber.h"
 #include "Cryptography/WowCrypt.hpp"
 #include "VMapManager2.h"
@@ -40,8 +45,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Chat/ChannelMgr.hpp"
 #include "Chat/ChatCommand.hpp"
 #include "Chat/ChatDefines.hpp"
-#include "Chat/CommandTableStorage.hpp"
-#include "Chat/ChatHandler.hpp"
+#include "Chat/ChatCommandHandler.hpp"
 #include "Macros/AIInterfaceMacros.hpp"
 #include "Macros/CreatureMacros.hpp"
 #include "Macros/GuildMacros.hpp"
@@ -55,6 +59,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Macros/UnitMacros.hpp"
 #include "Management/Group.h"
 #include "Management/ItemInterface.h"
+#include "Management/ItemProperties.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Management/QuestLogEntry.hpp"
 #include "Map/Area/AreaManagementGlobals.hpp"
@@ -67,7 +72,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Map/Management/MapMgrDefines.hpp"
 #include "Map/Maps/BaseMap.hpp"
 #include "Map/Maps/BattleGroundMap.hpp"
-#include "Map/Maps/InstanceDefines.hpp"
 #include "Map/Maps/InstanceMap.hpp"
 #include "Map/Maps/InstanceMgr.hpp"
 #include "Map/Maps/MapScriptInterface.h"

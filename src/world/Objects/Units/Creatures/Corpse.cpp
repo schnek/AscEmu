@@ -1,17 +1,21 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "Map/Cells/MapCell.hpp"
 #include "Corpse.hpp"
 
+#include <sstream>
+
 #include "Data/Flags.hpp"
 #include "Management/ObjectMgr.hpp"
 #include "Data/WoWCorpse.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/DatabaseDefinition.hpp"
+#include "Utilities/Random.hpp"
 #include "Utilities/Strings.hpp"
+#include "Utilities/Util.hpp"
 
 Corpse::Corpse(uint32_t high, uint32_t low)
 {

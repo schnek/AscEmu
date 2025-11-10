@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -155,10 +155,10 @@ void WorldSession::handleMailCreateTextItemOpcode(WorldPacket& recvPacket)
     item->setFlags(ITEM_FLAG_WRAP_GIFT);
     item->setText(message->body);
 
-    if (_player->getItemInterface()->AddItemToFreeSlot(item))
+    // TODO: if add fails, should item be sent in mail? now it's destroyed
+    const auto [addResult, _] = _player->getItemInterface()->AddItemToFreeSlot(std::move(item));
+    if (addResult)
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_MADE_PERMANENT, MAIL_OK).serialise().get());
-    else
-        item->deleteMe();
 }
 
 void WorldSession::handleItemTextQueryOpcode(WorldPacket& recvPacket)
@@ -338,8 +338,6 @@ void WorldSession::handleGetMailOpcode(WorldPacket& /*recvPacket*/)
                 data << uint32_t(item->getMaxDurability());
                 data << uint32_t(item->getDurability());
                 data << uint8_t(item->m_isLocked ? 1 : 0);
-
-                delete item;
             }
         }
         ++count;
@@ -387,29 +385,30 @@ void WorldSession::handleTakeItemOpcode(WorldPacket& recvPacket)
         }
     }
 
-    auto item = sObjectMgr.loadItem(srlPacket.lowGuid);
-    if (item == nullptr)
+    auto itemHolder = sObjectMgr.loadItem(srlPacket.lowGuid);
+    if (itemHolder == nullptr)
     {
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_ITEM_TAKEN, MAIL_ERR_INTERNAL_ERROR).serialise().get());
         return;
     }
 
-    const auto slotResult = _player->getItemInterface()->FindFreeInventorySlot(item->getItemProperties());
+    const auto slotResult = _player->getItemInterface()->FindFreeInventorySlot(itemHolder->getItemProperties());
     if (slotResult.Result == 0)
     {
         SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_ITEM_TAKEN, MAIL_ERR_BAG_FULL, INV_ERR_INVENTORY_FULL).serialise().get());
-
-        item->deleteMe();
         return;
     }
-    item->m_isDirty = true;
+    itemHolder->m_isDirty = true;
 
-    if (!_player->getItemInterface()->SafeAddItem(item, slotResult.ContainerSlot, slotResult.Slot))
+    auto* item = itemHolder.get();
+
+    auto [addResult, returnedItem] = _player->getItemInterface()->SafeAddItem(std::move(itemHolder), slotResult.ContainerSlot, slotResult.Slot);
+    if (!addResult)
     {
-        if (!_player->getItemInterface()->AddItemToFreeSlot(item))
+        const auto [addResult2, _] = _player->getItemInterface()->AddItemToFreeSlot(std::move(returnedItem));
+        if (!addResult2)
         {
             SendPacket(SmsgSendMailResult(srlPacket.messageId, MAIL_RES_ITEM_TAKEN, MAIL_ERR_BAG_FULL, INV_ERR_INVENTORY_FULL).serialise().get());
-            item->deleteMe();
             return;
         }
     }
@@ -493,7 +492,7 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (playerReceiverInfo->name == _player->getName() && !GetPermissionCount())
+    if (playerReceiverInfo->name == _player->getName() && !hasPermissions())
     {
         SendPacket(SmsgSendMailResult(0, MAIL_RES_MAIL_SENT, MAIL_ERR_CANNOT_SEND_TO_SELF).serialise().get());
         return;
@@ -508,9 +507,9 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
     // calculate cost
     uint32_t cost = 0;
     if (srlPacket.money > 0)
-        cost += static_cast<uint32_t>(srlPacket.money); // \todo Change gold functions to uint64
+        cost += static_cast<uint32_t>(srlPacket.money); // \todo Change gold functions to uint64_t
 
-    if (!sMailSystem.MailOption(MAIL_FLAG_DISABLE_POSTAGE_COSTS) && !(GetPermissionCount() && sMailSystem.MailOption(MAIL_FLAG_NO_COST_FOR_GM)))
+    if (!sMailSystem.MailOption(MAIL_FLAG_DISABLE_POSTAGE_COSTS) && !(hasPermissions() && sMailSystem.MailOption(MAIL_FLAG_NO_COST_FOR_GM)))
         cost += srlPacket.itemCount ? 30 * srlPacket.itemCount : 30;
 
     if (!_player->hasEnoughCoinage(cost))
@@ -526,8 +525,8 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
     {
         for (auto& item : attachedItems)
         {
-            Item* pItem = item;
-            if (_player->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(item->getGuid(), false) != pItem)
+            auto pItem = _player->getItemInterface()->SafeRemoveAndRetreiveItemByGuid(item->getGuid(), false);
+            if (pItem == nullptr || pItem.get() != item)
                 continue;
 
             pItem->removeFromWorld();
@@ -535,10 +534,8 @@ void WorldSession::handleSendMailOpcode(WorldPacket& recvPacket)
             pItem->saveToDB(INVENTORY_SLOT_NOT_SET, 0, true, nullptr);
             msg.items.push_back(pItem->getGuidLow());
 
-            if (GetPermissionCount() > 0)
+            if (hasPermissions())
                 sGMLog.writefromsession(this, "sent mail with item entry %u to %s", pItem->getEntry(), playerReceiverInfo->name.c_str());
-
-            pItem->deleteMe();
         }
     }
 

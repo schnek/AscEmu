@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,16 +20,17 @@
 
 #include "MySQLDatabase.h"
 
+#include <sstream>
+
 #include "Logging/Logger.hpp"
 
 MySQLDatabase::~MySQLDatabase()
 {
-    for(int32 i = 0; i < mConnectionCount; ++i)
+    for (const auto& conn : Connections)
     {
-        mysql_close(((MySQLDatabaseConnection*)Connections[i])->MySql);
-        delete Connections[i];
+        if (const auto mysqlConn = dynamic_cast<MySQLDatabaseConnection const*>(conn.get()))
+            mysql_close(mysqlConn->MySql);
     }
-    delete [] Connections;
 }
 
 MySQLDatabase::MySQLDatabase() : Database()
@@ -47,12 +48,11 @@ void MySQLDatabase::_EndTransaction(DatabaseConnection* conn)
     _SendQuery(conn, "COMMIT", false);
 }
 
-bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const char* Username, const char* Password, const char* DatabaseName, uint32 ConnectionCount, uint32 /*BufferSize*/)
+bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const char* Username, const char* Password, const char* DatabaseName, uint32_t ConnectionCount, uint32_t /*BufferSize*/, bool useLegacyAuth)
 {
-    uint32 i;
+    uint32_t i;
     MYSQL* temp = NULL;
     MYSQL* temp2 = NULL;
-    MySQLDatabaseConnection** conns;
     bool my_true = true;
 
     mHostname = std::string(Hostname);
@@ -63,8 +63,7 @@ bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const ch
 
     sLogger.info("MySQLDatabase : Connecting to `{}`, database `{}`...", Hostname, DatabaseName);
 
-    conns = new MySQLDatabaseConnection*[ConnectionCount];
-    Connections = ((DatabaseConnection**)conns);
+    Connections.reserve(ConnectionCount);
     for(i = 0; i < ConnectionCount; ++i)
     {
         temp = mysql_init(NULL);
@@ -77,6 +76,24 @@ bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const ch
         if(mysql_options(temp, MYSQL_OPT_RECONNECT, &my_true))
             sLogger.failure("MYSQL_OPT_RECONNECT could not be set, connection drops may occur but will be counteracted.");
 
+        // Check if we want to use MySQL 8 legacy authentication otherwise use new auth
+        if (!useLegacyAuth)
+        {
+            // Set authentication to caching_sha2_password (new method)
+            if (mysql_options(temp, MYSQL_DEFAULT_AUTH, "caching_sha2_password"))
+            {
+                sLogger.failure("Could not set default authentication plugin to caching_sha2_password.");
+                mysql_close(temp);
+                return false;
+            }
+            sLogger.info("Using new MySQL 8 authentication method (caching_sha2_password).");
+        }
+        else
+        {
+            // No explicit authentication setting; use legacy authentication
+            sLogger.info("Using legacy MySQL authentication method.");
+        }
+
         temp2 = mysql_real_connect(temp, Hostname, Username, Password, DatabaseName, port, NULL, 0);
         if(temp2 == NULL)
         {
@@ -85,8 +102,7 @@ bool MySQLDatabase::Initialize(const char* Hostname, unsigned int port, const ch
             return false;
         }
 
-        conns[i] = new MySQLDatabaseConnection;
-        conns[i]->MySql = temp2;
+        Connections.emplace_back(std::make_unique<MySQLDatabaseConnection>(temp2));
     }
 
     Database::_Initialize();
@@ -104,12 +120,12 @@ std::string MySQLDatabase::EscapeString(std::string Escape)
     else
         ret = a2;
 
-    con->Busy.Release();
+    con->Busy.release();
 
     return std::string(ret);
 }
 
-void MySQLDatabase::EscapeLongString(const char* str, uint32 len, std::stringstream & out)
+void MySQLDatabase::EscapeLongString(const char* str, uint32_t len, std::stringstream & out)
 {
     char a2[65536 * 3] = { 0 };
 
@@ -121,7 +137,7 @@ void MySQLDatabase::EscapeLongString(const char* str, uint32 len, std::stringstr
         ret = a2;
 
     out.write(a2, (std::streamsize)strlen(a2));
-    con->Busy.Release();
+    con->Busy.release();
 }
 
 std::string MySQLDatabase::EscapeString(const char* esc, DatabaseConnection* con)
@@ -161,7 +177,7 @@ bool MySQLDatabase::_SendQuery(DatabaseConnection* con, const char* Sql, bool Se
     return (result == 0 ? true : false);
 }
 
-bool MySQLDatabase::_HandleError(MySQLDatabaseConnection* con, uint32 ErrorNumber)
+bool MySQLDatabase::_HandleError(MySQLDatabaseConnection* con, uint32_t ErrorNumber)
 {
     // Handle errors that should cause a reconnect to the Database.
     switch(ErrorNumber)
@@ -180,15 +196,14 @@ bool MySQLDatabase::_HandleError(MySQLDatabaseConnection* con, uint32 ErrorNumbe
     return false;
 }
 
-MySQLQueryResult::MySQLQueryResult(MYSQL_RES* res, uint32 FieldCount, uint32 RowCount) : QueryResult(FieldCount, RowCount), mResult(res)
+MySQLQueryResult::MySQLQueryResult(MYSQL_RES* res, uint32_t FieldCount, uint32_t RowCount) : QueryResult(FieldCount, RowCount), mResult(res)
 {
-    mCurrentRow = new Field[FieldCount];
+    mCurrentRow = std::make_unique<Field[]>(FieldCount);
 }
 
 MySQLQueryResult::~MySQLQueryResult()
 {
     mysql_free_result(mResult);
-    delete [] mCurrentRow;
 }
 
 bool MySQLQueryResult::NextRow()
@@ -197,19 +212,18 @@ bool MySQLQueryResult::NextRow()
     if(row == NULL)
         return false;
 
-    for(uint32 i = 0; i < mFieldCount; ++i)
-        mCurrentRow[i].SetValue(row[i]);
+    for(uint32_t i = 0; i < mFieldCount; ++i)
+        mCurrentRow[i].setValue(row[i]);
 
     return true;
 }
 
-QueryResult* MySQLDatabase::_StoreQueryResult(DatabaseConnection* con)
+std::unique_ptr<QueryResult> MySQLDatabase::_StoreQueryResult(DatabaseConnection* con)
 {
-    MySQLQueryResult* res;
     MySQLDatabaseConnection* db = static_cast<MySQLDatabaseConnection*>(con);
     MYSQL_RES* pRes = mysql_store_result(db->MySql);
-    uint32 uRows = (uint32)mysql_affected_rows(db->MySql);
-    uint32 uFields = (uint32)mysql_field_count(db->MySql);
+    uint32_t uRows = (uint32_t)mysql_affected_rows(db->MySql);
+    uint32_t uFields = (uint32_t)mysql_field_count(db->MySql);
 
     if(uRows == 0 || uFields == 0 || pRes == 0)
     {
@@ -219,7 +233,7 @@ QueryResult* MySQLDatabase::_StoreQueryResult(DatabaseConnection* con)
         return NULL;
     }
 
-    res = new MySQLQueryResult(pRes, uFields, uRows);
+    auto res = std::make_unique<MySQLQueryResult>(pRes, uFields, uRows);
     res->NextRow();
 
     return res;

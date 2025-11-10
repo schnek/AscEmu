@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -47,7 +47,7 @@ protected:
 
     uint32_t m_zoneId = 0;
 
-    std::shared_ptr<Group> m_groups[2] = { nullptr };
+    Group* m_groups[2] = { nullptr };
 
     uint32_t m_deltaRating[2] = { 0 };
 
@@ -127,7 +127,7 @@ public:
     uint32_t getType();
 
     // events should execute in the correct context
-    int32 event_GetInstanceID() override;
+    int32_t event_GetInstanceID() override;
     void eventCreate();
     void eventCountdown();
     void close();

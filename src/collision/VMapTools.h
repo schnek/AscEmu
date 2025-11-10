@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ namespace VMAP
         {
 
             // Integer representation of a floating-point value.
-#define IR(x)   (reinterpret_cast<G3D::uint32 const&>(x))
+#define IR(x)   (reinterpret_cast<G3D::uint32_t const&>(x))
 
             Inside = true;
             const G3D::Vector3& MinB = box.low();

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -64,7 +64,7 @@ public:
     //
     // \return none
     ////////////////////////////////////////////////////////////////////////////////////////////
-    void InitWorldStates(std::shared_ptr<std::multimap<uint32_t, WorldState>> _states);
+    void InitWorldStates(std::multimap<uint32_t, WorldState> const* _states);
 
     void setObserver(WorldStatesObserver* _observer);
 

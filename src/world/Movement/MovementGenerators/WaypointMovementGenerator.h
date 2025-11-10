@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -7,7 +7,8 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Movement/MovementGenerator.h"
 #include "PathMovementBase.h"
-#include "Utilities/Util.hpp"
+#include "Utilities/TimeTracker.hpp"
+#include <memory>
 
 class Creature;
 class Unit;
@@ -44,18 +45,9 @@ private:
     void onArrived(Creature*);
     void startMove(Creature*, bool relaunch = false);
     bool computeNextNode();
-    bool updateTimer(uint32_t diff)
-    {
-        _nextMoveTime.updateTimer(diff);
-        if (_nextMoveTime.isTimePassed())
-        {
-            _nextMoveTime.resetInterval(0);
-            return true;
-        }
-        return false;
-    }
+    bool updateTimer(uint32_t diff);
 
-    SmallTimeTracker _nextMoveTime;
+    std::unique_ptr<Util::SmallTimeTracker> _nextMoveTime;
     uint32_t _pathId;
     bool _repeating;
     bool _loadedFromDB;

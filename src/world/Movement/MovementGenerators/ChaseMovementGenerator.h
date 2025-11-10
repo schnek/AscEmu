@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -9,7 +9,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Movement/MovementDefines.h"
 #include "Movement/MovementGenerator.h"
 #include "LocationVector.h"
-#include "Utilities/Util.hpp"
+
+namespace Util
+{
+    struct SmallTimeTracker;
+}
 
 class PathGenerator;
 class Unit;
@@ -25,19 +29,19 @@ public:
     bool update(Unit*, uint32_t) override;
     void deactivate(Unit*) override;
     void finalize(Unit*, bool, bool) override;
-    MovementGeneratorType getMovementGeneratorType() const override { return CHASE_MOTION_TYPE; }
+    MovementGeneratorType getMovementGeneratorType() const override;
 
-    void unitSpeedChanged() override { _lastTargetPosition.reset(); }
+    void unitSpeedChanged() override;
 
 private:
-    static constexpr uint32 RANGE_CHECK_INTERVAL = 100; // time (ms) until we attempt to recalculate
+    static constexpr uint32_t RANGE_CHECK_INTERVAL = 100; // time (ms) until we attempt to recalculate
 
     Optional<ChaseRange> const _range;
     Optional<ChaseAngle> const _angle;
 
     std::unique_ptr<PathGenerator> _path;
     Optional<LocationVector> _lastTargetPosition;
-    SmallTimeTracker _rangeCheckTimer;
+    std::unique_ptr<Util::SmallTimeTracker> _rangeCheckTimer;
     bool _movingTowards = true;
     bool _mutualChase = true;
 };

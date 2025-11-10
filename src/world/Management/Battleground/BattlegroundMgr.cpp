@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -8,7 +8,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Management/Arenas.hpp"
 #include "Management/ArenaTeam.hpp"
 #include "Map/Management/MapMgr.hpp"
-#include "Chat/ChatHandler.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/Group.h"
 #include "Management/ObjectMgr.hpp"
@@ -23,6 +22,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgGroupJoinedBattleground.h"
 #include "Server/Packets/SmsgBattlefieldStatus.h"
 #include "Storage/WorldStrings.h"
+#include "Utilities/Random.hpp"
 
 using namespace AscEmu::Packets;
 
@@ -70,27 +70,11 @@ void BattlegroundManager::registerMapForBgType(uint32_t type, uint32_t map)
     m_bgMaps[type] = map;
 }
 
+#if VERSION_STRING <= WotLK
 void BattlegroundManager::handleBattlegroundListPacket(WorldSession* session, uint32_t battlegroundType, uint8_t from)
 {
-    //todo: Zyres correct packet - Serialise
+
     WorldPacket data(SMSG_BATTLEFIELD_LIST, 18);
-#if VERSION_STRING >= Cata
-    ObjectGuid guid;
-
-    // Send 0 instead of GUID when using the BG UI instead of Battlemaster
-    if (from == 0)
-        guid = session->GetPlayer()->getGuid();
-    else
-        guid = 0;
-
-    data << uint32_t(0);
-    data << uint32_t(0);
-    data << uint32_t(0);
-    data << uint32_t(battlegroundType);
-    data << uint32_t(0);
-    data << uint32_t(0);
-    data << uint32_t(0);
-#endif
 
 #if VERSION_STRING == WotLK
     // Send 0 instead of GUID when using the BG UI instead of Battlemaster
@@ -101,9 +85,7 @@ void BattlegroundManager::handleBattlegroundListPacket(WorldSession* session, ui
 
     data << from;
     data << uint32_t(battlegroundType);                                     // typeid
-#endif
 
-#if VERSION_STRING >= WotLK
     data << uint8_t(0);                                                     // unk
     data << uint8_t(0);                                                     // unk
 
@@ -159,7 +141,7 @@ void BattlegroundManager::handleBattlegroundListPacket(WorldSession* session, ui
     }
 
     data.put<uint32_t>(pos, Count);
-#else
+#elif VERSION_STRING <= TBC
 
     data << uint64_t(session->GetPlayer()->getGuid());
     data << uint32_t(battlegroundType);
@@ -171,7 +153,7 @@ void BattlegroundManager::handleBattlegroundListPacket(WorldSession* session, ui
     }
     else
     {
-        data << uint8(0);
+        data << uint8_t(0);
 
         if (battlegroundType >= BATTLEGROUND_NUM_TYPES) // VLack: Nasty hackers might try to abuse this packet to crash us...
             return;
@@ -198,6 +180,70 @@ void BattlegroundManager::handleBattlegroundListPacket(WorldSession* session, ui
 
     session->SendPacket(&data);
 }
+#else
+void BattlegroundManager::handleBattlegroundListPacket(WoWGuid& wowGuid, WorldSession* session, uint32_t battlegroundType)
+{
+    // Zyres: For some reason client requests bg list on login after reaching level 10
+    // patiently wait 5 seconds after login. This issue is located in the client standard addons.
+    if (session->m_currMsTime - session->m_loginTime < 5 * 1000)
+        return;
+
+    std::vector<uint32_t> _bgList;
+
+    std::lock_guard instanceLock(m_instanceLock);
+    for (auto itr : m_instances[battlegroundType])
+    {
+        if (itr.second->CanPlayerJoin(session->GetPlayer(), battlegroundType) && !itr.second->hasEnded())
+        {
+            if (session->GetPlayer()->getLevelGrouping() != itr.second->getLevelGroup())
+                continue;
+            _bgList.push_back(itr.second->getId());
+        }
+    }
+
+    WorldPacket data(SMSG_BATTLEFIELD_LIST, 38 + _bgList.size());
+
+    data << int32_t(0);
+    data << int32_t(0);
+    data << int32_t(0);
+    data << int32_t(battlegroundType);
+    data << int32_t(0);
+    data << int32_t(0);
+    data << int32_t(0);
+    data << uint8_t(80);
+    data << uint8_t(10);
+
+    data.writeBit(wowGuid[0]);
+    data.writeBit(wowGuid[1]);
+    data.writeBit(wowGuid[7]);
+    data.writeBit(0);
+    data.writeBit(0);
+    data.writeBits(_bgList.size(), 24);
+    data.writeBit(wowGuid[6]);
+    data.writeBit(wowGuid[4]);
+    data.writeBit(wowGuid[2]);
+    data.writeBit(wowGuid[3]);
+    data.writeBit(1);
+    data.writeBit(wowGuid[5]);
+    data.writeBit(0);
+    data.flushBits();
+
+    data.WriteByteSeq(wowGuid[6]);
+    data.WriteByteSeq(wowGuid[1]);
+    data.WriteByteSeq(wowGuid[7]);
+    data.WriteByteSeq(wowGuid[5]);
+
+    for (int32_t bgId : _bgList)
+        data << int32_t(bgId);
+
+    data.WriteByteSeq(wowGuid[0]);
+    data.WriteByteSeq(wowGuid[2]);
+    data.WriteByteSeq(wowGuid[4]);
+    data.WriteByteSeq(wowGuid[3]);
+
+    session->SendPacket(&data);
+}
+#endif
 
 void BattlegroundManager::handleBattlegroundJoin(WorldSession* session, WorldPacket& packet)
 {
@@ -229,7 +275,7 @@ void BattlegroundManager::handleBattlegroundJoin(WorldSession* session, WorldPac
         const auto itr = m_instances[srlPacket.bgType].find(srlPacket.instanceId);
         if (itr == m_instances[srlPacket.bgType].end())
         {
-            sChatHandler.SystemMessage(session, session->LocalizedWorldSrv(SS_JOIN_INVALID_INSTANCE));
+            session->systemMessage(session->LocalizedWorldSrv(SS_JOIN_INVALID_INSTANCE));
             return;
         }
     }
@@ -389,7 +435,7 @@ void BattlegroundManager::eventQueueUpdate()
     this->eventQueueUpdate(false);
 }
 
-uint32_t BattlegroundManager::getArenaGroupQInfo(std::shared_ptr<Group> group, uint8_t type, uint32_t* averageRating)
+uint32_t BattlegroundManager::getArenaGroupQInfo(Group* group, uint8_t type, uint32_t* averageRating)
 {
     uint32_t count = 0;
     uint32_t rating = 0;
@@ -425,7 +471,7 @@ uint32_t BattlegroundManager::getArenaGroupQInfo(std::shared_ptr<Group> group, u
     return arenaTeam->m_id;
 }
 
-void BattlegroundManager::addGroupToArena(Battleground* battleground, std::shared_ptr<Group> group, uint32_t team)
+void BattlegroundManager::addGroupToArena(Battleground* battleground, Group* group, uint32_t team)
 {
     if (group == nullptr || group->GetLeader() == nullptr)
         return;
@@ -452,7 +498,7 @@ void BattlegroundManager::addGroupToArena(Battleground* battleground, std::share
     }
 }
 
-int BattlegroundManager::createArenaType(uint8_t type, std::shared_ptr<Group> group1, std::shared_ptr<Group> group2)
+int BattlegroundManager::createArenaType(uint8_t type, Group* group1, Group* group2)
 {
     const auto arena = dynamic_cast<Arena*>(createInstance(type, BattlegroundDef::LEVEL_GROUP_70));
     if (arena == nullptr)
@@ -521,7 +567,7 @@ void BattlegroundManager::eventQueueUpdate(bool forceStart)
 
     Arena* arena;
 
-    int32 team;
+    int32_t team;
     uint32_t playerGuid;
     uint32_t factionMap[MAX_PLAYER_TEAMS];
     uint32_t count;
@@ -790,7 +836,7 @@ void BattlegroundManager::eventQueueUpdate(bool forceStart)
     }
 
     // Handle paired arena team joining
-    std::shared_ptr<Group> group1, group2;
+    Group* group1, *group2;
     uint32_t teamids[2] = { 0, 0 };
     uint32_t avgRating[2] = { 0, 0 };
     uint32_t n;
@@ -838,7 +884,7 @@ void BattlegroundManager::eventQueueUpdate(bool forceStart)
                 if (group2)
                 {
                     teamids[1] = getArenaGroupQInfo(group2, i, &avgRating[1]);
-                    uint32_t delta = abs(static_cast<int32>(avgRating[0]) - static_cast<int32>(avgRating[1]));
+                    uint32_t delta = abs(static_cast<int32_t>(avgRating[0]) - static_cast<int32_t>(avgRating[1]));
                     if (teamids[0] != teamids[1] && delta <= worldConfig.rate.arenaQueueDiff)
                         possibleGroups.push_back(group2->GetID());
                 }
@@ -1138,7 +1184,7 @@ void BattlegroundManager::deleteBattleground(Battleground* battleground)
         {
             if (plr->getQueuedBgInstanceId() == battleground->getId())
             {
-                sChatHandler.SystemMessage(plr->getSession(), plr->getSession()->LocalizedWorldSrv(SS_QUEUE_BG_INSTANCE_ID_NO_VALID_LONGER_EXISTS), battleground->getId());
+                plr->getSession()->systemMessage(plr->getSession()->LocalizedWorldSrv(SS_QUEUE_BG_INSTANCE_ID_NO_VALID_LONGER_EXISTS), battleground->getId());
                 sendBattlefieldStatus(plr, BattlegroundDef::STATUS_NOFLAGS, 0, 0, 0, 0, 0);
                 plr->setIsQueuedForBg(false);
                 m_queuedPlayers[type][levelGroup].erase(it2);

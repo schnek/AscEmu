@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/InstanceScript.hpp"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellAura.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Boss: Lady Deathwhisper
@@ -303,7 +304,7 @@ void LadyDeathwhisperAI::AIUpdate(unsigned long time_passed)
 void LadyDeathwhisperAI::SummonWavePhaseOne()
 {    
     uint8_t addIndex1 = waveCounter & 1;
-    uint8_t addIndex2 = uint8(addIndex1 ^ 1);
+    uint8_t addIndex2 = uint8_t(addIndex1 ^ 1);
 
     // Todo summon Darnavan when weekly quest is active
     if (waveCounter)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
@@ -189,7 +189,7 @@ public:
         playerGUID = 0;
         getCreature()->setFaction(7);
         getCreature()->getAIInterface()->setAllowedToEnterCombat(false);
-        getCreature()->getAIInterface()->setImmuneToPC(true);
+        getCreature()->getAIInterface()->setIgnorePlayerCombat(true);
         getCreature()->getAIInterface()->setReactState(REACT_PASSIVE);
         setScriptPhase(PHASE_CHAINED);
         getCreature()->setStandState(STANDSTATE_KNEEL);
@@ -294,7 +294,7 @@ public:
                     {
                         getCreature()->setFaction(14);
                         getCreature()->getAIInterface()->setAllowedToEnterCombat(true);
-                        getCreature()->getAIInterface()->setImmuneToPC(false);
+                        getCreature()->getAIInterface()->setIgnorePlayerCombat(false);
                         getCreature()->getAIInterface()->setReactState(REACT_AGGRESSIVE);
                         setScriptPhase(PHASE_ATTACKING);
 

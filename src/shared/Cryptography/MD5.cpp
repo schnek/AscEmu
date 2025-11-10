@@ -1,53 +1,35 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "MD5.h"
-
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
-#include <openssl/evp.h>
-#endif
+#include "MD5.hpp"
 
 MD5Hash::MD5Hash() noexcept
 {
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
-    mC = EVP_MD_CTX_new();
-    EVP_DigestInit_ex(mC, EVP_md5(), nullptr);
-#else
-    MD5_Init(&mC);    
-#endif
+    m_ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(m_ctx, EVP_md5(), nullptr);
 }
 
-void MD5Hash::UpdateData(const std::string& str)
+void MD5Hash::updateData(const std::string& _str) const
 {
-    UpdateData((const uint8_t*)str.data(), (int)str.length());
+    updateData(reinterpret_cast<const uint8_t*>(_str.data()), static_cast<int>(_str.length()));
 }
 
-void MD5Hash::UpdateData(const uint8_t* dta, int len)
+void MD5Hash::updateData(const uint8_t* _data, int _len) const
 {
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
-    EVP_DigestUpdate(mC, dta, len);
-#else
-    MD5_Update(&mC, dta, len);
-#endif
+    EVP_DigestUpdate(m_ctx, _data, _len);
 }
 
-void MD5Hash::Initialize()
+void MD5Hash::initialize() const
 {
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
-    EVP_DigestInit(mC, EVP_md5());
-#else
-    MD5_Init(&mC);
-#endif
+    EVP_DigestInit(m_ctx, EVP_md5());
 }
 
-void MD5Hash::Finalize(void)
+void MD5Hash::finalize()
 {
-#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
     uint32_t length = MD5_DIGEST_LENGTH;
-    EVP_DigestFinal_ex(mC, mDigest, &length);
-#else
-    MD5_Final(mDigest, &mC);
-#endif
+    EVP_DigestFinal_ex(m_ctx, m_digest, &length);
 }
+
+uint8_t* MD5Hash::getDigest() { return m_digest; }

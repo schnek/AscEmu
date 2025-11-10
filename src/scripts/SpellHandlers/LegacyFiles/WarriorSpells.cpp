@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
@@ -126,7 +126,7 @@ bool Charge(uint8_t effectIndex, Spell* s)
     uint32_t rage_to_gen = s->getSpellInfo()->getEffectBasePoints(effectIndex) + 1;
     if (s->getPlayerCaster())
     {
-        for (std::set<uint32_t>::iterator itr = s->getPlayerCaster()->getSpellSet().begin(); itr != s->getPlayerCaster()->getSpellSet().end(); ++itr)
+        for (auto itr = s->getPlayerCaster()->getSpellSet().begin(); itr != s->getPlayerCaster()->getSpellSet().end(); ++itr)
         {
             if (*itr == 12697)
             {

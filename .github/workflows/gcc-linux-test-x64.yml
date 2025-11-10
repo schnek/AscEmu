@@ -1,4 +1,4 @@
-name: AscEmu CI
+name: AscEmu CI (Linux::gcc)
 
 on:
   push:
@@ -11,22 +11,26 @@ jobs:
   Classic:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repo
+      uses: actions/checkout@v5
+
     - name: Setup Environment
       run: |
-        sudo apt-get update && sudo apt-get install -y zlib1g-dev
-        sudo apt-get update && sudo apt-get install -y libssl-dev
-        sudo apt-get update && sudo apt-get install -y libpcre3-dev
-        sudo apt-get update && sudo apt-get install -y libbz2-dev
-        sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
-        sudo apt-get update && sudo apt-get install -y libmysql++-dev
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libpcre3-dev
+        sudo apt-get install -y libbz2-dev
+        sudo apt-get install -y default-libmysqlclient-dev
+        sudo apt-get install -y libmysql++-dev
+        sudo apt-get install -y lld
     - name: AscEmu Build Classic
       run: |
         gcc --version
         cmake --version
         mkdir ascemu_build_сlassic
         cd ascemu_build_сlassic
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Classic
+        cmake ../ -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Classic
         cd ..
         cd ascemu_build_сlassic
         make -j4
@@ -34,22 +38,26 @@ jobs:
   TBC:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repo
+      uses: actions/checkout@v5
+
     - name: Setup Environment
       run: |
-        sudo apt-get update && sudo apt-get install -y zlib1g-dev
-        sudo apt-get update && sudo apt-get install -y libssl-dev
-        sudo apt-get update && sudo apt-get install -y libpcre3-dev
-        sudo apt-get update && sudo apt-get install -y libbz2-dev
-        sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
-        sudo apt-get update && sudo apt-get install -y libmysql++-dev
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libpcre3-dev
+        sudo apt-get install -y libbz2-dev
+        sudo apt-get install -y default-libmysqlclient-dev
+        sudo apt-get install -y libmysql++-dev
+        sudo apt-get install -y lld
     - name: AscEmu Build TBC
       run: |
         gcc --version
         cmake --version
         mkdir ascemu_build_tbc
         cd ascemu_build_tbc
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=TBC
+        cmake ../ -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=TBC
         cd ..
         cd ascemu_build_tbc
         make -j4
@@ -57,22 +65,26 @@ jobs:
   WotLK:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repo
+      uses: actions/checkout@v5
+
     - name: Setup Environment
       run: |
-        sudo apt-get update && sudo apt-get install -y zlib1g-dev
-        sudo apt-get update && sudo apt-get install -y libssl-dev
-        sudo apt-get update && sudo apt-get install -y libpcre3-dev
-        sudo apt-get update && sudo apt-get install -y libbz2-dev
-        sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
-        sudo apt-get update && sudo apt-get install -y libmysql++-dev
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libpcre3-dev
+        sudo apt-get install -y libbz2-dev
+        sudo apt-get install -y default-libmysqlclient-dev
+        sudo apt-get install -y libmysql++-dev
+        sudo apt-get install -y lld
     - name: AscEmu Build WotLK
       run: |
         gcc --version
         cmake --version
         mkdir ascemu_build_wotlk
         cd ascemu_build_wotlk
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=WotLK
+        cmake ../ -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=WotLK
         cd ..
         cd ascemu_build_wotlk
         make -j4
@@ -80,22 +92,26 @@ jobs:
   Cata:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repo
+      uses: actions/checkout@v5
+
     - name: Setup Environment
       run: |
-        sudo apt-get update && sudo apt-get install -y zlib1g-dev
-        sudo apt-get update && sudo apt-get install -y libssl-dev
-        sudo apt-get update && sudo apt-get install -y libpcre3-dev
-        sudo apt-get update && sudo apt-get install -y libbz2-dev
-        sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
-        sudo apt-get update && sudo apt-get install -y libmysql++-dev
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libpcre3-dev
+        sudo apt-get install -y libbz2-dev
+        sudo apt-get install -y default-libmysqlclient-dev
+        sudo apt-get install -y libmysql++-dev
+        sudo apt-get install -y lld
     - name: AscEmu Build Cata
       run: |
         gcc --version
         cmake --version
         mkdir ascemu_build_cata
         cd ascemu_build_cata
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Cata
+        cmake ../ -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Cata
         cd ..
         cd ascemu_build_cata
         make -j4
@@ -103,22 +119,26 @@ jobs:
   Mop:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - name: Check out repo
+      uses: actions/checkout@v5
+
     - name: Setup Environment
       run: |
-        sudo apt-get update && sudo apt-get install -y zlib1g-dev
-        sudo apt-get update && sudo apt-get install -y libssl-dev
-        sudo apt-get update && sudo apt-get install -y libpcre3-dev
-        sudo apt-get update && sudo apt-get install -y libbz2-dev
-        sudo apt-get update && sudo apt-get install -y default-libmysqlclient-dev
-        sudo apt-get update && sudo apt-get install -y libmysql++-dev
+        sudo apt-get update
+        sudo apt-get install -y zlib1g-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libpcre3-dev
+        sudo apt-get install -y libbz2-dev
+        sudo apt-get install -y default-libmysqlclient-dev
+        sudo apt-get install -y libmysql++-dev
+        sudo apt-get install -y lld
     - name: AscEmu Build Mop
       run: |
         gcc --version
         cmake --version
         mkdir ascemu_build_mop
         cd ascemu_build_mop
-        cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Mop
+        cmake ../ -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ -DCMAKE_BUILD_TYPE=Release -DBUILD_WITH_WARNINGS=0 -DBUILD_TOOLS=1 -DASCEMU_VERSION=Mop
         cd ..
         cd ascemu_build_mop
         make -j4

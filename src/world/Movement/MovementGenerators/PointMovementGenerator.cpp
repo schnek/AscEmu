@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -173,13 +173,11 @@ void AssistanceMovementGenerator::finalize(Unit* owner, bool active, bool moveme
     if (active)
         owner->removeUnitStateFlag(UNIT_STATE_ROAMING_MOVE);
 
-    if (movementInform && hasFlag(MOVEMENTGENERATOR_FLAG_INFORM_ENABLED))
+    if (movementInform && hasFlag(MOVEMENTGENERATOR_FLAG_INFORM_ENABLED) && owner->isAlive())
     {
-        Creature* ownerCreature = owner->ToCreature();
-        ownerCreature->getAIInterface()->setNoCallAssistance(false);
-        ownerCreature->getAIInterface()->callAssistance();
-        if (ownerCreature->isAlive())
-            ownerCreature->getMovementManager()->moveSeekAssistanceDistract(1500); // move to config
+        // Make sound and wait 1.5 seconds still before calling for friends
+        owner->SendAIReaction();
+        owner->getMovementManager()->moveSeekAssistanceDistract(1500);
     }
 }
 

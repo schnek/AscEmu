@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -38,7 +38,7 @@ void WorldSession::handleDelFriendOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    _player->removeFromFriendList(static_cast<uint32>(srlPacket.guid));
+    _player->removeFromFriendList(static_cast<uint32_t>(srlPacket.guid));
 }
 
 void WorldSession::handleAddIgnoreOpcode(WorldPacket& recvPacket)
@@ -56,7 +56,7 @@ void WorldSession::handleDelIgnoreOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    _player->removeFromIgnoreList(static_cast<uint32>(srlPacket.guid));
+    _player->removeFromIgnoreList(static_cast<uint32_t>(srlPacket.guid));
 }
 
 void WorldSession::handleSetFriendNote(WorldPacket& recvPacket)
@@ -65,5 +65,5 @@ void WorldSession::handleSetFriendNote(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    _player->addNoteToFriend(static_cast<uint32>(srlPacket.guid), srlPacket.note.size() ? srlPacket.note : "");
+    _player->addNoteToFriend(static_cast<uint32_t>(srlPacket.guid), srlPacket.note.size() ? srlPacket.note : "");
 }

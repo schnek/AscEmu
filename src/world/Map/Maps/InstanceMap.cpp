@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -69,7 +69,7 @@ void InstanceMap::initVisibilityDistance()
 
 void InstanceMap::permBindAllPlayers()
 {
-    if (!getBaseMap()->isDungeon())
+    if (!getBaseMap()->isInstanceMap())
         return;
 
     InstanceSaved* save = sInstanceMgr.getInstanceSave(getInstanceId());
@@ -122,7 +122,7 @@ bool InstanceMap::addPlayerToMap(Player* player)
     // disable unload Timer
     m_unloadTimer = 0;
 
-    if (getBaseMap()->isDungeon())
+    if (getBaseMap()->isInstanceMap())
     {
         const auto group = player->getGroup();
 
@@ -296,9 +296,9 @@ void InstanceMap::createInstanceData(bool load)
         if (result)
         {
             Field* fields = result->Fetch();
-            std::string data = fields[0].GetString();
+            std::string data = fields[0].asCString();
 
-            getScript()->setCompletedEncountersMask(fields[1].GetUInt32());
+            getScript()->setCompletedEncountersMask(fields[1].asUint32());
             if (!data.empty())
             {
                 sLogger.debug("Loading instance data for `{}` with id {}", getBaseMap()->getMapName(), getInstanceId());

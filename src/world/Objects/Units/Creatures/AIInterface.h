@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,9 +12,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/ScriptEvent.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Storage/MySQLStructures.h"
-#include "Utilities/Util.hpp"
-
 #include <functional>
+#include "Utilities/TimeTracker.hpp"
 
 inline bool inRangeYZX(const float* v1, const float* v2, const float r, const float h)
 {
@@ -38,6 +37,7 @@ class CreatureGroup;
 class SpellInfo;
 
 enum MovementGeneratorType : uint8_t;
+enum SpellCastResult : uint8_t;
 
 enum AI_SCRIPT_EVENT_TYPES
 {
@@ -72,7 +72,7 @@ struct AI_SCRIPT_SENDMESSAGES
     uint32_t maxCount;
 };
 
-typedef std::vector<std::shared_ptr<AI_SCRIPT_SENDMESSAGES>> definedEmoteVector;
+typedef std::vector<std::unique_ptr<AI_SCRIPT_SENDMESSAGES>> definedEmoteVector;
 
 enum ReactStates : uint8_t
 {
@@ -133,6 +133,13 @@ enum AISpellTargetType
     TARGET_FUNCTION
 };
 
+enum FleeState : uint8_t
+{
+    FLEE_NONE           = 0,
+    FLEE_RANDOM_MOVE    = 1,
+    FLEE_SEEK_ASSIST    = 2,
+};
+
 class SERVER_DECL CreatureAISpells
 {
 public:
@@ -146,8 +153,8 @@ public:
 
     std::function<Unit* ()> getTargetFunction = nullptr;
 
-    SmallTimeTracker mDurationTimer;
-    SmallTimeTracker mCooldownTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mDurationTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mCooldownTimer;
 
     uint32_t mDuration;
     void setdurationTimer(uint32_t durationTimer);
@@ -230,11 +237,12 @@ public:
     Unit* getCustomTarget();
 };
 
-class SpellInfo;
+using CreatureAISpellsArray = std::vector<std::unique_ptr<CreatureAISpells>>;
+using UnitArray = std::vector<Unit*>;
 
-const uint32_t AISPELL_ANY_DIFFICULTY = 4;
-typedef std::set<Unit*> AssistTargetSet;
-typedef std::vector<Unit*> UnitArray;
+static inline constexpr uint32_t AISPELL_ANY_DIFFICULTY = 4;
+// Global spell cooldown or minimum time in millis to wait between spells
+static inline constexpr uint32_t AISPELL_GLOBAL_COOLDOWN = 1200;
 
 enum TargetFilter : uint32_t
 {
@@ -298,101 +306,182 @@ class SERVER_DECL AIInterface
 {
 public:
     AIInterface();
+    // todo: why virtual? -Appled
     virtual ~AIInterface();
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    // AI Agent functions
-    bool m_canRangedAttack;
-    void selectCurrentAgent(Unit* target, uint32_t spellid);
-    void initializeSpells();
+    void Init(Unit* un, Unit* owner = nullptr);
 
-    void addSpellFromDatabase(std::vector<MySQLStructure::CreatureAIScripts> scripts);
-    void addEmoteFromDatabase(std::vector<MySQLStructure::CreatureAIScripts> scripts, definedEmoteVector& emoteVector);
+    void initialiseScripts(uint32_t entry);
+    void addEmoteFromDatabase(std::vector<MySQLStructure::CreatureAIScripts> const& scripts, definedEmoteVector& emoteVector);
+    void addSpellFromDatabase(std::vector<MySQLStructure::CreatureAIScripts> const& scripts);
 
-    void setCannotReachTarget(bool cannotReach);
-    bool canNotReachTarget() const { return m_cannotReachTarget; }
+    Unit* getUnit() const;
+    Unit* getPetOwner() const;
+    Unit* getCurrentTarget() const;
 
-    void callForHelp(float fRadius);
-    void doFleeToGetAssistance();
-    void callAssistance();
-    void findAssistance();
-    bool alreadyCalledForHelp() { return m_AlreadyCallAssistance; }
-    void setNoCallAssistance(bool val) { m_AlreadyCallAssistance = val; }
-    void setNoSearchAssistance(bool val) { m_AlreadySearchedAssistance = val; }
-    bool gasSearchedAssistance() const { return m_AlreadySearchedAssistance; }
-    bool canAssistTo(Unit* u, Unit* enemy, bool checkfaction = true);
+    // Event Handler
+    void handleEvent(uint32_t event, Unit* pUnit, uint32_t misc1);
 
-    inline uint8_t getCurrentAgent() { return static_cast<uint8_t>(m_AiCurrentAgent); }
-    void setCurrentAgent(AI_Agent agent) { m_AiCurrentAgent = agent; }
-
-    bool canCallForHelp() { return m_canCallForHelp; }
-    void setCanCallForHelp(bool value) { m_canCallForHelp = value; }
-    bool canFlee() { return m_canFlee; }
-    void setCanFlee(bool value ) { m_canFlee = value; }
-
-    bool m_canFlee;
-    float m_FleeHealth;
-    uint32_t m_FleeDuration;
-    bool m_canCallForHelp;
-    float m_CallForHelpHealth;
+    void update(unsigned long time_passed);
+    void updateAIScript(unsigned long time_passed);
+    void updateEmotes(unsigned long time_passed);
 
 private:
-    AI_Agent m_AiCurrentAgent;
-    bool m_hasFleed;
-    SmallTimeTracker m_fleeTimer;
-
-protected:
-    bool m_AlreadyCallAssistance;
-    bool m_AlreadySearchedAssistance;
+    Unit* m_Unit = nullptr;
+    Unit* m_PetOwner = nullptr;
+    Unit* m_currentTarget = nullptr;
 
     //////////////////////////////////////////////////////////////////////////////////////////
-    // Combat functions
+    // Combat
 public:
-    void justEnteredCombat(Unit* pUnit);
-    void engagementStart(Unit* target);
-    void atEngagementStart(Unit* target);
-
-    void engagementOver();
-    void atEngagementOver();
-
-    bool isEngaged();
-    bool isEngagedBy(Unit* who) const;
-
-    bool isImmuneToNPC();
-    bool isImmuneToPC();
-    void setImmuneToNPC(bool apply);
-    void setImmuneToPC(bool apply);
+    void combatStart(Unit* target);
+    void combatStop();
 
     // Called when unit takes damage or get hits by spell
     void onHostileAction(Unit* pUnit, SpellInfo const* spellInfo = nullptr, bool ignoreThreatRedirects = false);
 
-    void setAllowedToEnterCombat(bool val) 
-    {
-        setImmuneToNPC(!val);
-        setImmuneToPC(!val);
-        canEnterCombat = val;
-    }
-    inline bool getAllowedToEnterCombat(void) { return canEnterCombat; }
+    void setCurrentTarget(Unit* pUnit);
 
+    Unit* findTarget();
+    void findFriends(float sqrtRange);
+
+    bool canOwnerAttackUnit(Unit* pUnit) const;
+    bool canOwnerAssistUnit(Unit* pUnit) const;
+    bool isAlreadyAssisting(Unit const* helper) const;
+
+    bool isEngaged() const;
+    void setEngagedByAssist();
+
+    void enterEvadeMode();
+
+    bool canReachTarget() const;
+    void setCannotReachTarget(bool cannotReach);
+
+    void addBoundary(std::unique_ptr<AreaBoundary const> boundary, bool overrideDefault = false, bool reverseBoundary = false);
+    void setDefaultBoundary();
+    bool isWithinBoundary() const;
+    bool isWithinBoundary(LocationVector const& pos) const;
+
+    bool isIgnoringCreatureCombat() const;
+    bool isIgnoringPlayerCombat() const;
+    void setIgnoreCreatureCombat(bool apply);
+    void setIgnorePlayerCombat(bool apply);
+
+    bool isAllowedToEnterCombat() const;
+    void setAllowedToEnterCombat(bool value);
+
+private:
+    // Called every 1500ms to find an enemy to attack or friends to assist unit
+    void _updateTargets();
+    // Called Eacht AIUpdate Tick to select a new Target
+    bool _updateCurrentTarget();
+    Unit* _selectCurrentTarget() const;
+
+    bool _canEvade() const;
+
+    std::unique_ptr<Util::SmallTimeTracker> m_targetUpdateTimer;
+    std::set<Unit const*> m_assistTargets;
+    bool m_isEngaged = false;
+    bool m_isEngagedByAssist = false;
+
+    bool m_cannotReachTarget = false;
+    std::unique_ptr<Util::SmallTimeTracker> m_cannotReachTimer;
+
+    std::vector<std::unique_ptr<AreaBoundary const>> m_boundaries;
+    bool m_reverseBoundary = false;
+    bool m_disableDynamicBoundary = false;
+    std::unique_ptr<Util::SmallTimeTracker> m_boundaryCheckTime;
+
+    bool m_canEnterCombat = true;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Combat AI
+public:
+    void attackStartIfCan(Unit* target);
+    // Skips target checks
+    void attackStartUnsafe(Unit* target);
+    void attackStop();
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Agent AI
+public:
+    bool canFlee() const;
+    void setCanFlee(bool value);
+    void stopFleeing();
+
+    bool canCallForHelp() const;
+    void setCanCallForHelp(bool value);
+    // Used by LuaEngine
+    void setCallForHelpHealth(float health);
+
+    void handleAgentFlee(uint32_t p_time);
+    void handleAgentCallForHelp();
+
+private:
+    // Returns true/false if found a friend
+    bool _findFriendWhileFleeing();
+    bool m_canFlee = false;
+    float m_fleeHealth = 0.0f;
+    uint32_t m_fleeDuration = 0;
+    bool m_hasFleed = false;
+    FleeState m_fleeState = FLEE_NONE;
+    std::unique_ptr<Util::SmallTimeTracker> m_fleeTimer;
+
+    bool m_canCallForHelp = false;
+    float m_callForHelpHealth = 0.0f;
+    bool m_hasCalledForHelp = false;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Spells
+public:
+    CreatureAISpellsArray const& getCreatureAISpells() const;
+
+    CreatureAISpells* getAISpell(uint32_t spellId) const;
+    CreatureAISpells* addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t durationInSec = 0, uint32_t cooldownInSec = 0, bool forceRemove = false, bool isTriggered = false);
+    void removeAISpell(uint32_t spellId);
+
+    // Used only with player summons for now
+    void updateOutOfCombatSpells(unsigned long time_passed);
+
+private:
+    CreatureAISpellsArray mCreatureAISpells;
+
+    bool _cleanUpExpiredAISpell(CreatureAISpells const* aiSpell) const;
+
+    std::unique_ptr<Util::SmallTimeTracker> m_outOfCombatSpellTimer;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // AI Agent functions
+public:
+    void selectCurrentAgent(Unit* target, uint32_t spellid);
+    void initializeSpells();
+
+    inline uint8_t getCurrentAgent() { return static_cast<uint8_t>(m_AiCurrentAgent); }
+    void setCurrentAgent(AI_Agent agent) { m_AiCurrentAgent = agent; }
+
+private:
+    AI_Agent m_AiCurrentAgent = AGENT_NULL;
+    bool m_canRangedAttack = false;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // Combat functions
+public:
     void setReactState(ReactStates st) { m_reactState = st; }
     ReactStates getReactState() const { return m_reactState; }
     bool hasReactState(ReactStates state) const { return (m_reactState == state); }
     void initializeReactState();
 
 private:
-    bool m_isEngaged;
-
-protected:
-    ReactStates m_reactState;
+    ReactStates m_reactState = REACT_AGGRESSIVE;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Combat behavior
 private:
-    bool mIsCombatDisabled;
-    bool mIsMeleeDisabled;
-    bool mIsRangedDisabled;
-    bool mIsCastDisabled;
-    bool mIsTargetingDisabled;
+    bool mIsCombatDisabled = false;
+    bool mIsMeleeDisabled = false;
+    bool mIsRangedDisabled = false;
+    bool mIsCastDisabled = false;
+    bool mIsTargetingDisabled = false;
 
 public:
     void setCombatDisabled(bool disable) { mIsCombatDisabled = disable; }
@@ -412,44 +501,20 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Misc functions
-    void Init(Unit* un, Unit* owner = nullptr);   // used for pets
-    Unit* getUnit() const;
-    Unit* getPetOwner() const;
-    Unit* getCurrentTarget() const;
-    LocationVector m_lasttargetPosition;
+    LocationVector m_lasttargetPosition{ 0, 0, 0, 0 };
 
-    bool isGuard() { return m_isNeutralGuard; }
+    bool isGuard() const { return m_isNeutralGuard; }
     void setGuard(bool value) { m_isNeutralGuard = value; }
-    void setCurrentTarget(Unit* pUnit) { m_target = pUnit; }
     float calcCombatRange(Unit* target, bool ranged);
 
-    void updateEmotes(unsigned long time_passed);
     void eventAiInterfaceParamsetFinish();
-    std::shared_ptr<TimedEmoteList> timed_emotes;
+    TimedEmoteList* timed_emotes = nullptr;
 
     bool moveTo(float x, float y, float z, float o = 0.0f, bool running = false);
     void calcDestinationAndMove(Unit* target, float dist);
 
-    // boundary system methods
-    bool checkBoundary();
-    CreatureBoundary const getBoundary() const { return _boundary; }
-    void addBoundary(AreaBoundary const* boundary, bool overrideDefault = false, bool negativeBoundaries = false);
-    void setDefaultBoundary();
-    void clearBoundary();
-    static bool isInBounds(CreatureBoundary const* boundary, LocationVector who);
-    bool isInBoundary(LocationVector who) const;
-    bool isInBoundary() const;
-    void doImmediateBoundaryCheck();
-
-    bool canUnitEvade(unsigned long time_passed);
-    void enterEvadeMode();
-    bool _enterEvadeMode();
-
     void initGroupThreat(Unit* target);
     void instanceCombatProgress(bool activate);
-
-    // Event Handler
-    void handleEvent(uint32_t event, Unit* pUnit, uint32_t misc1);
 
     void eventForceRedirected(Unit* pUnit, uint32_t misc1);
     void eventHostileAction(Unit* pUnit, uint32_t misc1);
@@ -467,54 +532,25 @@ public:
     void eventChangeFaction(Unit* ForceAttackersToHateThisInstead = NULL);    /// we have to tell our current enemies to stop attacking us, we should also forget about our targets
     void eventOnTargetDied(Object* pKiller);
 
-    // Update
-    void Update(unsigned long time_passed);
-    void updateAIScript(unsigned long time_passed);
-    void updateTargets(unsigned long time_passed);
-
-    // Attacking
-    void attackStart(Unit* target);
-    void attackStop();
-    bool doInitialAttack(Unit* target, bool isMelee);
-
-    // Called Eacht AIUpdate Tick to select a new Target
-    bool updateTarget();
-    Unit* selectTarget();
-    bool isTargetAcceptable(Unit* target);
-    bool isTargetableForAttack(bool checkFakeDeath);
-    Unit* getTargetForPet();
-
     float calcAggroRange(Unit* target);
-
-    bool canStartAttack(Unit* target, bool force);
-    bool canOwnerAttackUnit(Unit* pUnit);
     
-    Unit* findTarget();
     void updateAgent(uint32_t p_time);
     void updateTotem(uint32_t p_time);
 
     void handleAgentMelee();
     void handleAgentRanged();
     void handleAgentSpell(uint32_t spellId);
-    void handleAgentFlee(uint32_t p_time);
-    void handleAgentCallForHelp();
 
-    Unit* m_Unit;
-    Unit* m_PetOwner;
-    Unit* m_target;
-    bool m_isNeutralGuard;
-    uint32_t faction_visibility;
+    bool m_isNeutralGuard = false;
+    uint32_t faction_visibility = 0;
 
     // Difficulty
     void setCreatureProtoDifficulty(uint32_t entry);
     uint8_t getDifficultyType();
-    bool m_is_in_instance;
+    bool m_is_in_instance = false;
 
-    inline AssistTargetSet GetAssistTargets() { return m_assistTargets; }
-    bool isAlreadyAssisting(Creature* helper);
+    uint8_t internalPhase = 0;
 
-    uint8_t internalPhase;
-    void initialiseScripts(uint32_t entry);
     std::vector<MySQLStructure::CreatureAIScripts> onLoadScripts;
     std::vector<MySQLStructure::CreatureAIScripts> onCombatStartScripts;
     std::vector<MySQLStructure::CreatureAIScripts> onAIUpdateScripts;
@@ -541,9 +577,9 @@ private:
     definedEmoteVector mEmotesOnRandomWaypoint;
 
 public:
-    void sendStoredText(definedEmoteVector store, Unit* target);
+    void sendStoredText(definedEmoteVector& store, Unit* target);
 
-    Unit* mCurrentSpellTarget;
+    Unit* mCurrentSpellTarget = nullptr;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // target
@@ -554,17 +590,6 @@ public:
     Unit* getSecondMostHatedTargetInArray(UnitArray& pTargetArray);
     bool isValidUnitTarget(Object* pObject, TargetFilter pFilter, float pMinRange = 0.0f, float pMaxRange = 0.0f);
 
-protected:
-    SmallTimeTracker m_boundaryCheckTime;
-    CreatureBoundary _boundary;
-    bool _negateBoundary;
-
-    SmallTimeTracker m_updateAssistTimer;
-    AssistTargetSet m_assistTargets;
-
-private:
-    bool m_disableDynamicBoundary = false;
-
     //////////////////////////////////////////////////////////////////////////////////////////
     // Movement functions
 public:
@@ -574,14 +599,14 @@ public:
     virtual void movementInform(uint32_t /*type*/, uint32_t /*id*/);
 
     bool canCreatePath(float x, float y, float z);
-    dtStatus findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32 polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32 maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter);
-    bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32 pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query);
-    uint32 fixupCorridor(dtPolyRef* path, const uint32 npath, const uint32 maxPath, const dtPolyRef* visited, const uint32 nvisited);
+    dtStatus findSmoothPath(const float* startPos, const float* endPos, const dtPolyRef* polyPath, const uint32_t polyPathSize, float* smoothPath, uint32_t* smoothPathSize, bool & usedOffmesh, const uint32_t maxSmoothPathSize, dtNavMesh* mesh, dtNavMeshQuery* query, dtQueryFilter & filter);
+    bool getSteerTarget(const float* startPos, const float* endPos, const float minTargetDist, const dtPolyRef* path, const uint32_t pathSize, float* steerPos, unsigned char & steerPosFlag, dtPolyRef & steerPosRef, dtNavMeshQuery* query);
+    uint32_t fixupCorridor(dtPolyRef* path, const uint32_t npath, const uint32_t maxPath, const dtPolyRef* visited, const uint32_t nvisited);
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Waypoint functions
 private:
-    bool mShowWayPoints;
+    bool mShowWayPoints = false;
 
 public:
     bool hasWayPoints();
@@ -601,14 +626,14 @@ public:
     Unit* getUnitToFollow() { return m_UnitToFollow; }
 
 protected:
-    Unit* m_UnitToFollow;   // used in scripts
+    Unit* m_UnitToFollow = nullptr;   // used in scripts
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Totem functions
 public:
-    uint32_t m_totemspelltimer;
-    uint32_t m_totemspelltime;
-    SpellInfo const* totemspell;
+    uint32_t m_totemspelltimer = 0;
+    uint32_t m_totemspelltime = 0;
+    SpellInfo const* totemspell = nullptr;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Waypoint functions
@@ -625,10 +650,9 @@ public:
     SpellCastTargets setSpellTargets(SpellInfo const* spellInfo, Unit* target, uint8_t targettype) const;
 
     //addAISpell(spellID, Chance, TargetType, Duration (s), waitBeforeNextCast (s))
-    CreatureAISpells* addAISpell(uint32_t spellId, float castChance, uint32_t targetType, uint32_t duration = 0, uint32_t cooldown = 0, bool forceRemove = false, bool isTriggered = false);
 
-    std::list<AI_Spell*> m_spells;
-    void addSpellToList(AI_Spell* sp);
+    std::list<std::unique_ptr<AI_Spell>> m_spells;
+    void addSpellToList(std::unique_ptr<AI_Spell> sp);
     AI_Spell* getSpell(uint32_t entry);
     void setNextSpell(uint32_t spellId);
     void removeNextSpell(uint32_t spellId);
@@ -636,19 +660,16 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // spell
 
-    void castAISpell(CreatureAISpells* aiSpell);
-    void castAISpell(uint32_t aiSpellId);
+    SpellCastResult castAISpell(CreatureAISpells* aiSpell);
+    SpellCastResult castAISpell(uint32_t aiSpellId);
     bool hasAISpell(CreatureAISpells* aiSpell);
     bool hasAISpell(uint32_t SpellId);
-    void castSpellOnRandomTarget(CreatureAISpells* AiSpell);
+    SpellCastResult castSpellOnRandomTarget(CreatureAISpells* AiSpell);
     void UpdateAISpells();
 
-    CreatureAISpells* mLastCastedSpell;
+    CreatureAISpells* mLastCastedSpell = nullptr;
 
-    typedef std::vector<CreatureAISpells*> CreatureAISpellsArray;
-    CreatureAISpellsArray mCreatureAISpells;
-
-    SmallTimeTracker mSpellWaitTimer;
+    std::unique_ptr<Util::SmallTimeTracker> mSpellWaitTimer;
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // script events
@@ -657,13 +678,8 @@ protected:
     scriptEventMap spellEvents;
 
 protected:
-    bool canEnterCombat;
+    TimedEmoteList::iterator next_timed_emote;
+    uint32_t timed_emote_expire = 0xFFFFFFFF;
 
-    std::list<std::shared_ptr<SpawnTimedEmotes>>::iterator next_timed_emote;
-    uint32_t timed_emote_expire;
-
-    bool m_cannotReachTarget;
-    SmallTimeTracker m_noTargetTimer;
-    SmallTimeTracker m_cannotReachTimer;
-    SmallTimeTracker m_updateTargetTimer;
+    std::unique_ptr<Util::SmallTimeTracker> m_noTargetTimer;
 };

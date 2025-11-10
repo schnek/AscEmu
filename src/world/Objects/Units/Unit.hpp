@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -47,7 +47,6 @@ namespace MySQLStructure
 class SpellCastTargets;
 struct AbstractFollower;
 enum SummonSlot : uint8_t;
-class SummonHandler;
 struct DamageSplitTarget;
 template <class T>
 using Optional = std::optional<T>;
@@ -58,9 +57,9 @@ class DynamicObject;
 class GameObject;
 class Group;
 class Object;
-class Pet;
 class Spell;
 class SpellProc;
+class SummonHandler;
 class TotemSummon;
 class Vehicle;
 class MovementManager;
@@ -73,6 +72,7 @@ namespace MovementMgr
 }
 
 enum MovementGeneratorType : uint8_t;
+enum SpellCastResult : uint8_t;
 
 struct HealthBatchEvent
 {
@@ -136,7 +136,7 @@ struct AuraCheckResponse
 
 typedef std::list<struct ProcTriggerSpellOnSpell> ProcTriggerSpellOnSpellList;
 
-typedef std::array<Aura*, AuraSlots::TOTAL_SLOT_END> AuraArray;
+typedef std::array<std::unique_ptr<Aura>, AuraSlots::TOTAL_SLOT_END> AuraArray;
 typedef std::list<AuraEffectModifier const*> AuraEffectList;
 typedef std::array<AuraEffectList, TOTAL_SPELL_AURAS> AuraEffectListArray;
 typedef std::array<uint32_t /*spellId*/, AuraSlots::NEGATIVE_VISUAL_SLOT_END> VisualAuraArray;
@@ -164,7 +164,6 @@ public: //\todo Zyres: public fpr LuaEngine, sort out why
     // void OnPreRemoveFromWorld();                                         // not used
     // void OnRemoveFromWorld();                                            // not used
     virtual void die(Unit* pAttacker, uint32_t damage, uint32_t spellid);
-    virtual void buildPetSpellList(WorldPacket& data);
 
 private:
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -361,16 +360,26 @@ public:
     uint8_t getStandState() const;
     void setStandState(uint8_t standState);
 
+#if VERSION_STRING < WotLK
+    uint8_t getPetLoyalty() const;
+    void setPetLoyalty(uint8_t loyalty);
+#elif VERSION_STRING < Mop
     uint8_t getPetTalentPoints() const;
     void setPetTalentPoints(uint8_t talentPoints);
+#endif
 
     uint8_t getStandStateFlags() const;
     void setStandStateFlags(uint8_t standStateFlags);
+    void addStandStateFlags(uint8_t standStateFlags);
+    void removeStandStateFlags(uint8_t standStateFlags);
 
+#if VERSION_STRING != Classic
     uint8_t getAnimationFlags() const;
     void setAnimationFlags(uint8_t animationFlags);
+#endif
     //bytes_1 end
 
+    // Note; this is not same as serverside PetCache::number or Pet::m_petId, this is clientside pet number which is pet's low guid
     uint32_t getPetNumber() const;
     void setPetNumber(uint32_t timestamp);
 
@@ -451,14 +460,24 @@ public:
     uint8_t getSheathType() const;
     void setSheathType(uint8_t sheathType);
 
+#if VERSION_STRING == TBC
+    uint8_t getPositiveAuraLimit() const;
+    void setPositiveAuraLimit(uint8_t limit);
+#elif VERSION_STRING >= WotLK
     uint8_t getPvpFlags() const;
     void setPvpFlags(uint8_t pvpFlags);
     void addPvpFlags(uint8_t pvpFlags);
     void removePvpFlags(uint8_t pvpFlags);
+#endif
 
+#if VERSION_STRING >= TBC
     uint8_t getPetFlags() const;
     void setPetFlags(uint8_t petFlags);
+    void addPetFlags(uint8_t petFlags);
+    void removePetFlags(uint8_t petFlags);
+#endif
 
+    //bytes_1 in classic
     uint8_t getShapeShiftForm() const;
     void setShapeShiftForm(uint8_t shapeShiftForm);
     uint32_t getShapeShiftMask() const { return 1 << (getShapeShiftForm() - 1); }
@@ -587,7 +606,6 @@ public:
     void setMoveDisableGravity(bool disable_gravity);
     void setMoveWalk(bool set_walk);
     void setFacing(float newo);     //only working if creature is idle
-    void setAnimationTier(AnimationTier  tier);
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // used for handling fall
@@ -627,15 +645,15 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Movement spline
-    MovementMgr::MoveSpline* movespline;
+    std::unique_ptr<MovementMgr::MoveSpline> movespline;
 
     void followerAdded(AbstractFollower* f) { m_followingMe.insert(f); }
     void followerRemoved(AbstractFollower* f) { m_followingMe.erase(f); }
     void removeAllFollowers();
     virtual float getFollowAngle() const { return static_cast<float>(M_PI / 2); }
 
-    MovementManager* getMovementManager() { return i_movementManager; }
-    MovementManager const* getMovementManager() const { return i_movementManager; }
+    MovementManager* getMovementManager() { return i_movementManager.get(); }
+    MovementManager const* getMovementManager() const { return i_movementManager.get(); }
 
     virtual bool canFly();
 
@@ -647,7 +665,7 @@ private:
     std::unordered_set<AbstractFollower*> m_followingMe;
 
 protected:
-    MovementManager* i_movementManager;
+    std::unique_ptr<MovementManager> i_movementManager;
 
     void setFeared(bool apply);
     void setConfused(bool apply);
@@ -679,12 +697,12 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // AI Stuff
 protected:
-    AIInterface* m_aiInterface;
+    std::unique_ptr<AIInterface> m_aiInterface;
     bool m_useAI = false;
     uint32_t m_lastAiInterfaceUpdateTime = 0;
 
 public:
-    AIInterface* getAIInterface() const { return m_aiInterface; }
+    AIInterface* getAIInterface() const { return m_aiInterface.get(); }
 
     void setAItoUse(bool value) { m_useAI = value; }
     bool isAIEnabled() { return m_useAI; }
@@ -715,21 +733,21 @@ public:
     bool canDualWield() const;
     void setDualWield(bool enable);
 
-    void castSpell(uint64_t targetGuid, uint32_t spellId, bool triggered = false);
-    void castSpell(Unit* target, uint32_t spellId, bool triggered = false);
-    void castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, bool triggered = false);
-    void castSpell(Unit* target, SpellInfo const* spellInfo, bool triggered = false);
-    void castSpell(uint64_t targetGuid, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered = false);
-    void castSpell(Unit* target, uint32_t spellId, SpellForcedBasePoints forcedBasePoints, bool triggered = false);
-    void castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasePoints, int32_t spellCharges, bool triggered = false);
-    void castSpell(SpellCastTargets targets, uint32_t spellId, bool triggered = false);
-    void castSpell(SpellCastTargets targets, SpellInfo const* spellInfo, bool triggered = false);
-    void castSpellLoc(const LocationVector location, uint32_t spellId, bool triggered = false);
-    void castSpellLoc(const LocationVector location, SpellInfo const* spellInfo, bool triggered = false);
+    SpellCastResult castSpell(uint64_t targetGuid, uint32_t spellId, bool triggered = false);
+    SpellCastResult castSpell(Unit* target, uint32_t spellId, bool triggered = false);
+    SpellCastResult castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, bool triggered = false);
+    SpellCastResult castSpell(Unit* target, SpellInfo const* spellInfo, bool triggered = false);
+    SpellCastResult castSpell(uint64_t targetGuid, uint32_t spellId, SpellForcedBasePoints forcedBasepoints, bool triggered = false);
+    SpellCastResult castSpell(Unit* target, uint32_t spellId, SpellForcedBasePoints forcedBasePoints, bool triggered = false);
+    SpellCastResult castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasePoints, int32_t spellCharges, bool triggered = false);
+    SpellCastResult castSpell(SpellCastTargets targets, uint32_t spellId, bool triggered = false);
+    SpellCastResult castSpell(SpellCastTargets targets, SpellInfo const* spellInfo, bool triggered = false);
+    SpellCastResult castSpellLoc(const LocationVector location, uint32_t spellId, bool triggered = false);
+    SpellCastResult castSpellLoc(const LocationVector location, SpellInfo const* spellInfo, bool triggered = false);
     void eventCastSpell(Unit* target, SpellInfo const* spellInfo);
 
-    void castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered);
-    void castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered);
+    SpellCastResult castSpell(uint64_t targetGuid, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered);
+    SpellCastResult castSpell(Unit* target, SpellInfo const* spellInfo, SpellForcedBasePoints forcedBasepoints, bool triggered);
 
     SpellProc* addProcTriggerSpell(uint32_t spellId, uint32_t originalSpellId, uint64_t casterGuid, uint32_t procChance, SpellProcFlags procFlags, SpellExtraProcFlags exProcFlags, uint32_t const* spellFamilyMask, uint32_t const* procClassMask = nullptr, Aura* createdByAura = nullptr, Object* obj = nullptr);
     // Gets proc chance and proc flags from spellInfo
@@ -774,7 +792,7 @@ public:
 private:
     bool m_canDualWield = false;
 
-    std::list<SpellProc*> m_procSpells;
+    std::list<std::unique_ptr<SpellProc>> m_procSpells;
 
     std::list<AuraEffectModifier const*> m_spellModifiers[MAX_SPELLMOD_TYPE];
 
@@ -783,7 +801,7 @@ private:
 public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // Aura
-    void addAura(Aura* aur);
+    void addAura(std::unique_ptr<Aura> aur);
     uint8_t findVisualSlotForAura(Aura const* aur) const;
 
     Aura* getAuraWithId(uint32_t spell_id) const;
@@ -791,6 +809,7 @@ public:
     Aura* getAuraWithIdForGuid(uint32_t const* auraId, uint64_t guid) const;
     Aura* getAuraWithIdForGuid(uint32_t spell_id, uint64_t guid) const;
     Aura* getAuraWithAuraEffect(AuraEffect aura_effect) const;
+    Aura* getAuraWithAuraEffectForGuid(AuraEffect aura_effect, uint64_t guid) const;
     Aura* getAuraWithVisualSlot(uint8_t visualSlot) const;
     // Note; this is internal serverside aura slot, not the slot in client
     // For clientside slot use getAuraWithVisualSlot
@@ -807,7 +826,10 @@ public:
 
     bool hasAurasWithId(uint32_t auraId) const;
     bool hasAurasWithId(uint32_t const* auraId) const;
+    bool hasAurasWithIdForGuid(uint32_t auraId, uint64_t guid) const;
+    bool hasAurasWithIdForGuid(uint32_t const* auraId, uint64_t guid) const;
     bool hasAuraWithAuraEffect(AuraEffect type) const;
+    bool hasAuraWithAuraEffectForGuid(AuraEffect type, uint64_t guid) const;
     bool hasAuraWithMechanic(SpellMechanic mechanic) const;
     bool hasAuraWithSpellType(SpellTypes type, uint64_t casterGuid = 0, uint32_t skipSpellId = 0) const;
 
@@ -867,18 +889,18 @@ public:
 
 private:
     // Inserts aura into aura containers
-    void _addAura(Aura* aur);
+    void _addAura(std::unique_ptr<Aura> aur);
     // Inserts aura effect into aura effect list
     void _addAuraEffect(AuraEffectModifier const* aurEff);
     // Erases aura from aura containers
-    void _removeAura(Aura* aur);
+    std::unique_ptr<Aura> _removeAura(Aura* aur);
     // Erases aura effect from aura effect list
     void _removeAuraEffect(AuraEffectModifier const* aurEff);
     void _updateAuras(unsigned long diff);
 
     uint32_t m_transformAura = 0;
 
-    AuraArray m_auraList = { nullptr };
+    AuraArray m_auraList;
     AuraEffectListArray m_auraEffectList;
     VisualAuraArray m_auraVisualList = { 0 };
 
@@ -1000,15 +1022,15 @@ public:
 
     void sendEnvironmentalDamageLogPacket(uint64_t guid, uint8_t type, uint32_t damage, uint64_t unk = 0);
 
-    virtual bool isPvpFlagSet();
+    virtual bool isPvpFlagSet() const;
     virtual void setPvpFlag();
     virtual void removePvpFlag();
 
-    virtual bool isFfaPvpFlagSet();
+    virtual bool isFfaPvpFlagSet() const;
     virtual void setFfaPvpFlag();
     virtual void removeFfaPvpFlag();
 
-    virtual bool isSanctuaryFlagSet();
+    virtual bool isSanctuaryFlagSet() const;
     virtual void setSanctuaryFlag();
     virtual void removeSanctuaryFlag();
 
@@ -1029,7 +1051,7 @@ public:
     void addSimpleEnvironmentalDamageBatchEvent(EnviromentalDamage type, uint32_t damage, uint32_t absorbedDamage = 0);
     // Quick method to create a simple healing health batch event
     void addSimpleHealingBatchEvent(uint32_t heal, Unit* healer = nullptr, SpellInfo const* spellInfo = nullptr);
-    void addHealthBatchEvent(HealthBatchEvent* batch);
+    void addHealthBatchEvent(std::unique_ptr<HealthBatchEvent> batch);
     uint32_t calculateEstimatedOverKillForCombatLog(uint32_t damage) const;
     uint32_t calculateEstimatedOverHealForCombatLog(uint32_t heal) const;
     void clearHealthBatch();
@@ -1077,7 +1099,7 @@ private:
     uint32_t _handleBatchDamage(HealthBatchEvent const* batch, uint32_t* rageGenerated);
     // Handles some things on each healing event in the batch
     uint32_t _handleBatchHealing(HealthBatchEvent const* batch, uint32_t* absorbedHeal);
-    std::vector<HealthBatchEvent*> m_healthBatch;
+    std::vector<std::unique_ptr<HealthBatchEvent>> m_healthBatch;
     uint16_t m_healthBatchTime = HEALTH_BATCH_INTERVAL;
 
     uint32_t m_lastSpellUpdateTime = 0;
@@ -1104,24 +1126,27 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // Summons
 
+    // Returns unit's current pet from SummonInterface
+    Pet* getPet() const;
     TotemSummon* getTotem(SummonSlot slot) const;
 
-    SummonHandler* getSummonInterface() const;
+    SummonHandler* getSummonInterface();
+    SummonHandler const* getSummonInterface() const;
 
 private:
-    SummonHandler* m_summonInterface = nullptr;
+    std::unique_ptr<SummonHandler> m_summonInterface;
 
 #ifdef FT_VEHICLES
     //////////////////////////////////////////////////////////////////////////////////////////
     // Vehicle
 protected:
-    Vehicle* m_vehicle = nullptr;           // The Unit's own vehicle component
-    Vehicle* m_vehicleKit = nullptr;        // The vehicle the unit is attached to
+    Vehicle* m_vehicle = nullptr;               // The Unit's own vehicle component
+    std::unique_ptr<Vehicle> m_vehicleKit;      // The vehicle the unit is attached to
 
 public:
     bool createVehicleKit(uint32_t id, uint32_t creatureEntry);
     void removeVehicleKit();
-    Vehicle* getVehicleKit() const { return m_vehicleKit; }
+    Vehicle* getVehicleKit() const { return m_vehicleKit.get(); }
     Vehicle* getVehicle() const { return m_vehicle; }
     void setVehicle(Vehicle* vehicle) { m_vehicle = vehicle; }
     bool isOnVehicle(Unit const* vehicle) const;
@@ -1141,9 +1166,9 @@ public:
     void handleSpellClick(Unit* clicker);
 #endif
 
-    bool isMounted() const { return hasUnitFlags(UNIT_FLAG_MOUNT); }
+    bool isMounted() const;
     void mount(uint32_t mount, uint32_t vehicleId = 0, uint32_t creatureEntry = 0);
-    void dismount();
+    void dismount(bool resummonPet = true);
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // Unit Owner
@@ -1180,13 +1205,14 @@ public:
     //\todo: Zyres: tagging is Creature related, maybe move this to the correct class
 private:
     uint64_t m_taggerGuid = 0;
+    bool m_taggedBySummon = false;
 
 public:
-    void setTaggerGuid(uint64_t guid);
+    void setTaggerGuid(Unit const* tagger);
     uint64_t getTaggerGuid() const;
 
     bool isTagged() const;
-    bool isTaggable() const;
+    bool isTaggableFor(Unit const* unit) const;
 
     bool isTaggedByPlayerOrItsGroup(Player* tagger);
 
@@ -1209,12 +1235,12 @@ public:
     uint16_t hasNoInterrupt() const { return m_noInterrupt; }
     uint16_t m_noInterrupt = 0;
 
-protected:
     void removeGarbage();
-    void addGarbageAura(Aura* aur);
+    void addGarbageAura(std::unique_ptr<Aura> aur);
     void addGarbagePet(Pet* pet);
 
-    std::list<Aura*> m_GarbageAuras;
+protected:
+    std::list<std::unique_ptr<Aura>> m_GarbageAuras;
     std::list<Pet*> m_GarbagePets;
 
 public:
@@ -1223,8 +1249,6 @@ public:
     float getChanceToDaze(Unit* target);
 
     void eventModelChange();
-
-    void removeFieldSummon();
 
     void aggroPvPGuards();
 
@@ -1250,10 +1274,10 @@ public:
     void addExtraStrikeTarget(SpellInfo const* spellInfo, uint32_t charges);
 
     uint32_t doDamageSplitTarget(uint32_t res, SchoolMask schoolMask, bool isMeleeDmg);
-    DamageSplitTarget* m_damageSplitTarget = nullptr;
+    std::unique_ptr<DamageSplitTarget> m_damageSplitTarget;
 
     void removeReflect(uint32_t spellId, bool apply);
-    std::list<ReflectSpellSchool*> m_reflectSpellSchool;
+    std::list<std::unique_ptr<ReflectSpellSchool>> m_reflectSpellSchool;
 
     void castOnMeleeSpell();
 
@@ -1362,12 +1386,15 @@ public:
     int32_t m_rangedDamageTaken = 0;
 
     // Used instead of WoWUnit field
+    // note: this is base damage whereas WoWUnit field is the calculated damage -Appled
     float m_baseDamage[2] = {0};
 
     // Used instead of WoWUnit field
+    // note: this is base damage whereas WoWUnit field is the calculated damage -Appled
     float m_baseOffhandDamage[2] = {0};
 
     // Used instead of WoWUnit field
+    // note: this is base damage whereas WoWUnit field is the calculated damage -Appled
     float m_baseRangedDamage[2] = {0};
 
     // Used in Aura::SpellAuraRAPAttackerBonus
@@ -1439,7 +1466,7 @@ public:
     int32_t m_extraAttacks = 0;
     bool m_extraStrikeTarget = false;
     int32_t m_extraStrikeTargetC = 0;
-    std::list<ExtraStrike*> m_extraStrikeTargets;
+    std::list<std::unique_ptr<ExtraStrike>> m_extraStrikeTargets;
     
     int64_t m_magnetCasterGuid = 0;   // Unit who acts as a magnet for this unit
 

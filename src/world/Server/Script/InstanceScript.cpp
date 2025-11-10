@@ -1,9 +1,11 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "InstanceScript.hpp"
+
+#include <sstream>
 
 #include "Logging/Logger.hpp"
 #include "Management/Group.h"
@@ -168,7 +170,7 @@ void InstanceScript::generateBossDataState()
 
     for (DungeonEncounterList::const_iterator itr = encounters->begin(); itr != encounters->end(); ++itr, ++i)
     {
-        const auto encounter = *itr;
+        const auto encounter = itr->get();
 
         BossInfo* bossInfo = &bosses[i];
         bossInfo->entry = encounter->creditEntry;
@@ -251,7 +253,7 @@ void InstanceScript::readSaveDataBossStates(std::istringstream& data)
 
     for (DungeonEncounterList::const_iterator itr = encounters->begin(); itr != encounters->end(); ++itr, ++i)
     {
-        const auto encounter = *itr;
+        const auto encounter = itr->get();
 
         BossInfo* bossInfo = &bosses[i];
         bossInfo->entry = encounter->creditEntry;

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,7 +45,7 @@ bool WDTFile::init(char* /*map_id*/, unsigned int mapID)
     }
 
     char fourcc[5];
-    uint32 size;
+    uint32_t size;
 
     std::string dirname = std::string(szWorkDirWmo) + "/dir_bin";
     FILE *dirfile;

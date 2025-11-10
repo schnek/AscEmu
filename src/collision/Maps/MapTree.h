@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -46,7 +46,7 @@ namespace VMAP
             uint32_t iMapID;
             bool iIsTiled;
             BIH iTree;
-            ModelInstance* iTreeValues; // the tree entries
+            std::unique_ptr<ModelInstance[]> iTreeValues; // the tree entries
             uint32_t iNTreeValues;
 
             // Store all the map tile idents that are loaded for that map

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -9,6 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Movement/MovementManager.h"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/Script/CreatureAIScript.hpp"
+#include "Utilities/Random.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Explosive Sheep (Summoned by ItemID: 4384)
@@ -27,7 +28,7 @@ public:
     // Summons an Explosive Sheep which will charge at a nearby enemy and explode for 135 - 165 damage.
     {
         const auto pos = mTarget->GetPosition();
-        getCreature()->getMovementManager()->moveCharge(pos.x, pos.y, pos.z);
+        getCreature()->getMovementManager()->moveCharge(pos);
         getCreature()->castSpell(getCreature(), 4050, true);
         getCreature()->Despawn(1000, 0); // Despawn since we "exploded"
     }
@@ -87,24 +88,6 @@ public:
         if(getCreature()->getStandState() == STANDSTATE_SLEEP)
             getCreature()->setStandState(STANDSTATE_STAND);
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Lazy Peons
-class PeonSleepingAI : public CreatureAIScript
-{
-public:
-    static CreatureAIScript* Create(Creature* c) { return new PeonSleepingAI(c); }
-    explicit PeonSleepingAI(Creature* pCreature) : CreatureAIScript(pCreature)
-    {
-        RegisterAIUpdateEvent(3000 + Util::getRandomUInt(180000));
-    };
-
-    void AIUpdate() override
-    {
-        getCreature()->castSpell(getCreature(), 17743, true);
-        RemoveAIUpdateEvent();
-    };
 };
 
 class KirithAI : public CreatureAIScript
@@ -489,7 +472,6 @@ void SetupMiscCreatures(ScriptMgr* mgr)
     mgr->register_creature_script(11120, &CrimsonHammersmith::Create);
     mgr->register_creature_script(5894, &Corrupt_Minor_Manifestation_Water_Dead::Create);
     mgr->register_creature_script(3425, &SavannahProwler::Create);
-    mgr->register_creature_script(10556, &PeonSleepingAI::Create);
     mgr->register_creature_script(7728, &KirithAI::Create);
 
     //////////////////////////////////////////////////////////////////////////////////////////

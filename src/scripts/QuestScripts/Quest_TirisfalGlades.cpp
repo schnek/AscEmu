@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (c) 2008-2015 Sun++ Team <http://www.sunplusplus.info>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2008 WEmu Team
@@ -134,8 +134,8 @@ public:
             getCreature()->setFaction(28);
             getCreature()->getAIInterface()->setMeleeDisabled(false);
             getCreature()->getAIInterface()->setAllowedToEnterCombat(true);
-            getCreature()->getAIInterface()->setImmuneToPC(false);
-            getCreature()->getAIInterface()->setImmuneToNPC(false);
+            getCreature()->getAIInterface()->setIgnorePlayerCombat(false);
+            getCreature()->getAIInterface()->setIgnoreCreatureCombat(false);
         }
     }
 
@@ -147,8 +147,8 @@ public:
         getCreature()->setFaction(68);
         _setMeleeDisabled(true);
         getCreature()->getAIInterface()->setAllowedToEnterCombat(false);
-        getCreature()->getAIInterface()->setImmuneToPC(true);
-        getCreature()->getAIInterface()->setImmuneToNPC(true);
+        getCreature()->getAIInterface()->setIgnorePlayerCombat(true);
+        getCreature()->getAIInterface()->setIgnoreCreatureCombat(true);
     }
 
     uint64_t _playerGuid = 0;

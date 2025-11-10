@@ -1,13 +1,16 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "LootItem.hpp"
 #include "LootMgr.hpp"
+#include "LootRoll.hpp"
 #include "Management/ItemProperties.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/World.h"
+#include "Utilities/Random.hpp"
+#include "Utilities/Util.hpp"
 
 LootStoreItem::LootStoreItem(ItemProperties const* _itemproto, std::vector<float> _chance, uint32_t _mincount, uint32_t _maxcount) :
     itemId(_itemproto->ItemId), itemproto(_itemproto), chance(_chance), mincount(_mincount), maxcount(_maxcount)
@@ -41,6 +44,17 @@ LootItem::LootItem(LootStoreItem const& li)
 
     needs_quest = li.needs_quest;
     starts_quest = li.starts_quest;
+}
+
+void LootItem::playerRolled(Player* player, uint8_t choice)
+{
+    if (roll == nullptr)
+        return;
+
+    // Ensure the roll will be freed properly by handling rolling inside LootItem
+    const auto rollFinished = roll->playerRolled(player, choice);
+    if (rollFinished)
+        roll = nullptr;
 }
 
 bool LootItem::isAllowedForPlayer(Player const* player) const

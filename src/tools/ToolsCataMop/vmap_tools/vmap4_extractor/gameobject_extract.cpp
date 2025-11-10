@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -108,11 +108,11 @@ void ExtractGameobjectModels()
 
         if (result)
         {
-            uint32 displayId = it->getUInt(0);
-            uint32 path_length = static_cast<uint32_t>(strlen(name));
-            fwrite(&displayId, sizeof(uint32), 1, model_list);
+            uint32_t displayId = it->getUInt(0);
+            uint32_t path_length = static_cast<uint32_t>(strlen(name));
+            fwrite(&displayId, sizeof(uint32_t), 1, model_list);
             fwrite(&isWmo, sizeof(uint8_t), 1, model_list);
-            fwrite(&path_length, sizeof(uint32), 1, model_list);
+            fwrite(&path_length, sizeof(uint32_t), 1, model_list);
             fwrite(name, sizeof(char), path_length, model_list);
         }
     }

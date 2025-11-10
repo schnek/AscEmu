@@ -28,8 +28,6 @@ New code has to be placed inside a MIT file. The current standard is C++14 and n
 * 2008 | Threading/LegacyThreadBase.h
 * 2008 | Threading/LegacyThreading.h
 * 2008 | Threading/Queue.h
-* 2008 | Threading/Mutex.h
-* 2008 | Threading/Mutex.cpp
 * 2008 | Threading/LockedQueue.h
 * 2008 | Threading/ConditionVariable.h
 * 2008 | Threading/ConditionVariable.cpp
@@ -49,14 +47,10 @@ New code has to be placed inside a MIT file. The current standard is C++14 and n
 * 2008 | Debugging/CrashHandler.cpp
 * 2008 | Config/Config.h
 * 2008 | Config/Config.cpp
-* 2008 | Common.Legacy.h
 * 2008 | Utilities/CallBack.h
 * 2008 | ByteBuffer.h
 * 2008 | Cryptography/AuthCodes.h
-* 2008 | Cryptography/Sha1.cpp
-* 2008 | Cryptography/MD5.cpp
 * 2008 | Cryptography/BigNumber.cpp
-* 2007 | Cryptography/RC4Engine.h
 * 2007 | Network/EPOLL/ListenSocketLinux.h
 * 2007 | Network/EPOLL/SocketLinux.cpp
 * 2007 | Network/EPOLL/SocketMgrLinux.cpp
@@ -78,8 +72,6 @@ New code has to be placed inside a MIT file. The current standard is C++14 and n
 * 2007 | Network/Socket.cpp
 * 2007 | Network/Socket.h
 * 2007 | Network/SocketOps.h
-* 2007 | Cryptography/Sha1.h
-* 2007 | Cryptography/MD5.h
 * 2007 | Cryptography/BigNumber.h
 * 2005 | SysInfo.hpp
 * 2005 | SysInfo.cpp
@@ -173,10 +165,19 @@ New code has to be placed inside a MIT file. The current standard is C++14 and n
 * 1996 | crc32.h
 * 1996 | crc32.cpp
 
+### Removed on 03 Sep 2024
+* 2007 | Cryptography/Sha1.h
+* 2007 | Cryptography/MD5.h
+* 2007 | Cryptography/RC4Engine.h
+
+### Removed on 04 Sep 2024
+* 2008 | Common.Legacy.h
+* 2008 | Threading/Mutex.h
+
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
 * 2015 | Exceptions/Exceptions.hpp
-* 2016 | git_version.h
+* 2016 | git_version.hpp
 * 2017 | ByteConverter.h
 * 2017 | Common.hpp
 * 2017 | Logging/Log.cpp
@@ -208,3 +209,8 @@ New code has to be placed inside a MIT file. The current standard is C++14 and n
 * 2023 | ThreadSafeQueue.hpp
 * 2023 | CommonTime.hpp
 * 2023 | CommonFilesystem.hpp
+* 2024 | Cryptography/Sha1.hpp
+* 2024 | Cryptography/MD5.hpp
+* 2024 | Cryptography/RC4.hpp
+* 2024 | Threading/Mutex.hpp
+* 2024 | Threading/Mutex.cpp

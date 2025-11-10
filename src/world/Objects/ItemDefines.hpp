@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -160,7 +160,7 @@ enum BankBagSlots                                           // 7 slots
     BANK_SLOT_BAG_END           = 74
 };
 
-enum BuyBackSlots                                           // 12 slots
+enum BuyBackSlots : uint8_t                                 // 12 slots
 {
     // stored in m_buybackitems
     BUYBACK_SLOT_START          = 74,
@@ -177,7 +177,7 @@ enum BuyBackSlots                                           // 12 slots
     BUYBACK_SLOT_11             = 84,
     BUYBACK_SLOT_12             = 85,
     BUYBACK_SLOT_END            = 86,
-    MAX_BUYBACK_SLOT            = 13
+    MAX_BUYBACK_SLOT            = BUYBACK_SLOT_END - BUYBACK_SLOT_START
 };
 
 // sanity checking
@@ -693,12 +693,12 @@ struct SocketInfo
 
 struct ItemSpell
 {
-    uint32_t Id;
-    uint32_t Trigger;
-    int32_t Charges;
-    int32_t Cooldown;
-    uint32_t Category;
-    int32_t CategoryCooldown;
+    uint32_t Id = 0;
+    uint32_t Trigger = 0;
+    int32_t Charges = 0;
+    int32_t Cooldown = -1;
+    uint32_t Category = 0;
+    int32_t CategoryCooldown = -1;
 };
 
 struct ItemDamage
@@ -710,6 +710,6 @@ struct ItemDamage
 
 struct ItemStat
 {
-    uint32_t Type;
-    int32_t Value;
+    uint32_t Type = 0;
+    int32_t Value = 0;
 };

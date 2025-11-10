@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -8,6 +8,9 @@ This file is released under the MIT license. See README-MIT for more information
 #include "BattlegroundDefines.hpp"
 #include "Server/EventableObject.h"
 #include <deque>
+#include <vector>
+#include <map>
+#include <mutex>
 
 class WorldSession;
 class WorldPacket;
@@ -17,6 +20,7 @@ class Player;
 class Group;
 class Corpse;
 class Arena;
+class WoWGuid;
 
 typedef Battleground* (*BattlegroundFactoryMethod)(BattlegroundMap* mgr, uint32_t iid, uint32_t group, uint32_t type);
 typedef Battleground* (*ArenaFactoryMethod)(BattlegroundMap* mgr, uint32_t iid, uint32_t group, uint32_t type, uint32_t players_per_side);
@@ -39,7 +43,11 @@ public:
     void registerArenaFactory(uint32_t map, ArenaFactoryMethod method);
     void registerMapForBgType(uint32_t type, uint32_t map);
 
+#if VERSION_STRING <= WotLK
     void handleBattlegroundListPacket(WorldSession* session, uint32_t battlegroundType, uint8_t from = 0);
+#else
+    void handleBattlegroundListPacket(WoWGuid& wowGuid, WorldSession* session, uint32_t battlegroundType);
+#endif
     void handleArenaJoin(WorldSession* session, uint32_t battlegroundType, uint8_t asGroup, uint8_t ratedMatch);
     void handleGetBattlegroundQueueCommand(WorldSession* session);
     void handleBattlegroundJoin(WorldSession* session, WorldPacket& packet);
@@ -58,15 +66,15 @@ public:
 
     void deleteBattleground(Battleground* battleground);
 
-    uint32_t getArenaGroupQInfo(std::shared_ptr<Group> group, uint8_t type, uint32_t* averageRating);
+    uint32_t getArenaGroupQInfo(Group* group, uint8_t type, uint32_t* averageRating);
 
-    int createArenaType(uint8_t type, std::shared_ptr<Group> group1, std::shared_ptr<Group> group2);
+    int createArenaType(uint8_t type, Group* group1, Group* group2);
 
     void addPlayerToBgTeam(Battleground* battleground, std::deque<uint32_t>* playerVec, uint32_t type, uint32_t levelGroup, uint32_t team);
 
     void addPlayerToBg(Battleground* battleground, std::deque<uint32_t>* playerVec, uint32_t type, uint32_t levelGroup);
 
-    void addGroupToArena(Battleground* battleground, std::shared_ptr<Group> group, uint32_t team);
+    void addGroupToArena(Battleground* battleground, Group* group, uint32_t team);
 
     uint32_t getMinimumPlayers(uint32_t dbcIndex);
 

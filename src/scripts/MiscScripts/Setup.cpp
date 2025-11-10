@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (c) 2007-2015 Moon++ Team <http://www.moonplusplus.info>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -18,7 +18,6 @@
  */
 
 #include "Setup.h"
-#include "Common.hpp"
 
 #include "Server/ServerState.h"
 #include "Server/Script/ScriptMgr.hpp"
@@ -41,6 +40,7 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)
     SetupMiscCreatures(mgr);
     InitializeGameObjectTeleportTable(mgr);
     SetupCityDalaran(mgr);
+    SetupNeutralGuards(mgr);
 }
 
 #ifdef WIN32

@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  * Copyright (C) 2005-2007 Ascent Team
  *
@@ -31,18 +31,19 @@
 #include "Server/Script/HookInterface.hpp"
 #include "Server/Script/ScriptMgr.hpp"
 #include "Spell/SpellMgr.hpp"
+#include "Utilities/Narrow.hpp"
 
-void HonorHandler::AddHonorPointsToPlayer(Player* pPlayer, uint32 uAmount)
+void HonorHandler::AddHonorPointsToPlayer(Player* pPlayer, uint32_t uAmount)
 {
     pPlayer->addHonor(uAmount, true);
 }
 
-int32 HonorHandler::CalculateHonorPointsForKill(uint32 playerLevel, uint32 victimLevel)
+int32_t HonorHandler::CalculateHonorPointsForKill(uint32_t playerLevel, uint32_t victimLevel)
 {
-    uint32 kLevel = playerLevel;
-    uint32 vLevel = victimLevel;
+    uint32_t kLevel = playerLevel;
+    uint32_t vLevel = victimLevel;
 
-    uint32 kGrey;
+    uint32_t kGrey;
 
     if (kLevel > 5 && kLevel < 40)
     {
@@ -97,7 +98,7 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
 
             // hackfix for battlegrounds (since the groups there are disabled, we need to do this manually)
             std::vector<Player*> toadd;
-            uint32 t = pPlayer->getBgTeam();
+            uint32_t t = pPlayer->getBgTeam();
             toadd.reserve(15);        // shouldn't have more than this
             std::set<Player*> * s = &pPlayer->getBattleground()->m_players[t];
 
@@ -110,7 +111,7 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
 
             if (toadd.size() > 0)
             {
-                uint32 pts = points / (uint32)toadd.size();
+                uint32_t pts = points / (uint32_t)toadd.size();
                 for (std::vector<Player*>::iterator vtr = toadd.begin(); vtr != toadd.end(); ++vtr)
                 {
                     AddHonorPointsToPlayer(*vtr, pts);
@@ -119,7 +120,7 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
                     pPlayer->getBattleground()->HookOnHK(*vtr);
 
                     // Send PVP credit
-                    uint32 pvppoints = pts * 10;
+                    uint32_t pvppoints = pts * 10;
                     (*vtr)->sendPvpCredit(pvppoints, pVictim->getGuid(), pVictim->getPvpRank());
                 }
             }
@@ -145,8 +146,8 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
                 if (added && plr->getGroup())
                 {
                     const auto group = plr->getGroup();
-                    uint32 groups = group->GetSubGroupCount();
-                    for (uint32 i = 0; i < groups; i++)
+                    uint32_t groups = group->GetSubGroupCount();
+                    for (uint32_t i = 0; i < groups; i++)
                     {
                         SubGroup* sg = group->GetSubGroup(i);
                         if (!sg)
@@ -174,12 +175,12 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
                 if (pAffectedPlayer->getBattleground())
                     pAffectedPlayer->getBattleground()->HookOnHK(pAffectedPlayer);
 
-                int32 contributorpts = points / (int32)contributors.size();
+                int32_t contributorpts = points / (int32_t)contributors.size();
                 AddHonorPointsToPlayer(pAffectedPlayer, contributorpts);
 
                 sHookInterface.OnHonorableKill(pAffectedPlayer, pVictim);
 
-                uint32 pvppoints = contributorpts * 10; // Why *10?
+                uint32_t pvppoints = contributorpts * 10; // Why *10?
 
                 pAffectedPlayer->sendPvpCredit(pvppoints, pVictim->getGuid(), pVictim->getPvpRank());
 
@@ -189,12 +190,11 @@ void HonorHandler::OnPlayerKilled(Player* pPlayer, Player* pVictim)
                     const auto PvPTokenID = worldConfig.player.pvpTokenId;
                     if (PvPTokenID > 0)
                     {
-                        Item* PvPTokenItem = sObjectMgr.createItem(PvPTokenID, pAffectedPlayer);
+                        auto PvPTokenItem = sObjectMgr.createItem(PvPTokenID, pAffectedPlayer);
                         if (PvPTokenItem)
                         {
                             PvPTokenItem->addFlags(ITEM_FLAG_SOULBOUND);
-                            if (!pAffectedPlayer->getItemInterface()->AddItemToFreeSlot(PvPTokenItem))
-                                PvPTokenItem->deleteMe();
+                            pAffectedPlayer->getItemInterface()->AddItemToFreeSlot(std::move(PvPTokenItem));
                         }
                     }
                 }

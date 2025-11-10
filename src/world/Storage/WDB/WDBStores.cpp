@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -12,6 +12,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Logging/Logger.hpp"
 #include "Map/Area/AreaStorage.hpp"
 #include "Spell/Definitions/PowerType.hpp"
+#include "Utilities/Narrow.hpp"
+#include "Utilities/Random.hpp"
 #if VERSION_STRING >= Cata
     #include "Objects/Units/Players/PlayerDefines.hpp"
     #include "Spell/SpellAura.hpp"
@@ -618,7 +620,7 @@ bool loadDBCs()
             if (WDB::Structures::SpellEntry const* spell = sSpellStore.lookupEntry(i))
             {
                 if (WDB::Structures::SpellCategoriesEntry const* category = spell->GetSpellCategories())
-                    if (uint32 cat = category->Category)
+                    if (uint32_t cat = category->Category)
                         sSpellCategoryStore[cat].insert(i);
             }
         }

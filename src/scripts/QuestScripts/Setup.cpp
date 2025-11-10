@@ -1,11 +1,10 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
 #include "Setup.h"
 
-#include "Common.hpp"
 #include "Server/ServerState.h"
 #include "Server/Script/ScriptMgr.hpp"
 #include "Server/Script/ScriptSetup.hpp"
@@ -42,6 +41,7 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)
     SetupBlastedLands(mgr);
     SetupBloodmystIsle(mgr);
     SetupBurningSteppes(mgr);
+    SetupDurotar(mgr);
     SetupDesolace(mgr);
     SetupDragonblight(mgr);
     SetupDuskwood(mgr);

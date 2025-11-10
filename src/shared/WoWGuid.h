@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 
 #include "CommonTypes.hpp"
 #include "Debugging/Errors.h"
+
+#include <cstdint>
 
 #define BitCount1(x) ((x) & 1)
 #define BitCount2(x) ( BitCount1(x) + BitCount1((x)>>1) )
@@ -114,7 +116,7 @@ struct ObjectGuid
 
         uint32_t getCounter()
         {
-            return uint32(_data.u64 & UINT64_C(0x00000000FFFFFFFF));
+            return uint32_t(_data.u64 & UINT64_C(0x00000000FFFFFFFF));
         }
 
     private:

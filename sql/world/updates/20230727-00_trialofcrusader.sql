@@ -57,7 +57,7 @@ CREATE TABLE `script_spline_chain_meta` (
   `msUntilNext` int unsigned NOT NULL,
   `velocity` float unsigned DEFAULT '0',
   PRIMARY KEY (`entry`,`chainId`,`splineId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of script_spline_chain_meta
@@ -401,7 +401,7 @@ CREATE TABLE `script_spline_chain_waypoints` (
   `y` float NOT NULL,
   `z` float NOT NULL,
   PRIMARY KEY (`entry`,`chainId`,`splineId`,`wpId`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of script_spline_chain_waypoints
@@ -2091,4 +2091,4 @@ INSERT INTO `script_spline_chain_waypoints` VALUES ('39814', '2', '0', '14', '30
 INSERT INTO `script_spline_chain_waypoints` VALUES ('39814', '2', '0', '15', '3008.66', '500.079', '89.6627');
 INSERT INTO `script_spline_chain_waypoints` VALUES ('39814', '2', '0', '16', '3003.83', '501.25', '89.4507');
 
-INSERT INTO `world_db_version` (`id`, `LastUpdate`) VALUES ('136', '20230727-00_trialofcrusader');
+INSERT INTO `world_db_version` (`id`, `LastUpdate`) VALUES ('135', '20230727-00_trialofcrusader');

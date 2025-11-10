@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2005-2010 MaNGOS <http://getmangos.com/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,22 +23,18 @@ namespace MMAP
 {
     // ######################## MMapFactory ########################
     // our global singleton copy
-    MMapManager* g_MMapManager = nullptr;
+    std::unique_ptr<MMapManager> g_MMapManager = nullptr;
 
     MMapManager* MMapFactory::createOrGetMMapManager()
     {
         if (g_MMapManager == nullptr)
-            g_MMapManager = new MMapManager();
+            g_MMapManager = std::make_unique<MMapManager>();
 
-        return g_MMapManager;
+        return g_MMapManager.get();
     }
 
     void MMapFactory::clear()
     {
-        if (g_MMapManager)
-        {
-            delete g_MMapManager;
-            g_MMapManager = nullptr;
-        }
+        g_MMapManager = nullptr;
     }
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -117,9 +117,18 @@ int32_t MoveSplineInit::Launch()
 
         args.velocity = unit->getSpeedRate(SelectSpeedType(moveFlagsForSpeed), true);
 
-        if (unit->isCreature())
-            if (unit->getAIInterface()->alreadyCalledForHelp())
-                args.velocity *= 0.66f;
+        // TODO: move this in Unit::updateSpeed, very hacky to do in splines -Appled
+        if (unit->isCreature() && !unit->isSummon() && unit->m_playerControler == nullptr && !unit->isVehicle() && !unit->isInEvadeMode())
+        {
+            // Bosses that can be slowed will also slow down when hp drops low
+            if (!unit->hasSpellImmunity(SPELL_IMMUNITY_SLOW))
+            {
+                // Units that are below 30% hp will start gradually slow their speed
+                const auto speedReductionPct = std::min(0.0f, (1.66f * (unit->getHealthPct() - 30.0f)));
+                if (speedReductionPct < 0.0f)
+                    args.velocity *= (1.0f + (speedReductionPct / 100.0f));
+            }
+        }
     }
 
 #if VERSION_STRING > TBC
@@ -278,7 +287,7 @@ void MoveSplineInit::SetFacing(float angle)
     args.flags.EnableFacingAngle();
 }
 
-void MoveSplineInit::MovebyPath(PointsArray const& controls, int32 path_offset)
+void MoveSplineInit::MovebyPath(PointsArray const& controls, int32_t path_offset)
 {
     args.path_Idx_offset = path_offset;
     args.path.resize(controls.size());

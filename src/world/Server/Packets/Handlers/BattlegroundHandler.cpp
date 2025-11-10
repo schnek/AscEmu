@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
@@ -145,7 +145,13 @@ void WorldSession::handleBattlefieldListOpcode(WorldPacket& recvPacket)
 
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_BATTLEFIELD_LIST: {} (bgType), {} (fromType)", srlPacket.bgType, srlPacket.fromType);
 
+#if VERSION_STRING <= WotLK
     sBattlegroundManager.handleBattlegroundListPacket(this, srlPacket.bgType, srlPacket.fromType);
+ #else
+    WoWGuid guid;
+    guid.Init(uint64_t(0));
+    sBattlegroundManager.handleBattlegroundListPacket(guid, this, srlPacket.bgType);
+#endif
 }
 
 void WorldSession::handleBattleMasterHelloOpcode(WorldPacket& recvPacket)
@@ -268,6 +274,8 @@ void WorldSession::sendBattlegroundList(Creature* creature, uint32_t mapId)
     if (creature == nullptr)
         return;
 
+    WoWGuid guid;
+
     uint32_t battlegroundType = BattlegroundDef::TYPE_WARSONG_GULCH;
     if (mapId == 0)
     {
@@ -278,7 +286,10 @@ void WorldSession::sendBattlegroundList(Creature* creature, uint32_t mapId)
         else
         {
             if (const auto battleMaster = sMySQLStore.getBattleMaster(creature->GetCreatureProperties()->Id))
+            {
                 battlegroundType = battleMaster->battlegroundId;
+                guid.Init(creature->getGuid());
+            }
         }
     }
     else
@@ -286,12 +297,16 @@ void WorldSession::sendBattlegroundList(Creature* creature, uint32_t mapId)
         battlegroundType = mapId;
     }
 
+#if VERSION_STRING <= WotLK
     sBattlegroundManager.handleBattlegroundListPacket(this, battlegroundType);
+#else
+    sBattlegroundManager.handleBattlegroundListPacket(guid, this, battlegroundType);
+#endif
 }
 
-#if VERSION_STRING >= Cata
-void WorldSession::handleRequestRatedBgInfoOpcode(WorldPacket & recvPacket)
+void WorldSession::handleRequestRatedBgInfoOpcode(WorldPacket& recvPacket)
 {
+#if VERSION_STRING >= Cata
     CmsgRequestRatedBgInfo srlPacket;
     if (!srlPacket.deserialise(recvPacket))
         return;
@@ -299,17 +314,21 @@ void WorldSession::handleRequestRatedBgInfoOpcode(WorldPacket & recvPacket)
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REQUEST_RATED_BG_INFO received with unk_type = {}", srlPacket.type);
 
     SendPacket(SmsgRatedBgInfo(0).serialise().get());
+#endif
 }
 
 void WorldSession::handleRequestRatedBgStatsOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REQUEST_RATED_BG_STATS received");
 
     SendPacket(SmsgRatedBgStats(3).serialise().get());
+#endif
 }
 
 void WorldSession::handleRequestPvPRewardsOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REQUEST_RATED_BG_STATS received");
 
     WorldPacket packet(SMSG_REQUEST_PVP_REWARDS_RESPONSE, 24);
@@ -321,12 +340,15 @@ void WorldSession::handleRequestPvPRewardsOpcode(WorldPacket& /*recvPacket*/)
     packet << uint32_t(0);    // unknown currency week cap conquest points
 
     SendPacket(&packet);
+#endif
 }
 
 void WorldSession::handleRequestPvpOptionsOpcode(WorldPacket& /*recvPacket*/)
 {
+#if VERSION_STRING >= Cata
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_REQUEST_RATED_BG_STATS received");
 
     SendPacket(SmsgPvpOptionsEnabled(true, true, true).serialise().get());
-}
 #endif
+}
+

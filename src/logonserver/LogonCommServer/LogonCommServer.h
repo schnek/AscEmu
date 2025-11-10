@@ -1,6 +1,6 @@
 /*
  * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2024 AscEmu Team <http://www.ascemu.org>
+ * Copyright (c) 2014-2025 AscEmu Team <http://www.ascemu.org>
  * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
@@ -20,22 +20,22 @@
 #ifndef __LOGON_COMM_SERVER_H
 #define __LOGON_COMM_SERVER_H
 
-#include "Cryptography/RC4Engine.h"
-#include "CommonTypes.hpp"
+#include "Cryptography/RC4.hpp"
 #include "Network/Socket.h"
 #include "zlib.h"
 
 class LogonCommServerSocket : public Socket
 {
-    uint32 remaining;
-    uint16 opcode;
-    uint32 seed;
-    RC4Engine sendCrypto;
-    RC4Engine recvCrypto;
+    uint32_t remaining;
+    uint16_t opcode;
+    uint32_t seed;
+
+    AscEmu::RC4Engine _sendCrypto;
+    AscEmu::RC4Engine _rwCrypto;
 
     public:
 
-        uint32 authenticated;
+        uint32_t authenticated;
         bool use_crypto;
 
         LogonCommServerSocket(SOCKET fd);
@@ -65,7 +65,7 @@ class LogonCommServerSocket : public Socket
 
         std::atomic<unsigned long> last_ping;
         bool removed;
-        std::set<uint32> server_ids;
+        std::set<uint32_t> server_ids;
 };
 
 typedef void (LogonCommServerSocket::*logonpacket_handler)(WorldPacket&);
