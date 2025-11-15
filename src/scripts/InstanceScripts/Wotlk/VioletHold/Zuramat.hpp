@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Server/Script/AchievementScript.hpp"
 
-namespace Zuramat
+namespace AscEmu::Scripts::InstanceScripts::VioletHold::Zuramat
 {
     enum Spells
     {

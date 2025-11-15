@@ -8,6 +8,8 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Movement/MovementManager.h"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Lavanthor;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Lavanthor AI
 LavanthorAI::LavanthorAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -16,11 +18,11 @@ LavanthorAI::LavanthorAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Lavanthor::SPELL_CAUTERIZING_FLAMES, 33.0f, TARGET_VARIOUS, 0, 10, false, false, true);
+    addAISpell(SPELL_CAUTERIZING_FLAMES, 33.0f, TARGET_VARIOUS, 0, 10, false, false, true);
 
-    addAISpell(Lavanthor::SPELL_FIREBOLT, 45.0f, TARGET_SELF, 0, 5);
-    addAISpell(Lavanthor::SPELL_FLAME_BREATH, 45.0f, TARGET_RANDOM_SINGLE, 0, 15);
-    addAISpell(Lavanthor::SPELL_LAVA_BURN, 33.0f, TARGET_ATTACKING, 0, 10);
+    addAISpell(SPELL_FIREBOLT, 45.0f, TARGET_SELF, 0, 5);
+    addAISpell(SPELL_FLAME_BREATH, 45.0f, TARGET_RANDOM_SINGLE, 0, 15);
+    addAISpell(SPELL_LAVA_BURN, 33.0f, TARGET_ATTACKING, 0, 10);
 }
 
 CreatureAIScript* LavanthorAI::Create(Creature* pCreature) { return new LavanthorAI(pCreature); }

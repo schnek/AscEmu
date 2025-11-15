@@ -8,6 +8,8 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Movement/MovementManager.h"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Moragg;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Moragg AI
 MoraggAI::MoraggAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -16,10 +18,10 @@ MoraggAI::MoraggAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Moragg::SPELL_RAY_OF_PAIN, 66.0f, TARGET_SELF, 0, 15);
-    addAISpell(Moragg::SPELL_RAY_OF_SUFFERING, 66.0f, TARGET_SELF, 0, 15);
-    addAISpell(Moragg::SPELL_CORROSIVE_SALIVA, 66.0f, TARGET_ATTACKING, 0, 5);
-    if (CreatureAISpells* opticLink = addAISpell(Moragg::SPELL_OPTIC_LINK, 66.0f, TARGET_RANDOM_SINGLE, 0, 25))
+    addAISpell(SPELL_RAY_OF_PAIN, 66.0f, TARGET_SELF, 0, 15);
+    addAISpell(SPELL_RAY_OF_SUFFERING, 66.0f, TARGET_SELF, 0, 15);
+    addAISpell(SPELL_CORROSIVE_SALIVA, 66.0f, TARGET_ATTACKING, 0, 5);
+    if (CreatureAISpells* opticLink = addAISpell(SPELL_OPTIC_LINK, 66.0f, TARGET_RANDOM_SINGLE, 0, 25))
         opticLink->setMinMaxDistance(0.0f, 50.0f);
 }
 

@@ -169,6 +169,7 @@ bool LuaEngine::ExecuteCall(uint8_t params, uint8_t res)
     }
     return ret;
 }
+
 void LuaEngine::EndCall(uint8_t res)
 {
     for (int i = res; i > 0; i--)
@@ -240,6 +241,7 @@ Aura* LuaEngine::CheckAura(lua_State* L, int narg)
         return ArcLuna<Aura>::check(lu, narg);
     return ArcLuna<Aura>::check(L, narg);
 }
+
 bool LuaEngine::CheckBool(lua_State* L, int narg)
 {
     // first try with bool type
@@ -392,41 +394,49 @@ LuaObjectBinding* LuaEngine::getUnitBinding(uint32_t Id)
     auto itr = m_unitBinding.find(Id);
     return itr == m_unitBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getQuestBinding(uint32_t Id)
 {
     auto itr = m_questBinding.find(Id);
     return itr == m_questBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getGameObjectBinding(uint32_t Id)
 {
     auto itr = m_gameobjectBinding.find(Id);
     return itr == m_gameobjectBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getInstanceBinding(uint32_t Id)
 {
     auto itr = m_instanceBinding.find(Id);
     return itr == m_instanceBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getLuaUnitGossipBinding(uint32_t Id)
 {
     auto itr = m_unit_gossipBinding.find(Id);
     return itr == m_unit_gossipBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getLuaItemGossipBinding(uint32_t Id)
 {
     auto itr = m_item_gossipBinding.find(Id);
     return itr == m_item_gossipBinding.end() ? nullptr : &itr->second;
 }
+
 LuaObjectBinding* LuaEngine::getLuaGOGossipBinding(uint32_t Id)
 {
     auto itr = m_go_gossipBinding.find(Id);
     return itr == m_go_gossipBinding.end() ? nullptr : &itr->second;
 }
+
 LuaQuest* LuaEngine::getLuaQuest(uint32_t id)
 {
     const auto itr = m_qAIScripts.find(id);
     return itr == m_qAIScripts.end() ? nullptr : itr->second;
 }
+
 /*int LuaEngine::getPendingThread(lua_State * threadtosearch) {
     set<lua_State*>::iterator itr = m_pendingThreads.find(threadtosearch);
     return (itr == m_pendingThreads.end())? nullptr : (*itr);
@@ -436,11 +446,13 @@ LuaGossip* LuaEngine::getUnitGossipInterface(uint32_t id)
     const auto itr = m_unitgAIScripts.find(id);
     return itr == m_unitgAIScripts.end() ? nullptr : itr->second;
 }
+
 LuaGossip* LuaEngine::getItemGossipInterface(uint32_t id)
 {
     const auto itr = m_itemgAIScripts.find(id);
     return itr == m_itemgAIScripts.end() ? nullptr : itr->second;
 }
+
 LuaGossip* LuaEngine::getGameObjectGossipInterface(uint32_t id)
 {
     const auto itr = m_gogAIScripts.find(id);
@@ -2890,6 +2902,7 @@ void LuaEngine::Startup()
         }
     }
 }
+
 void LuaEngine::RegisterEvent(uint8_t regtype, uint32_t id, uint32_t evt, uint16_t functionRef)
 {
     switch (regtype)

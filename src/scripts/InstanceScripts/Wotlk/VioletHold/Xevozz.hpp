@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/CreatureAIScript.hpp"
 #include "Utilities/Random.hpp"
 
-namespace Xevozz
+namespace AscEmu::Scripts::InstanceScripts::VioletHold::Xevozz
 {
     static uint32_t const EtherealSphereCount = 3;
     static uint32_t const EtherealSphereSummonSpells[EtherealSphereCount] = { 54102, 54137, 54138 };

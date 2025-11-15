@@ -8,6 +8,8 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Movement/MovementManager.h"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Zuramat;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Zuramat AI
 ZuramatAI::ZuramatAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -16,16 +18,16 @@ ZuramatAI::ZuramatAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Zuramat::SPELL_SUMMON_VOID_SENTRY, 33.0f, 4, [this]() { return getCreature(); });
-    addAISpell(Zuramat::SPELL_VOID_SHIFT, 33.0f, 9, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 60.0f); });
-    addAISpell(Zuramat::SPELL_SHROUD_OF_DARKNESS, 33.0f, 18, [this]() { return getCreature(); });
+    addAISpell(SPELL_SUMMON_VOID_SENTRY, 33.0f, 4, [this]() { return getCreature(); });
+    addAISpell(SPELL_VOID_SHIFT, 33.0f, 9, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 60.0f); });
+    addAISpell(SPELL_SHROUD_OF_DARKNESS, 33.0f, 18, [this]() { return getCreature(); });
 
     // Emotes
-    addEmoteForEvent(Event_OnCombatStart, Zuramat::SAY_AGGRO);
-    addEmoteForEvent(Event_OnTargetDied, Zuramat::SAY_SLAY1);
-    addEmoteForEvent(Event_OnTargetDied, Zuramat::SAY_SLAY2);
-    addEmoteForEvent(Event_OnTargetDied, Zuramat::SAY_SLAY3);
-    addEmoteForEvent(Event_OnDied, Zuramat::SAY_DEATH);
+    addEmoteForEvent(Event_OnCombatStart, SAY_AGGRO);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY1);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY2);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY3);
+    addEmoteForEvent(Event_OnDied, SAY_DEATH);
 }
 
 CreatureAIScript* ZuramatAI::Create(Creature* pCreature) { return new ZuramatAI(pCreature); }
@@ -58,7 +60,7 @@ void ZuramatAI::OnSummonDies(Creature* summon, Unit* /*killer*/)
 void ZuramatAI::OnSummonDespawn(Creature* summon)
 {
     if (summon->getEntry() == NPC_VOID_SENTRY)
-        summon->GetScript()->DoAction(Zuramat::ACTION_DESPAWN_VOID_SENTRY_BALL);
+        summon->GetScript()->DoAction(ACTION_DESPAWN_VOID_SENTRY_BALL);
 }
 
 void ZuramatAI::justReachedSpawn()
@@ -70,7 +72,7 @@ void ZuramatAI::justReachedSpawn()
 
 uint32_t ZuramatAI::GetCreatureData(uint32_t type) const
 {
-    if (type == Zuramat::DATA_VOID_DANCE)
+    if (type == DATA_VOID_DANCE)
         return mVoidDance ? 1 : 0;
 
     return 0;
@@ -87,13 +89,13 @@ CreatureAIScript* VoidSentryAI::Create(Creature* pCreature) { return new VoidSen
 
 void VoidSentryAI::DoAction(int32_t actionId)
 {
-    if (actionId == Zuramat::ACTION_DESPAWN_VOID_SENTRY_BALL)
+    if (actionId == ACTION_DESPAWN_VOID_SENTRY_BALL)
         summons.despawnAll();
 }
 
 void VoidSentryAI::OnSummon(Unit* /*summoner*/)
 {
-    getCreature()->castSpell(getCreature(), Zuramat::SPELL_SUMMON_VOID_SENTRY_BALL, true);
+    getCreature()->castSpell(getCreature(), SPELL_SUMMON_VOID_SENTRY_BALL, true);
 }
 
 void VoidSentryAI::onSummonedCreature(Creature* summon)
@@ -104,7 +106,7 @@ void VoidSentryAI::onSummonedCreature(Creature* summon)
 
 void VoidSentryAI::OnDied(Unit* /*_killer*/)
 {
-    DoAction(Zuramat::ACTION_DESPAWN_VOID_SENTRY_BALL);
+    DoAction(ACTION_DESPAWN_VOID_SENTRY_BALL);
 }
 
 void VoidSentryAI::OnSummonDespawn(Creature* summon)
@@ -120,7 +122,7 @@ bool achievement_void_dance::canCompleteCriteria(uint32_t /*criteriaID*/, Player
         return false;
 
     if (Creature* Zuramat = target->ToCreature())
-        if (Zuramat->GetScript() && Zuramat->GetScript()->GetCreatureData(Zuramat::DATA_VOID_DANCE))
+        if (Zuramat->GetScript() && Zuramat->GetScript()->GetCreatureData(DATA_VOID_DANCE))
             return true;
 
     return false;
