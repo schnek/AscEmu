@@ -667,6 +667,93 @@ std::string MySQLDataStore::getItemLinkByProto(ItemProperties const* iProto, uin
     return ItemLink;
 }
 
+#if VERSION_STRING == Classic // support classic
+void MySQLDataStore::loadCreaturePropertiesTable()
+{
+    auto startTime = Util::TimeNow();
+    uint32_t creature_properties_count = 0;
+
+    auto creature_properties_result = getWorldDBQuery(
+        "SELECT entry, killcredit1, killcredit2, male_displayid, female_displayid, name, subname, icon_name, type_flags, type, family, `rank`, "
+        "base_attack_mod, range_attack_mod, minlevel, maxlevel, faction, minhealth, maxhealth, mana, scale, npcflags, attacktime, attack_school, "
+        "mindamage, maxdamage, respawntime, combat_reach, bounding_radius, auras, boss, money, isTriggerNpc, walk_speed, run_speed "
+        "FROM creature_properties "
+        "WHERE build <= %u ORDER BY entry ASC", VERSION_STRING);
+
+    if (creature_properties_result == nullptr)
+    {
+        sLogger.info("MySQLDataLoads : Table `creature_properties` is empty!");
+        return;
+    }
+
+    sLogger.info("MySQLDataLoads : Table creature_properties has {} columns", creature_properties_result->GetFieldCount());
+    _creaturePropertiesStore.rehash(creature_properties_result->GetRowCount());
+
+    do
+    {
+        Field* fields = creature_properties_result->Fetch();
+
+        uint32_t entry = fields[0].asUint32();
+
+        CreatureProperties& creatureProperties = _creaturePropertiesStore[entry];
+        creatureProperties.Id = entry;
+
+        creatureProperties.killcredit[0] = fields[1].asUint32();
+        creatureProperties.killcredit[1] = fields[2].asUint32();
+        creatureProperties.Male_DisplayID = fields[3].asUint32();
+        creatureProperties.Female_DisplayID = fields[4].asUint32();
+
+        creatureProperties.Name = fields[5].asCString();
+        std::string lower_case_name = creatureProperties.Name;
+        AscEmu::Util::Strings::toLowerCase(lower_case_name);
+        creatureProperties.lowercase_name = lower_case_name;
+
+        creatureProperties.SubName = fields[6].asCString();
+        creatureProperties.icon_name = fields[7].asCString();
+        creatureProperties.typeFlags = fields[8].asUint32();
+        creatureProperties.Type = fields[9].asUint32();
+        creatureProperties.Family = fields[10].asUint32();
+        creatureProperties.Rank = fields[11].asUint32();
+
+        creatureProperties.baseAttackMod = fields[12].asFloat();
+        creatureProperties.rangeAttackMod = fields[13].asFloat();
+
+        creatureProperties.MinLevel = fields[14].asUint32();
+        creatureProperties.MaxLevel = fields[15].asUint32();
+        creatureProperties.Faction = fields[16].asUint32();
+
+        creatureProperties.MinHealth = fields[17].asUint32();
+        creatureProperties.MaxHealth = fields[18].asUint32();
+        creatureProperties.Mana = fields[19].asUint32();
+        creatureProperties.Scale = fields[20].asFloat();
+        creatureProperties.NPCFLags = fields[21].asUint32();
+
+        creatureProperties.AttackTime = fields[22].asUint32();
+        creatureProperties.attackSchool = fields[23].asUint8();
+
+        creatureProperties.MinDamage = fields[24].asFloat();
+        creatureProperties.MaxDamage = fields[25].asFloat();
+        creatureProperties.RespawnTime = fields[26].asUint32();
+
+        creatureProperties.CombatReach = fields[27].asFloat();
+        creatureProperties.BoundingRadius = fields[28].asFloat();
+
+        creatureProperties.aura_string = fields[29].asCString();
+        creatureProperties.isBoss = fields[30].asBool();
+        creatureProperties.money = fields[31].asUint32();
+        creatureProperties.isTriggerNpc = fields[32].asBool();
+        creatureProperties.walk_speed = fields[33].asFloat();
+        creatureProperties.run_speed = fields[34].asFloat();
+
+        ++creature_properties_count;
+    } while (creature_properties_result->NextRow());
+
+    sLogger.info("MySQLDataLoads : Loaded {} creature proto data in {} ms!", creature_properties_count,
+                 static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+#endif // VERSION_STRING == Classic
+
+#if VERSION_STRING > Classic
 void MySQLDataStore::loadCreaturePropertiesTable()
 {
     auto startTime = Util::TimeNow();
@@ -974,6 +1061,7 @@ void MySQLDataStore::loadCreaturePropertiesTable()
 
     sLogger.info("MySQLDataLoads : Loaded {} creature proto data in {} ms!", creature_properties_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
+#endif
 
 void MySQLDataStore::loadCreaturePropertiesMovementTable()
 {
@@ -4457,6 +4545,82 @@ void MySQLDataStore::loadGossipMenuItemsTable()
     sLogger.info("MySQLDataLoads : Loaded {} rows from `gossip_menu_items` table in {} ms!", load_count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
 
+#if VERSION_STRING == Classic // support classic
+void MySQLDataStore::loadCreatureSpawns()
+{
+    auto startTime = Util::TimeNow();
+    uint32_t count = 0;
+
+    sLogger.info("Loading creature spawns (Classic mode)");
+
+    auto result = getWorldDBQuery(
+        "SELECT id, entry, map, position_x, position_y, position_z, orientation, movetype, displayid, faction, flags, bytes0, emote_state "
+    ", 'creature_spawns' as origin FROM creature_spawns"
+    );
+
+    if (!result)
+    {
+        sLogger.warning("creature_spawns: no rows or table missing!");
+        return;
+    }
+
+    do
+    {
+        Field* f = result->Fetch();
+
+        MySQLStructure::CreatureSpawn* sp = new MySQLStructure::CreatureSpawn();
+
+        sp->id          = f[0].asUint32();
+        sp->entry       = f[1].asUint32();
+        sp->mapId       = f[2].asUint32();
+        sp->x           = f[3].asFloat();
+        sp->y           = f[4].asFloat();
+        sp->z           = f[5].asFloat();
+        sp->o           = f[6].asFloat();
+        sp->movetype    = f[7].asUint8();
+        sp->displayid   = f[8].asUint32();
+        sp->factionid   = f[9].asUint32();
+        sp->flags       = f[10].asUint32();
+        sp->bytes0      = f[11].asUint32();
+        sp->emote_state = f[12].asUint32();
+        sp->stand_state = f[13].asUint8();
+        sp->death_state = f[14].asUint32();
+
+        sp->channel_spell = 0;
+        sp->channel_target_go = 0;
+        sp->channel_target_creature = 0;
+        sp->MountedDisplayID = 0;
+        sp->sheath_state = 0;
+        sp->Item1SlotEntry = 0;
+        sp->Item2SlotEntry = 0;
+        sp->Item3SlotEntry = 0;
+        sp->CanFly = 0;
+        sp->phase = 1;
+        sp->wander_distance = 0;
+        sp->waypoint_id = 0;
+        sp->origine = "creature_spawns";
+
+        // store (mapId -> map(spawnId -> spawn*))
+        if (sp->mapId <= MAX_NUM_MAPS)
+            _creatureSpawnsStore[sp->mapId][sp->id] = sp; // replace if exists
+        else
+        {
+            sLogger.warning("creature_spawns: spawn {} has invalid map {}", sp->id, sp->mapId);
+            delete sp;
+            continue;
+        }
+
+        ++count;
+
+    } while (result->NextRow());
+
+    sLogger.info("Loaded {} Classic creature spawns in {} ms",
+                 count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
+}
+
+#endif // VERSION_STRING == Classic
+
+#if VERSION_STRING > Classic
 void MySQLDataStore::loadCreatureSpawns()
 {
     auto startTime = Util::TimeNow();
@@ -4555,6 +4719,7 @@ void MySQLDataStore::loadCreatureSpawns()
 
     sLogger.info("MySQLDataLoads : Loaded {} rows from `creature_spawns` table in {} ms!", count, static_cast<uint32_t>(Util::GetTimeDifferenceToNow(startTime)));
 }
+#endif
 
 void MySQLDataStore::loadGameobjectSpawns()
 {

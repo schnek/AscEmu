@@ -2402,6 +2402,7 @@ bool QuestMgr::CanStoreReward(Player* plyr, QuestProperties const* qst, uint32_t
 
 void QuestMgr::LoadExtraQuestStuff()
 {
+#if VERSION_STRING > Classic // support classic
     MySQLDataStore::QuestPropertiesContainer const* its = sMySQLStore.getQuestPropertiesStore();
     for (MySQLDataStore::QuestPropertiesContainer::const_iterator itr = its->begin(); itr != its->end(); ++itr)
     {
@@ -2670,6 +2671,7 @@ void QuestMgr::LoadExtraQuestStuff()
             sLogger.info("QuestMgr : {} quest Point Of Interest points loaded.", count);
         }
     }
+#endif
 }
 
 void QuestMgr::AddItemQuestAssociation(uint32_t itemId, QuestProperties const* qst, uint8_t item_count)

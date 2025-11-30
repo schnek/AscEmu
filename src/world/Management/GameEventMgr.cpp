@@ -53,6 +53,7 @@ void GameEventMgr::StartArenaEvents()
 
 void GameEventMgr::LoadFromDB()
 {
+#if VERSION_STRING > Classic // support classic
     // Clean event_saves from CharacterDB
     sLogger.info("GameEventMgr : Start cleaning gameevent_save");
     {
@@ -284,6 +285,7 @@ void GameEventMgr::LoadFromDB()
     }
 
     StartArenaEvents();
+#endif
 }
 
 GameEventMgr::GameEventMgrThread& GameEventMgr::GameEventMgrThread::getInstance()

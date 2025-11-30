@@ -314,6 +314,7 @@ void ObjectMgr::resetArenaTeamRatings() const
 // Charter
 void ObjectMgr::loadCharters()
 {
+#if VERSION_STRING > Classic // support classic
     m_hiCharterId = 0;
 
     if (auto result = CharacterDatabase.Query("SELECT * FROM charters"))
@@ -333,6 +334,7 @@ void ObjectMgr::loadCharters()
         } while (result->NextRow());
     }
     sLogger.info("ObjectMgr : {} charters loaded.", static_cast<uint32_t>(m_charters[0].size()));
+#endif
 }
 
 void ObjectMgr::removeCharter(Charter const* _charter)
@@ -608,6 +610,7 @@ void ObjectMgr::delinkCorpseForPlayer(const Player* _player) const
 // Vendors
 void ObjectMgr::loadVendors()
 {
+#if VERSION_STRING > TBC
     m_vendors.clear();
 
     auto result = sMySQLStore.getWorldDBQuery("SELECT * FROM vendors");
@@ -646,6 +649,7 @@ void ObjectMgr::loadVendors()
         } while (result->NextRow());
     }
     sLogger.info("ObjectMgr : {} vendors loaded.", static_cast<uint32_t>(m_vendors.size()));
+#endif
 }
 
 std::vector<CreatureItem>* ObjectMgr::getVendorList(uint32_t _entry) const
@@ -889,6 +893,7 @@ void ObjectMgr::loadReputationModifierTable(const char* _tableName, ReputationMo
 
 void ObjectMgr::loadInstanceReputationModifiers()
 {
+#if VERSION_STRING > Classic // support classic
     auto result = WorldDatabase.Query("SELECT * FROM reputation_instance_onkill");
     if (!result)
         return;
@@ -915,6 +920,7 @@ void ObjectMgr::loadInstanceReputationModifiers()
     } while (result->NextRow());
 
     sLogger.info("ObjectMgr : {} instance reputation modifiers loaded.", static_cast<uint32_t>(m_reputationInstance.size()));
+#endif
 }
 
 ReputationModifier const* ObjectMgr::getReputationModifier(uint32_t _entry, uint32_t _factionId) const
@@ -978,6 +984,7 @@ bool ObjectMgr::handleInstanceReputationModifiers(Player* _player, Unit* _unitVi
 // Group
 void ObjectMgr::loadGroups()
 {
+#if VERSION_STRING > Classic // support classic
     auto result = CharacterDatabase.Query("SELECT * FROM `groups`");
     if (result)
     {
@@ -995,10 +1002,12 @@ void ObjectMgr::loadGroups()
     }
 
     sLogger.info("ObjectMgr : {} groups loaded.", static_cast<uint32_t>(this->m_groups.size()));
+#endif
 }
 
 void ObjectMgr::loadGroupInstances()
 {
+#if VERSION_STRING > Classic // support classic
     CharacterDatabase.Execute("DELETE FROM group_instance WHERE guid NOT IN (SELECT guid FROM `groups`)");
 
     auto result = CharacterDatabase.Query("SELECT gi.guid, i.map, gi.instance, gi.permanent, i.difficulty, i.resettime, (SELECT COUNT(1) FROM character_instance ci LEFT JOIN `groups` g ON ci.guid = g.group1member1 WHERE ci.instance = gi.instance AND ci.permanent = 1 LIMIT 1) FROM group_instance gi LEFT JOIN instance i ON gi.instance = i.id ORDER BY guid");
@@ -1034,6 +1043,7 @@ void ObjectMgr::loadGroupInstances()
     } while (result->NextRow());
 
     sLogger.info("Loaded {} group-instance saves", count);
+#endif
 }
 
 uint32_t ObjectMgr::generateGroupId()
@@ -1287,6 +1297,7 @@ VehicleSeatAddon const* ObjectMgr::getVehicleSeatAddon(uint32_t _seatId) const
 // EventScripts
 void ObjectMgr::loadEventScripts()
 {
+#if VERSION_STRING > Classic // support classic
     sLogger.info("ObjectMgr : Loading Event Scripts...");
 
     bool success = false;
@@ -1338,6 +1349,7 @@ void ObjectMgr::loadEventScripts()
     } while (result->NextRow());
 
     sLogger.info("ObjectMgr : Loaded event_scripts for {} events...", count);
+#endif
 }
 
 EventScriptBounds ObjectMgr::getEventScripts(uint32_t _eventId) const
@@ -1604,6 +1616,7 @@ void ObjectMgr::generateDatabaseGossipOptionAndSubMenu(Object* _object, Player* 
 
 void ObjectMgr::loadTrainerSpellSets()
 {
+#if VERSION_STRING > Classic // support classic
     auto spellSetResult = sMySQLStore.getWorldDBQuery("SELECT * FROM trainer_properties_spellset WHERE min_build <= %u AND max_build >= %u;", VERSION_STRING, VERSION_STRING);
     if (spellSetResult != nullptr)
     {
@@ -1695,6 +1708,7 @@ void ObjectMgr::loadTrainerSpellSets()
 
         sLogger.info("LoadTrainers : {} TrainerSpellSet loaded", static_cast<uint32_t>(m_trainerSpellSet.size()));
     }
+#endif
 }
 
 std::vector<TrainerSpell> const* ObjectMgr::getTrainerSpellSetById(uint32_t _id) const
@@ -1705,6 +1719,7 @@ std::vector<TrainerSpell> const* ObjectMgr::getTrainerSpellSetById(uint32_t _id)
 
 void ObjectMgr::loadTrainers()
 {
+#if VERSION_STRING > Classic // support classic
 #if VERSION_STRING <= Cata
     std::string normalTalkMessage = "DMSG";
 
@@ -1755,6 +1770,7 @@ void ObjectMgr::loadTrainers()
 
         sLogger.info("ObjectMgr : {} trainers loaded.", static_cast<uint32_t>(m_trainers.size()));
     }
+#endif
 #endif
 }
 

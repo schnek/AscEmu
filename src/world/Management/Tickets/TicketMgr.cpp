@@ -86,6 +86,7 @@ GM_Ticket* TicketMgr::createGMTicket(Field const* fields)
 
 void TicketMgr::loadGMTickets()
 {
+#if VERSION_STRING > Classic // support classic
     auto result = CharacterDatabase.Query("SELECT ticketid, playerGuid, name, level, map, posX, posY, posZ, message, timestamp, deleted, assignedto, comment FROM gm_tickets");
     if (result == nullptr)
     {
@@ -100,6 +101,7 @@ void TicketMgr::loadGMTickets()
     } while (result->NextRow());
 
     sLogger.info("ObjectMgr : {} active GM Tickets loaded.", result->GetRowCount());
+#endif
 }
 
 void TicketMgr::saveGMTicket(GM_Ticket* ticket, QueryBuffer* buf)

@@ -96,6 +96,7 @@ void WeatherMgr::finalize()
 
 void WeatherMgr::loadFromDB()
 {
+#if VERSION_STRING > Classic // support classic
     sLogger.info("Loading Weather...");
     auto result = WorldDatabase.Query("SELECT zoneId,high_chance,high_type,med_chance,med_type,low_chance,low_type FROM weather");
     if (!result)
@@ -118,6 +119,7 @@ void WeatherMgr::loadFromDB()
     }
     while (result->NextRow());
     sLogger.info("WeatherMgr : Loaded weather information for {} zones.", result->GetRowCount());
+#endif
 }
 
 void WeatherMgr::sendWeather(Player* plr)

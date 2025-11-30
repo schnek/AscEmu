@@ -161,13 +161,18 @@ std::unique_ptr<WorldMap> MapMgr::createWorldMap(uint32_t mapId, uint32_t unload
 
     auto map = std::make_unique<WorldMap>(baseMap, mapId, unloadTime, 0, InstanceDifficulty::Difficulties::DUNGEON_NORMAL);
 
-    // Load Saved Respawns when existing
+    // Load saved respawn times (from DB)
     map->loadRespawnTimes();
 
-    // Initialize Map Script and Load Static Spawns
+    // This loads:
+    // - static creature spawns
+    // - static gameobject spawns
+    // - map scripts
+    // - grids
+    // - events
     map->initialize();
 
-    // Scheduling the new map for running
+    // Start worker thread (after static objects are in world)
     map->startMapThread();
 
     return map;
