@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Instance_TheVioletHold.hpp"
 
-namespace Cyanigosa
+namespace AscEmu::Scripts::InstanceScripts::VioletHold::Cyanigosa
 {
     enum Spells
     {

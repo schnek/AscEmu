@@ -7,6 +7,8 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Server/Script/InstanceScript.hpp"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Cyanigosa;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Moragg AI
 CyangosaAI::CyangosaAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -15,18 +17,18 @@ CyangosaAI::CyangosaAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Cyanigosa::SPELL_ARCANE_VACUUM, 75.0f, TARGET_SOURCE, 0, 10);
-    addAISpell(Cyanigosa::SPELL_BLIZZARD, 75.0f, 15, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 45.0f); });
-    addAISpell(Cyanigosa::SPELL_TAIL_SWEEP, 75.0f, 20, [this]() { return getBestUnitTarget(TargetFilter_Current); });
-    addAISpell(Cyanigosa::SPELL_UNCONTROLLABLE_ENERGY, 75.0f, 25, [this]() { return getBestUnitTarget(TargetFilter_Current); });
-    addAISpell(Cyanigosa::SPELL_MANA_DESTRUCTION, 75.0f, 25, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 50.0f); }, false, true);
+    addAISpell(SPELL_ARCANE_VACUUM, 75.0f, TARGET_SOURCE, 0, 10);
+    addAISpell(SPELL_BLIZZARD, 75.0f, 15, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 45.0f); });
+    addAISpell(SPELL_TAIL_SWEEP, 75.0f, 20, [this]() { return getBestUnitTarget(TargetFilter_Current); });
+    addAISpell(SPELL_UNCONTROLLABLE_ENERGY, 75.0f, 25, [this]() { return getBestUnitTarget(TargetFilter_Current); });
+    addAISpell(SPELL_MANA_DESTRUCTION, 75.0f, 25, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 50.0f); }, false, true);
 
     // Emotes
-    addEmoteForEvent(Event_OnCombatStart, Cyanigosa::SAY_AGGRO);
-    addEmoteForEvent(Event_OnTargetDied, Cyanigosa::SAY_SLAY1);
-    addEmoteForEvent(Event_OnTargetDied, Cyanigosa::SAY_SLAY2);
-    addEmoteForEvent(Event_OnTargetDied, Cyanigosa::SAY_SLAY3);
-    addEmoteForEvent(Event_OnDied, Cyanigosa::SAY_DEATH);
+    addEmoteForEvent(Event_OnCombatStart, SAY_AGGRO);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY1);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY2);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY3);
+    addEmoteForEvent(Event_OnDied,SAY_DEATH);
 }
 
 CreatureAIScript* CyangosaAI::Create(Creature* pCreature) { return new CyangosaAI(pCreature); }
