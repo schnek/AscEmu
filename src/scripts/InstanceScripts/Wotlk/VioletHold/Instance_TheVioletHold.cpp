@@ -24,6 +24,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "CommonTime.hpp"
 #include "Utilities/Random.hpp"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Ichron;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // TheVioletHold Instance
@@ -1280,6 +1281,6 @@ void SetupTheVioletHold(ScriptMgr* mgr)
     mgr->register_spell_script(SPELL_DESTROY_DOOR_SEAL, new DestroyDoorSeal);
     uint32_t entrys4[] = { SPELL_ARCANE_LIGHTNING_DAMAGE, SPELL_ARCANE_LIGHTNING_INSTAKILL, SPELL_ARCANE_LIGHTNING_DUMMY, 0 };
     mgr->register_spell_script(entrys4, new ArcaneLightning);
-    mgr->register_spell_script(Ichron::SPELL_MERGE, new IchronMerge);
-    mgr->register_spell_script(Ichron::SPELL_PROTECTIVE_BUBBLE, new IchronBubble);
+    mgr->register_spell_script(SPELL_MERGE, new IchronMerge);
+    mgr->register_spell_script(SPELL_PROTECTIVE_BUBBLE, new IchronBubble);
 }

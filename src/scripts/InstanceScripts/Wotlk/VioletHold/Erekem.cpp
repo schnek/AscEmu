@@ -10,6 +10,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Script/CreatureAIScript.hpp"
 #include "Server/Script/InstanceScript.hpp"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Erekem;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Erekem AI
 ErekemAI::ErekemAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -18,33 +20,33 @@ ErekemAI::ErekemAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Erekem::SPELL_EARTH_SHIELD, 100.0f, TARGET_SELF);
-    addAISpell(Erekem::SPELL_BLOODLUST, 100.0f, TARGET_SELF);
-    addAISpell(Erekem::SPELL_LIGHTNING_BOLT, 44.0f, TARGET_RANDOM_SINGLE, 0, 2);
-    addAISpell(Erekem::SPELL_EARTH_SHOCK, 44.0f, TARGET_RANDOM_SINGLE, 0, 8);
+    addAISpell(SPELL_EARTH_SHIELD, 100.0f, TARGET_SELF);
+    addAISpell(SPELL_BLOODLUST, 100.0f, TARGET_SELF);
+    addAISpell(SPELL_LIGHTNING_BOLT, 44.0f, TARGET_RANDOM_SINGLE, 0, 2);
+    addAISpell(SPELL_EARTH_SHOCK, 44.0f, TARGET_RANDOM_SINGLE, 0, 8);
 
     // Only Casted When hes Guards are Dead so make Chance 0 and Handle in Update
-    if (windfury = addAISpell(Erekem::SPELL_WINDFURY, 0.0f, TARGET_ATTACKING))
+    if (windfury = addAISpell(SPELL_WINDFURY, 0.0f, TARGET_ATTACKING))
     {
         windfury->mIsTriggered = true;
         windfury->setAvailableForScriptPhase({ 1 });
     }
 
-    breakBonds = addAISpell(Erekem::SPELL_BREAK_BONDS, 0.0f, TARGET_SELF);
+    breakBonds = addAISpell(SPELL_BREAK_BONDS, 0.0f, TARGET_SELF);
 
     // Only Cast This on The Lowest Health In Range Friendly Target
-    addAISpell(Erekem::SPELL_CHAIN_HEAL, 33.0f, 3, [this]() { return getBestUnitTarget(TargetFilter_WoundedFriendlyLowestHealthInRange, 0.0f, 40.0f); });
-    addAISpell(Erekem::SPELL_EARTH_SHIELD, 100.0f, 20, [this]() { return getBestUnitTarget(TargetFilter_WoundedFriendlyLowestHealthInRange, 0.0f, 30.0f); });
+    addAISpell(SPELL_CHAIN_HEAL, 33.0f, 3, [this]() { return getBestUnitTarget(TargetFilter_WoundedFriendlyLowestHealthInRange, 0.0f, 40.0f); });
+    addAISpell(SPELL_EARTH_SHIELD, 100.0f, 20, [this]() { return getBestUnitTarget(TargetFilter_WoundedFriendlyLowestHealthInRange, 0.0f, 30.0f); });
 
-    if (CreatureAISpells* stormstrike = addAISpell(Erekem::SPELL_STORMSTRIKE, 100.0f, TARGET_ATTACKING))
+    if (CreatureAISpells* stormstrike = addAISpell(SPELL_STORMSTRIKE, 100.0f, TARGET_ATTACKING))
         stormstrike->setAvailableForScriptPhase({ 2 });
 
     // Emotes
-    addEmoteForEvent(Event_OnCombatStart, Erekem::SAY_AGGRO);
-    addEmoteForEvent(Event_OnTargetDied, Erekem::SAY_SLAY1);
-    addEmoteForEvent(Event_OnTargetDied, Erekem::SAY_SLAY2);
-    addEmoteForEvent(Event_OnTargetDied, Erekem::SAY_SLAY3);
-    addEmoteForEvent(Event_OnDied, Erekem::SAY_DEATH);
+    addEmoteForEvent(Event_OnCombatStart, SAY_AGGRO);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY1);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY2);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY3);
+    addEmoteForEvent(Event_OnDied, SAY_DEATH);
 }
 
 CreatureAIScript* ErekemAI::Create(Creature* pCreature) { return new ErekemAI(pCreature); }
@@ -142,9 +144,9 @@ void ErekemAI::justReachedSpawn()
 ErekemGuardAI::ErekemGuardAI(Creature* pCreature) : CreatureAIScript(pCreature)
 {
     // Spells
-    addAISpell(Erekem::SPELL_GUSHING_WOUND, 33.0f, TARGET_ATTACKING, 0, 7);
-    addAISpell(Erekem::SPELL_HOWLING_SCREECH, 33.0f, TARGET_SELF, 0, 8);
-    addAISpell(Erekem::SPELL_STRIKE, 33.0f, TARGET_ATTACKING, 0, 4);
+    addAISpell(SPELL_GUSHING_WOUND, 33.0f, TARGET_ATTACKING, 0, 7);
+    addAISpell(SPELL_HOWLING_SCREECH, 33.0f, TARGET_SELF, 0, 8);
+    addAISpell(SPELL_STRIKE, 33.0f, TARGET_ATTACKING, 0, 4);
 }
 
 CreatureAIScript* ErekemGuardAI::Create(Creature* pCreature) { return new ErekemGuardAI(pCreature); }

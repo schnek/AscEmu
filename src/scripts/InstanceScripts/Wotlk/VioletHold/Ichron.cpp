@@ -13,6 +13,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellAura.hpp"
 #include "CommonTime.hpp"
 
+using namespace AscEmu::Scripts::InstanceScripts::VioletHold::Ichron;
+
 //////////////////////////////////////////////////////////////////////////////////////////
 //  Ichron AI
 IchronAI::IchronAI(Creature* pCreature) : CreatureAIScript(pCreature)
@@ -21,15 +23,15 @@ IchronAI::IchronAI(Creature* pCreature) : CreatureAIScript(pCreature)
     mInstance = getInstanceScript();
 
     // Spells
-    addAISpell(Ichron::SPELL_WATER_BOLT_VOLLEY, 33.0f, 10, [this]() { return getCreature(); });
-    addAISpell(Ichron::SPELL_WATER_BLAST, 33.0f, 8, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 50.0f); });
+    addAISpell(SPELL_WATER_BOLT_VOLLEY, 33.0f, 10, [this]() { return getCreature(); });
+    addAISpell(SPELL_WATER_BLAST, 33.0f, 8, [this]() { return getBestUnitTarget(TargetFilter_InRangeOnly, 0.0f, 50.0f); });
 
     // Emotes
-    addEmoteForEvent(Event_OnCombatStart, Ichron::SAY_AGGRO);
-    addEmoteForEvent(Event_OnTargetDied, Ichron::SAY_SLAY1);
-    addEmoteForEvent(Event_OnTargetDied, Ichron::SAY_SLAY2);
-    addEmoteForEvent(Event_OnTargetDied, Ichron::SAY_SLAY3);
-    addEmoteForEvent(Event_OnDied, Ichron::SAY_DEATH);
+    addEmoteForEvent(Event_OnCombatStart, SAY_AGGRO);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY1);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY2);
+    addEmoteForEvent(Event_OnTargetDied, SAY_SLAY3);
+    addEmoteForEvent(Event_OnDied, SAY_DEATH);
 }
 
 CreatureAIScript* IchronAI::Create(Creature* pCreature) { return new IchronAI(pCreature); }
@@ -57,8 +59,8 @@ void IchronAI::initialize()
     mIsFrenzy = false;
     mDehydration = true;
 
-    getCreature()->castSpell(getCreature(), Ichron::SPELL_SHRINK);
-    getCreature()->castSpell(getCreature(), Ichron::SPELL_PROTECTIVE_BUBBLE);
+    getCreature()->castSpell(getCreature(), SPELL_SHRINK);
+    getCreature()->castSpell(getCreature(), SPELL_PROTECTIVE_BUBBLE);
 }
 
 void IchronAI::OnDied(Unit* /*_killer*/)
@@ -78,7 +80,7 @@ void IchronAI::DoAction(int32_t actionId)
 {
     switch (actionId)
     {
-        case Ichron::ACTION_WATER_GLOBULE_HIT:
+        case ACTION_WATER_GLOBULE_HIT:
         {
             if (!getCreature()->isAlive())
                 break;
@@ -86,13 +88,13 @@ void IchronAI::DoAction(int32_t actionId)
             getCreature()->modHealth(int32_t(getCreature()->getPctFromMaxHealth(3)));
             mDehydration = false;
         } break;
-        case Ichron::ACTION_PROTECTIVE_BUBBLE_SHATTERED:
+        case ACTION_PROTECTIVE_BUBBLE_SHATTERED:
         {
-            sendDBChatMessage(Ichron::SAY_SHATTER);
+            sendDBChatMessage(SAY_SHATTER);
 
-            getCreature()->castSpell(nullptr, Ichron::SPELL_SPLATTER, true);
-            getCreature()->castSpell(nullptr, Ichron::SPELL_BURST, true);
-            getCreature()->castSpell(getCreature(), Ichron::SPELL_DRAINED, true);
+            getCreature()->castSpell(nullptr, SPELL_SPLATTER, true);
+            getCreature()->castSpell(nullptr, SPELL_BURST, true);
+            getCreature()->castSpell(getCreature(), SPELL_DRAINED, true);
 
             uint32_t damage = getCreature()->getPctFromMaxHealth(30);
             getCreature()->modHealth(-std::min<int32_t>(damage, getCreature()->getHealth() - 1));
@@ -103,12 +105,12 @@ void IchronAI::DoAction(int32_t actionId)
             }
             break;
         }
-        case Ichron::ACTION_DRAINED:
+        case ACTION_DRAINED:
         {
             if (getCreature()->getHealthPct() > 30)
             {
-                sendDBChatMessage(Ichron::SAY_BUBBLE);
-                getCreature()->castSpell(getCreature(), Ichron::SPELL_PROTECTIVE_BUBBLE, true);
+                sendDBChatMessage(SAY_BUBBLE);
+                getCreature()->castSpell(getCreature(), SPELL_PROTECTIVE_BUBBLE, true);
             }
         } break;
         default:
@@ -118,7 +120,7 @@ void IchronAI::DoAction(int32_t actionId)
 
 uint32_t IchronAI::GetCreatureData(uint32_t type) const
 {
-    if (type == Ichron::DATA_DEHYDRATION)
+    if (type == DATA_DEHYDRATION)
         return mDehydration ? 1 : 0;
     return 0;
 }
@@ -128,21 +130,21 @@ void IchronAI::onSummonedCreature(Creature* summon)
     summons.summon(summon);
 
     if (summon->getEntry() == NPC_ICHOR_GLOBULE)
-        getCreature()->castSpell(summon, Ichron::SPELL_WATER_GLOBULE_VISUAL);
+        getCreature()->castSpell(summon, SPELL_WATER_GLOBULE_VISUAL);
 }
 
 void IchronAI::OnSummonDespawn(Creature* /*summon*/)
 {
     if (summons.empty())
-        getCreature()->removeAllAurasById(Ichron::SPELL_DRAINED);
+        getCreature()->removeAllAurasById(SPELL_DRAINED);
 }
 
 void IchronAI::AIUpdate(unsigned long /*time_passed*/)
 {
-    if (!mIsFrenzy && getCreature()->getHealthPct() < 25 && !getCreature()->hasAurasWithId(Ichron::SPELL_DRAINED))
+    if (!mIsFrenzy && getCreature()->getHealthPct() < 25 && !getCreature()->hasAurasWithId(SPELL_DRAINED))
     {
-        sendDBChatMessage(Ichron::SAY_ENRAGE);
-        getCreature()->castSpell(getCreature(), Ichron::SPELL_FRENZY, true);
+        sendDBChatMessage(SAY_ENRAGE);
+        getCreature()->castSpell(getCreature(), SPELL_FRENZY, true);
         mIsFrenzy = true;
     }
 }
@@ -165,9 +167,9 @@ void IchronGlobuleAI::OnHitBySpell(uint32_t spellId, Unit* caster)
     if (!unitCaster)
         return;
 
-    if (spellId == Ichron::SPELL_WATER_GLOBULE_VISUAL)
+    if (spellId == SPELL_WATER_GLOBULE_VISUAL)
     {
-        getCreature()->castSpell(getCreature(), Ichron::SPELL_WATER_GLOBULE_TRANSFORM);
+        getCreature()->castSpell(getCreature(), SPELL_WATER_GLOBULE_TRANSFORM);
         getCreature()->removeUnitFlags(UNIT_FLAG_NOT_SELECTABLE);
         getCreature()->getMovementManager()->moveFollow(unitCaster, 0.0f, 0.0f);
     }
@@ -181,7 +183,7 @@ void IchronGlobuleAI::OnReachWP(uint32_t type, uint32_t /*pointId*/)
     if (mInstance && mInstance->getCreatureFromData(DATA_ICHORON))
         return;
 
-    getCreature()->castSpell(getCreature(), Ichron::SPELL_MERGE);
+    getCreature()->castSpell(getCreature(), SPELL_MERGE);
     despawn(1, 0);
 }
 
@@ -195,7 +197,7 @@ void IchronGlobuleAI::DamageTaken(Unit* /*attacker*/, uint32_t* damage)
         // Dont Let us Take Dmg until we Casted our Splash
         *damage = 0;
         mSplashTriggered = true;
-        getCreature()->castSpell(nullptr, Ichron::SPELL_SPLASH);
+        getCreature()->castSpell(nullptr, SPELL_SPLASH);
     }
 }
 
@@ -208,11 +210,11 @@ SpellScriptCheckDummy IchronMerge::onDummyOrScriptedEffect(Spell* spell, uint8_t
 
     if (Creature* target =  spell->getUnitTarget()->ToCreature())
     {
-        if (Aura* aura = target->getAuraWithId(Ichron::SPELL_SHRINK))
+        if (Aura* aura = target->getAuraWithId(SPELL_SHRINK))
             aura->refreshOrModifyStack(false, -1);
 
         if (target->GetScript())
-            target->GetScript()->DoAction(Ichron::ACTION_WATER_GLOBULE_HIT);
+            target->GetScript()->DoAction(ACTION_WATER_GLOBULE_HIT);
     }
 
     return SpellScriptCheckDummy::DUMMY_OK;
@@ -231,7 +233,7 @@ SpellScriptCheckDummy IchronBubble::onAuraDummyEffect(Aura* aur, AuraEffectModif
                 return SpellScriptCheckDummy::DUMMY_OK;
 
             if (CreatureAIScript* targetAI = unit->ToCreature()->GetScript())
-                targetAI->DoAction(Ichron::ACTION_PROTECTIVE_BUBBLE_SHATTERED);
+                targetAI->DoAction(ACTION_PROTECTIVE_BUBBLE_SHATTERED);
         }
     }
 
@@ -246,7 +248,7 @@ bool achievement_Dehydration::canCompleteCriteria(uint32_t /*criteriaID*/, Playe
         return false;
 
     if (Creature* Ichoron = target->ToCreature())
-        if (Ichoron->GetScript() && Ichoron->GetScript()->GetCreatureData(Ichron::DATA_DEHYDRATION))
+        if (Ichoron->GetScript() && Ichoron->GetScript()->GetCreatureData(DATA_DEHYDRATION))
             return true;
 
     return false;
