@@ -2,9 +2,9 @@ name: AscEmu CI (Linux::gcc)
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, __1 ]
   pull_request:
-    branches: [ develop ]
+    branches: [ __1 ]
 
 jobs:
 

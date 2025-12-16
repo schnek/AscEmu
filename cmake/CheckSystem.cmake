@@ -32,6 +32,9 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# setup CCache
+include(${CMAKE_MODULE_PATH}/AECCache.cmake)
+
 # get git information
 include(${CMAKE_MODULE_PATH}/AEGitRevision.cmake)
 
