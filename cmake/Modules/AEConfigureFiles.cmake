@@ -4,23 +4,25 @@ include_guard(GLOBAL)
 # ASCEMU_NUMBER - for including scripts
 # ASC_VERSION_MAX_LEVEL - for setting the maximum level
 
-if ("${ASCEMU_VERSION}" STREQUAL "Classic")
-    set(ASCEMU_NUMBER 0)
-    set(ASC_VERSION_MAX_LEVEL "60")
-elseif ("${ASCEMU_VERSION}" STREQUAL "TBC")
-    set(ASCEMU_NUMBER 1)
-    set(ASC_VERSION_MAX_LEVEL "70")
-elseif ("${ASCEMU_VERSION}" STREQUAL "WotLK")
-    set(ASCEMU_NUMBER 2)
-    set(ASC_VERSION_MAX_LEVEL "80")
-elseif ("${ASCEMU_VERSION}" STREQUAL "Cata")
-    set(ASCEMU_NUMBER 3)
-    set(ASC_VERSION_MAX_LEVEL "85")
-elseif ("${ASCEMU_VERSION}" STREQUAL "Mop")
-    set(ASCEMU_NUMBER 4)
-    set(ASC_VERSION_MAX_LEVEL "90")
-endif ()
+set(_versions
+    Classic 0 60
+    TBC     1 70
+    WotLK   2 80
+    Cata    3 85
+    Mop     4 90
+)
 
-# generate Configs
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/configs/logon.conf.in ${CMAKE_SOURCE_DIR}/configs/logon.conf)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/configs/world.conf.in ${CMAKE_SOURCE_DIR}/configs/world.conf)
+list(FIND _versions "${ASCEMU_VERSION}" idx)
+
+if(idx EQUAL -1)
+    message(FATAL_ERROR "Unknown ASCEMU_VERSION")
+endif()
+
+math(EXPR idx_num "${idx} + 1")
+math(EXPR idx_lvl "${idx} + 2")
+
+list(GET _versions ${idx_num} ASCEMU_NUMBER)
+list(GET _versions ${idx_lvl} ASC_VERSION_MAX_LEVEL)
+
+configure_file(src/configs/logon.conf.in ${CMAKE_SOURCE_DIR}/configs/logon.conf)
+configure_file(src/configs/world.conf.in ${CMAKE_SOURCE_DIR}/configs/world.conf)

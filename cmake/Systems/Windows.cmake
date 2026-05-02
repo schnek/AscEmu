@@ -1,26 +1,20 @@
 # Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+include_guard(GLOBAL)
 
 message(STATUS "Applying settings for Windows system")
 
 # set default install prefix if it wasn't setted up
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "C:/AscEmu" CACHE PATH "Install path prefix" FORCE)
-endif ()
+endif()
 
 find_package(MySQL)
 find_package(OpenSSL)
 
 # needed for socket stuff and crash handler
-set(EXTRA_LIBS
-    ws2_32.lib
-    dbghelp.lib
-)
+set(EXTRA_LIBS ws2_32 dbghelp)
 
-if (MSVC)
-    include(${CMAKE_SOURCE_DIR}/cmake/Compilers/msvc.cmake)
-else ()
-    message(FATAL_ERROR "Compiler is not supported")
-endif ()
+include(${CMAKE_SOURCE_DIR}/cmake/Compilers/msvc.cmake)
 
 # check for db update files
 set(PATH_DB_FILES ${CMAKE_SOURCE_DIR}/sql/)

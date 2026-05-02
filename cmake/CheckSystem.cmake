@@ -8,29 +8,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # set runtime binary where all compiled (before install) binary will compiled in
-foreach(OUTPUTCONFIG IN ITEMS Debug Release RelWithDebInfo MinSizeRel)
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin)
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin)
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_BINARY_DIR}/bin/lib)
+foreach(cfg Debug Release RelWithDebInfo MinSizeRel)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${cfg} ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${cfg} ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${cfg} ${CMAKE_BINARY_DIR}/bin/lib)
 endforeach()
 
-# we have our own custom modules and dep modules that we use. This tells cmakes where to find them.
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules ${CMAKE_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 
-# set build type on unix if it wasn't defined by user
-if (UNIX)
-    if (NOT CMAKE_BUILD_TYPE)
-        message(STATUS "Build configuration was not detected, setting to \"Release\"")
-        set(CMAKE_BUILD_TYPE "Release")
-    else ()
-        message(STATUS "Detected ${CMAKE_BUILD_TYPE} configuration")
-    endif ()
-endif ()
-
-# set RPATH-handing (CMake parameters)
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if (UNIX AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 # get git information
 include(${CMAKE_MODULE_PATH}/AEGitRevision.cmake)
@@ -41,20 +29,7 @@ include(${CMAKE_MODULE_PATH}/AEGroupSources.cmake)
 # apply options settings
 include(${CMAKE_MODULE_PATH}/AEConfigureFiles.cmake)
 
+include(${CMAKE_SOURCE_DIR}/cmake/AscEmuOptions.cmake)
+
 # get architecture type and set architecture identifier
 include(${CMAKE_MODULE_PATH}/AEConfigureArch.cmake)
-
-# default definitions
-# -DPREFIX=\"${ASCEMU_SCRIPTLIB_PATH}\"
-add_compile_options(-DHAVE_CONFIG_H)
-
-mark_as_advanced(
-    ZLIB_LIBRARIES
-    ZLIB_INCLUDE_DIRS
-    OPENSSL_LIBRARIES
-    OPENSSL_INCLUDE_DIR
-    MYSQL_LIBRARY
-    MYSQL_INCLUDE_DIR
-    BZIP2_LIBRARIES
-    BZIP2_INCLUDE_DIRS
-)
