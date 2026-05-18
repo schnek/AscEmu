@@ -57,6 +57,7 @@ target_link_libraries(${LIBRARY_NAME}
     ${OPENSSL_LIBRARIES}
     ${EXTRA_LIBS}
     fmt::fmt
+    ascemu_options
 )
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)

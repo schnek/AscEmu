@@ -13,7 +13,9 @@ endif()
 message(STATUS "MSVC ${CMAKE_CXX_COMPILER_VERSION}")
 
 target_compile_options(ascemu_options INTERFACE
-    /MP /bigobj /EHa
+    /MP
+    /bigobj
+ #   /EHsc
 )
 
 if (NOT IS_64BIT)

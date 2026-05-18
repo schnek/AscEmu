@@ -15,15 +15,17 @@ target_compile_definitions(ascemu_options INTERFACE
 # warnings
 target_compile_options(ascemu_options INTERFACE
     $<$<CXX_COMPILER_ID:MSVC>:
-        /permissive- /Zc:preprocessor /EHsc
+       # /permissive- /Zc:preprocessor /EHsc
         $<$<BOOL:${BUILD_WITH_WARNINGS}>:/W3>
         $<$<NOT:$<BOOL:${BUILD_WITH_WARNINGS}>>:/W0>
         $<$<BOOL:${TREAT_WARNINGS_AS_ERRORS}>:/WX>
     >
 
     $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:
-        -pipe
-        $<$<BOOL:${BUILD_WITH_WARNINGS}>:-Wall -Wextra>
+        #-pipe
+        $<$<BOOL:${BUILD_WITH_WARNINGS}>:
+        #-Wall -Wextra
+        >
         $<$<NOT:$<BOOL:${BUILD_WITH_WARNINGS}>>:-w>
     >
 )
@@ -45,7 +47,9 @@ target_compile_options(ascemu_options INTERFACE
 )
 
 target_link_options(ascemu_options INTERFACE
-    $<$<CONFIG:Debug>:-Wl,--gdb-index>
+    $<$<CONFIG:Debug>:-W3,
+                     #--gdb-index
+                     >
 )
 
 # MSVC defines

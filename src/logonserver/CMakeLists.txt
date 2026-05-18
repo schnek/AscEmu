@@ -36,6 +36,7 @@ target_include_directories(${EXECUTABLE_NAME} PUBLIC
 
 # include library dependencies.
 target_link_libraries(${EXECUTABLE_NAME}
+    ascemu_options
     shared
     ${MYSQL_LIBRARIES}
     ${ZLIB_LIBRARIES}
