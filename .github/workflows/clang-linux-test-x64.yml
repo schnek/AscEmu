@@ -2,9 +2,9 @@ name: AscEmu CI (Linux::clang)
 
 on:
   push:
-    branches: [ master, develop ]
+    branches: [ master, qaz_07 ]
   pull_request:
-    branches: [ develop ]
+    branches: [ qaz_07 ]
 
 jobs:
 
