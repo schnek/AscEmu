@@ -9,11 +9,11 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <cstdint>
 
-namespace AscEmu::Network::AE::IocpCompletion
+namespace AscEmu::Network::IocpCompletion
 {
     inline void handleReadComplete(Socket* socket, uint32_t len)
     {
-        if (!AscEmu::Network::AE::isSocketUsable(socket))
+        if (!AscEmu::Network::isSocketUsable(socket))
             return;
 
         socket->m_readEvent.Unmark();
@@ -32,7 +32,7 @@ namespace AscEmu::Network::AE::IocpCompletion
 
     inline void handleWriteComplete(Socket* socket, uint32_t len)
     {
-        if (!AscEmu::Network::AE::isSocketUsable(socket))
+        if (!AscEmu::Network::isSocketUsable(socket))
             return;
 
         socket->m_writeEvent.Unmark();

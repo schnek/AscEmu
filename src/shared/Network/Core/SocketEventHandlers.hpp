@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Network/Core/SocketStateHelpers.hpp"
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     inline void handleSocketError(Socket& socket)
     {

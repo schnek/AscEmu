@@ -26,7 +26,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 class SocketMgr;
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class KqueueBackend final : public NetworkBackend
     {
@@ -164,7 +164,7 @@ namespace AscEmu::Network::AE
         {
             struct kevent events[THREAD_EVENT_SIZE];
 
-            AscEmu::Network::AE::runPollBackendLoop(
+            AscEmu::Network::runPollBackendLoop(
                 self,
                 events,
                 THREAD_EVENT_SIZE,
@@ -205,7 +205,7 @@ namespace AscEmu::Network::AE
                 },
                 [](Socket& socket, int, const struct kevent& event)
                 {
-                    AscEmu::Network::AE::handlePollSocketEvent(
+                    AscEmu::Network::handlePollSocketEvent(
                         socket,
                         [&]()
                         {

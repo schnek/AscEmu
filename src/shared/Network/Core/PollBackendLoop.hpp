@@ -13,7 +13,7 @@ This file is released under the MIT license. See README-MIT for more information
 class Socket;
 class ListenSocketBase;
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     template <typename EventT, typename WaitFn, typename FdExtractor, typename InvalidHandler, typename ListenerHandler, typename SocketHandler>
     inline void runPollBackendLoop(

@@ -64,11 +64,11 @@ private:
     SocketMgr() = default;
     ~SocketMgr() = default;
 
-    static std::unique_ptr<AscEmu::Network::AE::NetworkBackend> createBackend(SocketMgr& owner);
+    static std::unique_ptr<AscEmu::Network::NetworkBackend> createBackend(SocketMgr& owner);
 
 private:
     AscEmu::Threading::AEThreadPool* m_threadPool = nullptr;
-    std::unique_ptr<AscEmu::Network::AE::NetworkBackend> m_backend;
+    std::unique_ptr<AscEmu::Network::NetworkBackend> m_backend;
 };
 
 #define sSocketMgr SocketMgr::getInstance()

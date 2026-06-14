@@ -12,7 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <cstring>
 #include <string>
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class Resolver
     {

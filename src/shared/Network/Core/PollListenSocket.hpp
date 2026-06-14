@@ -22,14 +22,14 @@ public:
         if (m_socket < 0)
             return;
 
-        AscEmu::Network::AE::SocketPlatformOps::setReuseAddress(m_socket);
-        AscEmu::Network::AE::SocketPlatformOps::setBlocking(m_socket);
-        AscEmu::Network::AE::SocketPlatformOps::setTimeout(m_socket, 60);
+        AscEmu::Network::SocketPlatformOps::setReuseAddress(m_socket);
+        AscEmu::Network::SocketPlatformOps::setBlocking(m_socket);
+        AscEmu::Network::SocketPlatformOps::setTimeout(m_socket, 60);
 
-        if (!AscEmu::Network::AE::resolveListenAddress(listenAddress, static_cast<uint16_t>(port), m_address))
+        if (!AscEmu::Network::resolveListenAddress(listenAddress, static_cast<uint16_t>(port), m_address))
             return;
 
-        if (!AscEmu::Network::AE::bindAndListenSocket(m_socket, m_address, port))
+        if (!AscEmu::Network::bindAndListenSocket(m_socket, m_address, port))
             return;
 
         m_tempLength = static_cast<socklen_t>(sizeof(sockaddr_in));
@@ -48,7 +48,7 @@ public:
         m_opened = false;
 
         if (wasOpened)
-            AscEmu::Network::AE::SocketPlatformOps::closeSocket(m_socket);
+            AscEmu::Network::SocketPlatformOps::closeSocket(m_socket);
     }
 
     void OnAccept() override
@@ -88,7 +88,7 @@ public:
 
 private:
     SOCKET m_socket = INVALID_SOCKET;
-    AscEmu::Network::AE::SocketAddressIPv4 m_address{};
+    AscEmu::Network::SocketAddressIPv4 m_address{};
     sockaddr_in m_tempAddress{};
     bool m_opened = false;
     socklen_t m_tempLength = 0;

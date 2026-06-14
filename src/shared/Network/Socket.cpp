@@ -25,7 +25,7 @@ Socket::Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize)
 #endif
 
     if (m_fd == 0)
-        m_fd = AscEmu::Network::AE::SocketPlatformOps::createTcpSocket();
+        m_fd = AscEmu::Network::SocketPlatformOps::createTcpSocket();
 
     sLogger.debug("Created Socket {}", m_fd);
 }
@@ -35,13 +35,13 @@ Socket::~Socket()
 
 bool Socket::Connect(const char* Address, uint32_t Port)
 {
-    AscEmu::Network::AE::SocketAddressIPv4 resolvedAddress;
-    if (!AscEmu::Network::AE::Resolver::resolveRemoteIPv4(Address, static_cast<uint16_t>(Port), resolvedAddress))
+    AscEmu::Network::SocketAddressIPv4 resolvedAddress;
+    if (!AscEmu::Network::Resolver::resolveRemoteIPv4(Address, static_cast<uint16_t>(Port), resolvedAddress))
         return false;
 
     m_client = resolvedAddress.native();
 
-    AscEmu::Network::AE::SocketPlatformOps::setBlocking(m_fd);
+    AscEmu::Network::SocketPlatformOps::setBlocking(m_fd);
 
     if (connect(m_fd, reinterpret_cast<const sockaddr*>(&m_client), sizeof(m_client)) == -1)
         return false;
@@ -62,8 +62,8 @@ void Socket::Accept(sockaddr_in* address)
 
 void Socket::_OnConnect()
 {
-    AscEmu::Network::AE::SocketPlatformOps::setNonBlocking(m_fd);
-    AscEmu::Network::AE::SocketPlatformOps::disableBuffering(m_fd);
+    AscEmu::Network::SocketPlatformOps::setNonBlocking(m_fd);
+    AscEmu::Network::SocketPlatformOps::disableBuffering(m_fd);
 
     m_connected = true;
 
@@ -140,7 +140,7 @@ void Socket::Delete()
     if (IsConnected())
         Disconnect();
 
-    AscEmu::Network::AE::SocketPlatformOps::closeSocket(m_fd);
+    AscEmu::Network::SocketPlatformOps::closeSocket(m_fd);
 
     sSocketGarbageCollector.QueueSocket(this);
 }

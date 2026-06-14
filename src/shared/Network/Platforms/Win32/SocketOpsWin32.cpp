@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #ifdef CONFIG_USE_IOCP
 
-namespace AscEmu::Network::AE::SocketPlatformOps
+namespace AscEmu::Network::SocketPlatformOps
 {
     SOCKET createTcpSocket()
     {

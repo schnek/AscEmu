@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <mutex>
 #include <vector>
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class BackendWorkerSet
     {

@@ -12,7 +12,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <string>
 #include <vector>
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     template <typename LoopFn>
     inline void spawnDedicatedPollWorkers(

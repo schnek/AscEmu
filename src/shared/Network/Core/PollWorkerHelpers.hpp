@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 class Socket;
 class ListenSocketBase;
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     template <typename InvalidHandler, typename ListenerHandler, typename EventHandler>
     inline void dispatchPollEvent(int fd, std::size_t holderSize, Socket* const* sockets, ListenSocketBase* const* listeners,

@@ -26,7 +26,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 class SocketMgr;
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class EpollBackend final : public NetworkBackend
     {
@@ -171,7 +171,7 @@ namespace AscEmu::Network::AE
         {
             epoll_event events[THREAD_EVENT_SIZE];
 
-            AscEmu::Network::AE::runPollBackendLoop(
+            AscEmu::Network::runPollBackendLoop(
                 self,
                 events,
                 THREAD_EVENT_SIZE,
@@ -199,7 +199,7 @@ namespace AscEmu::Network::AE
                 },
                 [](Socket& socket, int, const epoll_event& event)
                 {
-                    AscEmu::Network::AE::handlePollSocketEvent(
+                    AscEmu::Network::handlePollSocketEvent(
                         socket,
                         [&]()
                         {

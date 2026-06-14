@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <cstdint>
 #include <cstring>
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class SocketAddressIPv4
     {

@@ -25,14 +25,14 @@ SocketMgr& SocketMgr::getInstance()
     return instance;
 }
 
-std::unique_ptr<AscEmu::Network::AE::NetworkBackend> SocketMgr::createBackend(SocketMgr& owner)
+std::unique_ptr<AscEmu::Network::NetworkBackend> SocketMgr::createBackend(SocketMgr& owner)
 {
 #ifdef CONFIG_USE_IOCP
-    return std::make_unique<AscEmu::Network::AE::IocpBackend>(owner);
+    return std::make_unique<AscEmu::Network::IocpBackend>(owner);
 #elif defined(CONFIG_USE_EPOLL)
-    return std::make_unique<AscEmu::Network::AE::EpollBackend>(owner);
+    return std::make_unique<AscEmu::Network::EpollBackend>(owner);
 #elif defined(CONFIG_USE_KQUEUE)
-    return std::make_unique<AscEmu::Network::AE::KqueueBackend>(owner);
+    return std::make_unique<AscEmu::Network::KqueueBackend>(owner);
 #else
 sLogger.failure("No supported AE network backend configured.");
     return nullptr;
@@ -126,7 +126,7 @@ HANDLE SocketMgr::GetCompletionPort() const
     if (m_backend == nullptr)
         return INVALID_HANDLE_VALUE;
 
-    const auto* backend = dynamic_cast<const AscEmu::Network::AE::IocpBackend*>(m_backend.get());
+    const auto* backend = dynamic_cast<const AscEmu::Network::IocpBackend*>(m_backend.get());
     return backend != nullptr ? backend->completionPort() : INVALID_HANDLE_VALUE;
 }
 #endif
@@ -137,7 +137,7 @@ int SocketMgr::GetEpollFd() const
     if (m_backend == nullptr)
         return -1;
 
-    const auto* backend = dynamic_cast<const AscEmu::Network::AE::EpollBackend*>(m_backend.get());
+    const auto* backend = dynamic_cast<const AscEmu::Network::EpollBackend*>(m_backend.get());
     return backend != nullptr ? backend->epollFd() : -1;
 }
 #endif
@@ -148,7 +148,7 @@ int SocketMgr::GetKq() const
     if (m_backend == nullptr)
         return -1;
 
-    const auto* backend = dynamic_cast<const AscEmu::Network::AE::KqueueBackend*>(m_backend.get());
+    const auto* backend = dynamic_cast<const AscEmu::Network::KqueueBackend*>(m_backend.get());
     return backend != nullptr ? backend->kqueueFd() : -1;
 }
 #endif

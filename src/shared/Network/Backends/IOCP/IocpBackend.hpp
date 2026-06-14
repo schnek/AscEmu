@@ -18,7 +18,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 class SocketMgr;
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class IocpBackend final : public NetworkBackend
     {
@@ -163,7 +163,7 @@ namespace AscEmu::Network::AE
                 }
 
                 if (overlapped->m_event < NUM_SOCKET_IO_EVENTS)
-                    AscEmu::Network::AE::IocpCompletion::handlers[overlapped->m_event](socket, bytesTransferred);
+                    AscEmu::Network::IocpCompletion::handlers[overlapped->m_event](socket, bytesTransferred);
             }
         }
 

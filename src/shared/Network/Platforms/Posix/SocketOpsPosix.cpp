@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #if defined(CONFIG_USE_EPOLL) || defined(CONFIG_USE_KQUEUE)
 
-namespace AscEmu::Network::AE::SocketPlatformOps
+namespace AscEmu::Network::SocketPlatformOps
 {
     SOCKET createTcpSocket()
     {

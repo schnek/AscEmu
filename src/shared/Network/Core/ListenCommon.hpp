@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Network/SocketDefines.hpp"
 #include "Logging/Logger.hpp"
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     inline bool resolveListenAddress(const char* listenAddress, uint16_t port, SocketAddressIPv4& outAddress)
     {

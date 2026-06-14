@@ -19,7 +19,7 @@ public:
     virtual int GetFd() = 0;
 };
 
-namespace AscEmu::Network::AE
+namespace AscEmu::Network
 {
     class NetworkBackend
     {
