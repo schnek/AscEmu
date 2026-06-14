@@ -50,10 +50,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2007 | Network/Socket.h                      -remove after verifying
 * 2007 | Network/SocketOps.h                   -remove after verifying
 * 2007 | Cryptography/BigNumber.h
-* 2005 | SysInfo.hpp
-* 2005 | SysInfo.cpp
-* 2005 | PerformanceCounter.hpp
-* 2005 | PerformanceCounter.cpp
 * 2005 | StackWalker.h
 * 2005 | StackWalker.cpp
 
@@ -193,6 +189,12 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | Database/Database.cpp
 * 2008 | Database/CreateInterface.cpp
 
+### Removed on 14 June 2026
+* 2005 | SysInfo.hpp
+* 2005 | SysInfo.cpp
+* 2005 | PerformanceCounter.hpp
+* 2005 | PerformanceCounter.cpp
+
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
 * 2015 | Exceptions/Exceptions.hpp
@@ -273,3 +275,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Database/MySQLDatabase.cpp
 * 2026 | Database/MySQLDatabase.hpp
 * 2026 | Database/RowView.hpp
+* 2026 | SysInfo.hpp
+* 2026 | SysInfo.cpp
+* 2026 | PerformanceCounter.hpp
+* 2026 | PerformanceCounter.cpp
