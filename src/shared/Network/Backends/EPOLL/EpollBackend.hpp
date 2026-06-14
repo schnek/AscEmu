@@ -64,13 +64,13 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            if (m_fds[socket->GetFd()] != nullptr)
+            if (m_fds[socket->getFd()] != nullptr)
             {
                 socket->deleteSocket();
                 return;
             }
 
-            m_fds[socket->GetFd()] = socket;
+            m_fds[socket->getFd()] = socket;
             ++m_socketCount;
 
             epoll_event ev{};
@@ -87,10 +87,10 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            if (m_fds[socket->GetFd()] != socket)
+            if (m_fds[socket->getFd()] != socket)
                 return;
 
-            m_fds[socket->GetFd()] = nullptr;
+            m_fds[socket->getFd()] = nullptr;
             --m_socketCount;
 
             epoll_event ev{};

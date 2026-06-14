@@ -20,7 +20,7 @@ namespace AscEmu::Network
         if (!isSocketUsable(&socket))
             return;
 
-        socket.ReadCallback(0);
+        socket.readCallback(0);
 
         if (shouldArmWriteAfterRead(socket))
             rearmWrite(socket);
@@ -33,7 +33,7 @@ namespace AscEmu::Network
             return;
 
         socket.burstBegin();
-        socket.WriteCallback();
+        socket.writeCallback();
 
         if (hasPendingWrite(socket))
         {
@@ -41,7 +41,7 @@ namespace AscEmu::Network
         }
         else
         {
-            socket.DecSendLock();
+            socket.decrementSendLock();
             onWriteEmpty(socket);
         }
 

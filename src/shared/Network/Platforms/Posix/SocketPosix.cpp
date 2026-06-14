@@ -48,7 +48,7 @@ void Socket::writeCallback()
     if (isDeleted() || !isConnected())
         return;
 
-    int bytesWritten = send(m_socket, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
+    int bytesWritten = ::send(m_socket, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
     if (bytesWritten < 0)
     {
         disconnect();
