@@ -147,6 +147,7 @@ namespace AscEmu::Network
             for (uint32_t i = 0; i < SOCKET_HOLDER_SIZE; ++i)
             {
                 if (m_fds[i] != nullptr)
+                    m_fds[i]->deleteSocket();
             }
         }
 
