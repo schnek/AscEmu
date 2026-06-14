@@ -13,7 +13,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <string>
 #include <unordered_map>
 
-#include "PerformanceCounter.hpp"
+#include "Platform/PerformanceCounter.hpp"
 #include "Utilities/CallBack.h"
 #include "Chat/CommandTableStorage.hpp"
 
@@ -101,7 +101,7 @@ public:
     //////////////////////////////////////////////////////////////////////////////////////////
     // InfoCore
 private:
-    Ascemu::PerformanceCounter perfcounter;
+    AscEmu::Platform::PerformanceCounter m_perfcounter;
 
     double mTotalTrafficInKB = 0;
     double mTotalTrafficOutKB = 0;

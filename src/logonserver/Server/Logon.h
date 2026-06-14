@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "LogonConfig.h"
-#include "PerformanceCounter.hpp"
+#include "Platform/PerformanceCounter.hpp"
 
 class SERVER_DECL Logon
 {
@@ -32,7 +32,7 @@ class SERVER_DECL Logon
     //////////////////////////////////////////////////////////////////////////////////////////
     // InfoCore
     private:
-        Ascemu::PerformanceCounter perfcounter;
+        AscEmu::Platform::PerformanceCounter m_perfcounter;
 
     public:
         float getCPUUsage();
