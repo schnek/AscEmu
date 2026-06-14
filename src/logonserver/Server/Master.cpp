@@ -242,7 +242,7 @@ void MasterLogon::CheckForDeadSockets()
         {
             m_authSockets.erase(it2);
             s->removedFromSet = true;
-            s->Disconnect();
+            s->disconnect();
         }
     }
 }

@@ -35,17 +35,17 @@ ConsoleSocket::~ConsoleSocket()
 //////////////////////////////////////////////////////////////////////////////////////////
 // virtual functions (Socket)
 
-void ConsoleSocket::OnConnect()
+void ConsoleSocket::onConnect()
 {
     sendLoginMessage();
 }
 
-void ConsoleSocket::OnRead()
+void ConsoleSocket::onRead()
 {
     handleConsoleInput();
 }
 
-void ConsoleSocket::OnDisconnect()
+void ConsoleSocket::onDisconnect()
 {
     closeRemoteConnection();
 }
@@ -65,7 +65,7 @@ void ConsoleSocket::handleConsoleInput()
     uint32_t readLength = (uint32_t)readBuffer.GetSize();
     if ((readLength + mInputBufferPosition) >= mInputBufferLength)
     {
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -109,7 +109,7 @@ void ConsoleSocket::handleConsoleInput()
                 {
                     if (AscEmu::Util::Strings::isEqual(mInputBuffer.get(), "quit"))
                     {
-                        Disconnect();
+                        disconnect();
                         break;
                     }
 
@@ -172,7 +172,7 @@ void ConsoleSocket::getConsoleAuthResult(bool result)
         }
         else
         {
-            Disconnect();
+            disconnect();
         }
     }
     else

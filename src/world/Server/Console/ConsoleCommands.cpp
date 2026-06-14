@@ -285,7 +285,7 @@ bool handlePlayerInfoCommand(BaseConsole* baseConsole, int argumentCount, std::s
     baseConsole->Write("Race: %s\r\n", player->getDbcRaceEntry()->name);
     baseConsole->Write("Class: %s\r\n", player->getDbcClassEntry()->name);
 #endif
-    baseConsole->Write("IP: %s\r\n", player->getSession()->GetSocket() ? player->getSession()->GetSocket()->GetRemoteIP().c_str() : "disconnected");
+    baseConsole->Write("IP: %s\r\n", player->getSession()->GetSocket() ? player->getSession()->GetSocket()->getRemoteIp().c_str() : "disconnected");
     baseConsole->Write("Level: %u\r\n", player->getLevel());
     baseConsole->Write("Account: %s\r\n", player->getSession()->GetAccountNameS());
     return true;

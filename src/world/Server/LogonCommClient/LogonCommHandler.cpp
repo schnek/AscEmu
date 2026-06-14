@@ -186,7 +186,7 @@ void LogonCommHandler::tryLogonServerConnection(LogonServerStructure* server)
         if ((uint32_t)UNIXTIME >= nextRetryTime1)
         {
             sLogger.failure("Authentication timed out.");
-            logonCommSocket->Disconnect();
+            logonCommSocket->disconnect();
             logons[server] = nullptr;
             return;
         }
@@ -198,7 +198,7 @@ void LogonCommHandler::tryLogonServerConnection(LogonServerStructure* server)
     {
         sLogger.failure("Authentication failed.");
         logons[server] = nullptr;
-        logonCommSocket->Disconnect();
+        logonCommSocket->disconnect();
         return;
     }
 
@@ -223,7 +223,7 @@ void LogonCommHandler::tryLogonServerConnection(LogonServerStructure* server)
         {
             sLogger.failure("Realm registration timed out.");
             logons[server] = nullptr;
-            logonCommSocket->Disconnect();
+            logonCommSocket->disconnect();
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -334,7 +334,7 @@ void LogonCommHandler::updateLogonServerConnection()
                 continue;
             }
 
-            if (logonCommSocket->IsDeleted() || !logonCommSocket->IsConnected())
+            if (logonCommSocket->isDeleted() || !logonCommSocket->isConnected())
             {
                 logonCommSocket->_id = 0;
                 itr.second = nullptr;
@@ -346,7 +346,7 @@ void LogonCommHandler::updateLogonServerConnection()
                 // no pong for 60 seconds -> remove the socket
                 sLogger.info("Logonserver {} connection dropped due to pong timeout!", itr.first->id);
                 logonCommSocket->_id = 0;
-                logonCommSocket->Disconnect();
+                logonCommSocket->disconnect();
                 itr.second = nullptr;
                 continue;
             }

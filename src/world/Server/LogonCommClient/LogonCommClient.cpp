@@ -48,10 +48,10 @@ LogonCommClientSocket::LogonCommClientSocket(SOCKET fd) : Socket(fd, 724288, 262
     authenticated = 0;
     pingtime = 0;
 
-    sLogger.debug("Create new LogonCommClientSocket {}", m_fd);
+    sLogger.debug("Create new LogonCommClientSocket {}", m_socket);
 }
 
-void LogonCommClientSocket::OnRead()
+void LogonCommClientSocket::onRead()
 {
     while (true)
     {
@@ -177,7 +177,7 @@ void LogonCommClientSocket::HandleSessionInfo(WorldPacket& recvData)
 
     // find the socket with this request
     WorldSocket* sock = sLogonCommHandler.getWorldSocketForClientRequestId(request_id);
-    if (sock == nullptr || sock->Authed || !sock->IsConnected())       // Expired/Client disconnected
+    if (sock == nullptr || sock->Authed || !sock->isConnected())       // Expired/Client disconnected
     {
         return;
     }
@@ -207,10 +207,10 @@ void LogonCommClientSocket::SendPing()
 void LogonCommClientSocket::SendPacket(WorldPacket* data, bool no_crypto)
 {
     LogonWorldPacket header;
-    if (!IsConnected() || IsDeleted())
+    if (!isConnected() || isDeleted())
         return;
 
-    BurstBegin();
+    burstBegin();
 
     header.opcode = data->GetOpcode();
     //header.size   = ntohl((u_long)data->size());
@@ -221,25 +221,25 @@ void LogonCommClientSocket::SendPacket(WorldPacket* data, bool no_crypto)
     if (use_crypto && !no_crypto)
         _sendCrypto.process((unsigned char*)&header, (unsigned char*)&header, 6);
 
-    bool rv = BurstSend((const uint8_t*)&header, 6);
+    bool rv = burstSend((const uint8_t*)&header, 6);
 
     if (data->size() > 0 && rv)
     {
         if (use_crypto && !no_crypto)
             _sendCrypto.process(data->contents(), data->contents(), (unsigned int)data->size());
 
-        rv = BurstSend(data->contents(), (uint32_t)data->size());
+        rv = burstSend(data->contents(), (uint32_t)data->size());
     }
 
-    if (rv) BurstPush();
-    BurstEnd();
+    if (rv) burstPush();
+    burstEnd();
 }
 
-void LogonCommClientSocket::OnDisconnect()
+void LogonCommClientSocket::onDisconnect()
 {
     if (_id != 0)
     {
-        sLogger.info("Calling ConnectionDropped() due to OnDisconnect().");
+        sLogger.info("Calling ConnectionDropped() due to onDisconnect().");
         sLogonCommHandler.dropLogonServerConnection(_id);
     }
 }

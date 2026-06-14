@@ -36,7 +36,7 @@ std::unique_ptr<ListenSocket<ConsoleSocket>> g_pListenSocket = nullptr;
 void ConsoleAuthCallback(uint32_t request, uint32_t result)
 {
     ConsoleSocket* consoleSocket = sConsoleAuthMgr.getSocketByRequestId(request);
-    if (consoleSocket == nullptr || consoleSocket->IsConnected() == false)
+    if (consoleSocket == nullptr || consoleSocket->isConnected() == false)
     {
         return;
     }
@@ -107,7 +107,7 @@ void RemoteConsole::Write(const char* Format, ...)
     if (*obuf == '\0')
         return;
 
-    m_pSocket->Send((const uint8_t*)obuf, (uint32_t)strlen(obuf));
+    m_pSocket->send((const uint8_t*)obuf, (uint32_t)strlen(obuf));
 }
 
 struct ConsoleCommand

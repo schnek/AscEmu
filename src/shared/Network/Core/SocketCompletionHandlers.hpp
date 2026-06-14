@@ -21,12 +21,12 @@ namespace AscEmu::Network::IocpCompletion
         if (len != 0)
         {
             socket->readBuffer.IncrementWritten(len);
-            socket->OnRead();
-            socket->SetupReadEvent();
+            socket->onRead();
+            socket->setupReadEvent();
         }
         else
         {
-            socket->Delete();
+            socket->deleteSocket();
         }
     }
 
@@ -36,15 +36,15 @@ namespace AscEmu::Network::IocpCompletion
             return;
 
         socket->m_writeEvent.Unmark();
-        socket->BurstBegin();
+        socket->burstBegin();
         socket->writeBuffer.Remove(len);
 
         if (socket->writeBuffer.GetContiguiousBytes() > 0)
-            socket->WriteCallback();
+            socket->writeCallback();
         else
-            socket->DecSendLock();
+            socket->decrementSendLock();
 
-        socket->BurstEnd();
+        socket->burstEnd();
     }
 
     inline void handleShutdown(Socket* /*socket*/, uint32_t /*len*/)

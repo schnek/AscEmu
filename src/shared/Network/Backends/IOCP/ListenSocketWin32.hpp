@@ -53,8 +53,8 @@ public:
                 continue;
 
             auto* accepted = new T(acceptedSocket);
-            accepted->SetCompletionPort(m_completionPort);
-            accepted->Accept(&m_tempAddress);
+            accepted->setCompletionPort(m_completionPort);
+            accepted->accept(&m_tempAddress);
         }
 
         return false;

@@ -20,7 +20,7 @@ void AuthSocket::sendAuthProof(Sha1Hash sha)
         proof.error = 0;
         proof.unk2 = 0;
 
-        Send(reinterpret_cast<uint8_t*>(&proof), sizeof(sAuthLogonProof_S) - 6);
+        send(reinterpret_cast<uint8_t*>(&proof), sizeof(sAuthLogonProof_S) - 6);
     }
     else
     {
@@ -32,6 +32,6 @@ void AuthSocket::sendAuthProof(Sha1Hash sha)
         proof.unk3 = 0;
         proof.unk203 = 0;
 
-        Send(reinterpret_cast<uint8_t*>(&proof), sizeof(sAuthLogonProof_S));
+        send(reinterpret_cast<uint8_t*>(&proof), sizeof(sAuthLogonProof_S));
     }
 }

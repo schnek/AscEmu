@@ -15,8 +15,8 @@ class ListenSocketBase
 {
 public:
     virtual ~ListenSocketBase() = default;
-    virtual void OnAccept() = 0;
-    virtual int GetFd() = 0;
+    virtual void onAccept() = 0;
+    virtual int getFd() = 0;
 };
 
 namespace AscEmu::Network

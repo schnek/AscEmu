@@ -70,6 +70,12 @@ public:
     WorldSocket(SOCKET fd);
     ~WorldSocket();
 
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // virtual functions (Socket)
+    void onRead() override;
+    void onConnect() override;
+    void onDisconnect() override;
+
     // vs8 fix - send null on empty buffer
     inline void SendPacket(WorldPacket* packet) { if (!packet) return; OutPacket(packet->GetOpcode(), packet->size(), (packet->size() ? (const void*)packet->contents() : NULL)); }
 
@@ -88,11 +94,8 @@ public:
 
     void UpdateQueuePosition(uint32_t Position);
 
-    void OnRead();
     bool processHeader();
     void dispatchPacket(std::unique_ptr<WorldPacket> packet);
-    void OnConnect();
-    void OnDisconnect();
 
     inline void SetSession(WorldSession* session) { mSession = session; }
     inline WorldSession* GetSession() { return mSession; }

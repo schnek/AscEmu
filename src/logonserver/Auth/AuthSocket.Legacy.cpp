@@ -75,7 +75,7 @@ AuthSocket::~AuthSocket()
     ASSERT(!m_patchJob);
 }
 
-void AuthSocket::OnDisconnect()
+void AuthSocket::onDisconnect()
 {
     if (!removedFromSet)
     {
@@ -115,7 +115,7 @@ void AuthSocket::HandleChallenge()
     if (full_size > sizeof(sAuthLogonChallenge_C))
     {
         sLogger.failure("[AuthChallenge] Packet is larger than expected, refusing to handle!");
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -138,7 +138,7 @@ void AuthSocket::HandleChallenge()
         }break;
         default:
         {
-            sLogger.debug("Client {} has unsupported game version. Clientbuild: {}", GetRemoteIP(), (uint32_t)client_build);
+            sLogger.debug("Client {} has unsupported game version. Clientbuild: {}", getRemoteIp(), (uint32_t)client_build);
             SendChallengeError(CE_WRONG_BUILD_NUMBER);
         }break;
     }
@@ -157,7 +157,7 @@ void AuthSocket::HandleChallenge()
         if(m_patch == NULL)
         {
             // could not find a valid patch
-            sLogger.info("[AuthChallenge] Client {} has wrong version. More out of date than server. Server: {}, Client: {}", GetRemoteIP(), LogonServer::getSingleton().min_build, m_challenge.build);
+            sLogger.info("[AuthChallenge] Client {} has wrong version. More out of date than server. Server: {}, Client: {}", getRemoteIp(), LogonServer::getSingleton().min_build, m_challenge.build);
             SendChallengeError(CE_WRONG_BUILD_NUMBER);
             return;
         }
@@ -180,10 +180,10 @@ void AuthSocket::HandleChallenge()
     }*/
 
     // Check for a possible IP ban on this client.
-    IpBanStatus ipb = sIpBanMgr.getBanStatus(GetRemoteAddress());
+    IpBanStatus ipb = sIpBanMgr.getBanStatus(getRemoteAddress());
 
     if (ipb != BAN_STATUS_NOT_BANNED)
-        sLogger.info("[AuthChallenge] Client {} is banned, refusing to continue.", GetRemoteIP());
+        sLogger.info("[AuthChallenge] Client {} is banned, refusing to continue.", getRemoteIp());
 
     switch (ipb)
     {
@@ -200,7 +200,7 @@ void AuthSocket::HandleChallenge()
     }
 
     // Null-terminate the account string
-    if (m_challenge.I_len >= 50) { Disconnect(); return; }
+    if (m_challenge.I_len >= 50) { disconnect(); return; }
     m_challenge.I[m_challenge.I_len] = 0;
 
     // Clear the shitty hash (for server)
@@ -307,7 +307,7 @@ void AuthSocket::HandleChallenge()
     memcpy(challenge.unk3, unk.AsByteArray(), 16);
     challenge.unk4 = 0;
 
-    Send(reinterpret_cast<uint8_t*>(&challenge), sizeof(sAuthLogonChallenge_S));
+    send(reinterpret_cast<uint8_t*>(&challenge), sizeof(sAuthLogonChallenge_S));
 }
 
 void AuthSocket::HandleProof()
@@ -325,7 +325,7 @@ void AuthSocket::HandleProof()
         readBuffer.Remove(75);
         sLogger.debug("[AuthLogonProof] Intitiating PatchJob");
         uint8_t bytes[2] = { 0x01, 0x0a };
-        Send(bytes, 2);
+        send(bytes, 2);
         PatchMgr::getInstance().InitiatePatch(m_patch, this);
         return;
     }
@@ -449,7 +449,7 @@ void AuthSocket::HandleProof()
     m_authenticated = true;
 
     // Don't update when IP banned, but update anyway if it's an account ban
-    sLogonSQL->execute("UPDATE accounts SET lastlogin=NOW(), lastip='%s' WHERE id = %u;", GetRemoteIP().c_str(), m_account->AccountId);
+    sLogonSQL->execute("UPDATE accounts SET lastlogin=NOW(), lastip='%s' WHERE id = %u;", getRemoteIp().c_str(), m_account->AccountId);
 }
 
 void AuthSocket::SendChallengeError(uint8_t Error)
@@ -458,7 +458,7 @@ void AuthSocket::SendChallengeError(uint8_t Error)
     buffer[0] = buffer[1] = 0;
     buffer[2] = Error;
 
-    Send(buffer, 3);
+    send(buffer, 3);
 }
 
 void AuthSocket::SendProofError(uint8_t Error, uint8_t* M2)
@@ -473,14 +473,14 @@ void AuthSocket::SendProofError(uint8_t Error, uint8_t* M2)
 
         *(uint32_t*)&buffer[2] = 3;
 
-        Send(buffer, 6);
+        send(buffer, 6);
         return;
     }
 
     memcpy(&buffer[2], M2, 20);
     buffer[22] = 0x01; //<-- ARENA TOURNAMENT ACC FLAG!
 
-    Send(buffer, 32);
+    send(buffer, 32);
 }
 
 #define AUTH_CHALLENGE 0
@@ -553,7 +553,7 @@ static AuthHandler Handlers[MAX_AUTH_CMD] =
     &AuthSocket::HandleTransferCancel,       // 52
 };
 
-void AuthSocket::OnRead()
+void AuthSocket::onRead()
 {
     if (readBuffer.GetContiguiousBytes() < 1)
     {
@@ -596,7 +596,7 @@ void AuthSocket::HandleReconnectChallenge()
     // Copy the data into our cached challenge structure
     if ((size_t)(full_size + 4) > sizeof(sAuthLogonChallenge_C))
     {
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -614,7 +614,7 @@ void AuthSocket::HandleReconnectChallenge()
     }
 
     // Check for a possible IP ban on this client.
-    IpBanStatus ipb = sIpBanMgr.getBanStatus(GetRemoteAddress());
+    IpBanStatus ipb = sIpBanMgr.getBanStatus(getRemoteAddress());
 
     switch (ipb)
     {
@@ -633,7 +633,7 @@ void AuthSocket::HandleReconnectChallenge()
     /* buffer overflow thing */
     if (m_challenge.I_len >= 50)
     {
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -723,7 +723,7 @@ void AuthSocket::HandleReconnectChallenge()
     // buf.append(4, 0); // padding
     buf << uint64_t(0);
     buf << uint64_t(0);
-    Send(buf.contents(), 2);
+    send(buf.contents(), 2);
 }
 
 void AuthSocket::HandleReconnectProof()
@@ -739,7 +739,7 @@ void AuthSocket::HandleReconnectProof()
         return;
 
     // Don't update when IP banned, but update anyway if it's an account ban
-    sLogonSQL->execute("UPDATE accounts SET lastlogin = NOW(), lastip = '%s' WHERE id = %u;", GetRemoteIP().c_str(), m_account->AccountId);
+    sLogonSQL->execute("UPDATE accounts SET lastlogin = NOW(), lastip = '%s' WHERE id = %u;", getRemoteIp().c_str(), m_account->AccountId);
     //RemoveReadBufferBytes(GetReadBufferSize(), true);
     readBuffer.Remove(readBuffer.GetSize());
 
@@ -751,7 +751,7 @@ void AuthSocket::HandleReconnectProof()
             buffer << uint8_t(3);
             buffer << uint8_t(0);
             buffer << uint16_t(0);
-            Send(buffer.contents(), static_cast<uint32_t>(buffer.size()));
+            send(buffer.contents(), static_cast<uint32_t>(buffer.size()));
         }
         else
         {
@@ -760,13 +760,13 @@ void AuthSocket::HandleReconnectProof()
             buffer[1] = 0;
             buffer[2] = 1;
             buffer[3] = 0;
-            Send(buffer, 4);
+            send(buffer, 4);
         }
     }
     else
     {
         uint32_t x = 3;
-        Send((const uint8_t*)&x, 4);
+        send((const uint8_t*)&x, 4);
     }
 }
 
@@ -802,5 +802,5 @@ void AuthSocket::HandleTransferCancel()
 {
     //RemoveReadBufferBytes(1,false);
     readBuffer.Remove(1);
-    Disconnect();
+    disconnect();
 }

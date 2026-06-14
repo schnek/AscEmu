@@ -1310,7 +1310,7 @@ bool ChatCommandHandler::HandlePlayerInfo(const char* args, WorldSession* m_sess
 
     blueSystemMessage(m_session, "{} uses {} (build {})", (plr->getGender() ? "She" : "He"), clientFlags, sess->GetClientBuild());
 
-    blueSystemMessage(m_session, "{} IP is '{}', and has a latency of {}ms", (plr->getGender() ? "Her" : "His"), sess->GetSocket()->GetRemoteIP(), sess->GetLatency());
+    blueSystemMessage(m_session, "{} IP is '{}', and has a latency of {}ms", (plr->getGender() ? "Her" : "His"), sess->GetSocket()->getRemoteIp(), sess->GetLatency());
 
     return true;
 }
@@ -1561,8 +1561,8 @@ bool ChatCommandHandler::HandleBanAllCommand(const char* args, WorldSession* m_s
     }
 
     pAcc = pBanned->getSession()->GetAccountName();
-    pIP = pBanned->getSession()->GetSocket()->GetRemoteIP();
-    if (pIP == m_session->GetSocket()->GetRemoteIP())
+    pIP = pBanned->getSession()->GetSocket()->getRemoteIp();
+    if (pIP == m_session->GetSocket()->getRemoteIp())
     {
         redSystemMessage(m_session, "That player has the same IP as you - ban failed");
         return true;

@@ -9,130 +9,125 @@ This file is released under the MIT license. See README-MIT for more information
 
 #if defined(CONFIG_USE_EPOLL)
 
-void Socket::PostEvent(uint32_t events)
+void Socket::postEvent(uint32_t events)
 {
-    int epoll_fd = sSocketMgr.GetEpollFd();
+    int epollFd = sSocketMgr.GetEpollFd();
 
-    struct epoll_event ev;
-    memset(&ev, 0, sizeof(epoll_event));
-    ev.data.fd = m_fd;
-    ev.events = events | EPOLLET;
+    struct epoll_event event;
+    std::memset(&event, 0, sizeof(epoll_event));
+    event.data.fd = m_socket;
+    event.events = events | EPOLLET;
 
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, ev.data.fd, &ev))
-        sLogger.warning("epoll : Could not post event on fd {}", m_fd);
+    if (epoll_ctl(epollFd, EPOLL_CTL_MOD, event.data.fd, &event))
+        sLogger.warning("epoll : Could not post event on fd {}", m_socket);
 }
 
-void Socket::ReadCallback(uint32_t)
+void Socket::readCallback(uint32_t)
 {
-    if (IsDeleted() || !IsConnected())
+    if (isDeleted() || !isConnected())
         return;
 
-    std::unique_lock lock{m_readMutex};
+    std::unique_lock lock{ m_readMutex };
 
     size_t space = readBuffer.GetSpace();
-    int bytes = recv(m_fd, readBuffer.GetBuffer(), space, 0);
+    int bytes = recv(m_socket, readBuffer.GetBuffer(), space, 0);
     if (bytes <= 0)
     {
         lock.unlock();
-        Disconnect();
+        disconnect();
         return;
     }
-    else if (bytes > 0)
+
+    readBuffer.IncrementWritten(bytes);
+    onRead();
+    m_bytesReceived += bytes;
+}
+
+void Socket::writeCallback()
+{
+    if (isDeleted() || !isConnected())
+        return;
+
+    int bytesWritten = send(m_socket, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
+    if (bytesWritten < 0)
     {
-        readBuffer.IncrementWritten(bytes);
-        OnRead();
-    }
-    m_BytesRecieved += bytes;
-}
-
-void Socket::WriteCallback()
-{
-    if (IsDeleted() || !IsConnected())
-        return;
-
-    int bytes_written = send(m_fd, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
-    if (bytes_written < 0)
-    {
-        Disconnect();
+        disconnect();
         return;
     }
-    m_BytesSent += bytes_written;
-    writeBuffer.Remove(bytes_written);
+
+    m_bytesSent += bytesWritten;
+    writeBuffer.Remove(bytesWritten);
 }
 
-void Socket::SetupReadEvent()
-{
-}
+void Socket::setupReadEvent()
+{}
 
-void Socket::BurstPush()
+void Socket::burstPush()
 {
-    if (AcquireSendLock())
-        PostEvent(EPOLLOUT);
+    if (acquireSendLock())
+        postEvent(EPOLLOUT);
 }
 
 #elif defined(CONFIG_USE_KQUEUE)
 
-void Socket::PostEvent(int events, bool oneshot)
+void Socket::postEvent(int events, bool oneShot)
 {
     int kq = sSocketMgr.GetKq();
 
-    struct kevent ev;
-    if (oneshot)
-        EV_SET(&ev, m_fd, events, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+    struct kevent event;
+    if (oneShot)
+        EV_SET(&event, m_socket, events, EV_ADD | EV_ONESHOT, 0, 0, NULL);
     else
-        EV_SET(&ev, m_fd, events, EV_ADD, 0, 0, NULL);
+        EV_SET(&event, m_socket, events, EV_ADD, 0, 0, NULL);
 
-    if (kevent(kq, &ev, 1, 0, 0, NULL) < 0)
-        sLogger.warning("kqueue : Could not modify event for fd {}", GetFd());
+    if (kevent(kq, &event, 1, 0, 0, NULL) < 0)
+        sLogger.warning("kqueue : Could not modify event for fd {}", getFd());
 }
 
-void Socket::ReadCallback(uint32_t)
+void Socket::readCallback(uint32_t)
 {
-    if (IsDeleted() || !IsConnected())
+    if (isDeleted() || !isConnected())
         return;
 
-    std::unique_lock lock{m_readMutex};
+    std::unique_lock lock{ m_readMutex };
 
     size_t space = readBuffer.GetSpace();
-    int bytes = recv(m_fd, readBuffer.GetBuffer(), space, 0);
+    int bytes = recv(m_socket, readBuffer.GetBuffer(), space, 0);
     if (bytes <= 0)
     {
         lock.unlock();
-        Disconnect();
+        disconnect();
         return;
     }
-    else if (bytes > 0)
+
+    readBuffer.IncrementWritten(bytes);
+    onRead();
+    m_bytesReceived += bytes;
+}
+
+void Socket::writeCallback()
+{
+    if (isDeleted() || !isConnected())
+        return;
+
+    int bytesWritten = send(m_socket, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
+    if (bytesWritten < 0)
     {
-        readBuffer.IncrementWritten(bytes);
-        OnRead();
-    }
-    m_BytesRecieved += bytes;
-}
-
-void Socket::WriteCallback()
-{
-    if (IsDeleted() || !IsConnected())
-        return;
-
-    int bytes_written = send(m_fd, writeBuffer.GetBufferStart(), writeBuffer.GetContiguiousBytes(), 0);
-    if (bytes_written < 0)
-    {
-        Disconnect();
+        disconnect();
         return;
     }
 
-    m_BytesSent += bytes_written;
-    writeBuffer.Remove(bytes_written);
+    m_bytesSent += bytesWritten;
+    writeBuffer.Remove(bytesWritten);
 }
 
-void Socket::SetupReadEvent()
-{
-}
+void Socket::setupReadEvent()
+{}
 
-void Socket::BurstPush()
+void Socket::burstPush()
 {
-    if (AcquireSendLock())
-        PostEvent(EVFILT_WRITE, true);
+    if (acquireSendLock())
+        postEvent(EVFILT_WRITE, true);
 }
 
 #endif

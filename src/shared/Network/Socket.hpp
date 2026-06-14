@@ -9,106 +9,99 @@ This file is released under the MIT license. See README-MIT for more information
 #include "NetworkIncludes.hpp"
 #include "BipBuffer.hpp"
 #include "Logging/Log.hpp"
-#include <string>
-#include <mutex>
+
 #include <atomic>
 #include <map>
+#include <mutex>
 #include <set>
+#include <string>
 
 class SERVER_DECL Socket
 {
 public:
-    Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize);
+    Socket(SOCKET socket, uint32_t sendBufferSize, uint32_t recvBufferSize);
     virtual ~Socket();
 
-    bool Connect(const char* Address, uint32_t Port);
-    void Disconnect();
-    void Accept(sockaddr_in* address);
+    bool connect(const char* address, uint32_t port);
+    void disconnect();
+    void accept(sockaddr_in* address);
 
-    virtual void OnRead() {}
-    virtual void OnConnect() {}
-    virtual void OnDisconnect() {}
+    virtual void onRead() {}
+    virtual void onConnect() {}
+    virtual void onDisconnect() {}
 
-    bool Send(const uint8_t* Bytes, uint32_t Size);
+    bool send(const uint8_t* bytes, uint32_t size);
 
-    inline void BurstBegin() { m_writeMutex.lock(); }
-    bool BurstSend(const uint8_t* Bytes, uint32_t Size);
-    void BurstPush();
-    inline void BurstEnd() { m_writeMutex.unlock(); }
+    inline void burstBegin() { m_writeMutex.lock(); }
+    bool burstSend(const uint8_t* bytes, uint32_t size);
+    void burstPush();
+    inline void burstEnd() { m_writeMutex.unlock(); }
 
-    std::string GetRemoteIP();
-    inline uint32_t GetRemotePort() { return ntohs(m_client.sin_port); }
-    inline SOCKET GetFd() { return m_fd; }
+    std::string getRemoteIp();
+    inline uint32_t getRemotePort() const { return ntohs(m_remoteAddress.sin_port); }
+    inline SOCKET getFd() const { return m_socket; }
 
-    void SetupReadEvent();
-    void ReadCallback(uint32_t len);
-    void WriteCallback();
+    void setupReadEvent();
+    void readCallback(uint32_t length);
+    void writeCallback();
 
-    inline bool IsDeleted()
-    {
-        return m_deleted;
-    }
-    inline bool IsConnected()
-    {
-        return m_connected;
-    }
-    inline sockaddr_in& GetRemoteStruct() { return m_client; }
+    inline bool isDeleted() const { return m_isDeleted; }
+    inline bool isConnected() const { return m_isConnected; }
+    inline sockaddr_in& getRemoteStruct() { return m_remoteAddress; }
 
-    void Delete();
+    void deleteSocket();
 
-    inline in_addr GetRemoteAddress() { return m_client.sin_addr; }
-
+    inline in_addr getRemoteAddress() const { return m_remoteAddress.sin_addr; }
 
     AscEmu::BipBuffer readBuffer;
     AscEmu::BipBuffer writeBuffer;
 
 protected:
-    void _OnConnect();
+    void onConnectInternal();
 
-    SOCKET m_fd;
+    SOCKET m_socket;
 
     std::recursive_mutex m_writeMutex;
     std::recursive_mutex m_readMutex;
 
-    std::atomic<bool> m_connected;
-    std::atomic<bool> m_deleted;
+    std::atomic<bool> m_isConnected;
+    std::atomic<bool> m_isDeleted;
 
-    sockaddr_in m_client;
+    sockaddr_in m_remoteAddress;
 
-    unsigned long m_BytesSent;
-    unsigned long m_BytesRecieved;
+    unsigned long m_bytesSent;
+    unsigned long m_bytesReceived;
 
 public:
+    inline void incrementSendLock() { ++m_sendLock; }
+    inline void decrementSendLock() { --m_sendLock; }
 
-    inline void IncSendLock() { ++m_writeLock; }
-    inline void DecSendLock() { --m_writeLock; }
-    inline bool AcquireSendLock()
+    inline bool acquireSendLock()
     {
-
-        if (m_writeLock != 0)
+        if (m_sendLock != 0)
             return false;
 
-        m_writeLock = 1;
+        m_sendLock = 1;
         return true;
     }
 
 private:
-    std::atomic<unsigned long> m_writeLock;
+    std::atomic<unsigned long> m_sendLock;
 
 public:
-    void PollTraffic(unsigned long* sent, unsigned long* recieved)
+    void pollTraffic(unsigned long* sent, unsigned long* received)
     {
         std::lock_guard lock{ m_writeMutex };
 
-        *sent = m_BytesSent;
-        *recieved = m_BytesRecieved;
-        m_BytesSent = 0;
-        m_BytesRecieved = 0;
+        *sent = m_bytesSent;
+        *received = m_bytesReceived;
+        m_bytesSent = 0;
+        m_bytesReceived = 0;
     }
 
 #ifdef CONFIG_USE_IOCP
 public:
-    inline void SetCompletionPort(HANDLE cp) { m_completionPort = cp; }
+    inline void setCompletionPort(HANDLE completionPort) { m_completionPort = completionPort; }
 
     OverlappedStruct m_readEvent;
     OverlappedStruct m_writeEvent;
@@ -116,45 +109,33 @@ public:
 private:
     HANDLE m_completionPort;
 
-    void AssignToCompletionPort();
+    void assignToCompletionPort();
 #endif
 
 #ifdef CONFIG_USE_EPOLL
 public:
-    void PostEvent(uint32_t events);
-
-    inline bool HasSendLock()
-    {
-        bool res;
-        res = (m_writeLock.load() != 0);
-        return res;
-    }
+    void postEvent(uint32_t events);
+    inline bool hasSendLock() const { return m_sendLock.load() != 0; }
 #endif
 
 #ifdef CONFIG_USE_KQUEUE
 public:
-    void PostEvent(int events, bool oneshot);
-    inline bool HasSendLock()
-    {
-        bool res;
-        res = (m_writeLock.load() != 0);
-        return res;
-    }
+    void postEvent(int events, bool oneShot);
+    inline bool hasSendLock() const { return m_sendLock.load() != 0; }
 #endif
 };
 
-
-template<class T>
+template <class T>
 T* ConnectTCPSocket(const char* hostname, u_short port)
 {
-    T* s = new T(0);
-    if (!s->Connect(hostname, port))
+    T* socket = new T(0);
+    if (!socket->connect(hostname, port))
     {
-        s->Delete();
+        socket->deleteSocket();
         return nullptr;
     }
 
-    return s;
+    return socket;
 }
 
 #define SOCKET_GC_TIMEOUT 15
@@ -163,22 +144,22 @@ class SocketGarbageCollector
 {
     std::map<Socket*, time_t> deletionQueue;
     std::mutex lock;
+
 private:
     SocketGarbageCollector() = default;
     ~SocketGarbageCollector() = default;
 
 public:
-
     static SocketGarbageCollector& getInstance()
     {
-        static SocketGarbageCollector mInstance;
-        return mInstance;
+        static SocketGarbageCollector instance;
+        return instance;
     }
 
     void finalize()
     {
-        for (auto i : deletionQueue)
-            delete i.first;
+        for (auto entry : deletionQueue)
+            delete entry.first;
     }
 
     SocketGarbageCollector(SocketGarbageCollector&&) = delete;
@@ -186,28 +167,29 @@ public:
     SocketGarbageCollector& operator=(SocketGarbageCollector&&) = delete;
     SocketGarbageCollector& operator=(SocketGarbageCollector const&) = delete;
 
-    void Update()
+    void QueueSocket(Socket* socket)
     {
-        std::map<Socket*, time_t>::iterator i, i2;
-        time_t t = UNIXTIME;
-
         std::lock_guard guard{ lock };
-
-        for (i = deletionQueue.begin(); i != deletionQueue.end();)
-        {
-            i2 = i++;
-            if (i2->second <= t)
-            {
-                delete i2->first;
-                deletionQueue.erase(i2);
-            }
-        }
+        deletionQueue.insert(std::make_pair(socket, UNIXTIME));
     }
 
-    void QueueSocket(Socket* s)
+    void Update()
     {
         std::lock_guard guard{ lock };
-        deletionQueue.insert(std::map<Socket*, time_t>::value_type(s, UNIXTIME + SOCKET_GC_TIMEOUT));
+        time_t t = UNIXTIME;
+
+        for (auto itr = deletionQueue.begin(); itr != deletionQueue.end();)
+        {
+            if ((itr->second + SOCKET_GC_TIMEOUT) < t)
+            {
+                delete itr->first;
+                itr = deletionQueue.erase(itr);
+            }
+            else
+            {
+                ++itr;
+            }
+        }
     }
 };
 

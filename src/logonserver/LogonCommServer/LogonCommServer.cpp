@@ -46,12 +46,12 @@ LogonCommServerSocket::LogonCommServerSocket(SOCKET fd) : Socket(fd, 65536, 5242
     authenticated = 0;
     seed = 0;
 
-    sLogger.info("Created LogonCommServerSocket {}", m_fd);
+    sLogger.info("Created LogonCommServerSocket {}", m_socket);
 }
 
-void LogonCommServerSocket::OnDisconnect()
+void LogonCommServerSocket::onDisconnect()
 {
-    sLogger.info("LogonCommServerSocket::Ondisconnect event.");
+    sLogger.info("LogonCommServerSocket::onDisconnect event.");
 
     // if we're registered -> Set offline
     if (!removed)
@@ -63,12 +63,12 @@ void LogonCommServerSocket::OnDisconnect()
     }
 }
 
-void LogonCommServerSocket::OnConnect()
+void LogonCommServerSocket::onConnect()
 {
-    if (!sMasterLogon.IsServerAllowed(GetRemoteAddress().s_addr))
+    if (!sMasterLogon.IsServerAllowed(getRemoteAddress().s_addr))
     {
-        sLogger.failure("Server connection from {}:{} DENIED, not an allowed IP.", GetRemoteIP(), GetRemotePort());
-        Disconnect();
+        sLogger.failure("Server connection from {}:{} DENIED, not an allowed IP.", getRemoteIp(), getRemotePort());
+        disconnect();
         return;
     }
 
@@ -76,7 +76,7 @@ void LogonCommServerSocket::OnConnect()
     removed = false;
 }
 
-void LogonCommServerSocket::OnRead()
+void LogonCommServerSocket::onRead()
 {
     while (true)
     {
@@ -129,7 +129,7 @@ void LogonCommServerSocket::HandlePacket(WorldPacket & recvData)
     if (authenticated == 0 && recvData.GetOpcode() != LRCMSG_AUTH_REQUEST)
     {
         // invalid
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -273,7 +273,7 @@ void LogonCommServerSocket::HandlePing(WorldPacket & recvData)
 void LogonCommServerSocket::SendPacket(WorldPacket* data)
 {
     bool rv;
-    BurstBegin();
+    burstBegin();
 
     LogonWorldPacket header;
     header.opcode = data->GetOpcode();
@@ -285,18 +285,18 @@ void LogonCommServerSocket::SendPacket(WorldPacket* data)
     if (use_crypto)
         _sendCrypto.process((unsigned char*)&header, (unsigned char*)&header, 6);
 
-    rv = BurstSend((uint8_t*)&header, 6);
+    rv = burstSend((uint8_t*)&header, 6);
 
     if (data->size() > 0 && rv)
     {
         if (use_crypto)
             _sendCrypto.process((unsigned char*)data->contents(), (unsigned char*)data->contents(), (uint32_t)data->size());
 
-        rv = BurstSend(data->contents(), (uint32_t)data->size());
+        rv = burstSend(data->contents(), (uint32_t)data->size());
     }
 
-    if (rv) BurstPush();
-    BurstEnd();
+    if (rv) burstPush();
+    burstEnd();
 }
 
 void LogonCommServerSocket::HandleAuthChallenge(WorldPacket & recvData)
@@ -324,7 +324,7 @@ void LogonCommServerSocket::HandleAuthChallenge(WorldPacket & recvData)
     if (memcmp(key, hash.getDigest(), 20) != 0)
         result = 0;
 
-    sLogger.info("Authentication request from {}, id {} - result {}.", GetRemoteIP(), uint32_t(realmId), result ? "OK" : "FAIL");
+    sLogger.info("Authentication request from {}, id {} - result {}.", getRemoteIp(), uint32_t(realmId), result ? "OK" : "FAIL");
 
     std::stringstream sstext;
     sstext << "Key: ";

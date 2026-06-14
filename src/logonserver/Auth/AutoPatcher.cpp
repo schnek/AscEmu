@@ -197,10 +197,10 @@ struct TransferDataPacket
 bool PatchJob::Update()
 {
     // don't update unless the write buffer is empty
-    m_client->BurstBegin();
+    m_client->burstBegin();
     if (m_client->writeBuffer.GetSize() != 0)
     {
-        m_client->BurstEnd();
+        m_client->burstEnd();
         return true;
     }
 
@@ -210,10 +210,10 @@ bool PatchJob::Update()
     header.chunk_size = static_cast<uint16_t>((m_bytesLeft > 1500) ? 1500 : m_bytesLeft);
     //LogDebug("PatchJob : Sending %u byte chunk", header.chunk_size);
 
-    bool result = m_client->BurstSend((const uint8_t*)&header, sizeof(TransferDataPacket));
+    bool result = m_client->burstSend((const uint8_t*)&header, sizeof(TransferDataPacket));
     if (result)
     {
-        result = m_client->BurstSend(m_dataPointer, header.chunk_size);
+        result = m_client->burstSend(m_dataPointer, header.chunk_size);
         if (result)
         {
             m_dataPointer += header.chunk_size;
@@ -223,9 +223,9 @@ bool PatchJob::Update()
     }
 
     if (result)
-        m_client->BurstPush();
+        m_client->burstPush();
 
-    m_client->BurstEnd();
+    m_client->burstEnd();
 
     // no need to check the result here, could just be a full buffer and not necessarily a fatal error.
     return (m_bytesLeft > 0) ? true : false;
@@ -247,11 +247,11 @@ bool PatchMgr::InitiatePatch(Patch* pPatch, AuthSocket* pClient)
     memcpy(init.md5hash, pPatch->MD5, MD5_DIGEST_LENGTH);
 
     // send it to the client
-    pClient->BurstBegin();
-    bool result = pClient->BurstSend((const uint8_t*)&init, sizeof(TransferInitiatePacket));
+    pClient->burstBegin();
+    bool result = pClient->burstSend((const uint8_t*)&init, sizeof(TransferInitiatePacket));
     if (result)
-        pClient->BurstPush();
+        pClient->burstPush();
 
-    pClient->BurstEnd();
+    pClient->burstEnd();
     return result;
 }

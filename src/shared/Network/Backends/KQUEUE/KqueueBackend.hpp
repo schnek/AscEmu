@@ -69,9 +69,9 @@ namespace AscEmu::Network
 
             struct kevent ev;
             if (socket->writeBuffer.GetSize() > 0)
-                EV_SET(&ev, socket->GetFd(), EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, nullptr);
+                EV_SET(&ev, socket->getFd(), EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, nullptr);
             else
-                EV_SET(&ev, socket->GetFd(), EVFILT_READ, EV_ADD, 0, 0, nullptr);
+                EV_SET(&ev, socket->getFd(), EVFILT_READ, EV_ADD, 0, 0, nullptr);
 
             kevent(m_kq, &ev, 1, nullptr, 0, nullptr);
         }
@@ -89,8 +89,8 @@ namespace AscEmu::Network
 
             struct kevent evWrite;
             struct kevent evRead;
-            EV_SET(&evWrite, socket->GetFd(), EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
-            EV_SET(&evRead, socket->GetFd(), EVFILT_READ, EV_DELETE, 0, 0, nullptr);
+            EV_SET(&evWrite, socket->getFd(), EVFILT_WRITE, EV_DELETE, 0, 0, nullptr);
+            EV_SET(&evRead, socket->getFd(), EVFILT_READ, EV_DELETE, 0, 0, nullptr);
             kevent(m_kq, &evWrite, 1, nullptr, 0, nullptr);
             kevent(m_kq, &evRead, 1, nullptr, 0, nullptr);
         }
@@ -100,10 +100,10 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            m_listenFds[socket->GetFd()] = socket;
+            m_listenFds[socket->getFd()] = socket;
 
             struct kevent ev;
-            EV_SET(&ev, socket->GetFd(), EVFILT_READ, EV_ADD, 0, 0, nullptr);
+            EV_SET(&ev, socket->getFd(), EVFILT_READ, EV_ADD, 0, 0, nullptr);
             kevent(m_kq, &ev, 1, nullptr, 0, nullptr);
         }
 
@@ -140,7 +140,7 @@ namespace AscEmu::Network
             for (uint32_t i = 0; i < SOCKET_HOLDER_SIZE; ++i)
             {
                 if (m_fds[i] != nullptr)
-                    m_fds[i]->Delete();
+                    m_fds[i]->deleteSocket();
             }
         }
 
@@ -201,7 +201,7 @@ namespace AscEmu::Network
                 },
                 [](ListenSocketBase& listener, int, const struct kevent&)
                 {
-                    listener.OnAccept();
+                    listener.onAccept();
                 },
                 [](Socket& socket, int, const struct kevent& event)
                 {
@@ -221,16 +221,16 @@ namespace AscEmu::Network
                         },
                         [](Socket& writableSocket)
                         {
-                            writableSocket.PostEvent(EVFILT_READ, false);
+                            writableSocket.postEvent(EVFILT_READ, false);
                         },
                         [](Socket& readableSocket)
                         {
-                            readableSocket.PostEvent(EVFILT_WRITE, true);
-                            readableSocket.IncSendLock();
+                            readableSocket.postEvent(EVFILT_WRITE, true);
+                            readableSocket.incrementSendLock();
                         },
                         [](Socket& writableSocket)
                         {
-                            writableSocket.PostEvent(EVFILT_WRITE, true);
+                            writableSocket.postEvent(EVFILT_WRITE, true);
                         }
                     );
                 }

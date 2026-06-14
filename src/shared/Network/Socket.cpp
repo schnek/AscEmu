@@ -7,140 +7,134 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Network/Core/Resolver.hpp"
 #include "Network/Core/SocketPlatformOps.hpp"
 
-#pragma warning ( disable: 4996 )
+#ifdef _WIN32
+#include <Ws2tcpip.h>
+#endif
 
-Socket::Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize)
-    : m_fd(fd), m_connected(false), m_deleted(false), m_writeLock(0)
+Socket::Socket(SOCKET socket, uint32_t sendBufferSize, uint32_t recvBufferSize)
+    : m_socket(socket), m_isConnected(false), m_isDeleted(false), m_sendLock(0)
 {
-    // Allocate Buffers
-    readBuffer.Allocate(recvbuffersize);
-    writeBuffer.Allocate(sendbuffersize);
+    readBuffer.Allocate(recvBufferSize);
+    writeBuffer.Allocate(sendBufferSize);
 
-    m_BytesSent = 0;
-    m_BytesRecieved = 0;
+    m_bytesSent = 0;
+    m_bytesReceived = 0;
 
-    // IOCP Member Variables
 #ifdef CONFIG_USE_IOCP
     m_completionPort = nullptr;
 #endif
 
-    if (m_fd == 0)
-        m_fd = AscEmu::Network::SocketPlatformOps::createTcpSocket();
+    if (m_socket == 0)
+        m_socket = AscEmu::Network::SocketPlatformOps::createTcpSocket();
 
-    sLogger.debug("Created Socket {}", m_fd);
+    sLogger.debug("Created Socket {}", m_socket);
 }
 
-Socket::~Socket()
-{}
+Socket::~Socket() = default;
 
-bool Socket::Connect(const char* Address, uint32_t Port)
+bool Socket::connect(const char* address, uint32_t port)
 {
     AscEmu::Network::SocketAddressIPv4 resolvedAddress;
-    if (!AscEmu::Network::Resolver::resolveRemoteIPv4(Address, static_cast<uint16_t>(Port), resolvedAddress))
+    if (!AscEmu::Network::Resolver::resolveRemoteIPv4(address, static_cast<uint16_t>(port), resolvedAddress))
         return false;
 
-    m_client = resolvedAddress.native();
+    m_remoteAddress = resolvedAddress.native();
 
-    AscEmu::Network::SocketPlatformOps::setBlocking(m_fd);
+    AscEmu::Network::SocketPlatformOps::setBlocking(m_socket);
 
-    if (connect(m_fd, reinterpret_cast<const sockaddr*>(&m_client), sizeof(m_client)) == -1)
+    if (::connect(m_socket, reinterpret_cast<const sockaddr*>(&m_remoteAddress), sizeof(m_remoteAddress)) == -1)
         return false;
 
 #ifdef CONFIG_USE_IOCP
     m_completionPort = sSocketMgr.GetCompletionPort();
 #endif
 
-    _OnConnect();
+    onConnectInternal();
     return true;
 }
 
-void Socket::Accept(sockaddr_in* address)
+void Socket::accept(sockaddr_in* address)
 {
-    memcpy(&m_client, address, sizeof(*address));
-    _OnConnect();
+    std::memcpy(&m_remoteAddress, address, sizeof(*address));
+    onConnectInternal();
 }
 
-void Socket::_OnConnect()
+void Socket::onConnectInternal()
 {
-    AscEmu::Network::SocketPlatformOps::setNonBlocking(m_fd);
-    AscEmu::Network::SocketPlatformOps::disableBuffering(m_fd);
+    AscEmu::Network::SocketPlatformOps::setNonBlocking(m_socket);
+    AscEmu::Network::SocketPlatformOps::disableBuffering(m_socket);
 
-    m_connected = true;
+    m_isConnected = true;
 
-    // IOCP stuff
 #ifdef CONFIG_USE_IOCP
-    AssignToCompletionPort();
-    SetupReadEvent();
+    assignToCompletionPort();
+    setupReadEvent();
 #endif
+
     sSocketMgr.AddSocket(this);
-
-    sLogger.info("Socket::_OnConnect called");
-    // Call virtual onconnect
-    OnConnect();
+    sLogger.info("Socket::onConnectInternal called");
+    onConnect();
 }
 
-bool Socket::Send(const uint8_t* Bytes, uint32_t Size)
+bool Socket::send(const uint8_t* bytes, uint32_t size)
 {
-    bool rv;
+    burstBegin();
+    const bool result = burstSend(bytes, size);
+    if (result)
+        burstPush();
+    burstEnd();
 
-    // This is really just a wrapper for all the burst stuff.
-    BurstBegin();
-    rv = BurstSend(Bytes, Size);
-    if (rv)
-        BurstPush();
-    BurstEnd();
-
-    return rv;
+    return result;
 }
 
-bool Socket::BurstSend(const uint8_t* Bytes, uint32_t Size)
+bool Socket::burstSend(const uint8_t* bytes, uint32_t size)
 {
-    return writeBuffer.Write(Bytes, Size);
+    return writeBuffer.Write(bytes, size);
 }
 
-std::string Socket::GetRemoteIP()
+std::string Socket::getRemoteIp()
 {
-    char* ip = (char*)inet_ntoa(m_client.sin_addr);
-    if (ip != NULL)
-        return std::string(ip);
-    else
-        return std::string("noip");
+    char buffer[INET_ADDRSTRLEN] = {};
+
+#ifdef _WIN32
+    if (InetNtopA(AF_INET, const_cast<IN_ADDR*>(&m_remoteAddress.sin_addr), buffer, INET_ADDRSTRLEN) != nullptr)
+        return std::string(buffer);
+#else
+    if (::inet_ntop(AF_INET, &m_remoteAddress.sin_addr, buffer, INET_ADDRSTRLEN) != nullptr)
+        return std::string(buffer);
+#endif
+
+    return std::string("noip");
 }
 
-void Socket::Disconnect()
+void Socket::disconnect()
 {
-    //if returns false it means it's already disconnected
-    if (!m_connected)
+    if (!m_isConnected)
         return;
 
-    m_connected = false;
+    m_isConnected = false;
 
-    sLogger.info("Socket::Disconnect on socket {}", m_fd);
+    sLogger.info("Socket::disconnect on socket {}", m_socket);
 
-    // remove from mgr
     sSocketMgr.RemoveSocket(this);
+    onDisconnect();
 
-    // Call virtual ondisconnect
-    OnDisconnect();
-
-    if (!IsDeleted())
-        Delete();
+    if (!isDeleted())
+        deleteSocket();
 }
 
-void Socket::Delete()
+void Socket::deleteSocket()
 {
-    //if returns true it means it's already delete
-    if (m_deleted)
+    if (m_isDeleted)
         return;
 
-    m_deleted = true;
+    m_isDeleted = true;
 
-    sLogger.debug("Socket::Delete() on socket {}", m_fd);
+    sLogger.debug("Socket::deleteSocket() on socket {}", m_socket);
 
-    if (IsConnected())
-        Disconnect();
+    if (isConnected())
+        disconnect();
 
-    AscEmu::Network::SocketPlatformOps::closeSocket(m_fd);
-
+    AscEmu::Network::SocketPlatformOps::closeSocket(m_socket);
     sSocketGarbageCollector.QueueSocket(this);
 }

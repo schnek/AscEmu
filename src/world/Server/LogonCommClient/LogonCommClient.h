@@ -38,7 +38,11 @@ class LogonCommClientSocket : public Socket
         LogonCommClientSocket(SOCKET fd);
         ~LogonCommClientSocket();
 
-        void OnRead();
+        //////////////////////////////////////////////////////////////////////////////////////////
+        // virtual functions (Socket)
+        void onRead() override;
+        void onDisconnect() override;
+
         void SendPacket(WorldPacket* data, bool no_crypto);
         void HandlePacket(WorldPacket& recvData);
         void SendPing();
@@ -57,7 +61,6 @@ class LogonCommClientSocket : public Socket
         void HandleResultCheckAccount(WorldPacket& recvData);
         void HandleResultAllAccount(WorldPacket& recvData);
 
-        void OnDisconnect();
         void CompressAndSend(ByteBuffer& uncompressed);
         uint32_t last_ping;
         uint32_t last_pong;

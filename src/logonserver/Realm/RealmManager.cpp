@@ -208,7 +208,7 @@ namespace AscEmu::Realm
 
         *reinterpret_cast<uint16_t*>(&data.contents()[1]) = uint16_t(data.size() - 3);
 
-        authSocket->Send(static_cast<const uint8_t*>(data.contents()), uint32_t(data.size()));
+        authSocket->send(static_cast<const uint8_t*>(data.contents()), uint32_t(data.size()));
 
         std::list<LogonCommServerSocket*> server_sockets;
 
@@ -251,7 +251,7 @@ namespace AscEmu::Realm
 
                 commServerSocket->removed = true;
                 this->serverSockets.erase(commServerSocket);
-                commServerSocket->Disconnect();
+                commServerSocket->disconnect();
             }
         }
     }
@@ -266,10 +266,10 @@ namespace AscEmu::Realm
             auto it2 = logonCommServerSocket;
             ++logonCommServerSocket;
 
-            if (!sMasterLogon.IsServerAllowed(commServerSocket->GetRemoteAddress().s_addr))
+            if (!sMasterLogon.IsServerAllowed(commServerSocket->getRemoteAddress().s_addr))
             {
-                sLogger.log(Logging::Severity::INFO, Logging::MessageType::MAJOR, "[RealmManager] Disconnecting socket: {} due to it no longer being on an allowed IP.", commServerSocket->GetRemoteIP());
-                commServerSocket->Disconnect();
+                sLogger.log(Logging::Severity::INFO, Logging::MessageType::MAJOR, "[RealmManager] Disconnecting socket: {} due to it no longer being on an allowed IP.", commServerSocket->getRemoteIp());
+                commServerSocket->disconnect();
             }
         }
     }

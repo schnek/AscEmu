@@ -51,7 +51,7 @@ public:
             AscEmu::Network::SocketPlatformOps::closeSocket(m_socket);
     }
 
-    void OnAccept() override
+    void onAccept() override
     {
         for (;;)
         {
@@ -72,7 +72,7 @@ public:
             }
 
             auto* accepted = new T(acceptedSocket);
-            accepted->Accept(&m_tempAddress);
+            accepted->accept(&m_tempAddress);
         }
     }
 
@@ -81,7 +81,7 @@ public:
         return m_opened;
     }
 
-    int GetFd() override
+    int getFd() override
     {
         return m_socket;
     }

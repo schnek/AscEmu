@@ -172,7 +172,7 @@ WorldSocket::~WorldSocket()
     }
 }
 
-void WorldSocket::OnDisconnect()
+void WorldSocket::onDisconnect()
 {
     if (!_queue.hasItems())
         return;
@@ -261,14 +261,14 @@ void WorldSocket::UpdateQueuedPackets()
 OUTPACKET_RESULT WorldSocket::_OutPacket(uint16_t opcode, size_t len, const void* data)
 {
     bool rv;
-    if (!IsConnected())
+    if (!isConnected())
         return OUTPACKET_RESULT_NOT_CONNECTED;
 
-    BurstBegin();
+    burstBegin();
     //if ((m_writeByteCount + len + 4) >= m_writeBufferSize)
     if (writeBuffer.GetSpace() < (len + 4))
     {
-        BurstEnd();
+        burstEnd();
         return OUTPACKET_RESULT_NO_ROOM_IN_BUFFER;
     }
 
@@ -294,34 +294,34 @@ OUTPACKET_RESULT WorldSocket::_OutPacket(uint16_t opcode, size_t len, const void
 #endif
 
 #if VERSION_STRING >= Cata
-    rv = BurstSend(reinterpret_cast<const uint8_t*>(&Header.header), Header.getHeaderLength());
+    rv = burstSend(reinterpret_cast<const uint8_t*>(&Header.header), Header.getHeaderLength());
 #else
     // Pass the header to our send buffer
-    rv = BurstSend((const uint8_t*)&Header, 4);
+    rv = burstSend((const uint8_t*)&Header, 4);
 #endif
 
     // Pass the rest of the packet to our send buffer (if there is any)
     if (len > 0 && rv)
     {
-        rv = BurstSend(static_cast<const uint8_t*>(data), static_cast<uint32_t>(len));
+        rv = burstSend(static_cast<const uint8_t*>(data), static_cast<uint32_t>(len));
     }
 
-    if (rv) BurstPush();
-    BurstEnd();
+    if (rv) burstPush();
+    burstEnd();
     return rv ? OUTPACKET_RESULT_SUCCESS : OUTPACKET_RESULT_SOCKET_ERROR;
 }
 #else
 OUTPACKET_RESULT WorldSocket::_OutPacket(uint32_t opcode, size_t len, const void* data)
 {
     bool rv;
-    if (!IsConnected())
+    if (!isConnected())
         return OUTPACKET_RESULT_NOT_CONNECTED;
 
-    BurstBegin();
+    burstBegin();
 
     if (writeBuffer.GetSpace() < (len + 4))
     {
-        BurstEnd();
+        burstEnd();
         return OUTPACKET_RESULT_NO_ROOM_IN_BUFFER;
     }
 
@@ -370,28 +370,28 @@ OUTPACKET_RESULT WorldSocket::_OutPacket(uint32_t opcode, size_t len, const void
     {
         AuthPktHeader authPktHeader(static_cast<uint32_t>(len), sOpcodeTables.getHexValueForVersionId(opcode));
         _crypt.encryptWotlkSend(reinterpret_cast<uint8_t*>(&authPktHeader.raw), 4);
-        rv = BurstSend(reinterpret_cast<const uint8_t*>(&authPktHeader.raw), 4);
+        rv = burstSend(reinterpret_cast<const uint8_t*>(&authPktHeader.raw), 4);
     }
     else
     {
         ServerPktHeader serverPktHeader(static_cast<uint32_t>(len + 2), sOpcodeTables.getHexValueForVersionId(opcode));
-        rv = BurstSend(reinterpret_cast<const uint8_t*>(&serverPktHeader.header), serverPktHeader.headerLength);
+        rv = burstSend(reinterpret_cast<const uint8_t*>(&serverPktHeader.header), serverPktHeader.headerLength);
     }
 
     // Pass the rest of the packet to our send buffer (if there is any)
     if (len > 0 && rv)
-        rv = BurstSend(static_cast<const uint8_t*>(data), static_cast<uint32_t>(len));
+        rv = burstSend(static_cast<const uint8_t*>(data), static_cast<uint32_t>(len));
 
     if (rv)
-        BurstPush();
+        burstPush();
 
-    BurstEnd();
+    burstEnd();
     return rv ? OUTPACKET_RESULT_SUCCESS : OUTPACKET_RESULT_SOCKET_ERROR;
 }
 #endif
 
 
-void WorldSocket::OnConnect()
+void WorldSocket::onConnect()
 {
     sWorld.increaseAcceptedConnections();
     _latency = Util::getMSTime();
@@ -405,11 +405,11 @@ void WorldSocket::OnConnect()
     sizeBytes[0] = size & 0xFF;
     sizeBytes[1] = (size >> 8) & 0xFF;
 
-    BurstBegin();
-    BurstSend(sizeBytes, 2);
-    BurstSend(reinterpret_cast<const uint8_t*>(handshake.c_str()), static_cast<uint32_t>(handshake.length()));
-    BurstPush();
-    BurstEnd();
+    burstBegin();
+    burstSend(sizeBytes, 2);
+    burstSend(reinterpret_cast<const uint8_t*>(handshake.c_str()), static_cast<uint32_t>(handshake.length()));
+    burstPush();
+    burstEnd();
 #else // Cata
     WorldPacket packet(MSG_VERIFY_CONNECTIVITY, 46);
     packet << "RLD OF WARCRAFT CONNECTION - SERVER TO CLIENT";
@@ -572,7 +572,7 @@ void WorldSocket::_HandleAuthSession(std::unique_ptr<WorldPacket> recvPacket)
 
     if (mRequestID == 0xFFFFFFFF)
     {
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -700,7 +700,7 @@ void WorldSocket::InformationRetreiveCallback(WorldPacket & recvData, uint32_t r
         {
             sLogger.info("Reconnect: account {} (ID: {}) already connected from {}; rejecting new connection",
                 AccountName, AccountID,
-                oldSession->GetSocket() ? oldSession->GetSocket()->GetRemoteIP().c_str() : "unknown");
+                oldSession->GetSocket() ? oldSession->GetSocket()->getRemoteIp().c_str() : "unknown");
             // AUTH_FAILED = 0x0D
             oldSession->Disconnect();
 
@@ -806,7 +806,7 @@ void WorldSocket::InformationRetreiveCallback(WorldPacket & recvData, uint32_t r
         }
     }
 
-    sLogger.debug("{} from {}:{} [{}ms]", AccountName, GetRemoteIP(), GetRemotePort(), _latency);
+    sLogger.debug("{} from {}:{} [{}ms]", AccountName, getRemoteIp(), getRemotePort(), _latency);
 
     // Check for queue.
     uint32_t playerLimit = worldConfig.getPlayerLimit();
@@ -827,7 +827,7 @@ void WorldSocket::InformationRetreiveCallback(WorldPacket & recvData, uint32_t r
     else
     {
         SendPacket(SmsgAuthResponse(AuthRejected, ARST_ONLY_ERROR).serialise().get());
-        Disconnect();
+        disconnect();
     }
 }
 
@@ -862,7 +862,7 @@ void WorldSocket::Authenticate(std::unique_ptr<WorldSession> sessionHolder)
     {
         sLogger.failure("WorldSocket::Authenticate something tried to Authenticate but packet is invalid (nullptr)");
         SendPacket(SmsgAuthResponse(AuthRejected, ARST_ONLY_ERROR).serialise().get());
-        Disconnect();
+        disconnect();
     }
 }
 
@@ -877,7 +877,7 @@ void WorldSocket::_HandlePing(std::unique_ptr<WorldPacket> recvPacket)
     if (recvPacket->size() < 4)
     {
         sLogger.failure("Socket closed due to incomplete ping packet.");
-        Disconnect();
+        disconnect();
         return;
     }
 
@@ -909,7 +909,7 @@ void WorldSocket::_HandlePing(std::unique_ptr<WorldPacket> recvPacket)
         if (!m_nagleEanbled)
         {
             u_long arg = 0;
-            setsockopt(GetFd(), 0x6, 0x1, reinterpret_cast<const char*>(&arg), sizeof(arg));
+            setsockopt(getFd(), 0x6, 0x1, reinterpret_cast<const char*>(&arg), sizeof(arg));
             m_nagleEanbled = true;
         }
     }
@@ -918,14 +918,14 @@ void WorldSocket::_HandlePing(std::unique_ptr<WorldPacket> recvPacket)
         if (m_nagleEanbled)
         {
             u_long arg = 1;
-            setsockopt(GetFd(), 0x6, 0x1, reinterpret_cast<const char*>(&arg), sizeof(arg));
+            setsockopt(getFd(), 0x6, 0x1, reinterpret_cast<const char*>(&arg), sizeof(arg));
             m_nagleEanbled = false;
         }
     }
 #endif
 }
 
-void WorldSocket::OnRead()
+void WorldSocket::onRead()
 {
     for (;;)
     {

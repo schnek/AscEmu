@@ -519,7 +519,7 @@ void SessionLog::writefromsession(WorldSession* session, const char* format, ...
         snprintf(&out[lenght], 32768 - lenght, "Account %u [%s], IP %s, Player %s :: ",
             session->GetAccountId(),
             session->GetAccountName().c_str(),
-            session->GetSocket() ? session->GetSocket()->GetRemoteIP().c_str() : "NOIP",
+            session->GetSocket() ? session->GetSocket()->getRemoteIp().c_str() : "NOIP",
             session->GetPlayer() ? session->GetPlayer()->getName().c_str() : "nologin");
 
         lenght = strlen(out);
@@ -546,7 +546,7 @@ void SessionLog::write(WorldSession* session, const char* format, ...)
             current_time,
             session->GetAccountId(),
             session->GetAccountName(),
-            session->GetSocket() ? session->GetSocket()->GetRemoteIP() : "NOIP",
+            session->GetSocket() ? session->GetSocket()->getRemoteIp() : "NOIP",
             session->GetPlayer() ? session->GetPlayer()->getName() : "nologin");
 
         // Use a buffer to format the variable arguments (like vsnprintf)
@@ -717,7 +717,7 @@ void WorldSession::SendPacket(WorldPacket* packet)
         return;
     }
 
-    if (_socket && _socket->IsConnected())
+    if (_socket && _socket->isConnected())
     {
         _socket->SendPacket(packet);
     }
@@ -725,7 +725,7 @@ void WorldSession::SendPacket(WorldPacket* packet)
 
 void WorldSession::OutPacket(uint16_t opcode)
 {
-    if (_socket && _socket->IsConnected())
+    if (_socket && _socket->isConnected())
     {
         _socket->OutPacket(opcode, 0, nullptr);
     }
@@ -733,7 +733,7 @@ void WorldSession::OutPacket(uint16_t opcode)
 
 void WorldSession::OutPacket(uint16_t opcode, uint16_t len, const void* data)
 {
-    if (_socket && _socket->IsConnected())
+    if (_socket && _socket->isConnected())
     {
         _socket->OutPacket(opcode, len, data);
     }
@@ -747,10 +747,10 @@ void WorldSession::QueuePacket(std::unique_ptr<WorldPacket> packet)
 
 void WorldSession::Disconnect()
 {
-    sLogger.info("WORLD: Disconnecting session for account {} (IP: {})", GetAccountId(), _socket ? _socket->GetRemoteIP() : "NOIP");
-    if (_socket && _socket->IsConnected())
+    sLogger.info("WORLD: Disconnecting session for account {} (IP: {})", GetAccountId(), _socket ? _socket->getRemoteIp() : "NOIP");
+    if (_socket && _socket->isConnected())
     {
-        _socket->Disconnect();
+        _socket->disconnect();
     }
 }
 

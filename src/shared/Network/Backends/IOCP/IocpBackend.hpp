@@ -113,7 +113,7 @@ namespace AscEmu::Network
             }
 
             for (auto* socket : tokill)
-                socket->Disconnect();
+                socket->disconnect();
         }
 
         void showStatus() override

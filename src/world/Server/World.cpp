@@ -251,10 +251,10 @@ void World::updateAllTrafficTotals()
     for (const auto playerStorage : sObjectMgr.getPlayerStorage())
     {
         WorldSocket* socket = playerStorage.second->getSession()->GetSocket();
-        if (!socket || !socket->IsConnected() || socket->IsDeleted())
+        if (!socket || !socket->isConnected() || socket->isDeleted())
             continue;
 
-        socket->PollTraffic(&sent, &recieved);
+        socket->pollTraffic(&sent, &recieved);
 
         trafficIn += (static_cast<double>(recieved));
         trafficOut += (static_cast<double>(sent));
@@ -395,7 +395,7 @@ void World::disconnectSessionByAccountName(const std::string& accountName, World
         {
             isUserFound = true;
             worldSession->SystemMessage("Disconnecting user with account `%s` IP `%s` Player `%s`.", session->GetAccountNameS(),
-                session->GetSocket() ? session->GetSocket()->GetRemoteIP().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->getName().c_str() : "noplayer");
+                session->GetSocket() ? session->GetSocket()->getRemoteIp().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->getName().c_str() : "noplayer");
 
             session->Disconnect();
         }
@@ -417,7 +417,7 @@ void World::disconnectSessionByIp(const std::string& ipString, WorldSession* wor
         if (!session->GetSocket())
             continue;
 
-        std::string ip2 = session->GetSocket()->GetRemoteIP();
+        std::string ip2 = session->GetSocket()->getRemoteIp();
         if (ipString == ip2)
         {
             isUserFound = true;
@@ -448,7 +448,7 @@ void World::disconnectSessionByPlayerName(const std::string& playerName, WorldSe
         {
             isUserFound = true;
             worldSession->SystemMessage("Disconnecting user with account `%s` IP `%s` Player `%s`.", session->GetAccountNameS(),
-                session->GetSocket() ? session->GetSocket()->GetRemoteIP().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->getName().c_str() : "noplayer");
+                session->GetSocket() ? session->GetSocket()->getRemoteIp().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->getName().c_str() : "noplayer");
 
             session->Disconnect();
         }

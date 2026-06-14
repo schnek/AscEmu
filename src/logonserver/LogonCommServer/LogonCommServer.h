@@ -41,9 +41,9 @@ class LogonCommServerSocket : public Socket
         LogonCommServerSocket(SOCKET fd);
         ~LogonCommServerSocket() = default;
 
-        void OnRead();
-        void OnDisconnect();
-        void OnConnect();
+        void onRead();
+        void onDisconnect();
+        void onConnect();
         void SendPacket(WorldPacket* data);
         void HandlePacket(WorldPacket & recvData);
 

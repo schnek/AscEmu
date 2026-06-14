@@ -66,7 +66,7 @@ namespace AscEmu::Network
 
             if (m_fds[socket->GetFd()] != nullptr)
             {
-                socket->Delete();
+                socket->deleteSocket();
                 return;
             }
 
@@ -76,10 +76,10 @@ namespace AscEmu::Network
             epoll_event ev{};
             ev.events = (socket->writeBuffer.GetSize() > 0) ? EPOLLOUT : EPOLLIN;
             ev.events |= EPOLLET;
-            ev.data.fd = socket->GetFd();
+            ev.data.fd = socket->getFd();
 
             if (epoll_ctl(m_epollFd, EPOLL_CTL_ADD, ev.data.fd, &ev) != 0)
-                sLogger.failure("Could not add event to epoll set on fd {}", socket->GetFd());
+                sLogger.failure("Could not add event to epoll set on fd {}", socket->getFd());
         }
 
         void removeSocket(Socket* socket) override
@@ -94,7 +94,7 @@ namespace AscEmu::Network
             --m_socketCount;
 
             epoll_event ev{};
-            ev.data.fd = socket->GetFd();
+            ev.data.fd = socket->getFd();
             ev.events = EPOLLIN | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLONESHOT;
             epoll_ctl(m_epollFd, EPOLL_CTL_DEL, ev.data.fd, &ev);
         }
@@ -104,14 +104,14 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            m_listenFds[socket->GetFd()] = socket;
+            m_listenFds[socket->getFd()] = socket;
 
             epoll_event ev{};
             ev.events = EPOLLIN | EPOLLET;
-            ev.data.fd = socket->GetFd();
+            ev.data.fd = socket->getFd();
 
             if (epoll_ctl(m_epollFd, EPOLL_CTL_ADD, ev.data.fd, &ev) != 0)
-                sLogger.failure("Could not add event to epoll set on fd {}", socket->GetFd());
+                sLogger.failure("Could not add event to epoll set on fd {}", socket->getFd());
         }
 
         void spawnWorkers(AscEmu::Threading::AEThreadPool& threadPool) override
@@ -147,7 +147,6 @@ namespace AscEmu::Network
             for (uint32_t i = 0; i < SOCKET_HOLDER_SIZE; ++i)
             {
                 if (m_fds[i] != nullptr)
-                    m_fds[i]->Delete();
             }
         }
 
@@ -195,7 +194,7 @@ namespace AscEmu::Network
                 },
                 [](ListenSocketBase& listener, int, const epoll_event&)
                 {
-                    listener.OnAccept();
+                    listener.onAccept();
                 },
                 [](Socket& socket, int, const epoll_event& event)
                 {
@@ -215,11 +214,11 @@ namespace AscEmu::Network
                         },
                         [](Socket& writableSocket)
                         {
-                            writableSocket.PostEvent(EPOLLIN);
+                            writableSocket.postEvent(EPOLLIN);
                         },
                         [](Socket& readableSocket)
                         {
-                            readableSocket.PostEvent(EPOLLOUT);
+                            readableSocket.postEvent(EPOLLOUT);
                         },
                         [](Socket&)
                         {
