@@ -3,8 +3,6 @@
 # set up our project name.
 set(LIBRARY_NAME shared)
 
-option(ASCEMU_USE_AE_NETWORK "Use AE network implementation where available" ON)
-
 file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.h Config/*.hpp)
 file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.h Cryptography/*.hpp)
 file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.hpp)
@@ -13,16 +11,7 @@ file(GLOB SRC_DEBUGGING_FILES Debugging/*.cpp Debugging/*.h Debugging/*.hpp)
 file(GLOB SRC_EXCEPTIONS_FILES Exceptions/*.cpp Exceptions/*.h Exceptions/*.hpp)
 file(GLOB SRC_LOGGING_FILES Logging/*.cpp Logging/*.h Logging/*.hpp)
 
-file(GLOB SRC_NETWORK_FILES Network/*.cpp Network/*.h Network/*.hpp)
-file(GLOB_RECURSE SRC_NETWORK_FILES_AE Network/AE/*.cpp Network/AE/*.hpp)
-
-if (WIN32)
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/IOCP/*.cpp Network/IOCP/*.h Network/IOCP/*.hpp)
-elseif ((CMAKE_SYSTEM_NAME STREQUAL "FreeBSD" OR CMAKE_SYSTEM_NAME STREQUAL "kFreeBSD") OR APPLE)
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/KQUEUE/*.cpp Network/KQUEUE/*.h Network/KQUEUE/*.hpp)
-else ()
-    file(GLOB SRC_NETWORK_FILES_PLATFORM Network/EPOLL/*.cpp Network/EPOLL/*.h Network/EPOLL/*.hpp)
-endif ()
+file(GLOB_RECURSE SRC_NETWORK_FILES Network/*.cpp Network/*.hpp)
 
 file(GLOB SRC_REGISTRY_FILES Registry/*.cpp Registry/*.h Registry/*.hpp)
 file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.h Threading/*.hpp)
@@ -45,23 +34,10 @@ set(SHARED_SRCS
     ${SRC_LOCAL_DIR}
 )
 
-if (ASCEMU_USE_AE_NETWORK)
-    list(APPEND SHARED_SRCS ${SRC_NETWORK_FILES_AE})
-else ()
-    list(APPEND SHARED_SRCS ${SRC_NETWORK_FILES_PLATFORM})
-endif ()
-
 # source group.
 ascemu_source_group(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(${LIBRARY_NAME} STATIC ${SHARED_SRCS})
-
-if (ASCEMU_USE_AE_NETWORK)
-    message(STATUS "Network implementation: AE")
-    target_compile_definitions(${LIBRARY_NAME} PUBLIC ASCEMU_USE_AE_NETWORK)
-else ()
-    message(STATUS "Network implementation: Legacy")
-endif ()
 
 target_include_directories(${LIBRARY_NAME} PUBLIC 
     ${OPENSSL_INCLUDE_DIR}

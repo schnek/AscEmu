@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <cstdint>
 
-#include "Network/Network.h"
+#include "Network/Network.hpp"
 #include "BaseConsole.h"
 
 namespace ConsoleDefines

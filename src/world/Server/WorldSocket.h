@@ -23,7 +23,7 @@
 
 #include "Cryptography/WowCrypt.hpp"
 #include "WorldPacket.h"
-#include "Network/Network.h"
+#include "Network/Network.hpp"
 #include "AEVersion.hpp"
 #include "Threading/ThreadSafeQueue.hpp"
 

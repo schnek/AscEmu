@@ -16,8 +16,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 
 ## List of Legacy files
 ### Not rewritten - yet
-* 2014 | Network/SocketDefines.h               -remove after verifying
-* 2014 | Network/NetworkIncludes.hpp           -remove after verifying
 * 2014 | CommonTypes.hpp
 * 2014 | CommonHelpers.hpp
 * 2008 | WorldPacket.h
@@ -30,25 +28,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | ByteBuffer.h
 * 2008 | Cryptography/AuthCodes.h
 * 2008 | Cryptography/BigNumber.cpp
-* 2007 | Network/EPOLL/ListenSocketLinux.h     -remove after verifying
-* 2007 | Network/EPOLL/SocketLinux.cpp         -remove after verifying
-* 2007 | Network/EPOLL/SocketMgrLinux.cpp      -remove after verifying
-* 2007 | Network/EPOLL/SocketMgrLinux.h        -remove after verifying
-* 2007 | Network/EPOLL/SocketOpsLinux.cpp      -remove after verifying
-* 2007 | Network/IOCP/ListenSocketWin32.h      -remove after verifying
-* 2007 | Network/IOCP/SocketMgrWin32.cpp       -remove after verifying
-* 2007 | Network/IOCP/SocketMgrWin32.h         -remove after verifying
-* 2007 | Network/IOCP/SocketOpsWin32.cpp       -remove after verifying
-* 2007 | Network/IOCP/SocketWin32.cpp          -remove after verifying
-* 2007 | Network/KQUEUE/ListenSocketFreeBSD.h  -remove after verifying
-* 2007 | Network/KQUEUE/SocketFreeBSD.cpp      -remove after verifying
-* 2007 | Network/KQUEUE/SocketMgrFreeBSD.cpp   -remove after verifying
-* 2007 | Network/KQUEUE/SocketMgrFreeBSD.h     -remove after verifying
-* 2007 | Network/KQUEUE/SocketOpsFreeBSD.cpp   -remove after verifying
-* 2007 | Network/Network.h                     -remove after verifying
-* 2007 | Network/Socket.cpp                    -remove after verifying
-* 2007 | Network/Socket.h                      -remove after verifying
-* 2007 | Network/SocketOps.h                   -remove after verifying
 * 2007 | Cryptography/BigNumber.h
 * 2005 | StackWalker.h
 * 2005 | StackWalker.cpp
@@ -194,6 +173,27 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2005 | SysInfo.cpp
 * 2005 | PerformanceCounter.hpp
 * 2005 | PerformanceCounter.cpp
+* 2007 | Network/EPOLL/ListenSocketLinux.h
+* 2007 | Network/EPOLL/SocketLinux.cpp
+* 2007 | Network/EPOLL/SocketMgrLinux.cpp
+* 2007 | Network/EPOLL/SocketMgrLinux.h
+* 2007 | Network/EPOLL/SocketOpsLinux.cpp
+* 2007 | Network/IOCP/ListenSocketWin32.h
+* 2007 | Network/IOCP/SocketMgrWin32.cpp
+* 2007 | Network/IOCP/SocketMgrWin32.h
+* 2007 | Network/IOCP/SocketOpsWin32.cpp
+* 2007 | Network/IOCP/SocketWin32.cpp
+* 2007 | Network/KQUEUE/ListenSocketFreeBSD.h
+* 2007 | Network/KQUEUE/SocketFreeBSD.cpp
+* 2007 | Network/KQUEUE/SocketMgrFreeBSD.cpp
+* 2007 | Network/KQUEUE/SocketMgrFreeBSD.h
+* 2007 | Network/KQUEUE/SocketOpsFreeBSD.cpp
+* 2007 | Network/Network.h
+* 2014 | Network/NetworkIncludes.hpp
+* 2007 | Network/Socket.cpp
+* 2007 | Network/Socket.h
+* 2014 | Network/SocketDefines.h
+* 2007 | Network/SocketOps.h
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
@@ -240,31 +240,36 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Network/NetworkBuffer.hpp - temporarily
 * 2026 | Platform/DynamicLibrary.hpp
 * 2026 | Platform/DynamicLibrary.cpp
-* 2026 | Network/AE/SocketMgr.cpp
-* 2026 | Network/AE/SocketMgr.hpp
-* 2026 | Network/AE/Backends/EPOLL/EpollBackend.hpp
-* 2026 | Network/AE/Backends/IOCP/IocpBackend.hpp
-* 2026 | Network/AE/Backends/IOCP/ListenSocketWin32.hpp
-* 2026 | Network/AE/Backends/KQUEUE/KqueueBackend.hpp
-* 2026 | Network/AE/Core/ListenCommon.hpp
-* 2026 | Network/AE/Core/NetworkBackend.hpp
-* 2026 | Network/AE/Core/NetworkBackendCommon.hpp
-* 2026 | Network/AE/Core/PollBackend.hpp
-* 2026 | Network/AE/Core/PollListenSocket.hpp
-* 2026 | Network/AE/Core/PollSocketDispatch.hpp
-* 2026 | Network/AE/Core/PollWorkerHelper.hpp
-* 2026 | Network/AE/Core/PollWorkerLifecycle.hpp
-* 2026 | Network/AE/Core/Resolver.hpp
-* 2026 | Network/AE/Core/SocketAddress.hpp
-* 2026 | Network/AE/Core/SocketCompletionHandlers.hpp
-* 2026 | Network/AE/Core/SocketDescriptionDispatch.hpp
-* 2026 | Network/AE/Core/SocketEventHandlers.hpp
-* 2026 | Network/AE/Core/SocketPlatformOps.hpp
-* 2026 | Network/AE/Core/SocketStateHelpers.hpp
-* 2026 | Network/AE/Platforms/Posix/SocketOpsPosix.cpp
-* 2026 | Network/AE/Platforms/Posix/SocketPosix.cpp
-* 2026 | Network/AE/Platforms/Win32/SocketOpsWin32.cpp
-* 2026 | Network/AE/Platforms/Win32/SocketWin32.cpp
+* 2026 | Network/Backends/EPOLL/EpollBackend.hpp
+* 2026 | Network/Backends/IOCP/IocpBackend.hpp
+* 2026 | Network/Backends/IOCP/ListenSocketWin32.hpp
+* 2026 | Network/Backends/KQUEUE/KqueueBackend.hpp
+* 2026 | Network/Core/ListenCommon.hpp
+* 2026 | Network/Core/NetworkBackend.hpp
+* 2026 | Network/Core/NetworkBackendCommon.hpp
+* 2026 | Network/Core/PollBackend.hpp
+* 2026 | Network/Core/PollListenSocket.hpp
+* 2026 | Network/Core/PollSocketDispatch.hpp
+* 2026 | Network/Core/PollWorkerHelper.hpp
+* 2026 | Network/Core/PollWorkerLifecycle.hpp
+* 2026 | Network/Core/Resolver.hpp
+* 2026 | Network/Core/SocketAddress.hpp
+* 2026 | Network/Core/SocketCompletionHandlers.hpp
+* 2026 | Network/Core/SocketDescriptionDispatch.hpp
+* 2026 | Network/Core/SocketEventHandlers.hpp
+* 2026 | Network/Core/SocketPlatformOps.hpp
+* 2026 | Network/Core/SocketStateHelpers.hpp
+* 2026 | Network/Platforms/Posix/SocketOpsPosix.cpp
+* 2026 | Network/Platforms/Posix/SocketPosix.cpp
+* 2026 | Network/Platforms/Win32/SocketOpsWin32.cpp
+* 2026 | Network/Platforms/Win32/SocketWin32.cpp
+* 2026 | Network/Network.hpp
+* 2026 | Network/NetworkIncludes.hpp
+* 2026 | Network/Socket.cpp
+* 2026 | Network/Socket.hpp
+* 2026 | Network/SocketDefines.hpp
+* 2026 | Network/SocketMgr.cpp
+* 2026 | Network/SocketMgr.hpp
 * 2026 | Database/Database.cpp
 * 2026 | Database/Database.hpp
 * 2026 | Database/DatabaseRuntime.hpp

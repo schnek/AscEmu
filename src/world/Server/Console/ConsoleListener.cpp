@@ -23,7 +23,7 @@
 #include <cstdarg>
 #include <sstream>
 
-#include <Network/Network.h>
+#include <Network/Network.hpp>
 #include <Config/Config.h>
 #include "BaseConsole.h"
 #include "ConsoleCommands.h"

@@ -23,7 +23,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Cryptography/Sha1.hpp>
 #include <Cryptography/WowCrypt.hpp>
 #include <Database/Database.hpp>
-#include <Network/Network.h>
+#include <Network/Network.hpp>
 #include "LogonConf.hpp"
 #include "Console/LogonConsole.h"
 #include "Realm/RealmManager.hpp"

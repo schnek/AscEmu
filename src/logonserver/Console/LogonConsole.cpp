@@ -23,7 +23,7 @@
 #include <Server/Master.hpp>
 #include <Server/AccountMgr.h>
 #include <Server/IpBanMgr.h>
-#include <Network/Network.h>
+#include <Network/Network.hpp>
 #include <LogonConf.hpp>
 #include <sstream>
 #include <Utilities/Strings.hpp>

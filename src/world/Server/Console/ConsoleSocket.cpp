@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "ConsoleAuthMgr.h"
 #include "BaseConsole.h"
 #include "Server/LogonCommClient/LogonCommHandler.h"
-#include "Network/Network.h"
+#include "Network/Network.hpp"
 #include "Utilities/Strings.hpp"
 
 ConsoleSocket::ConsoleSocket(SOCKET iFd) :

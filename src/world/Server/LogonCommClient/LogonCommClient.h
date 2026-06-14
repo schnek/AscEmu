@@ -21,7 +21,7 @@
 #ifndef LOGON_COMM_CLIENT_H
 #define LOGON_COMM_CLIENT_H
 
-#include "Network/Socket.h"
+#include "Network/Socket.hpp"
 #include <Cryptography/RC4.hpp>
 
 class ByteBuffer;

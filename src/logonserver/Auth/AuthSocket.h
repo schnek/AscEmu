@@ -21,7 +21,7 @@
 #define AUTHSOCKET_H
 
 #include "AuthStructs.h"
-#include "Network/Socket.h"
+#include "Network/Socket.hpp"
 #include "Cryptography/Sha1.hpp"
 #include "Cryptography/BigNumber.h"
 #include "Server/AccountMgr.h"

@@ -45,7 +45,7 @@
 #include "Management/GameEventMgr.hpp"
 #include "Management/MailMgr.h"
 #include "Management/Loot/LootMgr.hpp"
-#include "Network/Network.h"
+#include "Network/Network.hpp"
 #include "Packets/SmsgServerMessage.h"
 #include "Script/ScriptMgr.hpp"
 #include "Server/BroadcastMgr.h"

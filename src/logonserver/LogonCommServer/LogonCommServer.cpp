@@ -27,7 +27,7 @@
 #include "Logging/Logger.hpp"
 #include "Realm/RealmManager.hpp"
 #include "Server/Master.hpp"
-#include "Network/Socket.h"
+#include "Network/Socket.hpp"
 #include "WorldPacket.h"
 #include "Server/AccountMgr.h"
 #include "Cryptography/Sha1.hpp"

@@ -16,7 +16,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <csignal>
 #include <Logging/Logger.hpp>
 #include "Auth/AutoPatcher.h"
-#include <Network/Network.h>
+#include <Network/Network.hpp>
 
 #include "git_version.hpp"
 #include "Console/LogonConsole.h"

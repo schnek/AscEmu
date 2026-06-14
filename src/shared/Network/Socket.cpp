@@ -1,22 +1,15 @@
 /*
- * Multiplatform Async Network Library
- * Copyright (c) 2007 Burlex
- *
- * Socket implementable class.
- *
- */
+Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
-#include "Network.h"
+#include "Network.hpp"
+#include "Network/Core/Resolver.hpp"
+#include "Network/Core/SocketPlatformOps.hpp"
 
-#ifdef ASCEMU_USE_AE_NETWORK
-    #include "Network/AE/Core/Resolver.hpp"
-    #include "Network/AE/Core/SocketPlatformOps.hpp"
-#endif
-
-//ignore warning for deprecated function gethostbyname
 #pragma warning ( disable: 4996 )
 
-Socket::Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize) 
+Socket::Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize)
     : m_fd(fd), m_connected(false), m_deleted(false), m_writeLock(0)
 {
     // Allocate Buffers
@@ -31,23 +24,15 @@ Socket::Socket(SOCKET fd, uint32_t sendbuffersize, uint32_t recvbuffersize)
     m_completionPort = nullptr;
 #endif
 
-#ifdef ASCEMU_USE_AE_NETWORK
     if (m_fd == 0)
         m_fd = AscEmu::Network::AE::SocketPlatformOps::createTcpSocket();
-#else
-    // Check for needed fd allocation.
-    if(m_fd == 0)
-        m_fd = SocketOps::CreateTCPFileDescriptor();
-#endif
 
     sLogger.debug("Created Socket {}", m_fd);
 }
 
 Socket::~Socket()
-{
-}
+{}
 
-#ifdef ASCEMU_USE_AE_NETWORK
 bool Socket::Connect(const char* Address, uint32_t Port)
 {
     AscEmu::Network::AE::SocketAddressIPv4 resolvedAddress;
@@ -68,29 +53,6 @@ bool Socket::Connect(const char* Address, uint32_t Port)
     _OnConnect();
     return true;
 }
-#else
-bool Socket::Connect(const char* Address, uint32_t Port)
-{
-    struct hostent* ci = gethostbyname(Address);
-    if(ci == 0)
-        return false;
-
-    m_client.sin_family = ci->h_addrtype;
-    m_client.sin_port = ntohs((u_short)Port);
-    memcpy(&m_client.sin_addr.s_addr, ci->h_addr_list[0], ci->h_length);
-
-    SocketOps::Blocking(m_fd);
-    if(connect(m_fd, (const sockaddr*)&m_client, sizeof(m_client)) == -1)
-        return false;
-
-    // at this point the connection was established
-#ifdef CONFIG_USE_IOCP
-    m_completionPort = sSocketMgr.GetCompletionPort();
-#endif
-    _OnConnect();
-    return true;
-}
-#endif
 
 void Socket::Accept(sockaddr_in* address)
 {
@@ -100,16 +62,8 @@ void Socket::Accept(sockaddr_in* address)
 
 void Socket::_OnConnect()
 {
-#ifdef ASCEMU_USE_AE_NETWORK
     AscEmu::Network::AE::SocketPlatformOps::setNonBlocking(m_fd);
     AscEmu::Network::AE::SocketPlatformOps::disableBuffering(m_fd);
-#else
-    // set common parameters on the file descriptor
-    SocketOps::Nonblocking(m_fd);
-    SocketOps::DisableBuffering(m_fd);
-    /*    SocketOps::SetRecvBufferSize(m_fd, m_writeBufferSize);
-        SocketOps::SetSendBufferSize(m_fd, m_writeBufferSize);*/
-#endif
 
     m_connected = true;
 
@@ -132,7 +86,7 @@ bool Socket::Send(const uint8_t* Bytes, uint32_t Size)
     // This is really just a wrapper for all the burst stuff.
     BurstBegin();
     rv = BurstSend(Bytes, Size);
-    if(rv)
+    if (rv)
         BurstPush();
     BurstEnd();
 
@@ -147,7 +101,7 @@ bool Socket::BurstSend(const uint8_t* Bytes, uint32_t Size)
 std::string Socket::GetRemoteIP()
 {
     char* ip = (char*)inet_ntoa(m_client.sin_addr);
-    if(ip != NULL)
+    if (ip != NULL)
         return std::string(ip);
     else
         return std::string("noip");
@@ -169,7 +123,7 @@ void Socket::Disconnect()
     // Call virtual ondisconnect
     OnDisconnect();
 
-    if(!IsDeleted())
+    if (!IsDeleted())
         Delete();
 }
 
@@ -186,11 +140,7 @@ void Socket::Delete()
     if (IsConnected())
         Disconnect();
 
-#ifdef ASCEMU_USE_AE_NETWORK
     AscEmu::Network::AE::SocketPlatformOps::closeSocket(m_fd);
-#else
-    SocketOps::CloseSocket(m_fd);
-#endif
 
     sSocketGarbageCollector.QueueSocket(this);
 }
