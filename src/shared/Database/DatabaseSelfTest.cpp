@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "DatabaseSelfTest.hpp"
 
 #include "../Logging/Logger.hpp"
-#include "../Utilities/CallBack.h"
+#include "../Utilities/CallBack.hpp"
 #include "RowView.hpp"
 
 #include <atomic>

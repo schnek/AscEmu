@@ -22,7 +22,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
 * 2008 | Debugging/CrashHandler.cpp
-* 2008 | Utilities/CallBack.h
 * 2008 | ByteBuffer.h
 * 2008 | Cryptography/AuthCodes.h
 * 2008 | Cryptography/BigNumber.cpp
@@ -197,6 +196,9 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2014 | Network/SocketDefines.h
 * 2007 | Network/SocketOps.h
 
+### Removed on 15 June 2026
+* 2008 | Utilities/CallBack.h
+
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
 * 2015 | Exceptions/Exceptions.hpp
@@ -288,3 +290,4 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | SysInfo.cpp
 * 2026 | PerformanceCounter.hpp
 * 2026 | PerformanceCounter.cpp
+* 2026 | Utilities/CallBack.hpp

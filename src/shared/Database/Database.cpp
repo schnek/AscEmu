@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Database.hpp"
 
 #include "MySQLDatabase.hpp"
-#include "../Utilities/CallBack.h"
+#include "../Utilities/CallBack.hpp"
 #include "DatabaseRuntime.hpp"
 
 #include <chrono>

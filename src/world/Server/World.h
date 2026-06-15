@@ -14,7 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <unordered_map>
 
 #include "Platform/PerformanceCounter.hpp"
-#include "Utilities/CallBack.h"
+#include "Utilities/CallBack.hpp"
 #include "Chat/CommandTableStorage.hpp"
 
 class WorldPacket;
