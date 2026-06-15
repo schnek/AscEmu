@@ -36,6 +36,14 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // handle console input
+    void sendLoginMessage();
+    void handleConsoleInput();
+    void closeRemoteConnection();
+
+    void getConsoleAuthResult(bool result);
+
+    void testConsoleLogin(std::string& username, std::string& password, uint32_t requestno);
+
 private:
     std::unique_ptr<RemoteConsole> mRemoteConsole;
 
@@ -51,13 +59,4 @@ private:
 
     uint32_t mRequestId;
     uint8_t mFailedLoginCount;
-
-public:
-    void sendLoginMessage();
-    void handleConsoleInput();
-    void closeRemoteConnection();
-
-    void getConsoleAuthResult(bool result);
-
-    void testConsoleLogin(std::string& username, std::string& password, uint32_t requestno);
 };

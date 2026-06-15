@@ -48,24 +48,6 @@ enum OUTPACKET_RESULT
 //////////////////////////////////////////////////////////////////////////////////////////
 class SERVER_DECL WorldSocket : public Socket
 {
-// MIT
-private:
-    uint8_t AuthDigest[20];
-#if VERSION_STRING < Cata
-    uint32_t mClientBuild;
-#else
-    uint16_t mClientBuild;
-#endif
-
-public:
-#if VERSION_STRING >= Cata
-    void HandleWoWConnection(std::unique_ptr<WorldPacket> recvPacket);
-#endif
-
-    void OnConnectTwo();
-
-// MIT End
-// AGPL
 public:
     WorldSocket(SOCKET fd);
     ~WorldSocket();
@@ -103,6 +85,12 @@ public:
 
     void UpdateQueuedPackets();
 
+#if VERSION_STRING >= Cata
+    void HandleWoWConnection(std::unique_ptr<WorldPacket> recvPacket);
+#endif
+
+    void OnConnectTwo();
+
 protected:
     void _HandleAuthSession(std::unique_ptr<WorldPacket> recvPacket);
     void _HandlePing(std::unique_ptr<WorldPacket> recvPacket);
@@ -129,6 +117,13 @@ private:
     ByteBuffer mAddonInfoBuffer;
 #if VERSION_STRING >= Cata
     bool m_HandshakeReceived;
+#endif
+
+    uint8_t AuthDigest[20];
+#if VERSION_STRING < Cata
+    uint32_t mClientBuild;
+#else
+    uint16_t mClientBuild;
 #endif
 };
 

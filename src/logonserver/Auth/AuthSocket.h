@@ -58,7 +58,6 @@ public:
     void SendChallengeError(uint8_t Error);
     void SendProofError(uint8_t Error, uint8_t* M2);
     inline sAuthLogonChallenge_C* GetChallenge() { return &m_challenge; }
-    inline void SendPacket(const uint8_t* data, const uint16_t len) { send(data, len); }
 
     inline time_t GetLastRecv() { return last_recv; }
     bool removedFromSet;
