@@ -32,63 +32,62 @@ class PatchJob;
 
 class AuthSocket : public Socket
 {
-        friend class LogonCommServerSocket;
-    public:
+    friend class LogonCommServerSocket;
+public:
+    AuthSocket(SOCKET fd);
+    ~AuthSocket();
 
-        //MIT
-        void sendAuthProof(Sha1Hash sha);
-        //MIT end
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // virtual functions (Socket)
+    void onRead() override;
+    void onDisconnect() override;
 
-        // Netcore related
-        AuthSocket(SOCKET fd);
-        ~AuthSocket();
+    void sendAuthProof(Sha1Hash sha);
 
-        void onRead();
+    // Client Packet Handlers
+    void HandleChallenge();
+    void HandleProof();
+    void HandleRealmlist();
+    void HandleReconnectChallenge();
+    void HandleReconnectProof();
+    void HandleTransferAccept();
+    void HandleTransferResume();
+    void HandleTransferCancel();
 
-        // Client Packet Handlers
-        void HandleChallenge();
-        void HandleProof();
-        void HandleRealmlist();
-        void HandleReconnectChallenge();
-        void HandleReconnectProof();
-        void HandleTransferAccept();
-        void HandleTransferResume();
-        void HandleTransferCancel();
+    // Server Packet Builders
+    void SendChallengeError(uint8_t Error);
+    void SendProofError(uint8_t Error, uint8_t* M2);
+    inline sAuthLogonChallenge_C* GetChallenge() { return &m_challenge; }
+    inline void SendPacket(const uint8_t* data, const uint16_t len) { send(data, len); }
 
-        // Server Packet Builders
-        void SendChallengeError(uint8_t Error);
-        void SendProofError(uint8_t Error, uint8_t* M2);
-        inline sAuthLogonChallenge_C* GetChallenge() { return &m_challenge; }
-        inline void SendPacket(const uint8_t* data, const uint16_t len) { send(data, len); }
-        void onDisconnect();
-        inline time_t GetLastRecv() { return last_recv; }
-        bool removedFromSet;
-        inline uint32_t GetAccountID() { return m_account ? m_account->AccountId : 0; }
+    inline time_t GetLastRecv() { return last_recv; }
+    bool removedFromSet;
+    inline uint32_t GetAccountID() { return m_account ? m_account->AccountId : 0; }
 
-    protected:
+protected:
 
-        sAuthLogonChallenge_C m_challenge;
-        Account* m_account;
-        bool m_authenticated;
+    sAuthLogonChallenge_C m_challenge;
+    Account* m_account;
+    bool m_authenticated;
 
-        // BigNumbers for the SRP6 implementation
-        BigNumber N; // Safe prime
-        BigNumber g; // Generator
-        BigNumber s; // Salt
-        BigNumber v; // Verifier
-        BigNumber b; // server private value
-        BigNumber B; // server public value
-        BigNumber rs;
+    // BigNumbers for the SRP6 implementation
+    BigNumber N; // Safe prime
+    BigNumber g; // Generator
+    BigNumber s; // Salt
+    BigNumber v; // Verifier
+    BigNumber b; // server private value
+    BigNumber B; // server public value
+    BigNumber rs;
 
-        // Session Key
-        BigNumber m_sessionkey;
-        time_t last_recv;
+    // Session Key
+    BigNumber m_sessionkey;
+    time_t last_recv;
 
-    public:
+public:
 
-        // Patching stuff
-        Patch* m_patch;
-        PatchJob* m_patchJob;
+    // Patching stuff
+    Patch* m_patch;
+    PatchJob* m_patchJob;
 };
 
 #endif  //AUTHSOCKET_H

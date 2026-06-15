@@ -26,46 +26,49 @@
 
 class LogonCommServerSocket : public Socket
 {
+public:
+    LogonCommServerSocket(SOCKET fd);
+    ~LogonCommServerSocket() = default;
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // virtual functions (Socket)
+    void onRead() override;
+    void onDisconnect() override;
+    void onConnect() override;
+
+    void SendPacket(WorldPacket* data);
+    void HandlePacket(WorldPacket& recvData);
+
+    void HandleRegister(WorldPacket& recvData);
+    void HandlePing(WorldPacket& recvData);
+    void HandleSessionRequest(WorldPacket& recvData);
+    void HandleSQLExecute(WorldPacket& recvData);
+    void HandleReloadAccounts(WorldPacket& recvData);
+    void HandleAuthChallenge(WorldPacket& recvData);
+    void HandleMappingReply(WorldPacket& recvData);
+    void HandleUpdateMapping(WorldPacket& recvData);
+    void HandleTestConsoleLogin(WorldPacket& recvData);
+    void HandleDatabaseModify(WorldPacket& recvData);
+    void HandlePopulationRespond(WorldPacket& recvData);
+    void HandleRequestCheckAccount(WorldPacket& recvData);
+    void HandleRequestAllAccounts(WorldPacket& recvData);
+
+    void RefreshRealmsPop();
+
+    uint32_t authenticated;
+    bool use_crypto;
+
+    std::atomic<unsigned long> last_ping;
+    bool removed;
+    std::set<uint32_t> server_ids;
+
+private:
     uint32_t remaining;
     uint16_t opcode;
     uint32_t seed;
 
     AscEmu::RC4Engine _sendCrypto;
     AscEmu::RC4Engine _rwCrypto;
-
-    public:
-
-        uint32_t authenticated;
-        bool use_crypto;
-
-        LogonCommServerSocket(SOCKET fd);
-        ~LogonCommServerSocket() = default;
-
-        void onRead();
-        void onDisconnect();
-        void onConnect();
-        void SendPacket(WorldPacket* data);
-        void HandlePacket(WorldPacket & recvData);
-
-        void HandleRegister(WorldPacket& recvData);
-        void HandlePing(WorldPacket& recvData);
-        void HandleSessionRequest(WorldPacket& recvData);
-        void HandleSQLExecute(WorldPacket& recvData);
-        void HandleReloadAccounts(WorldPacket& recvData);
-        void HandleAuthChallenge(WorldPacket& recvData);
-        void HandleMappingReply(WorldPacket& recvData);
-        void HandleUpdateMapping(WorldPacket& recvData);
-        void HandleTestConsoleLogin(WorldPacket& recvData);
-        void HandleDatabaseModify(WorldPacket& recvData);
-        void HandlePopulationRespond(WorldPacket& recvData);
-        void HandleRequestCheckAccount(WorldPacket& recvData);
-        void HandleRequestAllAccounts(WorldPacket& recvData);
-
-        void RefreshRealmsPop();
-
-        std::atomic<unsigned long> last_ping;
-        bool removed;
-        std::set<uint32_t> server_ids;
 };
 
 typedef void (LogonCommServerSocket::*logonpacket_handler)(WorldPacket&);

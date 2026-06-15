@@ -28,49 +28,50 @@ class ByteBuffer;
 
 class LogonCommClientSocket : public Socket
 {
+public:
+    LogonCommClientSocket(SOCKET fd);
+    ~LogonCommClientSocket();
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // virtual functions (Socket)
+    void onRead() override;
+    void onDisconnect() override;
+
+    void SendPacket(WorldPacket* data, bool no_crypto);
+    void HandlePacket(WorldPacket& recvData);
+    void SendPing();
+    void SendChallenge();
+    void HandleAuthResponse(WorldPacket& recvData);
+
+    void HandleRegister(WorldPacket& recvData);
+    void HandlePong(WorldPacket& recvData);
+    void HandleSessionInfo(WorldPacket& recvData);
+    void HandleRequestAccountMapping(WorldPacket& recvData);
+    void UpdateAccountCount(uint32_t account_id, uint8_t add);
+    void HandleDisconnectAccount(WorldPacket& recvData);
+    void HandleConsoleAuthResult(WorldPacket& recvData);
+    void HandlePopulationRequest(WorldPacket& recvData);
+    void HandleModifyDatabaseResult(WorldPacket& recvData);
+    void HandleResultCheckAccount(WorldPacket& recvData);
+    void HandleResultAllAccount(WorldPacket& recvData);
+
+    void CompressAndSend(ByteBuffer& uncompressed);
+    uint32_t last_ping;
+    uint32_t last_pong;
+
+    uint32_t pingtime;
+    uint32_t latency;
+    uint32_t _id;
+    uint32_t authenticated;
+    bool use_crypto;
+    std::set<uint32_t> realm_ids;
+
+private:
     uint32_t remaining;
     uint16_t opcode;
 
     AscEmu::RC4Engine _rwCrypto;
     AscEmu::RC4Engine _sendCrypto;
-
-    public:
-        LogonCommClientSocket(SOCKET fd);
-        ~LogonCommClientSocket();
-
-        //////////////////////////////////////////////////////////////////////////////////////////
-        // virtual functions (Socket)
-        void onRead() override;
-        void onDisconnect() override;
-
-        void SendPacket(WorldPacket* data, bool no_crypto);
-        void HandlePacket(WorldPacket& recvData);
-        void SendPing();
-        void SendChallenge();
-        void HandleAuthResponse(WorldPacket& recvData);
-
-        void HandleRegister(WorldPacket& recvData);
-        void HandlePong(WorldPacket& recvData);
-        void HandleSessionInfo(WorldPacket& recvData);
-        void HandleRequestAccountMapping(WorldPacket& recvData);
-        void UpdateAccountCount(uint32_t account_id, uint8_t add);
-        void HandleDisconnectAccount(WorldPacket& recvData);
-        void HandleConsoleAuthResult(WorldPacket& recvData);
-        void HandlePopulationRequest(WorldPacket& recvData);
-        void HandleModifyDatabaseResult(WorldPacket& recvData);
-        void HandleResultCheckAccount(WorldPacket& recvData);
-        void HandleResultAllAccount(WorldPacket& recvData);
-
-        void CompressAndSend(ByteBuffer& uncompressed);
-        uint32_t last_ping;
-        uint32_t last_pong;
-
-        uint32_t pingtime;
-        uint32_t latency;
-        uint32_t _id;
-        uint32_t authenticated;
-        bool use_crypto;
-        std::set<uint32_t> realm_ids;
 };
 
 typedef void (LogonCommClientSocket::*logonpacket_handler)(WorldPacket&);

@@ -30,7 +30,6 @@ public:
 
     //////////////////////////////////////////////////////////////////////////////////////////
     // virtual functions (Socket)
-
     void onConnect() override;
     void onRead() override;
     void onDisconnect() override;
