@@ -32,7 +32,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgEnumCharactersResult.h"
 #include "Management/Guild/GuildMgr.hpp"
 #include "Server/CharacterErrors.h"
-#include "AuthCodes.h"
+#include "AuthCodes.hpp"
 #include "Logging/Logger.hpp"
 #include "Management/ArenaTeam.hpp"
 #include "Management/Charter.hpp"

@@ -29,7 +29,7 @@
 #include "WorldPacket.h"
 #include "Database/Database.hpp"
 #include "Server/World.h"
-#include "LogonCommDefines.h"
+#include "LogonCommDefines.hpp"
 #include "Logging/Logger.hpp"
 #include "Server/ConfigMgr.hpp"
 #include "Server/DatabaseDefinition.hpp"

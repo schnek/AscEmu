@@ -36,7 +36,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "IVMapManager.h"
 #include "VMapFactory.h"
 #include "GameObjectModel.h"
-#include "LogonCommDefines.h"
+#include "LogonCommDefines.hpp"
 #include "WorldConf.h"
 #include "Chat/Channel.hpp"
 #include "Chat/ChannelDefines.hpp"
