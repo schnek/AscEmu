@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include <openssl/sha.h>
-#include "Cryptography/BigNumber.h"
+#include "Cryptography/BigNumber.hpp"
 #include <openssl/evp.h>
 
 class Sha1Hash

@@ -4,7 +4,7 @@
 set(LIBRARY_NAME shared)
 
 file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.hpp)
-file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.h Cryptography/*.hpp)
+file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.hpp)
 file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.hpp)
 
 file(GLOB SRC_DEBUGGING_FILES Debugging/*.cpp Debugging/*.h Debugging/*.hpp)

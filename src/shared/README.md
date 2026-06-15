@@ -23,9 +23,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | Debugging/CrashHandler.h
 * 2008 | Debugging/CrashHandler.cpp
 * 2008 | ByteBuffer.h
-* 2008 | Cryptography/AuthCodes.h
-* 2008 | Cryptography/BigNumber.cpp
-* 2007 | Cryptography/BigNumber.h
+* 2008 | AuthCodes.h
 * 2005 | StackWalker.h
 * 2005 | StackWalker.cpp
 
@@ -198,6 +196,8 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 
 ### Removed on 15 June 2026
 * 2008 | Utilities/CallBack.h
+* 2008 | Cryptography/BigNumber.cpp
+* 2007 | Cryptography/BigNumber.h
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
@@ -212,7 +212,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2017 | Logging/LoggerDefines.hpp
 * 2017 | Utilities/Util.cpp
 * 2017 | Utilities/Util.hpp
-* 2017 | Cryptography/LogonCommDefines.h
+* 2017 | LogonCommDefines.h
 * 2017 | Cryptography/WowCrypt.cpp
 * 2017 | Cryptography/WowCrypt.hpp
 * 2017 | Threading/Thread.cpp
@@ -291,3 +291,5 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | PerformanceCounter.hpp
 * 2026 | PerformanceCounter.cpp
 * 2026 | Utilities/CallBack.hpp
+* 2026 | Cryptography/BigNumber.cpp
+* 2026 | Cryptography/BigNumber.hpp

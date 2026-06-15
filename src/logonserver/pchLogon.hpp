@@ -19,7 +19,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Config/Config.hpp>
 #include <Utilities/Strings.hpp>
 #include <Utilities/Util.hpp>
-#include <Cryptography/BigNumber.h>
+#include <Cryptography/BigNumber.hpp>
 #include <Cryptography/Sha1.hpp>
 #include <Cryptography/WowCrypt.hpp>
 #include <Database/Database.hpp>

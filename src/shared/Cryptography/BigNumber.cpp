@@ -1,197 +1,308 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
- * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
+Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
 
-#include "BigNumber.h"
+#include "BigNumber.hpp"
+
 #include <openssl/bn.h>
+#include <openssl/crypto.h>
+
 #include <algorithm>
+#include <array>
+#include <memory>
+#include <stdexcept>
+#include <vector>
 
-BigNumber::BigNumber()
+namespace
 {
-    _bn = BN_new();
-    _array = nullptr;
+    struct BnCtxDeleter
+    {
+        void operator()(BN_CTX* value) const noexcept
+        {
+            if (value != nullptr)
+            {
+                BN_CTX_free(value);
+            }
+        }
+    };
+
+    using BnCtxHandle = std::unique_ptr<BN_CTX, BnCtxDeleter>;
+
+    [[nodiscard]] BnCtxHandle createBnCtx()
+    {
+        if (BN_CTX* value = BN_CTX_new(); value != nullptr)
+        {
+            return BnCtxHandle(value);
+        }
+
+        throw std::bad_alloc();
+    }
+
+    void requirePointer(const void* value, const char* operation)
+    {
+        if (value == nullptr)
+        {
+            throw std::runtime_error(operation);
+        }
+    }
+
+    void requireSuccess(int result, const char* operation)
+    {
+        if (result != 1)
+        {
+            throw std::runtime_error(operation);
+        }
+    }
 }
 
-BigNumber::BigNumber(const BigNumber & bn)
+void BigNumber::BigNumDeleter::operator()(struct bignum_st* value) const noexcept
 {
-    _bn = BN_dup(bn._bn);
-    _array = nullptr;
+    if (value != nullptr)
+    {
+        BN_clear_free(value);
+    }
 }
 
-BigNumber::BigNumber(uint32_t val)
+void BigNumber::OpenSslStringDeleter::operator()(char* value) const noexcept
 {
-    _bn = BN_new();
-    BN_set_word(_bn, val);
-    _array = nullptr;
+    if (value != nullptr)
+    {
+        OPENSSL_free(value);
+    }
 }
 
-BigNumber::~BigNumber()
+BigNumber::BigNumHandle BigNumber::createBigNum()
 {
-    BN_free(_bn);
+    if (BIGNUM* value = BN_new(); value != nullptr)
+    {
+        return BigNumHandle(value);
+    }
+
+    throw std::bad_alloc();
 }
 
-void BigNumber::SetDword(uint32_t val)
+BigNumber::BigNumber() : m_bn(createBigNum()) {}
+
+BigNumber::BigNumber(const BigNumber& bn) : m_bn(createBigNum())
 {
-    BN_set_word(_bn, val);
+    requirePointer(BN_copy(m_bn.get(), bn.m_bn.get()), "BN_copy failed");
 }
 
-void BigNumber::SetQword(uint64_t val)
+BigNumber::BigNumber(uint32_t value) : BigNumber()
 {
-    BN_add_word(_bn, (uint32_t)(val >> 32));
-    BN_lshift(_bn, _bn, 32);
-    BN_add_word(_bn, (uint32_t)(val & 0xFFFFFFFF));
+    SetDword(value);
+}
+
+BigNumber::~BigNumber() = default;
+
+void BigNumber::invalidateCaches() noexcept
+{
+    m_byteArray.clear();
+    m_hexString.reset();
+    m_decString.reset();
+}
+
+void BigNumber::SetDword(uint32_t value)
+{
+    requireSuccess(BN_set_word(m_bn.get(), static_cast<BN_ULONG>(value)), "BN_set_word failed");
+    invalidateCaches();
+}
+
+void BigNumber::SetQword(uint64_t value)
+{
+    std::array<uint8_t, sizeof(uint64_t)> bytes{};
+
+    for (size_t i = 0; i < bytes.size(); ++i)
+    {
+        bytes[i] = static_cast<uint8_t>((value >> (i * 8U)) & 0xFFU);
+    }
+
+    SetBinary(bytes.data(), static_cast<int>(bytes.size()));
 }
 
 void BigNumber::SetBinary(const uint8_t* bytes, int len)
 {
-    uint8_t t[1000];
-    for(int i = 0; i < len; i++) t[i] = bytes[len - 1 - i];
-    BN_bin2bn(t, len, _bn);
+    invalidateCaches();
+
+    if (bytes == nullptr || len <= 0)
+    {
+        BN_zero(m_bn.get());
+        return;
+    }
+
+    std::vector<uint8_t> bigEndianBytes(static_cast<size_t>(len));
+    std::reverse_copy(bytes, bytes + len, bigEndianBytes.begin());
+
+    requirePointer(BN_bin2bn(bigEndianBytes.data(), len, m_bn.get()), "BN_bin2bn failed");
 }
 
 void BigNumber::SetHexStr(const char* str)
 {
-    BN_hex2bn(&_bn, str);
+    invalidateCaches();
+
+    if (str == nullptr || *str == '\0')
+    {
+        BN_zero(m_bn.get());
+        return;
+    }
+
+    BIGNUM* rawBigNum = m_bn.get();
+    if (BN_hex2bn(&rawBigNum, str) == 0)
+    {
+        throw std::runtime_error("BN_hex2bn failed");
+    }
+
+    if (rawBigNum != m_bn.get())
+    {
+        BigNumHandle replacement(rawBigNum);
+        m_bn.swap(replacement);
+    }
 }
 
 void BigNumber::SetRand(int numbits)
 {
-    BN_rand(_bn, numbits, 0, 1);
+    invalidateCaches();
+
+    if (numbits <= 0)
+    {
+        BN_zero(m_bn.get());
+        return;
+    }
+
+    requireSuccess(BN_rand(m_bn.get(), numbits, 0, 1), "BN_rand failed");
 }
 
-
-BigNumber& BigNumber::operator=(const BigNumber & bn)
+BigNumber& BigNumber::operator=(const BigNumber& bn)
 {
-    BN_copy(_bn, bn._bn);
+    if (this == &bn)
+    {
+        return *this;
+    }
+
+    requirePointer(BN_copy(m_bn.get(), bn.m_bn.get()), "BN_copy failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::operator+=(const BigNumber & bn)
+BigNumber BigNumber::operator+=(const BigNumber& bn)
 {
-    BN_add(_bn, _bn, bn._bn);
+    requireSuccess(BN_add(m_bn.get(), m_bn.get(), bn.m_bn.get()), "BN_add failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::operator-=(const BigNumber & bn)
+BigNumber BigNumber::operator-=(const BigNumber& bn)
 {
-    BN_sub(_bn, _bn, bn._bn);
+    requireSuccess(BN_sub(m_bn.get(), m_bn.get(), bn.m_bn.get()), "BN_sub failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::operator*=(const BigNumber & bn)
+BigNumber BigNumber::operator*=(const BigNumber& bn)
 {
-    BN_CTX* bnctx;
-
-    bnctx = BN_CTX_new();
-    BN_mul(_bn, _bn, bn._bn, bnctx);
-    BN_CTX_free(bnctx);
-
+    BnCtxHandle bnCtx = createBnCtx();
+    requireSuccess(BN_mul(m_bn.get(), m_bn.get(), bn.m_bn.get(), bnCtx.get()), "BN_mul failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::operator/=(const BigNumber & bn)
+BigNumber BigNumber::operator/=(const BigNumber& bn)
 {
-    BN_CTX* bnctx;
-
-    bnctx = BN_CTX_new();
-    BN_div(_bn, NULL, _bn, bn._bn, bnctx);
-    BN_CTX_free(bnctx);
-
+    BnCtxHandle bnCtx = createBnCtx();
+    requireSuccess(BN_div(m_bn.get(), nullptr, m_bn.get(), bn.m_bn.get(), bnCtx.get()), "BN_div failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::operator%=(const BigNumber & bn)
+BigNumber BigNumber::operator%=(const BigNumber& bn)
 {
-    BN_CTX* bnctx;
-
-    bnctx = BN_CTX_new();
-    BN_mod(_bn, _bn, bn._bn, bnctx);
-    BN_CTX_free(bnctx);
-
+    BnCtxHandle bnCtx = createBnCtx();
+    requireSuccess(BN_mod(m_bn.get(), m_bn.get(), bn.m_bn.get(), bnCtx.get()), "BN_mod failed");
+    invalidateCaches();
     return *this;
 }
 
-BigNumber BigNumber::Exp(const BigNumber & bn)
+BigNumber BigNumber::Exp(const BigNumber& bn) const
 {
-    BigNumber ret;
-    BN_CTX* bnctx;
+    BigNumber result;
+    BnCtxHandle bnCtx = createBnCtx();
 
-    bnctx = BN_CTX_new();
-    BN_exp(ret._bn, _bn, bn._bn, bnctx);
-    BN_CTX_free(bnctx);
-
-    return ret;
+    requireSuccess(BN_exp(result.m_bn.get(), m_bn.get(), bn.m_bn.get(), bnCtx.get()), "BN_exp failed");
+    return result;
 }
 
-BigNumber BigNumber::ModExp(const BigNumber & bn1, const BigNumber & bn2)
+BigNumber BigNumber::ModExp(const BigNumber& bn1, const BigNumber& bn2) const
 {
-    BigNumber ret;
-    BN_CTX* bnctx;
+    BigNumber result;
+    BnCtxHandle bnCtx = createBnCtx();
 
-    bnctx = BN_CTX_new();
-    BN_mod_exp(ret._bn, _bn, bn1._bn, bn2._bn, bnctx);
-    BN_CTX_free(bnctx);
-
-    return ret;
+    requireSuccess(BN_mod_exp(result.m_bn.get(), m_bn.get(), bn1.m_bn.get(), bn2.m_bn.get(), bnCtx.get()), "BN_mod_exp failed");
+    return result;
 }
 
-int BigNumber::GetNumBytes(void)
+int BigNumber::GetNumBytes() const
 {
-    return BN_num_bytes(_bn);
+    return BN_num_bytes(m_bn.get());
 }
 
-uint32_t BigNumber::AsDword()
+uint32_t BigNumber::AsDword() const
 {
-    return (uint32_t)BN_get_word(_bn);
+    return static_cast<uint32_t>(BN_get_word(m_bn.get()));
+}
+
+std::vector<uint8_t> BigNumber::toLittleEndianByteVector() const
+{
+    const int numBytes = GetNumBytes();
+    std::vector<uint8_t> bytes(static_cast<size_t>(numBytes));
+
+    if (numBytes == 0)
+    {
+        return bytes;
+    }
+
+    const int writtenBytes = BN_bn2bin(m_bn.get(), bytes.data());
+    if (writtenBytes != numBytes)
+    {
+        throw std::runtime_error("BN_bn2bin failed");
+    }
+
+    std::reverse(bytes.begin(), bytes.end());
+    return bytes;
 }
 
 uint8_t* BigNumber::AsByteArray()
 {
-    _array = std::make_unique<uint8_t[]>(GetNumBytes());
-    BN_bn2bin(_bn, (unsigned char*)_array.get());
-
-    std::reverse(_array.get(), _array.get() + GetNumBytes());
-
-    return _array.get();
+    m_byteArray = toLittleEndianByteVector();
+    return m_byteArray.data();
 }
 
 ByteBuffer BigNumber::AsByteBuffer()
 {
-    ByteBuffer ret(GetNumBytes());
-    ret.append(AsByteArray(), GetNumBytes());
-    return ret;
+    const std::vector<uint8_t> bytes = toLittleEndianByteVector();
+    ByteBuffer buffer(static_cast<uint32_t>(bytes.size()));
+
+    if (!bytes.empty())
+    {
+        buffer.append(bytes.data(), bytes.size());
+    }
+
+    return buffer;
 }
 
 std::vector<uint8_t> BigNumber::AsByteVector()
 {
-    std::vector<uint8_t> ret;
-    ret.resize(GetNumBytes());
-    memcpy(&ret[0], AsByteArray(), GetNumBytes());
-    return ret;
+    return toLittleEndianByteVector();
 }
 
 const char* BigNumber::AsHexStr()
 {
-    return BN_bn2hex(_bn);
+    m_hexString.reset(BN_bn2hex(m_bn.get()));
+    return m_hexString.get();
 }
 
 const char* BigNumber::AsDecStr()
 {
-    return BN_bn2dec(_bn);
+    m_decString.reset(BN_bn2dec(m_bn.get()));
+    return m_decString.get();
 }

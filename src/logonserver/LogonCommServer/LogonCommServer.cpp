@@ -21,7 +21,7 @@
 
 #include <sstream>
 
-#include "Cryptography/LogonCommDefines.h"
+#include "LogonCommDefines.h"
 
 #include "Logging/Log.hpp"
 #include "Logging/Logger.hpp"

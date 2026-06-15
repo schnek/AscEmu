@@ -14,7 +14,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "WorldPacket.h"
 #include "Server/Master.h"
 #include "Config/Config.hpp"
-#include "Cryptography/LogonCommDefines.h"
+#include "LogonCommDefines.h"
 #include "Cryptography/Sha1.hpp"
 #include "Logging/Logger.hpp"
 #include "Server/ConfigMgr.hpp"
