@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "CommonTypes.hpp"
-#include "Config/Config.h"
+#include "Config/Config.hpp"
 
 class SERVER_DECL ConfigMgr
 {

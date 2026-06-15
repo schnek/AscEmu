@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "AEVersion.hpp"
 #include "ConfigMgr.hpp"
 #include "WorldConf.h"
-#include "Config/Config.h"
+#include "Config/Config.hpp"
 #include "Map/Cells/MapCell.hpp"
 #include "Logging/Logger.hpp"
 #include "Macros/MapsMacros.hpp"

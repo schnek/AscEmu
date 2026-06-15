@@ -3,247 +3,347 @@ Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Config.h"
-#include "Logging/Logger.hpp"
-#include "Utilities/Util.hpp"
-#include <stdexcept>
+#include "Config.hpp"
 
 #include "Debugging/Errors.hpp"
+#include "Logging/Logger.hpp"
+#include "Utilities/Util.hpp"
+
+#include <algorithm>
+#include <cctype>
+#include <charconv>
+#include <cstdlib>
+#include <stdexcept>
+#include <string_view>
+#include <utility>
+
+namespace
+{
+    [[nodiscard]] std::string_view trimLeft(std::string_view value) noexcept
+    {
+        while (!value.empty())
+        {
+            const char ch = value.front();
+            if (ch != ' ' && ch != '\t' && ch != '\r')
+            {
+                break;
+            }
+
+            value.remove_prefix(1);
+        }
+
+        return value;
+    }
+
+    [[nodiscard]] std::string_view trimRight(std::string_view value) noexcept
+    {
+        while (!value.empty())
+        {
+            const char ch = value.back();
+            if (ch != ' ' && ch != '\t' && ch != '\r')
+            {
+                break;
+            }
+
+            value.remove_suffix(1);
+        }
+
+        return value;
+    }
+
+    [[nodiscard]] std::string_view trim(std::string_view value) noexcept
+    {
+        return trimRight(trimLeft(value));
+    }
+
+    [[nodiscard]] bool equalsExact(std::string_view lhs, std::string_view rhs) noexcept
+    {
+        return lhs == rhs;
+    }
+
+    [[nodiscard]] int parseIntRelaxed(std::string_view value) noexcept
+    {
+        value = trim(value);
+
+        if (value.empty())
+        {
+            return 0;
+        }
+
+        int parsedValue = 0;
+        const auto result = std::from_chars(value.data(), value.data() + value.size(), parsedValue);
+        if (result.ec == std::errc{})
+        {
+            return parsedValue;
+        }
+
+        return 0;
+    }
+
+    [[nodiscard]] float parseFloatRelaxed(std::string_view value) noexcept
+    {
+        value = trim(value);
+
+        if (value.empty())
+        {
+            return 0.0f;
+        }
+
+        std::string buffer(value);
+        char* endPtr = nullptr;
+        return std::strtof(buffer.c_str(), &endPtr);
+    }
+
+    [[nodiscard]] bool startsWith(std::string_view value, std::string_view prefix) noexcept
+    {
+        return value.size() >= prefix.size() && value.substr(0, prefix.size()) == prefix;
+    }
+}
 
 bool ConfigFile::openAndLoadConfigFile(const std::string& configFileName)
 {
-    mSettings.clear();
+    m_settings.clear();
 
-    if (!configFileName.empty())
+    if (configFileName.empty())
     {
-        const auto configFile = Util::readFileIntoString(configFileName);
-
-        return parseConfigValues(configFile);
+        return false;
     }
-    return false;
+
+    const auto configFile = Util::readFileIntoString(configFileName);
+    return parseConfigValues(configFile);
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Parser
 bool ConfigFile::parseConfigValues(std::string fileBufferString)
 {
-    std::string currentLine;
-
-    std::string::size_type lineEnding;
-    std::string::size_type lineOffset;
+    std::string_view fileBuffer(fileBufferString);
 
     bool isInMultilineComment = false;
     bool isInMultilineQuote = false;
     bool isInSectionBlock = false;
 
-    std::string currentSection = "";
-    std::string currentSettingVariable = "";
-    std::string currentSettingValue = "";
+    std::string currentSection;
+    std::string currentSettingVariable;
+    std::string currentSettingValue;
 
     ConfigSection currentSectionMap;
-    ConfigValueSetting currentValueSettingStruct;
+    ConfigValueSetting currentValueSetting;
+
+    const auto finalizeCurrentSetting = [&]() -> bool
+    {
+        if (currentSection.empty() || currentSettingVariable.empty())
+        {
+            sLogger.failure("Config parser state invalid: missing section or variable for quoted value.");
+            return false;
+        }
+
+        applySettingToStore(currentSettingValue, currentValueSetting);
+        currentSectionMap[calculateSettingHash(currentSettingVariable)] = currentValueSetting;
+
+        currentValueSetting = {};
+        currentSettingVariable.clear();
+        currentSettingValue.clear();
+        return true;
+    };
+
+    const auto finalizeCurrentSection = [&]()
+    {
+        if (!currentSection.empty())
+        {
+            m_settings[calculateSettingHash(currentSection)] = std::move(currentSectionMap);
+            currentSectionMap = ConfigSection{};
+            currentSection.clear();
+        }
+
+        currentSettingVariable.clear();
+        currentSettingValue.clear();
+        currentValueSetting = {};
+        isInSectionBlock = false;
+    };
 
     try
     {
-        for (;;)
+        while (!fileBuffer.empty())
         {
-            // grab current line
-            lineEnding = fileBufferString.find('\n');
-            if (lineEnding == std::string::npos)
+            const auto lineEnd = fileBuffer.find('\n');
+            std::string_view currentLine;
+
+            if (lineEnd == std::string_view::npos)
             {
-                if (fileBufferString.size() == 0)
-                    break;
-
-                currentLine = fileBufferString;
-                fileBufferString.clear();
-
-                goto parse;
-            }
-
-            currentLine = fileBufferString.substr(0, lineEnding);
-            fileBufferString.erase(0, lineEnding + 1);  // eol size 1
-
-            goto parse;
-
-        parse:
-            if (!currentLine.size())
-                continue;
-
-            // are we in a comment section?
-            if (!isInMultilineComment && isComment(currentLine, &isInMultilineComment))
-            {
-                // our line is a comment
-                if (!isInMultilineComment)
-                {
-                    // the entire line is a comment
-                    continue;
-                }
-            }
-
-            // handle our cases
-            if (isInMultilineComment)
-            {
-                lineOffset = currentLine.find("*/", 0);
-                if (lineOffset == std::string::npos)    // skip entire line
-                    continue;
-
-                lineOffset = currentLine.find("//", 0);
-                if (lineOffset == std::string::npos)    // skip entire line
-                    continue;
-
-                lineOffset = currentLine.find('#', 0);
-                if (lineOffset == std::string::npos)    // skip entire line
-                    continue;
-
-                // remove up to the end of the comment block
-                currentLine.erase(0, lineOffset + 1);   // eol size 1
-                isInMultilineComment = false;
-            }
-
-            if (isInSectionBlock)
-            {
-                // handle settings across multiple lines
-                if (isInMultilineQuote)
-                {
-                    // find the end of the quote block
-                    lineOffset = currentLine.find('\"');
-                    if (lineOffset == std::string::npos)
-                    {
-                        // append the whole line to the quote
-                        currentSettingValue += currentLine;
-                        currentSettingValue += "\n";
-                        continue;
-                    }
-
-                    // append part of the line to the setting
-                    currentSettingValue.append(currentLine.c_str(), lineOffset + 1);
-                    currentLine.erase(0, lineOffset + 1);
-
-                    // append the setting to the config section
-                    if (currentSection.empty() || currentSettingVariable.empty())
-                    {
-                        sLogger.failure("Quote without variable.");
-                        return false;
-                    }
-
-                    // apply the setting
-                    applySettingToStore(currentSettingValue, currentValueSettingStruct);
-
-                    // the var is done, append to the current section
-                    currentSectionMap[getSettingHash(currentSettingVariable)] = currentValueSettingStruct;
-
-                    // no longer the var or in a quote
-                    currentSettingValue.clear();
-                    currentSettingVariable.clear();
-                    isInMultilineQuote = false;
-                }
-
-                // remove spaces
-                removeSpacesInString(currentLine);
-                if (!currentLine.size())
-                    continue;
-
-                // looking for variable '=' is our seperator
-                lineOffset = currentLine.find('=');
-                if (lineOffset != std::string::npos)
-                {
-                    ASSERT(currentSettingVariable.empty());
-                    currentSettingVariable = currentLine.substr(0, lineOffset);
-
-                    // remove spaces from the end of the variable
-                    removeAllSpacesInString(currentSettingVariable);
-
-                    // remove the dir and the '=' from the line
-                    currentLine.erase(0, lineOffset + 1);
-                }
-
-                // look for opening quote. this signifies the start of a value
-                lineOffset = currentLine.find('\"');
-                if (lineOffset != std::string::npos)
-                {
-                    ASSERT(currentSettingValue.empty())
-                    ASSERT(!currentSettingVariable.empty())
-
-                    // find the ending quote
-                    lineEnding = currentLine.find('\"', lineOffset + 1);
-                    if (lineEnding != std::string::npos)
-                    {
-                        // the closing quote is on the same line
-                        currentSettingValue = currentLine.substr(lineOffset + 1, lineEnding - lineOffset - 1);
-
-                        // erase to the end
-                        currentLine.erase(0, lineEnding + 1);
-
-                        // apply the value
-                        applySettingToStore(currentSettingValue, currentValueSettingStruct);
-
-                        // the var is done, append to the current block
-                        currentSectionMap[getSettingHash(currentSettingVariable)] = currentValueSettingStruct;
-
-                        // no longer the var or in a quote
-                        currentSettingValue.clear();
-                        currentSettingVariable.clear();
-                        isInMultilineQuote = false;
-
-                        // go find other definitions on this line
-                        goto parse;
-                    }
-                    else
-                    {
-                        // closing quote is not on this line. We'll try to find it on the next
-                        currentSettingValue.append(currentLine.c_str(), lineOffset);
-
-                        // go to the next line.
-                        isInMultilineQuote = true;
-                        continue;
-                    }
-                }
-
-                // check end of the section
-                lineOffset = currentLine.find('>');
-                if (lineOffset != std::string::npos)
-                {
-                    currentLine.erase(0, lineOffset + 1);
-
-                    isInSectionBlock = false;
-
-                    // assign this block to the section map
-                    mSettings[getSettingHash(currentSection)] = currentSectionMap;
-
-                    // cleanup for next parse
-                    currentSectionMap.clear();
-                    currentSettingValue.clear();
-                    currentSettingVariable.clear();
-                    currentSection.clear();
-                }
+                currentLine = fileBuffer;
+                fileBuffer = std::string_view{};
             }
             else
             {
-                // check for start of a section since we are not in one
-                lineOffset = currentLine.find('<');
-                if (lineOffset != std::string::npos)
+                currentLine = fileBuffer.substr(0, lineEnd);
+                fileBuffer.remove_prefix(lineEnd + 1);
+            }
+
+            if (!currentLine.empty() && currentLine.back() == '\r')
+            {
+                currentLine.remove_suffix(1);
+            }
+
+            std::string_view remaining = currentLine;
+
+            while (!remaining.empty())
+            {
+                if (isInMultilineQuote)
                 {
-                    isInSectionBlock = true;
-
-                    currentLine.erase(0, lineOffset + 1);
-
-                    // find the section name
-                    lineOffset = currentLine.find(' ');
-                    if (lineOffset != std::string::npos)
+                    const auto quoteEnd = remaining.find('"');
+                    if (quoteEnd == std::string_view::npos)
                     {
-                        currentSection = currentLine.substr(0, lineOffset);
-                        currentLine.erase(0, lineOffset + 1);
+                        currentSettingValue.append(remaining.data(), remaining.size());
+                        currentSettingValue.push_back('\n');
+                        break;
                     }
-                    else
+
+                    currentSettingValue.append(remaining.data(), quoteEnd);
+                    remaining.remove_prefix(quoteEnd + 1);
+
+                    if (!finalizeCurrentSetting())
+                    {
+                        return false;
+                    }
+
+                    isInMultilineQuote = false;
+                    continue;
+                }
+
+                remaining = trimLeft(remaining);
+                if (remaining.empty())
+                {
+                    break;
+                }
+
+                if (isInMultilineComment)
+                {
+                    const auto commentEnd = remaining.find("*/");
+                    if (commentEnd == std::string_view::npos)
+                    {
+                        break;
+                    }
+
+                    remaining.remove_prefix(commentEnd + 2);
+                    isInMultilineComment = false;
+                    continue;
+                }
+
+                {
+                    std::string commentProbe(remaining);
+                    if (isComment(commentProbe, &isInMultilineComment))
+                    {
+                        if (!isInMultilineComment)
+                        {
+                            break;
+                        }
+
+                        const auto commentStart = remaining.find("/*");
+                        if (commentStart == std::string_view::npos)
+                        {
+                            break;
+                        }
+
+                        remaining.remove_prefix(commentStart + 2);
+                        continue;
+                    }
+                }
+
+                if (!isInSectionBlock)
+                {
+                    const auto sectionStart = remaining.find('<');
+                    if (sectionStart == std::string_view::npos)
+                    {
+                        break;
+                    }
+
+                    remaining.remove_prefix(sectionStart + 1);
+                    remaining = trimLeft(remaining);
+
+                    if (remaining.empty())
                     {
                         sLogger.failure("Found the beginning of a section < but the section has no name!");
                         return false;
                     }
 
-                    // skip to parse next
-                    goto parse;
+                    size_t sectionNameEnd = 0;
+                    while (sectionNameEnd < remaining.size())
+                    {
+                        const char ch = remaining[sectionNameEnd];
+                        if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '>')
+                        {
+                            break;
+                        }
+
+                        ++sectionNameEnd;
+                    }
+
+                    if (sectionNameEnd == 0)
+                    {
+                        sLogger.failure("Found the beginning of a section < but the section has no name!");
+                        return false;
+                    }
+
+                    currentSection.assign(remaining.substr(0, sectionNameEnd));
+                    remaining.remove_prefix(sectionNameEnd);
+                    isInSectionBlock = true;
+                    continue;
                 }
+
+                if (remaining.front() == '>')
+                {
+                    remaining.remove_prefix(1);
+                    finalizeCurrentSection();
+                    continue;
+                }
+
+                const auto separatorPos = remaining.find('=');
+                if (separatorPos == std::string_view::npos)
+                {
+                    break;
+                }
+
+                if (!currentSettingVariable.empty())
+                {
+                    sLogger.failure("Config parser found a new variable before the previous value was completed.");
+                    return false;
+                }
+
+                currentSettingVariable.assign(remaining.substr(0, separatorPos));
+                removeAllSpacesInString(currentSettingVariable);
+
+                remaining.remove_prefix(separatorPos + 1);
+                remaining = trimLeft(remaining);
+
+                const auto quoteStart = remaining.find('"');
+                if (quoteStart == std::string_view::npos)
+                {
+                    break;
+                }
+
+                remaining.remove_prefix(quoteStart + 1);
+
+                const auto quoteEnd = remaining.find('"');
+                if (quoteEnd != std::string_view::npos)
+                {
+                    currentSettingValue.assign(remaining.substr(0, quoteEnd));
+                    remaining.remove_prefix(quoteEnd + 1);
+
+                    if (!finalizeCurrentSetting())
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                currentSettingValue.assign(remaining);
+                currentSettingValue.push_back('\n');
+                isInMultilineQuote = true;
+                break;
             }
         }
-
     }
     catch (...)
     {
@@ -251,7 +351,6 @@ bool ConfigFile::parseConfigValues(std::string fileBufferString)
         return false;
     }
 
-    // check errors
     if (isInSectionBlock)
     {
         sLogger.failure("Unterminated section! Add > at the end of a section.");
@@ -273,78 +372,82 @@ bool ConfigFile::parseConfigValues(std::string fileBufferString)
     return true;
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Parser
 void ConfigFile::removeSpacesInString(std::string& str)
 {
-    while (str.size() && (*str.begin() == ' ' || *str.begin() == '\t'))
-        str.erase(str.begin());
+    const auto firstNonSpace = str.find_first_not_of(" \t");
+    if (firstNonSpace == std::string::npos)
+    {
+        str.clear();
+        return;
+    }
+
+    str.erase(0, firstNonSpace);
 }
 
 void ConfigFile::removeAllSpacesInString(std::string& str)
 {
-    std::string::size_type off = str.find(' ');
-    while (off != std::string::npos)
-    {
-        str.erase(off, 1);
-        off = str.find(' ');
-    }
-
-    off = str.find('\t');
-    while (off != std::string::npos)
-    {
-        str.erase(off, 1);
-        off = str.find('\t');
-    }
+    str.erase(
+        std::remove_if(
+            str.begin(),
+            str.end(),
+            [](const char ch)
+            {
+                return ch == ' ' || ch == '\t';
+            }),
+        str.end());
 }
 
 bool ConfigFile::isComment(std::string& lineString, bool* isInMultilineComment)
 {
-    std::string stemp = lineString;
-    removeSpacesInString(stemp);
+    std::string trimmedLine = lineString;
+    removeSpacesInString(trimmedLine);
 
-    if (stemp.length() == 0)
-        return false;
-
-    if (stemp[0] == '/')
+    if (trimmedLine.empty())
     {
-        if (stemp.length() < 2)
-            return false;
+        return false;
+    }
 
-        if (stemp[1] == '*')
+    if (trimmedLine[0] == '/')
+    {
+        if (trimmedLine.size() < 2)
         {
-            *isInMultilineComment = true;
+            return false;
+        }
+
+        if (trimmedLine[1] == '*')
+        {
+            if (isInMultilineComment != nullptr)
+            {
+                *isInMultilineComment = true;
+            }
+
             return true;
         }
-        else if (stemp[1] == '/')
+
+        if (trimmedLine[1] == '/')
         {
             return true;
         }
     }
 
-    if (stemp[0] == '#')
-        return true;
-
-    return false;
+    return trimmedLine[0] == '#';
 }
 
 void ConfigFile::applySettingToStore(std::string& str, ConfigValueSetting& setting)
 {
     setting.asString = str;
-    setting.asInt = atoi(str.c_str());
-    setting.asBool = (setting.asInt > 0);
-    setting.asFloat = (float)atof(str.c_str());
+    setting.asInt = parseIntRelaxed(str);
+    setting.asBool = setting.asInt > 0;
+    setting.asFloat = parseFloatRelaxed(str);
 
-    // check for yes / no answers
     if (str.length() > 1)
     {
-        // is it a bool?
-        if (str.compare("yes") == 0)
+        if (equalsExact(str, "yes"))
         {
             setting.asBool = true;
             setting.asInt = 1;
         }
-        else if (str.compare("no") == 0)
+        else if (equalsExact(str, "no"))
         {
             setting.asBool = false;
             setting.asInt = 0;
@@ -354,181 +457,216 @@ void ConfigFile::applySettingToStore(std::string& str, ConfigValueSetting& setti
 
 uint32_t ConfigFile::getSettingHash(const std::string& settingString)
 {
-    size_t stringLength = settingString.size();
-    uint32_t returnHash = 0;
+    return calculateSettingHash(settingString);
+}
 
-    for (size_t i = 0; i < stringLength; ++i)
-        returnHash += 5 * returnHash + (tolower(settingString[i]));
+uint32_t ConfigFile::calculateSettingHash(std::string_view settingString) const noexcept
+{
+    uint32_t hashValue = 0;
 
-    return returnHash;
+    for (const unsigned char ch : settingString)
+    {
+        hashValue += 5 * hashValue + static_cast<uint32_t>(std::tolower(ch));
+    }
+
+    return hashValue;
+}
+
+const ConfigFile::ConfigValueSetting* ConfigFile::findSavedSetting(std::string_view sectionName, std::string_view confName) const noexcept
+{
+    const auto sectionItr = m_settings.find(calculateSettingHash(sectionName));
+    if (sectionItr == m_settings.end())
+    {
+        return nullptr;
+    }
+
+    const auto valueItr = sectionItr->second.find(calculateSettingHash(confName));
+    if (valueItr == sectionItr->second.end())
+    {
+        return nullptr;
+    }
+
+    return &valueItr->second;
+}
+
+ConfigFile::ConfigValueSetting* ConfigFile::findSavedSetting(std::string_view sectionName, std::string_view confName) noexcept
+{
+    const auto sectionItr = m_settings.find(calculateSettingHash(sectionName));
+    if (sectionItr == m_settings.end())
+    {
+        return nullptr;
+    }
+
+    const auto valueItr = sectionItr->second.find(calculateSettingHash(confName));
+    if (valueItr == sectionItr->second.end())
+    {
+        return nullptr;
+    }
+
+    return &valueItr->second;
+}
+
+void ConfigFile::logMissingSetting(const std::string& sectionName, const std::string& confName) const
+{
+    sLogger.failure("Could not load config value: [{}].[{}]", sectionName, confName);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Get functions
 ConfigFile::ConfigValueSetting* ConfigFile::getSavedSetting(const std::string& sectionName, const std::string& confName)
 {
-    uint32_t sectionHash = getSettingHash(sectionName);
-    uint32_t configHash = getSettingHash(confName);
-
-    std::map<uint32_t, ConfigSection>::iterator itr = mSettings.find(sectionHash);
-    if (itr != mSettings.end())
+    if (auto* setting = findSavedSetting(sectionName, confName))
     {
-        ConfigSection::iterator it2 = itr->second.find(configHash);
-        if (it2 != itr->second.end())
-            return &(it2->second);
+        return setting;
     }
 
-    std::string error = "Could not load config value: [" + sectionName + "].[" + confName + "]";
-
-    throw std::invalid_argument(error);
+    throw std::invalid_argument("Could not load config value: [" + sectionName + "].[" + confName + "]");
 }
 
 std::string ConfigFile::getStringDefault(const std::string& sectionName, const std::string& confName, const std::string& defaultString)
 {
-    ConfigValueSetting* confSetting = getSavedSetting(sectionName, confName);
-    if (confSetting == nullptr)
-        return defaultString;
+    if (const auto* setting = findSavedSetting(sectionName, confName))
+    {
+        return setting->asString;
+    }
 
-    return confSetting->asString;
+    return defaultString;
 }
 
 bool ConfigFile::getBoolDefault(const std::string& sectionName, const std::string& confName, bool defaultBool)
 {
-    ConfigValueSetting* confSetting = getSavedSetting(sectionName, confName);
-    if (confSetting == nullptr)
-        return defaultBool;
+    if (const auto* setting = findSavedSetting(sectionName, confName))
+    {
+        return setting->asBool;
+    }
 
-    return confSetting->asBool;
+    return defaultBool;
 }
 
 int ConfigFile::getIntDefault(const std::string& sectionName, const std::string& confName, int defaultInt)
 {
-    ConfigValueSetting* confSetting = getSavedSetting(sectionName, confName);
-    if (confSetting == nullptr)
-        return defaultInt;
+    if (const auto* setting = findSavedSetting(sectionName, confName))
+    {
+        return setting->asInt;
+    }
 
-    return confSetting->asInt;
+    return defaultInt;
 }
 
 float ConfigFile::getFloatDefault(const std::string& sectionName, const std::string& confName, float defaultFloat)
 {
-    ConfigValueSetting* confSetting = getSavedSetting(sectionName, confName);
-    if (confSetting == nullptr)
-        return defaultFloat;
+    if (const auto* setting = findSavedSetting(sectionName, confName))
+    {
+        return setting->asFloat;
+    }
 
-    return confSetting->asFloat;
+    return defaultFloat;
 }
 
-bool ConfigFile::tryGetBool(const std::string& sectionName, const std::string& confName, bool * b)
+bool ConfigFile::tryGetBool(const std::string& sectionName, const std::string& confName, bool* b)
 {
-    try
+    if (b == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *b = setting->asBool;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *b = setting->asBool;
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }
 
 bool ConfigFile::tryGetFloat(const std::string& sectionName, const std::string& confName, float* f)
 {
-    try
+    if (f == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *f = setting->asFloat;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *f = setting->asFloat;
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }
 
 bool ConfigFile::tryGetInt(const std::string& sectionName, const std::string& confName, int* i)
 {
-    try
+    if (i == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *i = setting->asInt;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *i = setting->asInt;
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }
 
 bool ConfigFile::tryGetInt(const std::string& sectionName, const std::string& confName, uint8_t* i)
 {
-    try
+    if (i == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *i = setting->asInt;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *i = static_cast<uint8_t>(setting->asInt);
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }
 
 bool ConfigFile::tryGetInt(const std::string& sectionName, const std::string& confName, uint32_t* i)
 {
-    try
+    if (i == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *i = setting->asInt;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *i = static_cast<uint32_t>(setting->asInt);
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }
 
 bool ConfigFile::tryGetString(const std::string& sectionName, const std::string& confName, std::string* s)
 {
-    try
+    if (s == nullptr)
     {
-        if (const auto setting = getSavedSetting(sectionName, confName))
-        {
-            *s = setting->asString;
-            return true;
-        }
+        return false;
     }
 
-    catch (std::invalid_argument& e)
+    if (const auto* setting = findSavedSetting(sectionName, confName))
     {
-        sLogger.failure("{}", e.what());
-        ASSERT(false)
+        *s = setting->asString;
+        return true;
     }
+
+    logMissingSetting(sectionName, confName);
+    ASSERT(false);
     return false;
 }

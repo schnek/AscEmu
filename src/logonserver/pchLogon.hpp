@@ -16,7 +16,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Logging/Log.hpp>
 #include <Logging/Logger.hpp>
 #include <ByteBuffer.h>
-#include <Config/Config.h>
+#include <Config/Config.hpp>
 #include <Utilities/Strings.hpp>
 #include <Utilities/Util.hpp>
 #include <Cryptography/BigNumber.h>

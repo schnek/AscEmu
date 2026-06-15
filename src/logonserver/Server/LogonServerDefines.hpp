@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "Config/Config.h"
+#include "Config/Config.hpp"
 #include "CommonTypes.hpp"
 
 struct AllowedIP

@@ -5,24 +5,25 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include <map>
-#include <string>
 #include <cstdint>
+#include <string>
+#include <string_view>
+#include <unordered_map>
+
 #include "CommonTypes.hpp"
 
 class SERVER_DECL ConfigFile
 {
 public:
-
     ConfigFile() = default;
     ~ConfigFile() = default;
 
     struct ConfigValueSetting
     {
         std::string asString;
-        bool asBool;
-        int asInt;
-        float asFloat;
+        bool asBool = false;
+        int asInt = 0;
+        float asFloat = 0.0f;
     };
 
     bool openAndLoadConfigFile(const std::string& configFileName);
@@ -54,7 +55,13 @@ public:
     bool tryGetString(const std::string& sectionName, const std::string& keyName, std::string* s);
 
 private:
+    using ConfigSection = std::unordered_map<uint32_t, ConfigValueSetting>;
+    using ConfigStore = std::unordered_map<uint32_t, ConfigSection>;
 
-    typedef std::map<uint32_t, ConfigValueSetting> ConfigSection;
-    std::map<uint32_t, ConfigSection> mSettings;
+    [[nodiscard]] uint32_t calculateSettingHash(std::string_view settingString) const noexcept;
+    [[nodiscard]] const ConfigValueSetting* findSavedSetting(std::string_view sectionName, std::string_view confName) const noexcept;
+    [[nodiscard]] ConfigValueSetting* findSavedSetting(std::string_view sectionName, std::string_view confName) noexcept;
+    void logMissingSetting(const std::string& sectionName, const std::string& confName) const;
+
+    ConfigStore m_settings;
 };

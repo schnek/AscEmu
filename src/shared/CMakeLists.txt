@@ -3,7 +3,7 @@
 # set up our project name.
 set(LIBRARY_NAME shared)
 
-file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.h Config/*.hpp)
+file(GLOB SRC_CONFIG_FILES Config/*.cpp Config/*.hpp)
 file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.h Cryptography/*.hpp)
 file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.hpp)
 

@@ -22,8 +22,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
 * 2008 | Debugging/CrashHandler.cpp
-* 2008 | Config/Config.h
-* 2008 | Config/Config.cpp
 * 2008 | Utilities/CallBack.h
 * 2008 | ByteBuffer.h
 * 2008 | Cryptography/AuthCodes.h
@@ -40,6 +38,10 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | Database/DataStore.h
 * 2008 | Util.Legacy.h
 * 2008 | Util.Legacy.cpp
+
+### Removed on 23 April 2017
+* 2008 | Config/Config.h
+* 2008 | Config/Config.cpp
 
 ### Removed on 16 Sep 2017
 * 2008 | Log.Legacy.h
@@ -201,6 +203,8 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2016 | git_version.hpp
 * 2017 | ByteConverter.h
 * 2017 | Common.hpp
+* 2017 | Config/Config.cpp
+* 2017 | Config/Config.hpp
 * 2017 | Logging/Log.cpp
 * 2017 | Logging/Log.hpp
 * 2017 | Logging/LoggerDefines.hpp

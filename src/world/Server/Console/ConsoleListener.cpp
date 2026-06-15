@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include <Network/Network.hpp>
-#include <Config/Config.h>
+#include <Config/Config.hpp>
 #include "BaseConsole.h"
 #include "ConsoleCommands.h"
 #include "Server/World.h"

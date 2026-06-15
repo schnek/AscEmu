@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Logger.hpp"
 #include "LoggerDefines.hpp"
 #include "Utilities/Util.hpp"
-#include "Config/Config.h"
+#include "Config/Config.hpp"
 
 #include <string>
 #include <algorithm>
