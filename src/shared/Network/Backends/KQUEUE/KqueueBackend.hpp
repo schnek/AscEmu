@@ -64,7 +64,7 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            m_fds[socket->GetFd()] = socket;
+            m_fds[socket->getFd()] = socket;
             ++m_socketCount;
 
             struct kevent ev;
@@ -81,10 +81,10 @@ namespace AscEmu::Network
             if (socket == nullptr)
                 return;
 
-            if (m_fds[socket->GetFd()] != socket)
+            if (m_fds[socket->getFd()] != socket)
                 return;
 
-            m_fds[socket->GetFd()] = nullptr;
+            m_fds[socket->getFd()] = nullptr;
             --m_socketCount;
 
             struct kevent evWrite;
