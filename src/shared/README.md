@@ -286,10 +286,10 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Database/MySQLDatabase.cpp
 * 2026 | Database/MySQLDatabase.hpp
 * 2026 | Database/RowView.hpp
-* 2026 | SysInfo.hpp
-* 2026 | SysInfo.cpp
-* 2026 | PerformanceCounter.hpp
-* 2026 | PerformanceCounter.cpp
+* 2026 | Platform/SysInfo.hpp
+* 2026 | Platform/SysInfo.cpp
+* 2026 | Platform/PerformanceCounter.hpp
+* 2026 | Platform/PerformanceCounter.cpp
 * 2026 | Utilities/CallBack.hpp
 * 2026 | Cryptography/BigNumber.cpp
 * 2026 | Cryptography/BigNumber.hpp
