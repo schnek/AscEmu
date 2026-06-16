@@ -17,7 +17,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 ## List of Legacy files
 ### Not rewritten - yet
 * 2014 | CommonTypes.hpp
-* 2014 | CommonHelpers.hpp
 * 2008 | WorldPacket.h
 * 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
@@ -198,6 +197,9 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | Cryptography/BigNumber.cpp
 * 2007 | Cryptography/BigNumber.h
 * 2008 | AuthCodes.h
+
+### Removed on 16 June 2026
+* 2014 | CommonHelpers.hpp
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp

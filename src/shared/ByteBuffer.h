@@ -21,7 +21,6 @@
 #pragma once
 
 #include "CommonTypes.hpp"
-#include "CommonHelpers.hpp"
 #include "WoWGuid.hpp"
 #include "LocationVector.hpp"
 
@@ -464,10 +463,11 @@ public:
 
         void read(uint8_t* dest, size_t len)
         {
-            if (LIKELY(_rpos + len <= size()))
+            if (_rpos + len <= size()) [[likely]]
                 memcpy(dest, &_storage[_rpos], len);
-            else
+            else  [[unlikely]]
                 memset(dest, 0, len);
+
             _rpos += len;
         }
 
