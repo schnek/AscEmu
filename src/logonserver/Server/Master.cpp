@@ -3,7 +3,6 @@ Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-#include "Common.hpp"
 #include "Utilities/Util.hpp"
 #include "Database/DatabaseUpdater.hpp"
 #include "Logon.h"
@@ -18,7 +17,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Auth/AutoPatcher.h"
 #include <Network/Network.hpp>
 
-#include "git_version.hpp"
+#include "BuildInfo.hpp"
 #include "Console/LogonConsole.h"
 #include "LogonConf.hpp"
 #include "Database/Database.hpp"
@@ -249,7 +248,8 @@ void MasterLogon::CheckForDeadSockets()
 
 void MasterLogon::PrintBanner()
 {
-    sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "<< AscEmu {}/{}-{} {} :: Logon Server >>", gitVersion::buildHash, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+    sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "<< AscEmu {}/{}-{} {} :: Logon Server >>",
+        BuildInfo::hash, BuildInfo::config, BuildInfo::platform, BuildInfo::architecture);
     sLogger.file(AscEmu::Logging::Severity::FAILURE, AscEmu::Logging::MessageType::MINOR, "========================================================");
 }
 

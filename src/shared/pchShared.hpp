@@ -3,4 +3,4 @@
 #pragma once
 
 #include <atomic>
-#include "Common.hpp"
+#include "BuildInfo.hpp"

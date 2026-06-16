@@ -21,10 +21,9 @@
 #include "Server/Master.h"
 
 #include "AEVersion.hpp"
-#include "Common.hpp"
+#include "BuildInfo.hpp"
 #include "ConfigMgr.hpp"
 #include "DatabaseDefinition.hpp"
-#include "git_version.hpp"
 #include "OpcodeTable.hpp"
 #include "World.h"
 #include "WorldConf.h"
@@ -107,7 +106,8 @@ namespace
 
     void printBanner()
     {
-        sLogger.info("<< AscEmu {}/{}-{} {} :: World Server >>", gitVersion::buildHash, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+        sLogger.info("<< AscEmu {}/{}-{} {} :: World Server >>",
+            BuildInfo::hash, BuildInfo::config, BuildInfo::platform, BuildInfo::architecture);
         sLogger.info("========================================================");
     }
 

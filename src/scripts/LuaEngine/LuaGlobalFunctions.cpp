@@ -5,8 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "LuaGlobalFunctions.hpp"
 
-#include "Common.hpp"
-#include "git_version.hpp"
+#include "BuildInfo.hpp"
 #include "LUAEngine.hpp"
 #include "LuaGlobal.hpp"
 #include "LuaMacros.h"
@@ -295,7 +294,7 @@ int LuaGlobalFunctions::GetClientVersion(lua_State* L)
 
 int LuaGlobalFunctions::GetAERevision(lua_State* L)
 {
-    lua_pushstring(L, gitVersion::buildHash.c_str());
+    lua_pushstring(L, BuildInfo::hash.c_str());
     return 1;
 }
 
@@ -577,7 +576,7 @@ int LuaGlobalFunctions::HasTimedEventInTable(lua_State* L)
 }
 int LuaGlobalFunctions::GetPlatform(lua_State* L)
 {
-    lua_pushliteral(L, AE_PLATFORM);
+    lua_pushstring(L, BuildInfo::platform.c_str());
     return 1;
 }
 int LuaGlobalFunctions::NumberToGUID(lua_State* L)

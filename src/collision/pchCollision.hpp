@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <set>
 #include <sstream>
 #include <iomanip>
-#include <Common.hpp>
+#include <BuildInfo.hpp>
 #include <Utilities/Util.hpp>
 #include <Logging/Logger.hpp>
 #include <Models/ModelInstance.h>

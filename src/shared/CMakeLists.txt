@@ -56,7 +56,7 @@ target_link_libraries(${LIBRARY_NAME}
     fmt::fmt
 )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/Common.hpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/BuildInfo.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/BuildInfo.hpp)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp.in ${CMAKE_CURRENT_SOURCE_DIR}/AEVersion.hpp)
 
 # generate precompiled header.

@@ -49,8 +49,3 @@ if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
 endif()
 
 set(ascemu_branch ${git_branch})
-
-configure_file(
-    ${CMAKE_SOURCE_DIR}/src/shared/git_version.hpp.in
-    ${CMAKE_SOURCE_DIR}/src/shared/git_version.hpp
-)

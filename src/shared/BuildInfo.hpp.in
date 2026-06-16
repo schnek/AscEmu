@@ -1,0 +1,46 @@
+/*
+Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
+
+#pragma once
+
+#ifdef RC_INVOKED
+
+#define AE_BUILD_HASH "@git_commit@"
+#define AE_BUILD_BRANCH "@git_branch@"
+#define AE_COMMIT_TIMESTAMP "@git_commit_timestamp@"
+#define AE_BUILD_USER "@git_build_user@"
+#define AE_BUILD_HOST "@git_build_host@"
+#define AE_PLATFORM "@AE_PLATFORM@"
+#define AE_ARCHITECTURE "@AE_ARCHITECTURE@"
+
+#ifdef _DEBUG
+    #define AE_CONFIG "Debug"
+#else
+    #define AE_CONFIG "Release"
+#endif
+
+#else
+
+#include <string>
+
+namespace BuildInfo
+{
+    inline const std::string hash = "@git_commit@";
+    inline const std::string branch = "@git_branch@";
+    inline const std::string commitTimestamp = "@git_commit_timestamp@";
+    inline const std::string user = "@git_build_user@";
+    inline const std::string host = "@git_build_host@";
+    inline const std::string platform = "@AE_PLATFORM@";
+    inline const std::string architecture = "@AE_ARCHITECTURE@";
+
+#ifdef _DEBUG
+    inline const std::string config = "Debug";
+#else
+    inline const std::string config = "Release";
+#endif
+
+}
+
+#endif

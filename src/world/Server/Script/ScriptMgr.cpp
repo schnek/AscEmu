@@ -21,7 +21,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <fstream>
 
-#include <git_version.hpp>
+#include "BuildInfo.hpp"
 
 #include "AchievementScript.hpp"
 #include "Platform/DynamicLibrary.hpp"
@@ -459,9 +459,9 @@ void ScriptMgr::LoadScripts()
         std::string dllVersion = versionCall();
         uint32_t scriptType = typeCall();
 
-        if (dllVersion != gitVersion::buildHash)
+        if (dllVersion != BuildInfo::hash)
         {
-            loadMessageStream << "ERROR: Version mismatch. Expected " << gitVersion::buildHash << ", got " << dllVersion << ".";
+            loadMessageStream << "ERROR: Version mismatch. Expected " << BuildInfo::hash << ", got " << dllVersion << ".";
             sLogger.failure(loadMessageStream.str());
             continue;
         }

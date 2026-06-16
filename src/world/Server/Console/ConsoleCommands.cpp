@@ -4,11 +4,10 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "ConsoleCommands.h"
-#include <git_version.hpp>
+#include "BuildInfo.hpp""
 #include <iostream>
 #include <sstream>
 
-#include "Common.hpp"
 #include "Chat/ChatDefines.hpp"
 #include "Server/LogonCommClient/LogonCommHandler.h"
 #include "Server/Console/BaseConsole.h"
@@ -153,10 +152,11 @@ bool handleServerInfoCommand(BaseConsole* baseConsole, int /*argumentCount*/, st
         baseConsole->Write("======================================================================\r\n");
         baseConsole->Write("Server Information: \r\n");
         baseConsole->Write("======================================================================\r\n");
-        baseConsole->Write("Info: AscEmu %s/%s-%s-%s (www.ascemu.org)\r\n", gitVersion::buildHash.c_str(), CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+        baseConsole->Write("Info: AscEmu %s/%s-%s-%s (www.ascemu.org)\r\n",
+            BuildInfo::hash.c_str(), BuildInfo::config.c_str(), BuildInfo::platform.c_str(), BuildInfo::architecture.c_str());
         baseConsole->Write("Using %s/Library %s\r\n", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
         baseConsole->Write("Uptime: %s\r\n", sWorld.getWorldUptimeString().c_str());
-        baseConsole->Write("Active Branch: %s\r\n", gitVersion::buildBranch.c_str());
+        baseConsole->Write("Active Branch: %s\r\n", BuildInfo::branch.c_str());
         baseConsole->Write("Current Players: %d (%d GMs, %d queued)\r\n", clientsNum, gmCount, 0);
         baseConsole->Write("Active Thread Count: %u\r\n", sMaster().getThreadPool().activeWorkerCount());
         baseConsole->Write("Queued Thread Count: %u\r\n", sMaster().getThreadPool().queuedTaskCount());

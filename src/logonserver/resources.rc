@@ -1,5 +1,5 @@
 #include "AEVersion.hpp"
-#include "../shared/git_version.hpp"
+#include "../shared/BuildInfo.hpp"
 
 IDI_APPICON ICON DISCARDABLE "icon.ico"
 
