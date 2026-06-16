@@ -107,7 +107,7 @@ namespace
 
     void printBanner()
     {
-        sLogger.info("<< AscEmu {}/{}-{} {} :: World Server >>", AE_BUILD_HASH, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
+        sLogger.info("<< AscEmu {}/{}-{} {} :: World Server >>", gitVersion::buildHash, CONFIG, AE_PLATFORM, AE_ARCHITECTURE);
         sLogger.info("========================================================");
     }
 

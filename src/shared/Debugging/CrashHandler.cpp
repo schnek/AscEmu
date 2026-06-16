@@ -174,7 +174,7 @@ LONG WINAPI handleCrash(PEXCEPTION_POINTERS exceptionPointers)
     char filename[MAX_PATH];
     snprintf(filename, sizeof(filename),
              "CrashDumps\\dump-%s-%s-%04u-%02u-%02u-%02u-%02u-%02u-%u.dmp",
-             shortName, AE_BUILD_HASH,
+             shortName, gitVersion::buildHash.c_str(),
              systemTime.wYear, systemTime.wMonth, systemTime.wDay,
              systemTime.wHour, systemTime.wMinute, systemTime.wSecond,
              GetCurrentThreadId());

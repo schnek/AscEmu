@@ -55,10 +55,10 @@ bool ChatCommandHandler::HandleServerInfoCommand(const char* /*args*/, WorldSess
 
     uint32_t active_sessions = uint32_t(sWorld.getSessionCount());
 
-    greenSystemMessage(m_session, "Info: |r{}AscEmu {}/{}-{}-{} {}(www.ascemu.org)", MSG_COLOR_WHITE, AE_BUILD_HASH, CONFIG, AE_PLATFORM, AE_ARCHITECTURE, MSG_COLOR_LIGHTBLUE);
+    greenSystemMessage(m_session, "Info: |r{}AscEmu {}/{}-{}-{} {}(www.ascemu.org)", MSG_COLOR_WHITE, gitVersion::buildHash, CONFIG, AE_PLATFORM, AE_ARCHITECTURE, MSG_COLOR_LIGHTBLUE);
     greenSystemMessage(m_session, "Using {}/Library {}", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
     greenSystemMessage(m_session, "Uptime: |r{}", sWorld.getWorldUptimeString().c_str());
-    greenSystemMessage(m_session, "Active Branch: |r{}", AE_BUILD_BRANCH);
+    greenSystemMessage(m_session, "Active Branch: |r{}", gitVersion::buildBranch);
     greenSystemMessage(m_session, "Active Sessions: |r{}", active_sessions);
     greenSystemMessage(m_session, "Current GMs: |r{} GMs", online_gm);
     greenSystemMessage(m_session, "Current Players: |r{} ({} Peak)", online_gm > 0 ? (online_count - online_gm) : online_count, sWorld.getPeakSessionCount());

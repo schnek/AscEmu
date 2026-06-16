@@ -295,7 +295,7 @@ int LuaGlobalFunctions::GetClientVersion(lua_State* L)
 
 int LuaGlobalFunctions::GetAERevision(lua_State* L)
 {
-    lua_pushstring(L, AE_BUILD_HASH);
+    lua_pushstring(L, gitVersion::buildHash.c_str());
     return 1;
 }
 

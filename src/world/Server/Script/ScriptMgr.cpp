@@ -459,9 +459,9 @@ void ScriptMgr::LoadScripts()
         std::string dllVersion = versionCall();
         uint32_t scriptType = typeCall();
 
-        if (dllVersion != AE_BUILD_HASH)
+        if (dllVersion != gitVersion::buildHash)
         {
-            loadMessageStream << "ERROR: Version mismatch. Expected " << AE_BUILD_HASH << ", got " << dllVersion << ".";
+            loadMessageStream << "ERROR: Version mismatch. Expected " << gitVersion::buildHash << ", got " << dllVersion << ".";
             sLogger.failure(loadMessageStream.str());
             continue;
         }

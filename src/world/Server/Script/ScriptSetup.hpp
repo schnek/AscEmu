@@ -13,7 +13,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 extern "C" SCRIPT_DECL const char* _exp_get_version()
 {
-    return AE_BUILD_HASH;
+    return gitVersion::buildHash.c_str();
 }
 
 #endif

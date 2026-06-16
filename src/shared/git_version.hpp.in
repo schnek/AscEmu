@@ -1,4 +1,29 @@
-#pragma once 
+/*
+Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
+*/
+
+#pragma once
+
+#ifdef RC_INVOKED
 
 #define AE_BUILD_HASH "@git_commit@"
 #define AE_BUILD_BRANCH "@git_branch@"
+#define AE_COMMIT_TIMESTAMP "@git_commit_timestamp@"
+#define AE_BUILD_USER "@git_build_user@"
+#define AE_BUILD_HOST "@git_build_host@"
+
+#else
+
+#include <string>
+
+namespace gitVersion
+{
+    inline const std::string buildHash = "@git_commit@";
+    inline const std::string buildBranch = "@git_branch@";
+    inline const std::string commitTimestamp = "@git_commit_timestamp@";
+    inline const std::string buildUser = "@git_build_user@";
+    inline const std::string buildHost = "@git_build_host@";
+}
+
+#endif

@@ -1,26 +1,52 @@
 # Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
 include_guard(GLOBAL)
 
-# mark variables as advanced to not get them in gui
-mark_as_advanced(
-    git_commit
-    git_branch
-)
+find_package(Git QUIET)
 
-# extract git revision
-execute_process(
-    COMMAND git log -1 --format=%h
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE git_commit
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+set(git_commit "unknown")
+set(git_branch "unknown")
+set(git_commit_timestamp "unknown")
+set(git_build_user "$ENV{USERNAME}")
+set(git_build_host "$ENV{COMPUTERNAME}")
 
-execute_process(
-    COMMAND git rev-parse --abbrev-ref HEAD
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_VARIABLE git_branch
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(UNIX)
+    if(NOT git_build_user)
+        set(git_build_user "$ENV{USER}")
+    endif()
+    if(NOT git_build_host)
+        execute_process(
+            COMMAND hostname
+            OUTPUT_VARIABLE git_build_host
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    endif()
+endif()
+
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" rev-parse --short=10 HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE git_commit
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE git_branch
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    execute_process(
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cI
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        OUTPUT_VARIABLE git_commit_timestamp
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+endif()
 
 set(ascemu_branch ${git_branch})
 
