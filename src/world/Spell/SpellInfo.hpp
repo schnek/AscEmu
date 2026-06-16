@@ -10,8 +10,9 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Definitions/PowerType.hpp"
 #include "SpellDefines.hpp"
 #include "SpellScript.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Storage/WDB/WDBDefines.hpp"
+
 #include <array>
 #include <cstdint>
 #include <optional>

@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <vector>
 #include <memory>
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include <Utilities/utf8.hpp>
 
 class CachedCharacterInfo;

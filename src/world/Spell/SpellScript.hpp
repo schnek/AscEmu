@@ -5,11 +5,12 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Definitions/AuraRemoveMode.hpp"
 #include "Definitions/ProcFlags.hpp"
 #include "Definitions/SpellFailure.hpp"
 #include "SpellScriptDefines.hpp"
+
 #include <cstdint>
 #include <vector>
 #include <math.h>

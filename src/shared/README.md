@@ -16,7 +16,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 
 ## List of Legacy files
 ### Not rewritten - yet
-* 2014 | CommonTypes.hpp
 * 2008 | WorldPacket.h
 * 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
@@ -200,6 +199,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 
 ### Removed on 16 June 2026
 * 2014 | CommonHelpers.hpp
+* 2014 | CommonTypes.hpp
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
@@ -292,6 +292,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Platform/SysInfo.cpp
 * 2026 | Platform/PerformanceCounter.hpp
 * 2026 | Platform/PerformanceCounter.cpp
+* 2026 | Platform/SymbolVisibility.hpp
 * 2026 | Utilities/CallBack.hpp
 * 2026 | Cryptography/BigNumber.cpp
 * 2026 | Cryptography/BigNumber.hpp

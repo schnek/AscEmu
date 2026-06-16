@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "Field.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include <string>
 #include <mutex>
 #include <vector>

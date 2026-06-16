@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Macros/ItemMacros.hpp"
 #include "Macros/PlayerMacros.hpp"
 #include "Management/Skill.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 
 #include <algorithm>
 #include <array>

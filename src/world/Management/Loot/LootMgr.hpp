@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Management/Loot/LootTemplate.hpp"
 
 #include <map>

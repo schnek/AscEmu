@@ -23,7 +23,7 @@
 
 #include "QuestDefines.hpp"
 #include "QuestProperties.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 
 #include <memory>
 #include <vector>

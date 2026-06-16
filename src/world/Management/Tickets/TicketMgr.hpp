@@ -5,11 +5,11 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
+#include "Platform/SymbolVisibility.hpp"
+
 #include <list>
 #include <memory>
 #include <string>
-
-#include "CommonTypes.hpp"
 
 class Field;
 class Player;

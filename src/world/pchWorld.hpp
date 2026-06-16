@@ -16,7 +16,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <utility>
 #include <sstream>
 #include "AEVersion.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "CommonTime.hpp"
 #include "CommonFilesystem.hpp"
 #include "Config/Config.hpp"

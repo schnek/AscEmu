@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Spell/Definitions/School.hpp"
 #include "Macros/CreatureMacros.hpp"
 

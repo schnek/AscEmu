@@ -20,7 +20,7 @@
 #ifndef _IVMAPMANAGER_H
 #define _IVMAPMANAGER_H
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include <string>
 #include <optional>
 #include <cstdint>

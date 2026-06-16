@@ -29,7 +29,8 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)    // Comment a
     SetupHallowsEnd(mgr);
 }
 
-#ifdef WIN32
+#ifdef _WIN32
+#include <Windows.h>
 BOOL APIENTRY DllMain(HANDLE /*hModule*/, DWORD  /*ul_reason_for_call*/, LPVOID /*lpReserved*/)
 {
     return TRUE;

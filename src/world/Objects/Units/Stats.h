@@ -22,7 +22,8 @@
 #ifndef STATS_H
 #define STATS_H
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
+
 #include <cstdint>
 
 class Unit;

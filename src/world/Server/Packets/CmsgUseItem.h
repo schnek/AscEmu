@@ -10,6 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "ManagedPacket.h"
 #include "WorldPacket.h"
 #include "Spell/SpellCastTargets.hpp"
+#include <G3D/Vector3.h>
 
 namespace AscEmu::Packets
 {

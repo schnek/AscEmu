@@ -21,7 +21,8 @@
 #ifndef EVENTABLEOBJECT_H
 #define EVENTABLEOBJECT_H
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
+
 #include <list>
 #include <map>
 #include <mutex>

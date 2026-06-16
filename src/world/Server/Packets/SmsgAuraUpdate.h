@@ -8,6 +8,9 @@ This file is released under the MIT license. See README-MIT for more information
 #include <cstdint>
 
 #include "ManagedPacket.h"
+#if VERSION_STRING == Mop
+#include "Spell/SpellAuraDefines.hpp"
+#endif
 
 namespace AscEmu::Packets
 {

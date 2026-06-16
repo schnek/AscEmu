@@ -8,7 +8,11 @@ This file is released under the MIT license. See README-MIT for more information
 #include "MessageType.hpp"
 #include "Severity.hpp"
 #include "StringFormat.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
+
+#ifdef _WIN32
+    #include <Windows.h>
+#endif
 
 // Required for fmt lib 10.0+ because enums are not formatted automatically anymore -Appled
 template <typename EnumType>

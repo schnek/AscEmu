@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "ObjectDefines.hpp"
 #include "Server/UpdateMask.h"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Server/EventableObject.h"
 #include "Units/Creatures/CreatureDefines.hpp"
 #include "MovementInfo.hpp"

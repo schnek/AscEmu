@@ -5,10 +5,11 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
+#include "Platform/SymbolVisibility.hpp"
+#include "Utilities/MathConstants.hpp"
+
 #include <optional>
 #include <cstdint>
-#include "CommonTypes.hpp"
-#include "Utilities/MathConstants.hpp"
 
 //! Optional helper class to wrap optional values within.
 template <class T>

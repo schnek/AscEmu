@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "WoWGuid.hpp"
 #include "LocationVector.hpp"
 

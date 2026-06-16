@@ -22,7 +22,7 @@
 
 #include "EquipmentSetMgr.h"
 #include "Objects/ItemDefines.hpp"
-#include "CommonTypes.hpp"
+#include "Platform/SymbolVisibility.hpp"
 #include "Macros/ItemMacros.hpp"
 
 #include <cstdint>
