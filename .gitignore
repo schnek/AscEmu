@@ -8,9 +8,7 @@
 .cache
 .vscode
 src/logonserver/logon_conf.h
-src/shared/git_version.h
-src/shared/git_version.hpp
-src/shared/Common.hpp
+src/shared/BuildInfo.hpp
 src/shared/AEVersion.hpp
 src/world/world_conf.h
 src/logonserver/LogonConf.h
