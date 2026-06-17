@@ -37,6 +37,7 @@
 #include <limits>
 #include <type_traits>
 #include <utility>
+#include <concepts>
 
 namespace byteBufferDetail
 {
@@ -49,6 +50,11 @@ namespace byteBufferDetail
         assert(value <= static_cast<size_t>(std::numeric_limits<uint32_t>::max()));
         return static_cast<uint32_t>(value);
     }
+
+    template <typename T>
+    inline constexpr bool isTrivialStreamType =
+        isBinarySerializable<std::remove_cvref_t<T>> &&
+        !std::same_as<std::remove_cvref_t<T>, bool>;
 }
 
 class SERVER_DECL ByteBuffer
@@ -225,69 +231,16 @@ public:
             put(pos, reinterpret_cast<const uint8_t*>(std::addressof(value)), sizeof(T));
         }
 
+        template <typename T> requires byteBufferDetail::isTrivialStreamType<T>
+        ByteBuffer& operator<<(const T& value)
+        {
+            append(value);
+            return *this;
+        }
+
         ByteBuffer& operator << (bool value)
         {
             append<char>(static_cast<char>(value));
-            return *this;
-        }
-
-        ByteBuffer& operator << (uint8_t value)
-        {
-            append<uint8_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (uint16_t value)
-        {
-            append<uint16_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (uint32_t value)
-        {
-            append<uint32_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (uint64_t value)
-        {
-            append<uint64_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (int8_t value)
-        {
-            append<int8_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (int16_t value)
-        {
-            append<int16_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (int32_t value)
-        {
-            append<int32_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (int64_t value)
-        {
-            append<int64_t>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (float value)
-        {
-            append<float>(value);
-            return *this;
-        }
-
-        ByteBuffer& operator << (double value)
-        {
-            append<double>(value);
             return *this;
         }
 
@@ -312,68 +265,16 @@ public:
             return *this;
         }
 
+        template <typename T> requires byteBufferDetail::isTrivialStreamType<T>
+        ByteBuffer& operator>>(T& value)
+        {
+            value = read<T>();
+            return *this;
+        }
+
         ByteBuffer& operator >> (bool& value)
         {
             value = read<char>() > 0 ? true : false;
-            return *this;
-        }
-
-        ByteBuffer& operator >> (uint8_t& value)
-        {
-            value = read<uint8_t>();
-            return *this;
-        }
-        ByteBuffer& operator >> (uint16_t& value)
-        {
-            value = read<uint16_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (uint32_t& value)
-        {
-            value = read<uint32_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (uint64_t& value)
-        {
-            value = read<uint64_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (int8_t& value)
-        {
-            value = read<int8_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (int16_t& value)
-        {
-            value = read<int16_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (int32_t& value)
-        {
-            value = read<int32_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (int64_t& value)
-        {
-            value = read<int64_t>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (float& value)
-        {
-            value = read<float>();
-            return *this;
-        }
-
-        ByteBuffer& operator >> (double& value)
-        {
-            value = read<double>();
             return *this;
         }
 
