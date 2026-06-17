@@ -2370,11 +2370,7 @@ void Object::BuildFieldUpdatePacket(Player* Target, uint32_t Index, uint32_t Val
 {
     ByteBuffer buf(500);
     buf << uint8_t(UPDATETYPE_VALUES);
-#if VERSION_STRING < Mop
     buf << GetNewGUID();
-#else
-    buf.append(GetNewGUID());
-#endif
 
     uint32_t mBlocks = Index / 32 + 1;
     buf << uint8_t(mBlocks);
@@ -2391,11 +2387,7 @@ void Object::BuildFieldUpdatePacket(Player* Target, uint32_t Index, uint32_t Val
 void Object::BuildFieldUpdatePacket(ByteBuffer* buf, uint32_t Index, uint32_t Value)
 {
     *buf << uint8_t(UPDATETYPE_VALUES);
-#if VERSION_STRING < Mop
     *buf << GetNewGUID();
-#else
-    buf->append(GetNewGUID());
-#endif
 
     uint32_t mBlocks = Index / 32 + 1;
     *buf << uint8_t(mBlocks);
