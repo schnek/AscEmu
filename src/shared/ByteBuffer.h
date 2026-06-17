@@ -34,6 +34,22 @@
 #include <list>
 #include <map>
 #include <ctime>
+#include <limits>
+#include <type_traits>
+#include <utility>
+
+namespace byteBufferDetail
+{
+    template <typename T>
+    inline constexpr bool isBinarySerializable =
+        std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>;
+
+    [[nodiscard]] inline uint32_t checkedContainerSize(size_t value)
+    {
+        assert(value <= static_cast<size_t>(std::numeric_limits<uint32_t>::max()));
+        return static_cast<uint32_t>(value);
+    }
+}
 
 class SERVER_DECL ByteBuffer
 {
@@ -42,42 +58,45 @@ public:
 
     class error {};
 
-    const static size_t DEFAULT_SIZE = 0x1000;
+    static constexpr size_t defaultSize = 0x1000;
 
     bool hadReadFailure() const { return m_readFailure; }
 
-        ByteBuffer() : _rpos(0), _wpos(0)
+        ByteBuffer() : m_readPosition(0), m_writePosition(0), m_bitPosition(8), m_currentBitValue(0)
         {
-            _storage.reserve(DEFAULT_SIZE);
-            _bitpos = 8;
-            _curbitval = 0;
+            m_vectorStorage.reserve(defaultSize);
         }
 
-        ByteBuffer(size_t res) : _rpos(0), _wpos(0)
+        ByteBuffer(size_t res) : m_readPosition(0), m_writePosition(0), m_bitPosition(8), m_currentBitValue(0)
         {
-            _storage.reserve(res);
-            _bitpos = 8;
-            _curbitval = 0;
+            m_vectorStorage.reserve(res);
         }
 
-        ByteBuffer(const ByteBuffer & buf) : _rpos(buf._rpos), _wpos(buf._wpos), _bitpos(buf._bitpos), _curbitval(buf._curbitval), _storage(buf._storage)
-        {}
+        ByteBuffer(const ByteBuffer& other) : m_readFailure(other.m_readFailure), m_readPosition(other.m_readPosition),
+            m_writePosition(other.m_writePosition), m_bitPosition(other.m_bitPosition),
+            m_currentBitValue(other.m_currentBitValue), m_vectorStorage(other.m_vectorStorage)
+        {
+        }
 
-        virtual ~ByteBuffer()
-        {}
+        virtual ~ByteBuffer() = default;
 
         void clear()
         {
-            _storage.clear();
-            _rpos = _wpos = 0;
-            _bitpos = 8;
-            _curbitval = 0;
+            m_vectorStorage.clear();
+            m_readPosition = 0;
+            m_writePosition = 0;
+            m_bitPosition = 8;
+            m_currentBitValue = 0;
+            m_readFailure = false;
         }
 
-        template <typename T> void append(T value)
+        template <typename T>
+        void append(T value)
         {
+            static_assert(byteBufferDetail::isBinarySerializable<T>, "ByteBuffer::append(T) requires a trivially copyable type");
+
             flushBits();
-            append(reinterpret_cast<uint8_t *>(&value), sizeof(value));
+            append(reinterpret_cast<const uint8_t*>(std::addressof(value)), sizeof(T));
         }
 
         void appendPackXYZ(float x, float y, float z)
@@ -91,31 +110,32 @@ public:
 
         void flushBits()
         {
-            if (_bitpos == 8)
+            if (m_bitPosition == 8)
                 return;
 
-            append(static_cast<uint8_t *>(&_curbitval), sizeof(uint8_t));
-            _curbitval = 0;
-            _bitpos = 8;
+            append(&m_currentBitValue, sizeof(m_currentBitValue));
+            m_currentBitValue = 0;
+            m_bitPosition = 8;
         }
 
         bool writeBit(uint32_t bit)
         {
-            --_bitpos;
+            --m_bitPosition;
             if (bit)
-                _curbitval |= (1 << (_bitpos));
+                m_currentBitValue |= (1 << (m_bitPosition));
 
-            if (_bitpos == 0)
+            if (m_bitPosition == 0)
             {
-                _bitpos = 8;
-                append(static_cast<uint8_t *>(&_curbitval), sizeof(_curbitval));
-                _curbitval = 0;
+                m_bitPosition = 8;
+                append(static_cast<uint8_t *>(&m_currentBitValue), sizeof(m_currentBitValue));
+                m_currentBitValue = 0;
             }
 
             return (bit != 0);
         }
 
-        template <typename T> void writeBits(T value, size_t bits)
+        template <typename T>
+        void writeBits(T value, size_t bits)
         {
             for (int32_t i = static_cast<int32_t>(bits - 1); i >= 0; --i)
                 writeBit((value >> i) & 1);
@@ -130,17 +150,18 @@ public:
         void appendPackedTime(time_t time)
         {
             tm* lt = localtime(&time);
-            append<uint32_t>((lt->tm_year - 100) << 24 | lt->tm_mon << 20 | (lt->tm_mday - 1) << 14 | lt->tm_wday << 11 | lt->tm_hour << 6 | lt->tm_min);
+            append<uint32_t>((lt->tm_year - 100) << 24 | lt->tm_mon << 20 | (lt->tm_mday - 1) << 14 |
+                lt->tm_wday << 11 | lt->tm_hour << 6 | lt->tm_min);
         }
 
         std::string ReadString(uint32_t length)
         {
-            if (!length)
-                return std::string();
-            auto buffer = std::make_unique<char[]>(length + 1);
-            read(reinterpret_cast<uint8_t*>(buffer.get()), length);
-            std::string retval = buffer.get();
-            return retval;
+            if (length == 0)
+                return {};
+
+            std::string value(length, '\0');
+            read(reinterpret_cast<uint8_t*>(value.data()), length);
+            return value;
         }
 
         uint8_t readUInt8()
@@ -152,13 +173,13 @@ public:
 
         bool readBit()
         {
-            ++_bitpos;
-            if (_bitpos > 7)
+            ++m_bitPosition;
+            if (m_bitPosition > 7)
             {
-                _bitpos = 0;
-                _curbitval = read<uint8_t>();
+                m_bitPosition = 0;
+                m_currentBitValue = read<uint8_t>();
             }
-            bool bit = ((_curbitval >> (7 - _bitpos)) & 1) != 0;
+            bool bit = ((m_currentBitValue >> (7 - m_bitPosition)) & 1) != 0;
             return bit;
         }
 
@@ -197,9 +218,11 @@ public:
             return value;
         }
 
-        template <typename T> void put(size_t pos, T value)
+        template <typename T>
+        void put(size_t pos, T value)
         {
-            put(pos, reinterpret_cast<uint8_t*>(&value), sizeof(value));
+            static_assert(byteBufferDetail::isBinarySerializable<T>, "ByteBuffer::put(size_t, T) requires a trivially copyable type");
+            put(pos, reinterpret_cast<const uint8_t*>(std::addressof(value)), sizeof(T));
         }
 
         ByteBuffer& operator << (bool value)
@@ -404,71 +427,92 @@ public:
 
         size_t rpos()
         {
-            return _rpos;
+            return m_readPosition;
         }
 
         size_t rpos(size_t rpos)
         {
-            _rpos = rpos;
-            return _rpos;
+            m_readPosition = rpos;
+            return m_readPosition;
         }
 
         void rfinish()
         {
-            _rpos = wpos();
+            m_readPosition = wpos();
         }
 
         size_t wpos()
         {
-            return _wpos;
+            return m_writePosition;
         }
 
         size_t wpos(size_t wpos)
         {
-            _wpos = wpos;
-            return _wpos;
+            m_writePosition = wpos;
+            return m_writePosition;
         }
 
         size_t bitwpos() const
         {
-            return _wpos * 8 + 8 - _bitpos;
+            return m_writePosition * 8 + 8 - m_bitPosition;
         }
 
         size_t bitwpos(size_t newPos)
         {
-            _wpos = newPos / 8;
-            _bitpos = 8 - (newPos % 8);
-            return _wpos * 8 + 8 - _bitpos;
+            m_writePosition = newPos / 8;
+            m_bitPosition = 8 - (newPos % 8);
+            return m_writePosition * 8 + 8 - m_bitPosition;
         }
 
-        template <typename T> T read()
+        template <typename T>
+        T read()
         {
-            T r = read<T>(_rpos);
-            _rpos += sizeof(T);
-            return r;
+            static_assert(byteBufferDetail::isBinarySerializable<T>, "ByteBuffer::read<T>() requires a trivially copyable type");
+
+            const T value = read<T>(m_readPosition);
+            m_readPosition += sizeof(T);
+            return value;
         }
 
-        template <typename T> T read(size_t pos)
+        template <typename T>
+        T read(size_t pos)
         {
-            if (pos + sizeof(T) > size())
+            static_assert(byteBufferDetail::isBinarySerializable<T>, "ByteBuffer::read<T>(size_t) requires a trivially copyable type");
+
+            if (pos > size() || sizeof(T) > size() - pos)
             {
                 m_readFailure = true;
-                return static_cast<T>(0);
+                return T{};
             }
-            else
-            {
-                return *((T*)&_storage[pos]);
-            }
+
+            T value{};
+            std::memcpy(std::addressof(value), m_vectorStorage.data() + pos, sizeof(T));
+            return value;
         }
 
         void read(uint8_t* dest, size_t len)
         {
-            if (_rpos + len <= size()) [[likely]]
-                memcpy(dest, &_storage[_rpos], len);
-            else  [[unlikely]]
-                memset(dest, 0, len);
+            if (len == 0)
+                return;
 
-            _rpos += len;
+            if (dest == nullptr)
+            {
+                m_readFailure = true;
+                m_readPosition += len;
+                return;
+            }
+
+            if (m_readPosition <= size() && len <= size() - m_readPosition) [[likely]]
+            {
+                std::memcpy(dest, m_vectorStorage.data() + m_readPosition, len);
+            }
+            else [[unlikely]]
+            {
+                m_readFailure = true;
+                std::memset(dest, 0, len);
+            }
+
+            m_readPosition += len;
         }
 
         uint32_t ReadPackedTime()
@@ -494,36 +538,40 @@ public:
 
         uint8_t* contents()
         {
-            return _storage.data();
+            return m_vectorStorage.data();
         }
 
         const uint8_t* contents() const
         {
-            return &_storage[0];
+            return m_vectorStorage.data();
         }
 
         inline size_t size() const
         {
-            return _storage.size();
+            return m_vectorStorage.size();
         }
-        size_t remaining() const { return _storage.size() - _rpos; }
+
+        size_t remaining() const
+        {
+            return m_readPosition <= m_vectorStorage.size() ? (m_vectorStorage.size() - m_readPosition) : 0;
+        }
 
         bool isEmpty() const
         {
-            return _storage.empty();
+            return m_vectorStorage.empty();
         }
 
         void resize(size_t newsize)
         {
-            _storage.resize(newsize);
-            _rpos = 0;
-            _wpos = size();
+            m_vectorStorage.resize(newsize);
+            m_readPosition = 0;
+            m_writePosition = size();
         }
 
         void reserve(size_t ressize)
         {
-            if (ressize > size())
-                _storage.reserve(ressize);
+            if (ressize > m_vectorStorage.capacity())
+                m_vectorStorage.reserve(ressize);
         }
 
         void append(const char* src, size_t cnt)
@@ -531,26 +579,37 @@ public:
             return append(reinterpret_cast<const uint8_t*>(src), cnt);
         }
 
-        template<class T> void append(const T *src, size_t cnt)
+        template <class T>
+        void append(const T* src, size_t cnt)
         {
-            return append((const uint8_t *)src, cnt * sizeof(T));
+            if (src == nullptr || cnt == 0)
+                return;
+
+            append(reinterpret_cast<const uint8_t*>(src), cnt * sizeof(T));
         }
 
         void append(const uint8_t* src, size_t cnt)
         {
-            if (!cnt)
+            if (cnt == 0 || src == nullptr)
+            {
                 return;
-
-            if (!src)
-                return;
+            }
 
             assert(size() < 10000000);
 
-            if (_storage.size() < _wpos + cnt)
-                _storage.resize(_wpos + cnt);
+            if (m_writePosition > std::numeric_limits<size_t>::max() - cnt)
+            {
+                throw error{};
+            }
 
-            memcpy(&_storage[_wpos], src, cnt);
-            _wpos += cnt;
+            const size_t requiredSize = m_writePosition + cnt;
+            if (m_vectorStorage.size() < requiredSize)
+            {
+                m_vectorStorage.resize(requiredSize);
+            }
+
+            std::memcpy(m_vectorStorage.data() + m_writePosition, src, cnt);
+            m_writePosition = requiredSize;
         }
 
         void append(const ByteBuffer & buffer)
@@ -567,7 +626,7 @@ public:
             {
                 if (guid & 0xFF)
                 {
-                    _storage[mask_position] |= (1 << i);
+                    m_vectorStorage[mask_position] |= (1 << i);
                     *this << uint8_t(guid & 0xFF);
                 }
 
@@ -594,8 +653,17 @@ public:
 
         void put(size_t pos, const uint8_t* src, size_t cnt)
         {
-            assert(pos + cnt <= size());
-            memcpy(&_storage[pos], src, cnt);
+            if (cnt == 0)
+                return;
+
+            assert(src != nullptr);
+            assert(pos <= size());
+            assert(cnt <= size() - pos);
+
+            if (src == nullptr || pos > size() || cnt > size() - pos)
+                return;
+
+            std::memcpy(m_vectorStorage.data() + pos, src, cnt);
         }
 
         template <typename T> void PutBits(size_t pos, T value, uint32_t bitCount)
@@ -605,9 +673,9 @@ public:
                 size_t wp = (pos + i) / 8;
                 size_t bit = (pos + i) % 8;
                 if ((value >> (bitCount - i - 1)) & 1)
-                    _storage[wp] |= 1 << (7 - bit);
+                    m_vectorStorage[wp] |= 1 << (7 - bit);
                 else
-                    _storage[wp] &= ~(1 << (7 - bit));
+                    m_vectorStorage[wp] &= ~(1 << (7 - bit));
             }
         }
 
@@ -672,12 +740,13 @@ public:
 
         inline void reverse()
         {
-            std::reverse(_storage.begin(), _storage.end());
+            std::reverse(m_vectorStorage.begin(), m_vectorStorage.end());
         }
 
         inline void ResetRead()
         {
-            _rpos = 0;
+            m_readPosition = 0;
+            m_readFailure = false;
         }
 
         template<typename T>
@@ -688,86 +757,111 @@ public:
 
         inline void read_skip(uint32_t byte_count)
         {
-            _rpos += byte_count;
+            if (byte_count > remaining())
+            {
+                m_readFailure = true;
+                m_readPosition = size();
+                return;
+            }
+
+            m_readPosition += byte_count;
         }
 
     protected:
-        size_t _rpos, _wpos, _bitpos;
-        uint8_t _curbitval;
-        std::vector<uint8_t> _storage;
+        size_t m_readPosition;
+        size_t m_writePosition;
+        size_t m_bitPosition;
+        uint8_t m_currentBitValue;
+        std::vector<uint8_t> m_vectorStorage;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T> ByteBuffer & operator<<(ByteBuffer & b, std::vector<T> v)
+template <typename T>
+ByteBuffer& operator<<(ByteBuffer& b, const std::vector<T>& v)
 {
-    b << reinterpret_cast<uint32_t>(v.size());
-    for (typename std::vector<T>::iterator i = v.begin(); i != v.end(); ++i)
-    {
-        b << *i;
-    }
+    b << byteBufferDetail::checkedContainerSize(v.size());
+
+    for (const auto& value : v)
+        b << value;
+
     return b;
 }
 
-template <typename T> ByteBuffer & operator>>(ByteBuffer & b, std::vector<T> &v)
+template <typename T>
+ByteBuffer& operator>>(ByteBuffer& b, std::vector<T>& v)
 {
-    uint32_t vsize;
+    uint32_t vsize = 0;
     b >> vsize;
+
     v.clear();
-    while (vsize--)
+    v.reserve(vsize);
+
+    while (vsize-- > 0)
     {
-        T t;
-        b >> t;
-        v.push_back(t);
+        T value{};
+        b >> value;
+        v.push_back(std::move(value));
     }
+
     return b;
 }
 
-template <typename T> ByteBuffer & operator<<(ByteBuffer & b, std::list<T> v)
+template <typename T>
+ByteBuffer& operator<<(ByteBuffer& b, const std::list<T>& v)
 {
-    b << reinterpret_cast<uint32_t>(v.size());
-    for (typename std::list<T>::iterator i = v.begin(); i != v.end(); ++i)
-    {
-        b << *i;
-    }
+    b << byteBufferDetail::checkedContainerSize(v.size());
+
+    for (const auto& value : v)
+        b << value;
+
     return b;
 }
 
-template <typename T> ByteBuffer & operator>>(ByteBuffer & b, std::list<T> &v)
+template <typename T>
+ByteBuffer& operator>>(ByteBuffer& b, std::list<T>& v)
 {
-    uint32_t vsize;
+    uint32_t vsize = 0;
     b >> vsize;
+
     v.clear();
-    while (vsize--)
+
+    while (vsize-- > 0)
     {
-        T t;
-        b >> t;
-        v.push_back(t);
+        T value{};
+        b >> value;
+        v.push_back(std::move(value));
     }
+
     return b;
 }
 
-template <typename K, typename V> ByteBuffer & operator<<(ByteBuffer & b, std::map<K, V> &m)
+template <typename K, typename V>
+ByteBuffer& operator<<(ByteBuffer& b, const std::map<K, V>& m)
 {
-    b << reinterpret_cast<uint32_t>(m.size());
-    for (typename std::map<K, V>::iterator i = m.begin(); i != m.end(); ++i)
-    {
-        b << i->first << i->second;
-    }
+    b << byteBufferDetail::checkedContainerSize(m.size());
+
+    for (const auto& [key, value] : m)
+        b << key << value;
+
     return b;
 }
 
-template <typename K, typename V> ByteBuffer & operator>>(ByteBuffer & b, std::map<K, V> &m)
+template <typename K, typename V>
+ByteBuffer& operator>>(ByteBuffer& b, std::map<K, V>& m)
 {
-    uint32_t msize;
+    uint32_t msize = 0;
     b >> msize;
+
     m.clear();
-    while (msize--)
+
+    while (msize-- > 0)
     {
-        K k;
-        V v;
-        b >> k >> v;
-        m.insert(make_pair(k, v));
+        K key{};
+        V value{};
+        b >> key >> value;
+        m.emplace(std::move(key), std::move(value));
     }
+
     return b;
 }

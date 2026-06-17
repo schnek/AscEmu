@@ -20,7 +20,7 @@ public:
     void Initialize(uint16_t opcode, size_t newres = 200)
     {
         clear();
-        _storage.reserve(newres);
+        m_vectorStorage.reserve(newres);
         m_opcode = opcode;
     }
 
