@@ -52,9 +52,23 @@ namespace byteBufferDetail
     }
 
     template <typename T>
-    inline constexpr bool isTrivialStreamType =
-        isBinarySerializable<std::remove_cvref_t<T>> &&
-        !std::same_as<std::remove_cvref_t<T>, bool>;
+    using Decayed = std::remove_cv_t<std::remove_reference_t<T>>;
+
+    template <typename T>
+    inline constexpr bool isPacketScalar =
+        std::same_as<Decayed<T>, uint8_t> ||
+        std::same_as<Decayed<T>, uint16_t> ||
+        std::same_as<Decayed<T>, uint32_t> ||
+        std::same_as<Decayed<T>, uint64_t> ||
+        std::same_as<Decayed<T>, int8_t> ||
+        std::same_as<Decayed<T>, int16_t> ||
+        std::same_as<Decayed<T>, int32_t> ||
+        std::same_as<Decayed<T>, int64_t> ||
+        std::same_as<Decayed<T>, float> ||
+        std::same_as<Decayed<T>, double>;
+
+    template <typename T>
+    concept PacketScalar = isPacketScalar<T>;
 }
 
 class SERVER_DECL ByteBuffer
@@ -103,6 +117,13 @@ public:
 
             flushBits();
             append(reinterpret_cast<const uint8_t*>(std::addressof(value)), sizeof(T));
+        }
+
+        void append(const WoWGuid& value)
+        {
+            flushBits();
+            append<uint8_t>(value.getNewGuidMask());
+            append(value.getNewGuid(), value.getNewGuidLen());
         }
 
         void appendPackXYZ(float x, float y, float z)
@@ -231,10 +252,11 @@ public:
             put(pos, reinterpret_cast<const uint8_t*>(std::addressof(value)), sizeof(T));
         }
 
-        template <typename T> requires byteBufferDetail::isTrivialStreamType<T>
-        ByteBuffer& operator<<(const T& value)
+        template <byteBufferDetail::PacketScalar T>
+        ByteBuffer& operator<<(T value)
         {
-            append(value);
+            using ValueType = byteBufferDetail::Decayed<T>;
+            append<ValueType>(static_cast<ValueType>(value));
             return *this;
         }
 
@@ -244,31 +266,37 @@ public:
             return *this;
         }
 
-        ByteBuffer& operator << (const std::string& value)
+        ByteBuffer& operator<<(const std::string& value)
         {
-            append((uint8_t*)value.c_str(), value.length());
+            append(reinterpret_cast<const uint8_t*>(value.c_str()), value.length());
             append(static_cast<uint8_t>(0));
             return *this;
         }
 
-        ByteBuffer& operator << (const char* str)
+        ByteBuffer& operator<<(const char* str)
         {
-            append((uint8_t*)str, strlen(str));
+            if (str == nullptr)
+            {
+                append(static_cast<uint8_t>(0));
+                return *this;
+            }
+
+            append(reinterpret_cast<const uint8_t*>(str), std::strlen(str));
             append(static_cast<uint8_t>(0));
             return *this;
         }
 
-        ByteBuffer& operator << (const WoWGuid& value)
+        ByteBuffer& operator<<(const WoWGuid& value)
         {
-            append<uint8_t>(value.getNewGuidMask());
-            append(const_cast<uint8_t*>(value.getNewGuid()), value.getNewGuidLen());
+            append(value);
             return *this;
         }
 
-        template <typename T> requires byteBufferDetail::isTrivialStreamType<T>
+        template <byteBufferDetail::PacketScalar T>
         ByteBuffer& operator>>(T& value)
         {
-            value = read<T>();
+            using ValueType = byteBufferDetail::Decayed<T>;
+            value = static_cast<T>(read<ValueType>());
             return *this;
         }
 
