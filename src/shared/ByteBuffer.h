@@ -69,6 +69,17 @@ namespace byteBufferDetail
 
     template <typename T>
     concept PacketScalar = isPacketScalar<T>;
+
+    [[nodiscard]] inline tm toLocalTime(std::time_t timeValue)
+    {
+        tm result{};
+#if defined(_WIN32)
+        localtime_s(&result, &timeValue);
+#else
+        localtime_r(&timeValue, &result);
+#endif
+        return result;
+    }
 }
 
 class SERVER_DECL ByteBuffer
@@ -143,6 +154,19 @@ public:
             *this << packed;
         }
 
+        void appendPackedTime(std::time_t timeValue)
+        {
+            const tm localTime = byteBufferDetail::toLocalTime(timeValue);
+
+            append<uint32_t>(
+                ((static_cast<uint32_t>(localTime.tm_year - 100) & 0x1Fu) << 24u) |
+                ((static_cast<uint32_t>(localTime.tm_mon) & 0x0Fu) << 20u) |
+                ((static_cast<uint32_t>(localTime.tm_mday - 1) & 0x3Fu) << 14u) |
+                ((static_cast<uint32_t>(localTime.tm_wday) & 0x07u) << 11u) |
+                ((static_cast<uint32_t>(localTime.tm_hour) & 0x1Fu) << 6u) |
+                (static_cast<uint32_t>(localTime.tm_min) & 0x3Fu));
+        }
+
         void flushBits()
         {
             if (m_bitPosition == 8)
@@ -180,13 +204,6 @@ public:
         {
             if (!str.empty())
                 append(reinterpret_cast<const uint8_t*>(str.data()), str.size());
-        }
-
-        void appendPackedTime(time_t time)
-        {
-            tm* lt = localtime(&time);
-            append<uint32_t>((lt->tm_year - 100) << 24 | lt->tm_mon << 20 | (lt->tm_mday - 1) << 14 |
-                lt->tm_wday << 11 | lt->tm_hour << 6 | lt->tm_min);
         }
 
         std::string ReadString(uint32_t length)
@@ -450,24 +467,24 @@ public:
             m_readPosition += len;
         }
 
-        uint32_t ReadPackedTime()
+        [[nodiscard]] uint32_t readPackedTime()
         {
-            uint32_t packedDate = read<uint32_t>();
-            tm lt = tm();
+            const uint32_t packedDate = read<uint32_t>();
 
-            lt.tm_min = packedDate & 0x3F;
-            lt.tm_hour = (packedDate >> 6) & 0x1F;
-            //lt.tm_wday = (packedDate >> 11) & 7;
-            lt.tm_mday = ((packedDate >> 14) & 0x3F) + 1;
-            lt.tm_mon = (packedDate >> 20) & 0xF;
-            lt.tm_year = ((packedDate >> 24) & 0x1F) + 100;
+            tm localTime{};
+            localTime.tm_min = packedDate & 0x3Fu;
+            localTime.tm_hour = (packedDate >> 6u) & 0x1Fu;
+            localTime.tm_mday = ((packedDate >> 14u) & 0x3Fu) + 1;
+            localTime.tm_mon = (packedDate >> 20u) & 0x0Fu;
+            localTime.tm_year = ((packedDate >> 24u) & 0x1Fu) + 100;
+            localTime.tm_isdst = -1;
 
-            return uint32_t(mktime(&lt));
+            return static_cast<uint32_t>(std::mktime(&localTime));
         }
 
-        ByteBuffer& ReadPackedTime(uint32_t& time)
+        ByteBuffer& readPackedTime(uint32_t& value)
         {
-            time = ReadPackedTime();
+            value = readPackedTime();
             return *this;
         }
 

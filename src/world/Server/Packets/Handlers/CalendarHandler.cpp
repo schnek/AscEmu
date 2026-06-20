@@ -66,8 +66,8 @@ void WorldSession::handleCalendarAddEvent(WorldPacket& recvPacket)
     recvPacket >> repeatable;
     recvPacket >> maxInvites;
     recvPacket >> dungeonId;
-    recvPacket.ReadPackedTime(eventPackedTime);
-    recvPacket.ReadPackedTime(unkPackedTime);
+    recvPacket.readPackedTime(eventPackedTime);
+    recvPacket.readPackedTime(unkPackedTime);
     recvPacket >> flags;
 
     // \todo save it to db
