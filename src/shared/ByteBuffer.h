@@ -126,6 +126,14 @@ public:
             append(value.getNewGuid(), value.getNewGuidLen());
         }
 
+        void appendCString(const char* str, size_t length)
+        {
+            if (length != 0)
+                append(reinterpret_cast<const uint8_t*>(str), length);
+
+            append(static_cast<uint8_t>(0));
+        }
+
         void appendPackXYZ(float x, float y, float z)
         {
             uint32_t packed = 0;
@@ -168,10 +176,10 @@ public:
                 writeBit((value >> i) & 1);
         }
 
-        void WriteString(std::string const& str)
+        void WriteString(const std::string& str)
         {
-            if (size_t len = str.length())
-                append(str.c_str(), len);
+            if (!str.empty())
+                append(reinterpret_cast<const uint8_t*>(str.data()), str.size());
         }
 
         void appendPackedTime(time_t time)
@@ -268,8 +276,7 @@ public:
 
         ByteBuffer& operator<<(const std::string& value)
         {
-            append(reinterpret_cast<const uint8_t*>(value.c_str()), value.length());
-            append(static_cast<uint8_t>(0));
+            appendCString(value.c_str(), value.length());
             return *this;
         }
 
@@ -281,8 +288,7 @@ public:
                 return *this;
             }
 
-            append(reinterpret_cast<const uint8_t*>(str), std::strlen(str));
-            append(static_cast<uint8_t>(0));
+            appendCString(str, std::strlen(str));
             return *this;
         }
 
