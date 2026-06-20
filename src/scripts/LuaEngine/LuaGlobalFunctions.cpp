@@ -126,7 +126,7 @@ int LuaGlobalFunctions::GetPlayer(lua_State* L)
     return 1;
 }
 
-int LuaGlobalFunctions::GetLUAEngine(lua_State* L)  //also mapped to GetLuaEngine()
+int LuaGlobalFunctions::GetLUAEngine(lua_State* L) //also mapped to GetLuaEngine()
 {
     lua_pushstring(L, ENGINE_NAME);
     return 1;
@@ -216,7 +216,7 @@ int LuaGlobalFunctions::SendWorldMessage(lua_State* L)
     return 0;
 }
 
-int LuaGlobalFunctions::ReloadTable(lua_State* L)
+int LuaGlobalFunctions::ReloadTable(lua_State* /*L*/)
 {
     //const char* TableName = luaL_checkstring(L, 1);
     //if (AscEmu::Util::Strings::isEqual(TableName, "spell_disable"))
