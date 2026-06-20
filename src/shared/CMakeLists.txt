@@ -8,16 +8,16 @@ file(GLOB SRC_CRYPTOGRAPHY_FILES Cryptography/*.cpp Cryptography/*.hpp)
 file(GLOB SRC_DATABASE_FILES Database/*.cpp Database/*.hpp)
 
 file(GLOB SRC_DEBUGGING_FILES Debugging/*.cpp Debugging/*.hpp)
-file(GLOB SRC_EXCEPTIONS_FILES Exceptions/*.cpp Exceptions/*.h Exceptions/*.hpp)
-file(GLOB SRC_LOGGING_FILES Logging/*.cpp Logging/*.h Logging/*.hpp)
+file(GLOB SRC_EXCEPTIONS_FILES Exceptions/*.cpp Exceptions/*.hpp)
+file(GLOB SRC_LOGGING_FILES Logging/*.cpp Logging/*.hpp)
 
 file(GLOB_RECURSE SRC_NETWORK_FILES Network/*.cpp Network/*.hpp)
 
-file(GLOB SRC_REGISTRY_FILES Registry/*.cpp Registry/*.h Registry/*.hpp)
-file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.h Threading/*.hpp)
+file(GLOB SRC_REGISTRY_FILES Registry/*.cpp Registry/*.hpp)
+file(GLOB SRC_THREADING_FILES Threading/*.cpp Threading/*.hpp)
 file(GLOB SRC_UTILITIES_FILES Utilities/*.cpp Utilities/*.hpp)
 file(GLOB SRC_PLATFORM_FILES Platform/*.cpp Platform/*.hpp)
-file(GLOB SRC_LOCAL_DIR *.cpp *.h *.hpp)
+file(GLOB SRC_LOCAL_DIR *.cpp *.hpp)
 
 set(SHARED_SRCS
     ${SRC_CONFIG_FILES}
