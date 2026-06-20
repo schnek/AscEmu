@@ -19,13 +19,90 @@
 
 #include "Server/Master.hpp"
 
-#ifndef WIN32
+#include "Debugging/CrashHandler.hpp"
+#include "Debugging/StackTrace.hpp"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
+
+#ifndef _WIN32
 #include <sys/resource.h>
 #endif
 
+namespace
+{
+    void installLogonCrashHandler()
+    {
+        AscEmu::Debugging::CrashHandlerOptions crashHandlerOptions{};
+        crashHandlerOptions.processKind = AscEmu::Debugging::ProcessKind::logon;
+        AscEmu::Debugging::installCrashHandler(crashHandlerOptions);
+    }
+
+    int runLogonCrashTestStack()
+    {
+        const auto frames = AscEmu::Debugging::StackTrace::capture(0, 32);
+        if (frames.empty())
+        {
+            std::fprintf(stderr, "[logon] crash test failed: no frames captured\n");
+            return EXIT_FAILURE;
+        }
+
+        const std::string formatted = AscEmu::Debugging::StackTrace::format(frames);
+        if (formatted.empty())
+        {
+            std::fprintf(stderr, "[logon] crash test failed: formatted stack trace is empty\n");
+            return EXIT_FAILURE;
+        }
+
+        std::fprintf(stderr, "[logon] stack trace smoke test passed\n%s\n", formatted.c_str());
+        AscEmu::Debugging::requestCrashDiagnostics("logon manual stack smoke test");
+        return EXIT_SUCCESS;
+    }
+
+    [[noreturn]] void runLogonCrashTestTerminate()
+    {
+        AscEmu::Debugging::terminateWithDiagnostics("logon manual terminate test");
+    }
+
+    [[noreturn]] void runLogonCrashTestSegv()
+    {
+        volatile int* invalidPointer = nullptr;
+        *invalidPointer = 42;
+        std::abort();
+    }
+
+    int tryRunLogonCrashTests(std::string test)
+    {
+        if (test == "--crash-test-stack")
+            return runLogonCrashTestStack();
+
+        if (test == "--crash-test-terminate")
+            runLogonCrashTestTerminate();
+
+        if (test == "--crash-test-segv")
+            runLogonCrashTestSegv();
+
+        return -1;
+    }
+}
+
 int main(int argc, char** argv)
 {
-#ifndef WIN32
+    installLogonCrashHandler();
+
+//#define ASCEMU_ENABLE_CRASH_TESTS 1
+#ifdef ASCEMU_ENABLE_CRASH_TESTS
+    std::string test = "--crash-test-stack";
+    if (const int crashTestResult = tryRunLogonCrashTests(test); crashTestResult >= 0)
+    {
+        fmt::println("CrashHandler {} ended {}", test, crashTestResult == 0 ? "success" : "failed");
+    }
+#endif
+
+#ifndef _WIN32
     rlimit rl;
     if (getrlimit(RLIMIT_CORE, &rl) == -1)
         fmt::println("getrlimit failed. This could be problem.");

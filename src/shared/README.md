@@ -14,13 +14,6 @@ Keep in mind that legacy code was written mostly in C-style/c++98 and horrible o
 ### New Code
 New code has to be placed inside a MIT file. The current standard is C++20 and newer.
 
-## List of Legacy files
-### Not rewritten - yet
-* 2008 | Debugging/CrashHandler.h
-* 2008 | Debugging/CrashHandler.cpp
-* 2005 | StackWalker.h
-* 2005 | StackWalker.cpp
-
 ### Ready to remove
 
 ### Removed on 08 Jan 2017
@@ -197,15 +190,20 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 ### Removed on 16 June 2026
 * 2014 | CommonHelpers.hpp
 * 2014 | CommonTypes.hpp
+
+### Removed on 20 June 2026
 * 2008 | ByteBuffer.h
 * 2008 | WorldPacket.h
 * 2008 | LocationVector.cpp
+* 2008 | Debugging/CrashHandler.h
+* 2008 | Debugging/CrashHandler.cpp
+* 2005 | Debugging/StackWalker.h
+* 2005 | Debugging/StackWalker.cpp
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
 * 2015 | Exceptions/Exceptions.hpp
 * 2016 | BuildInfo.hpp
-* 2017 | ByteConverter.h
 * 2017 | Config/Config.cpp
 * 2017 | Config/Config.hpp
 * 2017 | Logging/Log.cpp
@@ -233,19 +231,18 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2021 | Utilities/Strings.hpp
 * 2022 | AEVersion.hpp
 * 2023 | pchShared.hpp
-* 2023 | ThreadSafeQueue.hpp
-* 2023 | CommonTime.hpp
-* 2023 | CommonFilesystem.hpp
+* 2023 | Threading/ThreadSafeQueue.hpp
+* 2023 | Utilities/CommonTime.hpp
+* 2023 | Utilities/CommonFilesystem.hpp
 * 2024 | Cryptography/Sha1.hpp
 * 2024 | Cryptography/MD5.hpp
 * 2024 | Cryptography/RC4.hpp
 * 2025 | WoWGuid.hpp
 * 2026 | Debugging/Errors.hpp
 * 2026 | Utilities/MathConstants.hpp
-* 2026 | LocationVector.cpp
-* 2026 | LocationVector.hpp
+* 2026 | Utilities/LocationVector.cpp
+* 2026 | Utilities/LocationVector.hpp
 * 2026 | Network/BipBuffer.hpp
-* 2026 | Network/NetworkBuffer.hpp - temporarily
 * 2026 | Platform/DynamicLibrary.hpp
 * 2026 | Platform/DynamicLibrary.cpp
 * 2026 | Network/Backends/EPOLL/EpollBackend.hpp
@@ -297,5 +294,10 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Cryptography/BigNumber.cpp
 * 2026 | Cryptography/BigNumber.hpp
 * 2026 | AuthCodes.hpp
-* 2026 | ByteBuffer.hpp
-* 2026 | WorldPacket.hpp
+* 2026 | Network/ByteBuffer.hpp
+* 2026 | Network/WorldPacket.hpp
+* 2026 | Debugging/CrashHandler.hpp
+* 2026 | Debugging/CrashHandler.cpp
+* 2026 | Debugging/CrashHandlerSelfTest.cpp
+* 2026 | Debugging/StackWalker.hpp
+* 2026 | Debugging/StackWalker.cpp

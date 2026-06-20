@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "Utilities/Util.hpp"
-#include "Debugging/CrashHandler.h"
+#include "Debugging/CrashHandler.hpp"
 #include "WorldRunnable.h"
 #include "World.h"
 #include "ServerState.h"

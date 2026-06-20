@@ -221,11 +221,6 @@ void MasterLogon::Run(int /*argc*/, char** /*argv*/)
     sLogger.finalize();
 }
 
-void onCrash(bool /*Terminate*/)
-{
-
-}
-
 void MasterLogon::CheckForDeadSockets()
 {
     std::lock_guard guard(m_authSocketLock);
@@ -286,7 +281,6 @@ void MasterLogon::_HookSignals()
     sLogger.info("Hooking signals...");
     signal(SIGINT, _OnSignal);
     signal(SIGTERM, _OnSignal);
-    signal(SIGABRT, _OnSignal);
 #ifdef _WIN32
     signal(SIGBREAK, _OnSignal);
 #else
@@ -296,13 +290,12 @@ void MasterLogon::_HookSignals()
 
 void MasterLogon::_UnhookSignals()
 {
-    signal(SIGINT, 0);
-    signal(SIGTERM, 0);
-    signal(SIGABRT, 0);
+    signal(SIGINT, SIG_DFL);
+    signal(SIGTERM, SIG_DFL);
 #ifdef _WIN32
-    signal(SIGBREAK, 0);
+    signal(SIGBREAK, SIG_DFL);
 #else
-    signal(SIGHUP, 0);
+    signal(SIGHUP, SIG_DFL);
 #endif
 }
 

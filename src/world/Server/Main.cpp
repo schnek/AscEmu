@@ -19,8 +19,15 @@
  */
 
 #include "Server/Master.h"
-#include "Debugging/CrashHandler.h"
 #include "ServerState.h"
+#include "Debugging/CrashHandler.hpp"
+#include "Debugging/StackTrace.hpp"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <string>
+#include <vector>
 
 #include <exception>
 
@@ -30,6 +37,60 @@
 
 namespace
 {
+    void installWorldCrashHandler()
+    {
+        AscEmu::Debugging::CrashHandlerOptions crashHandlerOptions{};
+        crashHandlerOptions.processKind = AscEmu::Debugging::ProcessKind::world;
+        AscEmu::Debugging::installCrashHandler(crashHandlerOptions);
+    }
+
+    int runWorldCrashTestStack()
+    {
+        const auto frames = AscEmu::Debugging::StackTrace::capture(0, 32);
+        if (frames.empty())
+        {
+            std::fprintf(stderr, "[world] crash test failed: no frames captured\n");
+            return EXIT_FAILURE;
+        }
+
+        const std::string formatted = AscEmu::Debugging::StackTrace::format(frames);
+        if (formatted.empty())
+        {
+            std::fprintf(stderr, "[world] crash test failed: formatted stack trace is empty\n");
+            return EXIT_FAILURE;
+        }
+
+        std::fprintf(stderr, "[world] stack trace smoke test passed\n%s\n", formatted.c_str());
+        AscEmu::Debugging::requestCrashDiagnostics("world manual stack smoke test");
+        return EXIT_SUCCESS;
+    }
+
+    [[noreturn]] void runWorldCrashTestTerminate()
+    {
+        AscEmu::Debugging::terminateWithDiagnostics("world manual terminate test");
+    }
+
+    [[noreturn]] void runWorldCrashTestSegv()
+    {
+        volatile int* invalidPointer = nullptr;
+        *invalidPointer = 42;
+        std::abort();
+    }
+
+    int tryRunWorldCrashTests(std::string test)
+    {
+        if (test == "--crash-test-stack")
+            return runWorldCrashTestStack();
+
+        if (test == "--crash-test-terminate")
+            runWorldCrashTestTerminate();
+
+        if (test == "--crash-test-segv")
+            runWorldCrashTestSegv();
+
+        return -1;
+    }
+
 #ifndef _WIN32
     int unixMain(int argc, char** argv)
     {
@@ -51,9 +112,6 @@ namespace
 
     int win32Main(int argc, char** argv)
     {
-        // This sets up the global unhandled exception filter
-        startCrashHandler();
-
         int exitCode = 1;
 
         try
@@ -76,6 +134,17 @@ namespace
 
 int main(int argc, char** argv)
 {
+    installWorldCrashHandler();
+
+//#define ASCEMU_ENABLE_CRASH_TESTS 1
+#ifdef ASCEMU_ENABLE_CRASH_TESTS
+    std::string test = "--crash-test-stack";
+    if (const int crashTestResult = tryRunWorldCrashTests(test); crashTestResult >= 0)
+    {
+        fmt::println("CrashHandler {} ended {}", test, crashTestResult == 0 ? "success" : "failed");
+    }
+#endif
+
     // Init this asap to set initTime correctly
     ServerState::instance();
 

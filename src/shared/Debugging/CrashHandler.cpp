@@ -1,212 +1,356 @@
 /*
- * AscEmu Framework based on ArcEmu MMORPG Server
- * Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
- * Copyright (C) 2008-2012 ArcEmu Team <http://www.ArcEmu.org/>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
-
-#include "BuildInfo.hpp"
-
-#include "Debugging/CrashHandler.h"
-#include "Utilities/CommonFilesystem.hpp"
-#include "Logging/Logger.hpp"
-#include <cstdarg>
-#include <atomic>
-
-#ifdef _WIN32
-#include <Windows.h>
-#include <crtdbg.h>
-#endif
-
-#include <mutex>
-
-#ifdef _WIN32
-std::mutex m_crashLock;
-
-/* *
-   @file CrashHandler.h
-   Handles crashes/exceptions on a win32 based platform, writes a dump file,
-   for later bug fixing.
+Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
+This file is released under the MIT license. See README-MIT for more information.
 */
+
+#include "Debugging/CrashHandler.hpp"
+#include "BuildInfo.hpp"
+#include "Debugging/StackTrace.hpp"
+#include "Logging/Logger.hpp"
+
+#include <atomic>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <mutex>
+#include <string>
+#include <string_view>
+
+#ifdef _WIN32
+#include <DbgHelp.h>
+#include <Windows.h>
+#else
+#include <execinfo.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <unistd.h>
+#endif
 
 namespace
 {
-    std::atomic<bool> hasDied{false}; // Thread-safe crash flag
-    bool isDebuggerAttached{false};
-}
+    using AscEmu::Debugging::CrashHandlerOptions;
+    using AscEmu::Debugging::ProcessKind;
 
-void startCrashHandler()
-{
-    isDebuggerAttached = IsDebuggerPresent();
+    std::atomic<bool> g_isInstalled{ false };
 
-    if (!isDebuggerAttached)
-    {
-        _CrtSetReportMode(_CRT_ERROR, _CRTDBG_MODE_FILE);
-        _CrtSetReportFile(_CRT_ERROR, _CRTDBG_FILE_STDERR);
-        _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
-        _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
-
-        SetUnhandledExceptionFilter(handleCrash);
-    }
-}
-
-void echo(const char* format, ...)
-{
-    va_list ap;
-    va_start(ap, format);
-    vprintf(format, ap);
-    std::string s = AscEmu::Logging::getFormattedFileName("logs", "CrashLog", false);
-    FILE* m_file = fopen(s.c_str(), "a");
-    if (!m_file)
-    {
-        va_end(ap);
-        return;
-    }
-
-    vfprintf(m_file, format, ap);
-    fclose(m_file);
-    va_end(ap);
-}
-
-void CStackWalker::OnSymInit(LPCSTR /*szSearchPath*/, DWORD /*symOptions*/, LPCSTR /*szUserName*/)
-{
-}
-
-void CStackWalker::OnLoadModule(LPCSTR /*img*/, LPCSTR /*mod*/, DWORD64 /*baseAddr*/, DWORD /*size*/, DWORD /*result*/, LPCSTR /*symType*/, LPCSTR /*pdbName*/, ULONGLONG /*fileVersion*/)
-{
-}
-
-void CStackWalker::OnDbgHelpErr(LPCSTR /*szFuncName*/, DWORD /*gle*/, DWORD64 /*addr*/)
-{
-}
-
-void CStackWalker::OnCallstackEntry(CallstackEntryType eType, CallstackEntry & entry)
-{
-    CHAR buffer[STACKWALK_MAX_NAMELEN];
-    if ((eType != lastEntry) && (entry.offset != 0))
-    {
-        if (entry.name[0] == 0)
-            strcpy(entry.name, "(function-name not available)");
-        if (entry.undName[0] != 0)
-            strcpy(entry.name, entry.undName);
-        if (entry.undFullName[0] != 0)
-            strcpy(entry.name, entry.undFullName);
-
-        char* p = strrchr(entry.loadedImageName, '\\');
-        if (!p)
-            p = entry.loadedImageName;
-        else
-            ++p;
-
-        if (entry.lineFileName[0] == 0)
-        {
-            if (entry.name[0] == 0)
-                sprintf(entry.name, "%lld", entry.offset);
-
-            sprintf(buffer, "%s!%s Line %u\n", p, entry.name, entry.lineNumber);
-        }
-        else
-            sprintf(buffer, "%s!%s Line %u\n", p, entry.name, entry.lineNumber);
-
-        OnOutput(buffer);
-    }
-}
-
-void CStackWalker::OnOutput(LPCSTR szText)
-{
-    std::string s = AscEmu::Logging::getFormattedFileName("logs", "CrashLog", false);
-    FILE* m_file = fopen(s.c_str(), "a");
-    if (!m_file) return;
-
-    sLogger.failure("   {}", szText);
-    fprintf(m_file, "   %s", szText);
-    fclose(m_file);
-}
-
-LONG WINAPI handleCrash(PEXCEPTION_POINTERS exceptionPointers)
-{
-    if (exceptionPointers == nullptr)
-        return EXCEPTION_CONTINUE_SEARCH;
-
-    // Only allow one thread to crash at a time
-    if (!m_crashLock.try_lock())
-    {
-        TerminateThread(GetCurrentThread(), static_cast<DWORD>(-1));
-    }
-
-    // Atomic check to prevent double faults
-    bool expected = false;
-    if (!hasDied.compare_exchange_strong(expected, true))
-    {
-        TerminateProcess(GetCurrentProcess(), static_cast<UINT>(-1));
-    }
-
-    // Create the date/time string
-    SYSTEMTIME systemTime;
-    GetLocalTime(&systemTime);
-
-    char moduleName[MAX_PATH];
-    ZeroMemory(moduleName, sizeof(moduleName));
-    if (GetModuleFileNameA(nullptr, moduleName, MAX_PATH) == 0)
-    {
-        strcpy_s(moduleName, "UNKNOWN");
-    }
-
-    char* shortName = strrchr(moduleName, '\\');
-    if (shortName)
-        shortName++; // skip the backslash
-    else
-        shortName = moduleName;
-
-    char filename[MAX_PATH];
-    snprintf(filename, sizeof(filename),
-             "CrashDumps\\dump-%s-%s-%04u-%02u-%02u-%02u-%02u-%02u-%u.dmp",
-             shortName, BuildInfo::hash.c_str(),
-             systemTime.wYear, systemTime.wMonth, systemTime.wDay,
-             systemTime.wHour, systemTime.wMinute, systemTime.wSecond,
-             GetCurrentThreadId());
-
-    CreateDirectoryA("CrashDumps", nullptr);
-    HANDLE dumpFile = CreateFileA(filename, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
-        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, nullptr);
-
-    if (dumpFile != INVALID_HANDLE_VALUE)
-    {
-        sLogger.failure("Server has crashed. Creating crash dump file {}", filename);
-
-        MINIDUMP_EXCEPTION_INFORMATION info;
-        info.ClientPointers = FALSE;
-        info.ExceptionPointers = exceptionPointers;
-        info.ThreadId = GetCurrentThreadId();
-
-        // Write the dump
-        MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
-                          dumpFile, MiniDumpWithIndirectlyReferencedMemory, &info, nullptr, nullptr);
-
-        CloseHandle(dumpFile);
-    }
-    else
-    {
-        sLogger.failure("Could not open crash dump file.");
-    }
-
-    SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
-    onCrash(!isDebuggerAttached);
-    sLogger.finalize();
-
-    return EXCEPTION_EXECUTE_HANDLER;
-}
+#ifdef _WIN32
+    std::atomic<bool> g_isHandlingCrash{ false };
+    std::mutex g_windowsCrashMutex;
+#else
+    volatile std::sig_atomic_t g_isHandlingSignalCrash = 0;
+    stack_t g_alternateStack{};
+    alignas(std::max_align_t) std::byte g_signalStack[64 * 1024];
 #endif
+
+    CrashHandlerOptions g_options{};
+    char g_processName[16] = "world";
+    char g_buildHash[128] = "unknown";
+    char g_crashDumpDirectory[256] = "CrashDumps";
+    char g_logDirectory[256] = "logs";
+
+    void copyCString(char* destination, std::size_t destinationSize, const char* source)
+    {
+        if (destination == nullptr || destinationSize == 0)
+            return;
+
+        if (source == nullptr)
+        {
+            destination[0] = '\0';
+            return;
+        }
+
+        const std::size_t sourceLength = std::strlen(source);
+        const std::size_t copyLength = sourceLength < (destinationSize - 1) ? sourceLength : (destinationSize - 1);
+
+        std::memcpy(destination, source, copyLength);
+        destination[copyLength] = '\0';
+    }
+
+    [[nodiscard]] const char* processKindToString(ProcessKind processKind) noexcept
+    {
+        return processKind == ProcessKind::logon ? "logon" : "world";
+    }
+
+    void refreshStaticOptions(const CrashHandlerOptions& options)
+    {
+        g_options = options;
+        copyCString(g_processName, sizeof(g_processName), processKindToString(options.processKind));
+        copyCString(g_crashDumpDirectory, sizeof(g_crashDumpDirectory), options.crashDumpDirectory);
+        copyCString(g_logDirectory, sizeof(g_logDirectory), options.logDirectory);
+        copyCString(g_buildHash, sizeof(g_buildHash), BuildInfo::hash.data());
+    }
+
+    void ensureOutputDirectoriesExist()
+    {
+        std::error_code errorCode;
+        std::filesystem::create_directories(g_crashDumpDirectory, errorCode);
+        std::filesystem::create_directories(g_logDirectory, errorCode);
+    }
+
+    [[nodiscard]] std::string crashLogPath()
+    {
+        return std::string(g_logDirectory) + "/CrashLog.txt";
+    }
+
+    void appendCrashLogLine(std::string_view line)
+    {
+        std::ofstream stream(crashLogPath(), std::ios::out | std::ios::app);
+        if (!stream.is_open())
+            return;
+
+        stream.write(line.data(), static_cast<std::streamsize>(line.size()));
+    }
+
+    void appendCrashLogText(std::string_view text)
+    {
+        appendCrashLogLine(text);
+        if (text.empty() || text.back() != '\n')
+            appendCrashLogLine("\n");
+    }
+
+    void logStackTraceToLoggerAndFile(std::string_view reason)
+    {
+        if (!reason.empty())
+        {
+            sLogger.failure("{}", reason);
+            appendCrashLogText(reason);
+        }
+
+        const auto frames = AscEmu::Debugging::StackTrace::capture(1, 64);
+        const std::string text = AscEmu::Debugging::StackTrace::format(frames);
+
+        if (text.empty())
+        {
+            sLogger.failure("No stack trace available.");
+            appendCrashLogText("No stack trace available.");
+            return;
+        }
+
+        std::size_t lineStart = 0;
+        while (lineStart < text.size())
+        {
+            const std::size_t lineEnd = text.find('\n', lineStart);
+            const std::size_t count = (lineEnd == std::string::npos) ? (text.size() - lineStart) : (lineEnd - lineStart);
+
+            if (count != 0)
+            {
+                const std::string_view line(text.data() + lineStart, count);
+                sLogger.failure("{}", line);
+                appendCrashLogText(line);
+            }
+
+            if (lineEnd == std::string::npos)
+                break;
+
+            lineStart = lineEnd + 1;
+        }
+    }
+
+#ifdef _WIN32
+    [[nodiscard]] std::string miniDumpPath()
+    {
+        SYSTEMTIME localTime{};
+        ::GetLocalTime(&localTime);
+
+        char path[MAX_PATH]{};
+        std::snprintf(path, sizeof(path), "%s/%s-%s-%04u-%02u-%02u-%02u-%02u-%02u-%lu.dmp",
+            g_crashDumpDirectory, g_processName, g_buildHash,
+            static_cast<unsigned>(localTime.wYear),
+            static_cast<unsigned>(localTime.wMonth),
+            static_cast<unsigned>(localTime.wDay),
+            static_cast<unsigned>(localTime.wHour),
+            static_cast<unsigned>(localTime.wMinute),
+            static_cast<unsigned>(localTime.wSecond),
+            static_cast<unsigned long>(::GetCurrentProcessId()));
+        return path;
+    }
+
+    void writeMiniDump(EXCEPTION_POINTERS* exceptionPointers)
+    {
+        if (!g_options.writeMiniDump)
+            return;
+
+        const std::string path = miniDumpPath();
+        HANDLE dumpFile = ::CreateFileA(path.c_str(), GENERIC_WRITE, 0,
+            nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+        if (dumpFile == INVALID_HANDLE_VALUE)
+        {
+            sLogger.failure("Failed to create minidump file: {}", path);
+            appendCrashLogText(std::string("Failed to create minidump file: ") + path);
+            return;
+        }
+
+        MINIDUMP_EXCEPTION_INFORMATION exceptionInfo{};
+        exceptionInfo.ThreadId = ::GetCurrentThreadId();
+        exceptionInfo.ExceptionPointers = exceptionPointers;
+        exceptionInfo.ClientPointers = FALSE;
+
+        const auto dumpType = static_cast<MINIDUMP_TYPE>( MiniDumpWithThreadInfo |
+            MiniDumpWithIndirectlyReferencedMemory | MiniDumpScanMemory);
+
+        const BOOL result = ::MiniDumpWriteDump(::GetCurrentProcess(), ::GetCurrentProcessId(),
+            dumpFile, dumpType, exceptionPointers != nullptr ? &exceptionInfo : nullptr, nullptr, nullptr);
+
+        ::CloseHandle(dumpFile);
+
+        if (result == FALSE)
+        {
+            sLogger.failure("MiniDumpWriteDump failed.");
+            appendCrashLogText("MiniDumpWriteDump failed.");
+            return;
+        }
+
+        sLogger.failure("Wrote minidump to {}", path);
+        appendCrashLogText(std::string("Wrote minidump to ") + path);
+    }
+
+    LONG WINAPI unhandledExceptionFilter(EXCEPTION_POINTERS* exceptionPointers)
+    {
+        std::unique_lock<std::mutex> lock(g_windowsCrashMutex, std::try_to_lock);
+        if (!lock.owns_lock())
+            ::TerminateProcess(::GetCurrentProcess(), EXIT_FAILURE);
+
+        if (g_isHandlingCrash.exchange(true))
+            ::TerminateProcess(::GetCurrentProcess(), EXIT_FAILURE);
+
+        ensureOutputDirectoriesExist();
+        appendCrashLogText("Unhandled Windows exception.");
+        writeMiniDump(exceptionPointers);
+        logStackTraceToLoggerAndFile("Unhandled Windows exception.");
+
+        sLogger.finalize();
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
+#else
+    void writeAll(int fileDescriptor, const char* text)
+    {
+        if (fileDescriptor < 0 || text == nullptr)
+            return;
+
+        const std::size_t totalLength = std::strlen(text);
+        std::size_t written = 0;
+
+        while (written < totalLength)
+        {
+            const ssize_t result = ::write(fileDescriptor, text + written, totalLength - written);
+            if (result <= 0)
+                return;
+
+            written += static_cast<std::size_t>(result);
+        }
+    }
+
+    [[noreturn]] void posixSignalHandler(int signalNumber, siginfo_t* /*signalInfo*/, void* /*context*/)
+    {
+        if (g_isHandlingSignalCrash != 0)
+            ::_Exit(128 + signalNumber);
+
+        g_isHandlingSignalCrash = 1;
+
+        char path[512]{};
+        std::snprintf(path, sizeof(path), "%s/%s-%s-pid-%ld-sig-%d.log",
+            g_crashDumpDirectory, g_processName, g_buildHash,
+            static_cast<long>(::getpid()), signalNumber);
+
+        int fileDescriptor = ::open(path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        if (fileDescriptor < 0)
+            fileDescriptor = STDERR_FILENO;
+
+        char header[256]{};
+        std::snprintf(header, sizeof(header), "AscEmu caught signal %d in %s process (pid=%ld, build=%s)\n",
+            signalNumber, g_processName, static_cast<long>(::getpid()), g_buildHash);
+
+        writeAll(fileDescriptor, header);
+        if (fileDescriptor != STDERR_FILENO)
+            writeAll(STDERR_FILENO, header);
+
+        std::array<void*, 64> frames{};
+        const int frameCount = ::backtrace(frames.data(), static_cast<int>(frames.size()));
+
+        ::backtrace_symbols_fd(frames.data(), frameCount, fileDescriptor);
+        if (fileDescriptor != STDERR_FILENO)
+        {
+            ::backtrace_symbols_fd(frames.data(), frameCount, STDERR_FILENO);
+            ::close(fileDescriptor);
+        }
+
+        ::_Exit(128 + signalNumber);
+    }
+
+    void installSignal(int signalNumber)
+    {
+        struct sigaction action {};
+        std::memset(&action, 0, sizeof(action));
+        action.sa_sigaction = &posixSignalHandler;
+        action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
+        ::sigemptyset(&action.sa_mask);
+        ::sigaction(signalNumber, &action, nullptr);
+    }
+#endif
+
+    [[noreturn]] void terminateHandler()
+    {
+        AscEmu::Debugging::terminateWithDiagnostics("std::terminate was called.");
+    }
+}
+
+void AscEmu::Debugging::installCrashHandler(const CrashHandlerOptions& options)
+{
+    bool expected = false;
+    if (!g_isInstalled.compare_exchange_strong(expected, true))
+        return;
+
+    refreshStaticOptions(options);
+    ensureOutputDirectoriesExist();
+
+    if (options.installTerminateHandler)
+        std::set_terminate(&terminateHandler);
+
+#ifdef _WIN32
+    ::SetUnhandledExceptionFilter(&unhandledExceptionFilter);
+#else
+    g_alternateStack.ss_sp = g_signalStack;
+    g_alternateStack.ss_size = sizeof(g_signalStack);
+    g_alternateStack.ss_flags = 0;
+    ::sigaltstack(&g_alternateStack, nullptr);
+
+    installSignal(SIGSEGV);
+    installSignal(SIGABRT);
+    installSignal(SIGBUS);
+    installSignal(SIGILL);
+    installSignal(SIGFPE);
+
+    std::array<void*, 1> warmup{};
+    ::backtrace(warmup.data(), static_cast<int>(warmup.size()));
+#endif
+
+    sLogger.info("Installed crash handler for {} process.", g_processName);
+}
+
+bool AscEmu::Debugging::isCrashHandlerInstalled() noexcept
+{
+    return g_isInstalled.load();
+}
+
+void AscEmu::Debugging::requestCrashDiagnostics(std::string_view reason)
+{
+    ensureOutputDirectoriesExist();
+    logStackTraceToLoggerAndFile(reason);
+}
+
+[[noreturn]] void AscEmu::Debugging::terminateWithDiagnostics(std::string_view reason)
+{
+    ensureOutputDirectoriesExist();
+    logStackTraceToLoggerAndFile(reason);
+
+#ifdef _WIN32
+    writeMiniDump(nullptr);
+#endif
+
+    sLogger.finalize();
+    std::abort();
+}

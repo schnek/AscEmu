@@ -777,7 +777,6 @@ void Master::hookSignals()
 {
     (void)std::signal(SIGINT, onSignal);
     (void)std::signal(SIGTERM, onSignal);
-    (void)std::signal(SIGABRT, onSignal);
 #ifdef _WIN32
     (void)std::signal(SIGBREAK, onSignal);
 #else
@@ -790,11 +789,11 @@ void Master::unhookSignals()
 {
     (void)std::signal(SIGINT, SIG_DFL);
     (void)std::signal(SIGTERM, SIG_DFL);
-    (void)std::signal(SIGABRT, SIG_DFL);
 #ifdef _WIN32
     (void)std::signal(SIGBREAK, SIG_DFL);
 #else
     (void)std::signal(SIGHUP, SIG_DFL);
+    (void)std::signal(SIGUSR1, SIG_DFL);
 #endif
 }
 

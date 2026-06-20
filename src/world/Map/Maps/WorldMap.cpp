@@ -21,7 +21,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgDefenseMessage.h"
 #include "Map/Area/AreaManagementGlobals.hpp"
 #include "Map/Area/AreaStorage.hpp"
-#include "Debugging/CrashHandler.h"
+#include "Debugging/CrashHandler.hpp"
 #include "Objects/Transporter.hpp"
 #include "Objects/Units/Creatures/Summons/SummonDefines.hpp"
 #include "Server/DatabaseDefinition.hpp"

@@ -22,7 +22,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Chat/ChannelMgr.hpp"
 #include "WorldSocket.h"
 #include "Storage/MySQLDataStore.hpp"
-#include "Debugging/CrashHandler.h"
+#include "Debugging/CrashHandler.hpp"
 #include "Storage/DayWatcherThread.h"
 #include "BroadcastMgr.h"
 #include "DatabaseDefinition.hpp"
