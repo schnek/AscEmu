@@ -58,21 +58,21 @@ namespace AscEmu::Packets
             packet.writeBit(victim[5]);
             packet.writeBit(victim[6]);
             packet.writeBit(0);
-            packet.WriteByteSeq(victim[4]);
-            packet.WriteByteSeq(victim[2]);
+            packet.writeByteSeq(victim[4]);
+            packet.writeByteSeq(victim[2]);
             packet << uint8_t(0);
             packet << float(1);
-            packet.WriteByteSeq(victim[7]);
-            packet.WriteByteSeq(victim[1]);
-            packet.WriteByteSeq(victim[3]);
-            packet.WriteByteSeq(victim[6]);
+            packet.writeByteSeq(victim[7]);
+            packet.writeByteSeq(victim[1]);
+            packet.writeByteSeq(victim[3]);
+            packet.writeByteSeq(victim[6]);
             packet << uint32_t(normalXp);
 
             if (!victim.isEmpty())
                 packet << uint32_t(normalXp);
 
-            packet.WriteByteSeq(victim[0]);
-            packet.WriteByteSeq(victim[5]);
+            packet.writeByteSeq(victim[0]);
+            packet.writeByteSeq(victim[5]);
 #endif
             return true;
         }

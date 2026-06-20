@@ -228,18 +228,18 @@ void BattlegroundManager::handleBattlegroundListPacket(WoWGuid& wowGuid, WorldSe
     data.writeBit(0);
     data.flushBits();
 
-    data.WriteByteSeq(wowGuid[6]);
-    data.WriteByteSeq(wowGuid[1]);
-    data.WriteByteSeq(wowGuid[7]);
-    data.WriteByteSeq(wowGuid[5]);
+    data.writeByteSeq(wowGuid[6]);
+    data.writeByteSeq(wowGuid[1]);
+    data.writeByteSeq(wowGuid[7]);
+    data.writeByteSeq(wowGuid[5]);
 
     for (int32_t bgId : _bgList)
         data << int32_t(bgId);
 
-    data.WriteByteSeq(wowGuid[0]);
-    data.WriteByteSeq(wowGuid[2]);
-    data.WriteByteSeq(wowGuid[4]);
-    data.WriteByteSeq(wowGuid[3]);
+    data.writeByteSeq(wowGuid[0]);
+    data.writeByteSeq(wowGuid[2]);
+    data.writeByteSeq(wowGuid[4]);
+    data.writeByteSeq(wowGuid[3]);
 
     session->SendPacket(&data);
 }

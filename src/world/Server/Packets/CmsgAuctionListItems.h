@@ -79,14 +79,14 @@ namespace AscEmu::Packets
             packet >> sortCount;
             for (uint8_t i = 0; i < sortCount; ++i)
             {
-                packet.read_skip<uint8_t>();
-                packet.read_skip<uint8_t>();
+                packet.readSkip<uint8_t>();
+                packet.readSkip<uint8_t>();
             }
 #else
-            packet.read_skip<uint8_t>();    //sortCount
+            packet.readSkip<uint8_t>();    //sortCount
 
             for (uint8_t i = 0; i < 15; ++i)
-                packet.read_skip<uint8_t>();
+                packet.readSkip<uint8_t>();
 #endif
 
             return true;

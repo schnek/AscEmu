@@ -241,63 +241,63 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(unkGuid2[4]);
-            packet.WriteByteSeq(unkGuid2[5]);
-            packet.WriteByteSeq(unkGuid2[7]);
-            packet.WriteByteSeq(unkGuid2[3]);
-            packet.WriteByteSeq(unkGuid2[2]);
-            packet.WriteByteSeq(unkGuid2[6]);
-            packet.WriteByteSeq(unkGuid2[0]);
-            packet.WriteByteSeq(unkGuid2[1]);
+            packet.writeByteSeq(unkGuid2[4]);
+            packet.writeByteSeq(unkGuid2[5]);
+            packet.writeByteSeq(unkGuid2[7]);
+            packet.writeByteSeq(unkGuid2[3]);
+            packet.writeByteSeq(unkGuid2[2]);
+            packet.writeByteSeq(unkGuid2[6]);
+            packet.writeByteSeq(unkGuid2[0]);
+            packet.writeByteSeq(unkGuid2[1]);
 
             if (hasChannelName)
-                packet.WriteString(receiverName);
+                packet.writeString(receiverName);
 
             //write addon string
 
-            packet.WriteByteSeq(senderGuid[4]);
-            packet.WriteByteSeq(senderGuid[7]);
-            packet.WriteByteSeq(senderGuid[1]);
-            packet.WriteByteSeq(senderGuid[5]);
-            packet.WriteByteSeq(senderGuid[0]);
-            packet.WriteByteSeq(senderGuid[6]);
-            packet.WriteByteSeq(senderGuid[2]);
-            packet.WriteByteSeq(senderGuid[3]);
+            packet.writeByteSeq(senderGuid[4]);
+            packet.writeByteSeq(senderGuid[7]);
+            packet.writeByteSeq(senderGuid[1]);
+            packet.writeByteSeq(senderGuid[5]);
+            packet.writeByteSeq(senderGuid[0]);
+            packet.writeByteSeq(senderGuid[6]);
+            packet.writeByteSeq(senderGuid[2]);
+            packet.writeByteSeq(senderGuid[3]);
 
             packet << uint8_t(type);
 
             if (hasAchievement)
                 packet << achievementId;
 
-            packet.WriteByteSeq(unkGuid[1]);
-            packet.WriteByteSeq(unkGuid[3]);
-            packet.WriteByteSeq(unkGuid[4]);
-            packet.WriteByteSeq(unkGuid[6]);
-            packet.WriteByteSeq(unkGuid[0]);
-            packet.WriteByteSeq(unkGuid[2]);
-            packet.WriteByteSeq(unkGuid[5]);
-            packet.WriteByteSeq(unkGuid[7]);
+            packet.writeByteSeq(unkGuid[1]);
+            packet.writeByteSeq(unkGuid[3]);
+            packet.writeByteSeq(unkGuid[4]);
+            packet.writeByteSeq(unkGuid[6]);
+            packet.writeByteSeq(unkGuid[0]);
+            packet.writeByteSeq(unkGuid[2]);
+            packet.writeByteSeq(unkGuid[5]);
+            packet.writeByteSeq(unkGuid[7]);
 
-            packet.WriteByteSeq(receiverGuid[2]);
-            packet.WriteByteSeq(receiverGuid[5]);
-            packet.WriteByteSeq(receiverGuid[3]);
-            packet.WriteByteSeq(receiverGuid[6]);
-            packet.WriteByteSeq(receiverGuid[7]);
-            packet.WriteByteSeq(receiverGuid[4]);
-            packet.WriteByteSeq(receiverGuid[1]);
-            packet.WriteByteSeq(receiverGuid[0]);
+            packet.writeByteSeq(receiverGuid[2]);
+            packet.writeByteSeq(receiverGuid[5]);
+            packet.writeByteSeq(receiverGuid[3]);
+            packet.writeByteSeq(receiverGuid[6]);
+            packet.writeByteSeq(receiverGuid[7]);
+            packet.writeByteSeq(receiverGuid[4]);
+            packet.writeByteSeq(receiverGuid[1]);
+            packet.writeByteSeq(receiverGuid[0]);
 
             if (hasLanguage)
                 packet << uint8_t(language);
 
             if (message.length())
-                packet.WriteString(message);
+                packet.writeString(message);
 
             if (hasReceiverName)
-                packet.WriteString(receiverName);
+                packet.writeString(receiverName);
 
             if (hasSenderName)
-                packet.WriteString(senderName);
+                packet.writeString(senderName);
 #endif
 
             return true;

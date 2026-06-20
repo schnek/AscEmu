@@ -130,11 +130,11 @@ namespace AscEmu::Packets
             for (uint32_t i = 0; i < name_count; ++i)
             {
                 uint8_t len = static_cast<uint8_t>(packet.readBits(6));
-                names[i] = packet.ReadString(len);
+                names[i] = packet.readString(len);
             }
 
-            player_name = packet.ReadString(playerNameLen);
-            guild_name = packet.ReadString(guildNameLen);
+            player_name = packet.readString(playerNameLen);
+            guild_name = packet.readString(guildNameLen);
 #endif
             return true;
         }

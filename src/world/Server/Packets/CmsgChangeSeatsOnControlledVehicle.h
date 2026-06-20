@@ -89,14 +89,14 @@ namespace AscEmu::Packets
             destinationGuid[0] = packet.readBit();
             destinationGuid[1] = packet.readBit();
             destinationGuid[3] = packet.readBit();
-            packet.ReadByteSeq(destinationGuid[6]);
-            packet.ReadByteSeq(destinationGuid[1]);
-            packet.ReadByteSeq(destinationGuid[2]);
-            packet.ReadByteSeq(destinationGuid[5]);
-            packet.ReadByteSeq(destinationGuid[3]);
-            packet.ReadByteSeq(destinationGuid[0]);
-            packet.ReadByteSeq(destinationGuid[4]);
-            packet.ReadByteSeq(destinationGuid[7]);
+            packet.readByteSeq(destinationGuid[6]);
+            packet.readByteSeq(destinationGuid[1]);
+            packet.readByteSeq(destinationGuid[2]);
+            packet.readByteSeq(destinationGuid[5]);
+            packet.readByteSeq(destinationGuid[3]);
+            packet.readByteSeq(destinationGuid[0]);
+            packet.readByteSeq(destinationGuid[4]);
+            packet.readByteSeq(destinationGuid[7]);
 
             hasMovementFlags = !packet.readBit();
             hasTransportData = packet.readBit();
@@ -151,22 +151,22 @@ namespace AscEmu::Packets
             if (movementInfo.status_info.hasFallData)
                 movementInfo.status_info.hasFallDirection = packet.readBit();
 
-            packet.ReadByteSeq(movementInfo.guid2[6]);
-            packet.ReadByteSeq(movementInfo.guid[7]);
-            packet.ReadByteSeq(movementInfo.guid[5]);
-            packet.ReadByteSeq(movementInfo.guid2[1]);
-            packet.ReadByteSeq(movementInfo.guid2[2]);
-            packet.ReadByteSeq(movementInfo.guid[6]);
-            packet.ReadByteSeq(movementInfo.guid2[5]);
-            packet.ReadByteSeq(movementInfo.guid2[3]);
-            packet.ReadByteSeq(movementInfo.guid[3]);
-            packet.ReadByteSeq(movementInfo.guid2[0]);
-            packet.ReadByteSeq(movementInfo.guid[0]);
-            packet.ReadByteSeq(movementInfo.guid2[4]);
-            packet.ReadByteSeq(movementInfo.guid[4]);
-            packet.ReadByteSeq(movementInfo.guid[1]);
-            packet.ReadByteSeq(movementInfo.guid2[7]);
-            packet.ReadByteSeq(movementInfo.guid[2]);
+            packet.readByteSeq(movementInfo.guid2[6]);
+            packet.readByteSeq(movementInfo.guid[7]);
+            packet.readByteSeq(movementInfo.guid[5]);
+            packet.readByteSeq(movementInfo.guid2[1]);
+            packet.readByteSeq(movementInfo.guid2[2]);
+            packet.readByteSeq(movementInfo.guid[6]);
+            packet.readByteSeq(movementInfo.guid2[5]);
+            packet.readByteSeq(movementInfo.guid2[3]);
+            packet.readByteSeq(movementInfo.guid[3]);
+            packet.readByteSeq(movementInfo.guid2[0]);
+            packet.readByteSeq(movementInfo.guid[0]);
+            packet.readByteSeq(movementInfo.guid2[4]);
+            packet.readByteSeq(movementInfo.guid[4]);
+            packet.readByteSeq(movementInfo.guid[1]);
+            packet.readByteSeq(movementInfo.guid2[7]);
+            packet.readByteSeq(movementInfo.guid[2]);
 
             if (movementInfo.status_info.hasPitch)
                 packet >> movementInfo.pitch_rate;
@@ -186,7 +186,7 @@ namespace AscEmu::Packets
 
             if (hasTransportData)
             {
-                packet.ReadByteSeq(movementInfo.transport_guid[2]);
+                packet.readByteSeq(movementInfo.transport_guid[2]);
 
                 if (movementInfo.status_info.hasTransportTime2)
                     packet >> movementInfo.transport_time2;
@@ -194,18 +194,18 @@ namespace AscEmu::Packets
                 if (movementInfo.status_info.hasTransportTime3)
                     packet >> movementInfo.transport_time3;
 
-                packet.ReadByteSeq(movementInfo.transport_guid[0]);
+                packet.readByteSeq(movementInfo.transport_guid[0]);
                 packet >> movementInfo.transport_time;
                 packet >> movementInfo.transport_seat;
                 packet >> movementInfo.transport_position.x;
                 packet >> movementInfo.transport_position.o;
-                packet.ReadByteSeq(movementInfo.transport_guid[7]);
-                packet.ReadByteSeq(movementInfo.transport_guid[4]);
-                packet.ReadByteSeq(movementInfo.transport_guid[3]);
-                packet.ReadByteSeq(movementInfo.transport_guid[5]);
+                packet.readByteSeq(movementInfo.transport_guid[7]);
+                packet.readByteSeq(movementInfo.transport_guid[4]);
+                packet.readByteSeq(movementInfo.transport_guid[3]);
+                packet.readByteSeq(movementInfo.transport_guid[5]);
                 packet >> movementInfo.transport_position.z;
-                packet.ReadByteSeq(movementInfo.transport_guid[1]);
-                packet.ReadByteSeq(movementInfo.transport_guid[6]);
+                packet.readByteSeq(movementInfo.transport_guid[1]);
+                packet.readByteSeq(movementInfo.transport_guid[6]);
                 packet >> movementInfo.transport_position.y;
             }
 

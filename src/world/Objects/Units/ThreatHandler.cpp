@@ -709,7 +709,7 @@ void ThreatManager::unregisterRedirectThreat(uint32_t spellId, uint64_t const& v
 void ThreatManager::sendClearAllThreatToClients() const
 {
     ByteBuffer packedGuidOwner;
-    packedGuidOwner.appendPackGUID(_owner->getGuid());
+    packedGuidOwner.appendPackGuid(_owner->getGuid());
 
     WorldPacket data(SMSG_THREAT_CLEAR, 8);
     data.append(packedGuidOwner);
@@ -720,8 +720,8 @@ void ThreatManager::sendRemoveToClients(Unit const* victim) const
 {
     ByteBuffer packedGuidOwner;
     ByteBuffer packedGuidVictim;
-    packedGuidOwner.appendPackGUID(_owner->getGuid());
-    packedGuidVictim.appendPackGUID(victim->getGuid());
+    packedGuidOwner.appendPackGuid(_owner->getGuid());
+    packedGuidVictim.appendPackGuid(victim->getGuid());
 
     WorldPacket data(SMSG_THREAT_REMOVE, 16);
     data.append(packedGuidOwner);
@@ -736,8 +736,8 @@ void ThreatManager::sendThreatListToClients(bool newHighest) const
 
     ByteBuffer packedGuidOwner;
     ByteBuffer packedGuidVictim1;
-    packedGuidOwner.appendPackGUID(_owner->getGuid());
-    packedGuidVictim1.appendPackGUID(_currentVictimRef->getVictim()->getGuid());
+    packedGuidOwner.appendPackGuid(_owner->getGuid());
+    packedGuidVictim1.appendPackGuid(_currentVictimRef->getVictim()->getGuid());
 
     WorldPacket data(static_cast<uint16_t>(newHighest ? SMSG_HIGHEST_THREAT_UPDATE : SMSG_THREAT_UPDATE), (_sortedThreatList.size() + 2) * 8); // guess
     data.append(packedGuidOwner);
@@ -751,7 +751,7 @@ void ThreatManager::sendThreatListToClients(bool newHighest) const
         if (!ref->isAvailable())
             continue;
         ByteBuffer packedGuidVictim2;
-        packedGuidVictim2.appendPackGUID(ref->getVictim()->getGuid());
+        packedGuidVictim2.appendPackGuid(ref->getVictim()->getGuid());
         data.append(packedGuidVictim2);
         data << uint32_t(ref->getThreat() * 100);
         ++count;

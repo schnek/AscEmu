@@ -46,7 +46,7 @@ namespace AscEmu::Packets
             packet >> text;
 #else
             const uint32_t textLen = packet.readBits(14);
-            text = packet.ReadString(textLen);
+            text = packet.readString(textLen);
 #endif
             return true;
         }

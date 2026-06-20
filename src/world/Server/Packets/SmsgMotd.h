@@ -49,7 +49,7 @@ namespace AscEmu::Packets
             for (const auto& line : motdLines)
             {
                 packet.writeBits(strlen(line.c_str()), 7);
-                stringBuffer.WriteString(line);
+                stringBuffer.writeString(line);
             }
 
             packet.flushBits();

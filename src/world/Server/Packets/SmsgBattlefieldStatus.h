@@ -119,17 +119,17 @@ namespace AscEmu::Packets
                     packet.writeBit(guid[5]);
                     packet.writeBit(guid[2]);
 
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(guid[6]);
-                    packet.WriteByteSeq(guid[7]);
-                    packet.WriteByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[6]);
+                    packet.writeByteSeq(guid[7]);
+                    packet.writeByteSeq(guid[2]);
                     packet << uint32_t(type ? type : 1);
-                    packet.WriteByteSeq(guid[3]);
-                    packet.WriteByteSeq(guid[1]);
+                    packet.writeByteSeq(guid[3]);
+                    packet.writeByteSeq(guid[1]);
                     packet << uint32_t(0);                    // queue slot
                     packet << uint32_t(0);                    // join time
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[4]);
                     break;
                 }
                 case 1:
@@ -159,31 +159,31 @@ namespace AscEmu::Packets
 
                     packet.flushBits();
 
-                    packet.WriteByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[0]);
                     packet << uint32_t(isArena ? type : 1);
-                    packet.WriteByteSeq(bgGuid[5]);
-                    packet.WriteByteSeq(guid[3]);
+                    packet.writeByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(guid[3]);
                     packet << uint32_t(60);                   // wait time
-                    packet.WriteByteSeq(bgGuid[7]);
-                    packet.WriteByteSeq(bgGuid[1]);
-                    packet.WriteByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(bgGuid[2]);
                     packet << uint8_t(0);
-                    packet.WriteByteSeq(bgGuid[4]);
-                    packet.WriteByteSeq(guid[2]);
+                    packet.writeByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(guid[2]);
                     packet << uint8_t(0);
-                    packet.WriteByteSeq(bgGuid[6]);
-                    packet.WriteByteSeq(guid[7]);
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(guid[6]);
-                    packet.WriteByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(guid[7]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(guid[6]);
+                    packet.writeByteSeq(bgGuid[0]);
                     packet << uint32_t(time);                 // join time
                     packet << uint32_t(0);                    // queue slot
                     packet << uint8_t(0);                     // minlevel
                     packet << uint32_t(time);                 // time in queue
-                    packet.WriteByteSeq(guid[1]);
-                    packet.WriteByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[1]);
+                    packet.writeByteSeq(guid[5]);
                     packet << uint32_t(instanceId);
-                    packet.WriteByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[4]);
                     break;
                 }
                 case 2:
@@ -218,22 +218,22 @@ namespace AscEmu::Packets
                     packet.writeBit(bgGuid[5]);
                     packet.writeBit(guid[0]);
 
-                    packet.WriteByteSeq(bgGuid[6]);
-                    packet.WriteByteSeq(bgGuid[5]);
-                    packet.WriteByteSeq(bgGuid[7]);
-                    packet.WriteByteSeq(bgGuid[2]);
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(guid[7]);
-                    packet.WriteByteSeq(bgGuid[4]);
-                    packet.WriteByteSeq(guid[1]);
-                    packet.WriteByteSeq(bgGuid[0]);
-                    packet.WriteByteSeq(guid[4]);
-                    packet.WriteByteSeq(bgGuid[1]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(guid[6]);
-                    packet.WriteByteSeq(guid[2]);
-                    packet.WriteByteSeq(guid[3]);
+                    packet.writeByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[7]);
+                    packet.writeByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(guid[1]);
+                    packet.writeByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(guid[4]);
+                    packet.writeByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(guid[6]);
+                    packet.writeByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[3]);
                     break;
                 }
                 case 3:
@@ -261,20 +261,20 @@ namespace AscEmu::Packets
 
                     packet.flushBits();
 
-                    packet.WriteByteSeq(bgGuid[4]);
-                    packet.WriteByteSeq(bgGuid[5]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(bgGuid[1]);
-                    packet.WriteByteSeq(bgGuid[6]);
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(bgGuid[7]);
-                    packet.WriteByteSeq(guid[6]);
+                    packet.writeByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(guid[6]);
 
                     packet << uint32_t(0);                    // join time
                     packet << uint8_t(0);
 
-                    packet.WriteByteSeq(guid[4]);
-                    packet.WriteByteSeq(guid[1]);
+                    packet.writeByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[1]);
 
                     packet << uint32_t(0);                    // queue slot
                     packet << uint8_t(0);
@@ -283,17 +283,17 @@ namespace AscEmu::Packets
                     packet << uint8_t(0);                     // minlevel
                     packet << uint32_t(time);                 // elapsed time
 
-                    packet.WriteByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[2]);
                     packet << uint32_t(0);                    // remaining time
 
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(guid[3]);
-                    packet.WriteByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[3]);
+                    packet.writeByteSeq(bgGuid[2]);
 
                     packet << uint32_t(instanceId);
 
-                    packet.WriteByteSeq(bgGuid[0]);
-                    packet.WriteByteSeq(guid[7]);
+                    packet.writeByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(guid[7]);
                     break;
                 }
             }
@@ -320,14 +320,14 @@ namespace AscEmu::Packets
                     packet.writeBit(guid[1]);
                     packet.writeBit(guid[6]);
 
-                    packet.WriteByteSeq(guid[3]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(guid[6]);
-                    packet.WriteByteSeq(guid[4]);
-                    packet.WriteByteSeq(guid[2]);
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(guid[1]);
-                    packet.WriteByteSeq(guid[7]);
+                    packet.writeByteSeq(guid[3]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[6]);
+                    packet.writeByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[1]);
+                    packet.writeByteSeq(guid[7]);
                     break;
                 }
                 case 1:
@@ -357,31 +357,31 @@ namespace AscEmu::Packets
 
                     packet.flushBits();
 
-                    packet.WriteByteSeq(bgGuid[4]);
-                    packet.WriteByteSeq(guid[6]);
+                    packet.writeByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(guid[6]);
                     packet << uint32_t(0);
-                    packet.WriteByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(bgGuid[5]);
                     packet << uint32_t(time);                 // wait time
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(guid[3]);
-                    packet.WriteByteSeq(guid[4]);
-                    packet.WriteByteSeq(guid[0]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(guid[3]);
+                    packet.writeByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[0]);
                     packet << uint8_t(0);                     // minlevel
-                    packet.WriteByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(bgGuid[0]);
                     packet << uint32_t(0);                    // join time
                     packet << uint8_t(isArena ? type : 1);
-                    packet.WriteByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(bgGuid[1]);
                     packet << uint32_t(0);                    // time in queue
-                    packet.WriteByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(bgGuid[7]);
                     packet << uint32_t(0);                    // queueslot
-                    packet.WriteByteSeq(guid[2]);
-                    packet.WriteByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(guid[2]);
+                    packet.writeByteSeq(bgGuid[6]);
                     packet << uint8_t(0);                     // maxlevel
-                    packet.WriteByteSeq(bgGuid[2]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(guid[1]);
+                    packet.writeByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[1]);
                     packet << uint32_t(instanceId);
-                    packet.WriteByteSeq(guid[7]);
+                    packet.writeByteSeq(guid[7]);
                     break;
                 }
                 case 2:
@@ -407,30 +407,30 @@ namespace AscEmu::Packets
                     packet.writeBit(guid[3]);
                     packet.writeBit(bgGuid[5]);
 
-                    packet.WriteByteSeq(guid[1]);
-                    packet.WriteByteSeq(bgGuid[1]);
-                    packet.WriteByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[1]);
+                    packet.writeByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(guid[2]);
                     packet << uint8_t(isArena ? type : 1);
                     packet << uint32_t(0);                    // queueslot
                     packet << uint32_t(instanceId);
-                    packet.WriteByteSeq(bgGuid[6]);
-                    packet.WriteByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(bgGuid[7]);
                     packet << uint32_t(time);                 // join time
-                    packet.WriteByteSeq(guid[7]);
+                    packet.writeByteSeq(guid[7]);
                     packet << uint8_t(0);                     // maxlevel
-                    packet.WriteByteSeq(guid[4]);
-                    packet.WriteByteSeq(bgGuid[2]);
-                    packet.WriteByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(guid[4]);
+                    packet.writeByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(bgGuid[4]);
                     packet << uint32_t(0);                    // time until close
                     packet << uint8_t(0);                     // minlevel
-                    packet.WriteByteSeq(guid[3]);
-                    packet.WriteByteSeq(bgGuid[0]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(guid[6]);
+                    packet.writeByteSeq(guid[3]);
+                    packet.writeByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[6]);
                     packet << uint32_t(0);
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(bgGuid[5]);
                     packet << uint32_t(mapId);
                     break;
                 }
@@ -460,32 +460,32 @@ namespace AscEmu::Packets
 
                     packet.flushBits();
 
-                    packet.WriteByteSeq(guid[3]);
+                    packet.writeByteSeq(guid[3]);
                     packet << uint32_t(0);                    // join time
                     packet << uint32_t(60);                   // remaining time
-                    packet.WriteByteSeq(bgGuid[7]);
-                    packet.WriteByteSeq(bgGuid[5]);
-                    packet.WriteByteSeq(guid[1]);
-                    packet.WriteByteSeq(bgGuid[6]);
+                    packet.writeByteSeq(bgGuid[7]);
+                    packet.writeByteSeq(bgGuid[5]);
+                    packet.writeByteSeq(guid[1]);
+                    packet.writeByteSeq(bgGuid[6]);
                     packet << uint32_t(time);                 // elapsed time
                     packet << uint8_t(0);                     // maxlevel
-                    packet.WriteByteSeq(bgGuid[1]);
-                    packet.WriteByteSeq(bgGuid[2]);
+                    packet.writeByteSeq(bgGuid[1]);
+                    packet.writeByteSeq(bgGuid[2]);
                     packet << uint32_t(0);                    // queueslot
-                    packet.WriteByteSeq(guid[4]);
+                    packet.writeByteSeq(guid[4]);
                     packet << uint8_t(0);                     // minlevel
-                    packet.WriteByteSeq(guid[6]);
+                    packet.writeByteSeq(guid[6]);
                     packet << uint32_t(mapId);
-                    packet.WriteByteSeq(guid[0]);
-                    packet.WriteByteSeq(guid[5]);
-                    packet.WriteByteSeq(guid[7]);
-                    packet.WriteByteSeq(bgGuid[4]);
+                    packet.writeByteSeq(guid[0]);
+                    packet.writeByteSeq(guid[5]);
+                    packet.writeByteSeq(guid[7]);
+                    packet.writeByteSeq(bgGuid[4]);
                     packet << uint32_t(instanceId);
-                    packet.WriteByteSeq(guid[2]);
+                    packet.writeByteSeq(guid[2]);
                     packet << uint8_t(isArena ? type : 1);
                     packet << uint32_t(0);
-                    packet.WriteByteSeq(bgGuid[3]);
-                    packet.WriteByteSeq(bgGuid[0]);
+                    packet.writeByteSeq(bgGuid[3]);
+                    packet.writeByteSeq(bgGuid[0]);
                     break;
                 }
             }

@@ -480,7 +480,7 @@ void WorldSocket::_HandleAuthSession(std::unique_ptr<WorldPacket> recvPacket)
         recvPacket->readBit();
 
         const auto accountNameLength = recvPacket->readBits(11);
-        account = recvPacket->ReadString(accountNameLength);
+        account = recvPacket->readString(accountNameLength);
     }
 #elif VERSION_STRING == Cata
     std::string account;
@@ -529,7 +529,7 @@ void WorldSocket::_HandleAuthSession(std::unique_ptr<WorldPacket> recvPacket)
         
         recvPacket->readBit();
         uint32_t accountNameLength = recvPacket->readBits(12);
-        account = recvPacket->ReadString(accountNameLength);
+        account = recvPacket->readString(accountNameLength);
     }
 #else
     std::string account;

@@ -53,18 +53,18 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[4]);
 
             packet << powerType;
             packet << power;
 
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[6]);
 #elif VERSION_STRING != Mop
             packet << guid;
 

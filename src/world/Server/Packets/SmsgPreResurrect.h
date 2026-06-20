@@ -32,7 +32,7 @@ namespace AscEmu::Packets
 
         bool internalSerialise(WorldPacket& packet) override
         {
-            packet.appendPackGUID(guid);
+            packet.appendPackGuid(guid);
 
             return true;
         }

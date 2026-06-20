@@ -67,20 +67,20 @@ void GuildBankEventLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer& 
     data.writeBit(itemMoved);
     data.writeBit(logGuid[7]);
 
-    content.WriteByteSeq(logGuid[6]);
-    content.WriteByteSeq(logGuid[1]);
-    content.WriteByteSeq(logGuid[5]);
+    content.writeByteSeq(logGuid[6]);
+    content.writeByteSeq(logGuid[1]);
+    content.writeByteSeq(logGuid[5]);
     if (hasStack)
     {
         content << uint32_t(mItemStackCount);
     }
 
     content << uint8_t(mEventType);
-    content.WriteByteSeq(logGuid[2]);
-    content.WriteByteSeq(logGuid[4]);
-    content.WriteByteSeq(logGuid[0]);
-    content.WriteByteSeq(logGuid[7]);
-    content.WriteByteSeq(logGuid[3]);
+    content.writeByteSeq(logGuid[2]);
+    content.writeByteSeq(logGuid[4]);
+    content.writeByteSeq(logGuid[0]);
+    content.writeByteSeq(logGuid[7]);
+    content.writeByteSeq(logGuid[3]);
     if (hasItem)
     {
         content << uint32_t(mItemOrMoney);

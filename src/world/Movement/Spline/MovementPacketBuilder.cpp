@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "MovementPacketBuilder.h"
 #include "Logging/Logger.hpp"
-#include "ByteBuffer.h"
+#include "ByteBuffer.hpp"
 #include "MoveSpline.h"
 
 namespace MovementMgr {
@@ -235,14 +235,14 @@ void PacketBuilder::WriteCreateData(MoveSpline const& moveSpline, ByteBuffer& da
         else if (splineFlags.final_target)
         {
             WoWGuid facingGuid = moveSpline.facing.target;
-            data.WriteByteSeq(facingGuid[5]);
-            data.WriteByteSeq(facingGuid[3]);
-            data.WriteByteSeq(facingGuid[7]);
-            data.WriteByteSeq(facingGuid[1]);
-            data.WriteByteSeq(facingGuid[6]);
-            data.WriteByteSeq(facingGuid[4]);
-            data.WriteByteSeq(facingGuid[2]);
-            data.WriteByteSeq(facingGuid[0]);
+            data.writeByteSeq(facingGuid[5]);
+            data.writeByteSeq(facingGuid[3]);
+            data.writeByteSeq(facingGuid[7]);
+            data.writeByteSeq(facingGuid[1]);
+            data.writeByteSeq(facingGuid[6]);
+            data.writeByteSeq(facingGuid[4]);
+            data.writeByteSeq(facingGuid[2]);
+            data.writeByteSeq(facingGuid[0]);
         }
 
         uint32_t nodes = static_cast<uint32_t>(moveSpline.getPath().size());

@@ -35,7 +35,7 @@ namespace AscEmu::Packets
             packet << uint8_t(0);
             packet.writeBits(uint8_t(name.size()), 6);
             packet.flushBits();
-            packet.WriteString(name);
+            packet.writeString(name);
 #endif
 
             return true;

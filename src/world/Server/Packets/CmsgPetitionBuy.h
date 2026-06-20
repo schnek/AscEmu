@@ -40,26 +40,26 @@ namespace AscEmu::Packets
         {
             uint64_t unpackedGuid;
             packet >> unpackedGuid;
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint64_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint64_t>();
             packet >> name;
-            packet.read_skip<std::string>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint16_t>();
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
+            packet.readSkip<std::string>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint16_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
             packet >> signerCount;
             for (uint8_t s = 0; s < 10; ++s)
-                packet.read_skip<std::string>();
+                packet.readSkip<std::string>();
 
             packet >> arenaIndex;
-            packet.read_skip<uint32_t>();
+            packet.readSkip<uint32_t>();
 
             creatureGuid.init(unpackedGuid);
             return true;

@@ -46,15 +46,15 @@ namespace AscEmu::Packets
             packet.writeBit(guid[3]);
             packet.writeBit(guid[1]);
 
-            packet.WriteByteSeq(guid[4]);
-            packet.WriteByteSeq(guid[6]);
-            packet.WriteByteSeq(guid[5]);
+            packet.writeByteSeq(guid[4]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[5]);
             packet << reaction;
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[3]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[3]);
 #endif
             return true;
         }

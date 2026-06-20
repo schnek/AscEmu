@@ -971,31 +971,31 @@ void WorldSession::handleGuildAssignRankOpcode([[maybe_unused]] WorldPacket& rec
     setterGuid[0] = recvPacket.readBit();
     setterGuid[5] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(targetGuid[0]);
+    recvPacket.readByteSeq(targetGuid[0]);
 
-    recvPacket.ReadByteSeq(setterGuid[1]);
-    recvPacket.ReadByteSeq(setterGuid[3]);
-    recvPacket.ReadByteSeq(setterGuid[5]);
+    recvPacket.readByteSeq(setterGuid[1]);
+    recvPacket.readByteSeq(setterGuid[3]);
+    recvPacket.readByteSeq(setterGuid[5]);
 
-    recvPacket.ReadByteSeq(targetGuid[7]);
-    recvPacket.ReadByteSeq(targetGuid[3]);
+    recvPacket.readByteSeq(targetGuid[7]);
+    recvPacket.readByteSeq(targetGuid[3]);
 
-    recvPacket.ReadByteSeq(setterGuid[0]);
+    recvPacket.readByteSeq(setterGuid[0]);
 
-    recvPacket.ReadByteSeq(targetGuid[1]);
+    recvPacket.readByteSeq(targetGuid[1]);
 
-    recvPacket.ReadByteSeq(setterGuid[6]);
+    recvPacket.readByteSeq(setterGuid[6]);
 
-    recvPacket.ReadByteSeq(targetGuid[2]);
-    recvPacket.ReadByteSeq(targetGuid[5]);
-    recvPacket.ReadByteSeq(targetGuid[4]);
+    recvPacket.readByteSeq(targetGuid[2]);
+    recvPacket.readByteSeq(targetGuid[5]);
+    recvPacket.readByteSeq(targetGuid[4]);
 
-    recvPacket.ReadByteSeq(setterGuid[2]);
-    recvPacket.ReadByteSeq(setterGuid[4]);
+    recvPacket.readByteSeq(setterGuid[2]);
+    recvPacket.readByteSeq(setterGuid[4]);
 
-    recvPacket.ReadByteSeq(targetGuid[6]);
+    recvPacket.readByteSeq(targetGuid[6]);
 
-    recvPacket.ReadByteSeq(setterGuid[7]);
+    recvPacket.readByteSeq(setterGuid[7]);
 
     sLogger.debug("CMSG_GUILD_ASSIGN_MEMBER_RANK {}: Target: {} Rank: {}, Issuer: {}",
         _player->getName(), WoWGuid::getGuidLowPartFromUInt64(targetGuid), rankId, WoWGuid::getGuidLowPartFromUInt64(setterGuid));
@@ -1019,14 +1019,14 @@ void WorldSession::handleGuildQueryRanksOpcode([[maybe_unused]] WorldPacket& rec
     guildGuid[5] = recvPacket.readBit();
     guildGuid[1] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guildGuid[3]);
-    recvPacket.ReadByteSeq(guildGuid[4]);
-    recvPacket.ReadByteSeq(guildGuid[5]);
-    recvPacket.ReadByteSeq(guildGuid[7]);
-    recvPacket.ReadByteSeq(guildGuid[1]);
-    recvPacket.ReadByteSeq(guildGuid[0]);
-    recvPacket.ReadByteSeq(guildGuid[6]);
-    recvPacket.ReadByteSeq(guildGuid[2]);
+    recvPacket.readByteSeq(guildGuid[3]);
+    recvPacket.readByteSeq(guildGuid[4]);
+    recvPacket.readByteSeq(guildGuid[5]);
+    recvPacket.readByteSeq(guildGuid[7]);
+    recvPacket.readByteSeq(guildGuid[1]);
+    recvPacket.readByteSeq(guildGuid[0]);
+    recvPacket.readByteSeq(guildGuid[6]);
+    recvPacket.readByteSeq(guildGuid[2]);
 
     sLogger.debug("CMSG_GUILD_QUERY_RANKS {}: Guild: {}", _player->getName(), WoWGuid::getGuidLowPartFromUInt64(guildGuid));
 
@@ -1060,14 +1060,14 @@ void WorldSession::handleGuildQueryXPOpcode([[maybe_unused]] WorldPacket& recvPa
     guildGuid[6] = recvPacket.readBit();
     guildGuid[3] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guildGuid[7]);
-    recvPacket.ReadByteSeq(guildGuid[2]);
-    recvPacket.ReadByteSeq(guildGuid[3]);
-    recvPacket.ReadByteSeq(guildGuid[6]);
-    recvPacket.ReadByteSeq(guildGuid[1]);
-    recvPacket.ReadByteSeq(guildGuid[5]);
-    recvPacket.ReadByteSeq(guildGuid[0]);
-    recvPacket.ReadByteSeq(guildGuid[4]);
+    recvPacket.readByteSeq(guildGuid[7]);
+    recvPacket.readByteSeq(guildGuid[2]);
+    recvPacket.readByteSeq(guildGuid[3]);
+    recvPacket.readByteSeq(guildGuid[6]);
+    recvPacket.readByteSeq(guildGuid[1]);
+    recvPacket.readByteSeq(guildGuid[5]);
+    recvPacket.readByteSeq(guildGuid[0]);
+    recvPacket.readByteSeq(guildGuid[4]);
 
     uint32_t guildId = WoWGuid::getGuidLowPartFromUInt64(guildGuid);
 
@@ -1095,14 +1095,14 @@ void WorldSession::handleGuildRequestPartyState([[maybe_unused]] WorldPacket& re
     guildGuid[2] = recvPacket.readBit();
     guildGuid[4] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guildGuid[6]);
-    recvPacket.ReadByteSeq(guildGuid[3]);
-    recvPacket.ReadByteSeq(guildGuid[2]);
-    recvPacket.ReadByteSeq(guildGuid[1]);
-    recvPacket.ReadByteSeq(guildGuid[5]);
-    recvPacket.ReadByteSeq(guildGuid[0]);
-    recvPacket.ReadByteSeq(guildGuid[7]);
-    recvPacket.ReadByteSeq(guildGuid[4]);
+    recvPacket.readByteSeq(guildGuid[6]);
+    recvPacket.readByteSeq(guildGuid[3]);
+    recvPacket.readByteSeq(guildGuid[2]);
+    recvPacket.readByteSeq(guildGuid[1]);
+    recvPacket.readByteSeq(guildGuid[5]);
+    recvPacket.readByteSeq(guildGuid[0]);
+    recvPacket.readByteSeq(guildGuid[7]);
+    recvPacket.readByteSeq(guildGuid[4]);
 
     uint32_t guildId = WoWGuid::getGuidLowPartFromUInt64(guildGuid);
 
@@ -1125,14 +1125,14 @@ void WorldSession::handleGuildRequestMaxDailyXP([[maybe_unused]] WorldPacket& re
     guid[7] = recvPacket.readBit();
     guid[2] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guid[7]);
-    recvPacket.ReadByteSeq(guid[4]);
-    recvPacket.ReadByteSeq(guid[3]);
-    recvPacket.ReadByteSeq(guid[5]);
-    recvPacket.ReadByteSeq(guid[1]);
-    recvPacket.ReadByteSeq(guid[2]);
-    recvPacket.ReadByteSeq(guid[6]);
-    recvPacket.ReadByteSeq(guid[0]);
+    recvPacket.readByteSeq(guid[7]);
+    recvPacket.readByteSeq(guid[4]);
+    recvPacket.readByteSeq(guid[3]);
+    recvPacket.readByteSeq(guid[5]);
+    recvPacket.readByteSeq(guid[1]);
+    recvPacket.readByteSeq(guid[2]);
+    recvPacket.readByteSeq(guid[6]);
+    recvPacket.readByteSeq(guid[0]);
 
     uint32_t guildId = WoWGuid::getGuidLowPartFromUInt64(guid);
 
@@ -1166,7 +1166,7 @@ void WorldSession::handleAutoDeclineGuildInvites([[maybe_unused]] WorldPacket& r
 void WorldSession::handleGuildRewardsQueryOpcode([[maybe_unused]] WorldPacket& recvPacket)
 {
 #if VERSION_STRING >= Cata
-    recvPacket.read_skip<uint32_t>();
+    recvPacket.readSkip<uint32_t>();
 
     if (sGuildMgr.getGuildById(_player->getGuildId()))
     {
@@ -1195,7 +1195,7 @@ void WorldSession::handleGuildRewardsQueryOpcode([[maybe_unused]] WorldPacket& r
 void WorldSession::handleGuildQueryNewsOpcode([[maybe_unused]] WorldPacket& recvPacket)
 {
 #if VERSION_STRING >= Cata
-    recvPacket.read_skip<uint32_t>();
+    recvPacket.readSkip<uint32_t>();
 
     if (Guild* guild = _player->getGuild())
         guild->sendNewsUpdate(this);
@@ -1221,14 +1221,14 @@ void WorldSession::handleGuildNewsUpdateStickyOpcode([[maybe_unused]] WorldPacke
     guid[1] = recvPacket.readBit();
     guid[5] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guid[6]);
-    recvPacket.ReadByteSeq(guid[2]);
-    recvPacket.ReadByteSeq(guid[1]);
-    recvPacket.ReadByteSeq(guid[0]);
-    recvPacket.ReadByteSeq(guid[5]);
-    recvPacket.ReadByteSeq(guid[3]);
-    recvPacket.ReadByteSeq(guid[7]);
-    recvPacket.ReadByteSeq(guid[4]);
+    recvPacket.readByteSeq(guid[6]);
+    recvPacket.readByteSeq(guid[2]);
+    recvPacket.readByteSeq(guid[1]);
+    recvPacket.readByteSeq(guid[0]);
+    recvPacket.readByteSeq(guid[5]);
+    recvPacket.readByteSeq(guid[3]);
+    recvPacket.readByteSeq(guid[7]);
+    recvPacket.readByteSeq(guid[4]);
 
     if (Guild* guild = _player->getGuild())
         guild->handleNewsSetSticky(this, newsId, isSticky);
@@ -1242,7 +1242,7 @@ void WorldSession::handleGuildSetGuildMaster([[maybe_unused]] WorldPacket& recvP
 
     recvPacket.readBit();
 
-    const auto playerName = recvPacket.ReadString(nameLength);
+    const auto playerName = recvPacket.readString(nameLength);
 
     if (Guild* guild = _player->getGuild())
         guild->handleSetNewGuildMaster(this, playerName);
@@ -1282,18 +1282,18 @@ void WorldSession::handleGuildFinderAddRecruit([[maybe_unused]] WorldPacket& rec
 
     guid[2] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guid[4]);
-    recvPacket.ReadByteSeq(guid[5]);
+    recvPacket.readByteSeq(guid[4]);
+    recvPacket.readByteSeq(guid[5]);
 
-    std::string comment = recvPacket.ReadString(commentLength);
-    std::string playerName = recvPacket.ReadString(nameLength);
+    std::string comment = recvPacket.readString(commentLength);
+    std::string playerName = recvPacket.readString(nameLength);
 
-    recvPacket.ReadByteSeq(guid[7]);
-    recvPacket.ReadByteSeq(guid[2]);
-    recvPacket.ReadByteSeq(guid[0]);
-    recvPacket.ReadByteSeq(guid[6]);
-    recvPacket.ReadByteSeq(guid[1]);
-    recvPacket.ReadByteSeq(guid[3]);
+    recvPacket.readByteSeq(guid[7]);
+    recvPacket.readByteSeq(guid[2]);
+    recvPacket.readByteSeq(guid[0]);
+    recvPacket.readByteSeq(guid[6]);
+    recvPacket.readByteSeq(guid[1]);
+    recvPacket.readByteSeq(guid[3]);
 
     uint32_t guildLowGuid = WoWGuid::getGuidLowPartFromUInt64(uint64_t(guid));
 
@@ -1379,40 +1379,40 @@ void WorldSession::handleGuildFinderBrowse([[maybe_unused]] WorldPacket& recvPac
         bufferData << uint32_t(guild->getEmblemInfo().getBorderStyle());
         bufferData << uint32_t(guild->getEmblemInfo().getStyle());
 
-        bufferData.WriteString(guildSettings.getComment());
+        bufferData.writeString(guildSettings.getComment());
 
         bufferData << uint8_t(0);
 
-        bufferData.WriteByteSeq(guildGUID[5]);
+        bufferData.writeByteSeq(guildGUID[5]);
 
         bufferData << uint32_t(guildSettings.getInterests());
 
-        bufferData.WriteByteSeq(guildGUID[6]);
-        bufferData.WriteByteSeq(guildGUID[4]);
+        bufferData.writeByteSeq(guildGUID[6]);
+        bufferData.writeByteSeq(guildGUID[4]);
 
         bufferData << uint32_t(guild->getLevel());
 
-        bufferData.WriteString(guild->getName());
+        bufferData.writeString(guild->getName());
 
         bufferData << uint32_t(0); // Achievment
 
-        bufferData.WriteByteSeq(guildGUID[7]);
+        bufferData.writeByteSeq(guildGUID[7]);
 
         bufferData << uint8_t(sGuildFinderMgr.hasRequest(player->getGuidLow(), guild->getId()));
 
-        bufferData.WriteByteSeq(guildGUID[2]);
-        bufferData.WriteByteSeq(guildGUID[0]);
+        bufferData.writeByteSeq(guildGUID[2]);
+        bufferData.writeByteSeq(guildGUID[0]);
 
         bufferData << uint32_t(guildSettings.getAvailability());
 
-        bufferData.WriteByteSeq(guildGUID[1]);
+        bufferData.writeByteSeq(guildGUID[1]);
 
         bufferData << uint32_t(guild->getEmblemInfo().getBackgroundColor());
         bufferData << uint32_t(0);
         bufferData << uint32_t(guild->getEmblemInfo().getBorderColor());
         bufferData << uint32_t(guildSettings.getClassRoles());
 
-        bufferData.WriteByteSeq(guildGUID[3]);
+        bufferData.writeByteSeq(guildGUID[3]);
         bufferData << uint32_t(guild->getMembersCount());
     }
 
@@ -1437,14 +1437,14 @@ void WorldSession::handleGuildFinderDeclineRecruit([[maybe_unused]] WorldPacket&
     playerGuid[0] = recvPacket.readBit();
     playerGuid[3] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(playerGuid[5]);
-    recvPacket.ReadByteSeq(playerGuid[7]);
-    recvPacket.ReadByteSeq(playerGuid[2]);
-    recvPacket.ReadByteSeq(playerGuid[3]);
-    recvPacket.ReadByteSeq(playerGuid[4]);
-    recvPacket.ReadByteSeq(playerGuid[1]);
-    recvPacket.ReadByteSeq(playerGuid[0]);
-    recvPacket.ReadByteSeq(playerGuid[6]);
+    recvPacket.readByteSeq(playerGuid[5]);
+    recvPacket.readByteSeq(playerGuid[7]);
+    recvPacket.readByteSeq(playerGuid[2]);
+    recvPacket.readByteSeq(playerGuid[3]);
+    recvPacket.readByteSeq(playerGuid[4]);
+    recvPacket.readByteSeq(playerGuid[1]);
+    recvPacket.readByteSeq(playerGuid[0]);
+    recvPacket.readByteSeq(playerGuid[6]);
 
     WoWGuid wowGuid;
     wowGuid.init(playerGuid);
@@ -1489,26 +1489,26 @@ void WorldSession::handleGuildFinderGetApplications(WorldPacket& /*recvPacket*/)
 
             data.writeBits(guild->getName().size(), 8);
 
-            bufferData.WriteByteSeq(guildGuid[2]);
+            bufferData.writeByteSeq(guildGuid[2]);
 
-            bufferData.WriteString(request.getComment());
+            bufferData.writeString(request.getComment());
 
-            bufferData.WriteByteSeq(guildGuid[5]);
+            bufferData.writeByteSeq(guildGuid[5]);
 
-            bufferData.WriteString(guild->getName());
+            bufferData.writeString(guild->getName());
 
             bufferData << uint32_t(guildSettings.getAvailability());
             bufferData << uint32_t(request.getExpiryTime() - time(nullptr));
 
-            bufferData.WriteByteSeq(guildGuid[0]);
-            bufferData.WriteByteSeq(guildGuid[6]);
-            bufferData.WriteByteSeq(guildGuid[3]);
-            bufferData.WriteByteSeq(guildGuid[7]);
+            bufferData.writeByteSeq(guildGuid[0]);
+            bufferData.writeByteSeq(guildGuid[6]);
+            bufferData.writeByteSeq(guildGuid[3]);
+            bufferData.writeByteSeq(guildGuid[7]);
 
             bufferData << uint32_t(guildSettings.getClassRoles());
 
-            bufferData.WriteByteSeq(guildGuid[4]);
-            bufferData.WriteByteSeq(guildGuid[1]);
+            bufferData.writeByteSeq(guildGuid[4]);
+            bufferData.writeByteSeq(guildGuid[1]);
 
             bufferData << uint32_t(time(nullptr) - request.getSubmitTime());
             bufferData << uint32_t(guildSettings.getInterests());
@@ -1562,19 +1562,19 @@ void WorldSession::handleGuildFinderGetRecruits([[maybe_unused]] WorldPacket& re
         data.writeBit(playerGuid[1]);
         data.writeBit(playerGuid[6]);
 
-        dataBuffer.WriteByteSeq(playerGuid[4]);
+        dataBuffer.writeByteSeq(playerGuid[4]);
 
         dataBuffer << int32_t(time(nullptr) <= request.getExpiryTime());
 
-        dataBuffer.WriteByteSeq(playerGuid[3]);
-        dataBuffer.WriteByteSeq(playerGuid[0]);
-        dataBuffer.WriteByteSeq(playerGuid[1]);
+        dataBuffer.writeByteSeq(playerGuid[3]);
+        dataBuffer.writeByteSeq(playerGuid[0]);
+        dataBuffer.writeByteSeq(playerGuid[1]);
 
         dataBuffer << int32_t(info->lastLevel);
 
-        dataBuffer.WriteByteSeq(playerGuid[6]);
-        dataBuffer.WriteByteSeq(playerGuid[7]);
-        dataBuffer.WriteByteSeq(playerGuid[2]);
+        dataBuffer.writeByteSeq(playerGuid[6]);
+        dataBuffer.writeByteSeq(playerGuid[7]);
+        dataBuffer.writeByteSeq(playerGuid[2]);
 
         dataBuffer << int32_t(time(nullptr) - request.getSubmitTime());
         dataBuffer << int32_t(request.getAvailability());
@@ -1582,12 +1582,12 @@ void WorldSession::handleGuildFinderGetRecruits([[maybe_unused]] WorldPacket& re
         dataBuffer << int32_t(request.getInterests());
         dataBuffer << int32_t(request.getExpiryTime() - time(nullptr));
 
-        dataBuffer.WriteString(name);
-        dataBuffer.WriteString(request.getComment());
+        dataBuffer.writeString(name);
+        dataBuffer.writeString(request.getComment());
 
         dataBuffer << int32_t(info->cl);
 
-        dataBuffer.WriteByteSeq(playerGuid[5]);
+        dataBuffer.writeByteSeq(playerGuid[5]);
     }
 
     data.flushBits();
@@ -1625,7 +1625,7 @@ void WorldSession::handleGuildFinderPostRequest(WorldPacket& /*recvPacket*/)
 
         data << uint32_t(settings.getLevel());
 
-        data.WriteString(settings.getComment());
+        data.writeString(settings.getComment());
 
         data << uint32_t(0);
 
@@ -1656,14 +1656,14 @@ void WorldSession::handleGuildFinderRemoveRecruit([[maybe_unused]] WorldPacket& 
     guildGuid[2] = recvPacket.readBit();
     guildGuid[1] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guildGuid[4]);
-    recvPacket.ReadByteSeq(guildGuid[0]);
-    recvPacket.ReadByteSeq(guildGuid[3]);
-    recvPacket.ReadByteSeq(guildGuid[6]);
-    recvPacket.ReadByteSeq(guildGuid[5]);
-    recvPacket.ReadByteSeq(guildGuid[1]);
-    recvPacket.ReadByteSeq(guildGuid[2]);
-    recvPacket.ReadByteSeq(guildGuid[7]);
+    recvPacket.readByteSeq(guildGuid[4]);
+    recvPacket.readByteSeq(guildGuid[0]);
+    recvPacket.readByteSeq(guildGuid[3]);
+    recvPacket.readByteSeq(guildGuid[6]);
+    recvPacket.readByteSeq(guildGuid[5]);
+    recvPacket.readByteSeq(guildGuid[1]);
+    recvPacket.readByteSeq(guildGuid[2]);
+    recvPacket.readByteSeq(guildGuid[7]);
 
     sGuildFinderMgr.removeMembershipRequest(WoWGuid::getGuidLowPartFromUInt64(_player->getGuid()), WoWGuid::getGuidLowPartFromUInt64(guildGuid));
 #endif
@@ -1687,7 +1687,7 @@ void WorldSession::handleGuildFinderSetGuildPost([[maybe_unused]] WorldPacket& r
 
     uint32_t length = recvPacket.readBits(11);
     bool listed = recvPacket.readBit();
-    std::string comment = recvPacket.ReadString(length);
+    std::string comment = recvPacket.readString(length);
 
     if (!(classRoles & GUILDFINDER_ALL_ROLES) || classRoles > GUILDFINDER_ALL_ROLES)
         return;

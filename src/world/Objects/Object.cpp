@@ -736,14 +736,14 @@ void Object::interruptSpellWithSpellType(CurrentSpellType spellType)
                 data.writeBit(guid[5]);
                 data.writeBit(guid[2]);
 
-                data.WriteByteSeq(guid[7]);
-                data.WriteByteSeq(guid[6]);
-                data.WriteByteSeq(guid[2]);
-                data.WriteByteSeq(guid[5]);
-                data.WriteByteSeq(guid[0]);
-                data.WriteByteSeq(guid[4]);
-                data.WriteByteSeq(guid[1]);
-                data.WriteByteSeq(guid[3]);
+                data.writeByteSeq(guid[7]);
+                data.writeByteSeq(guid[6]);
+                data.writeByteSeq(guid[2]);
+                data.writeByteSeq(guid[5]);
+                data.writeByteSeq(guid[0]);
+                data.writeByteSeq(guid[4]);
+                data.writeByteSeq(guid[1]);
+                data.writeByteSeq(guid[3]);
 #else
                 data << GetNewGUID();
 #endif
@@ -3074,7 +3074,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
     {
         Unit* unit = (Unit*)this;
 
-        data->WriteByteSeq(Guid[4]);
+        data->writeByteSeq(Guid[4]);
 
         *data << unit->getSpeedRate(TYPE_RUN_BACK, true);
 
@@ -3102,14 +3102,14 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         }
 
         *data << float(unit->GetPositionZ());
-        data->WriteByteSeq(Guid[5]);
+        data->writeByteSeq(Guid[5]);
 
         if (obj_movement_info.transport_guid)
         {
             WoWGuid tGuid = obj_movement_info.transport_guid;
 
-            data->WriteByteSeq(tGuid[5]);
-            data->WriteByteSeq(tGuid[7]);
+            data->writeByteSeq(tGuid[5]);
+            data->writeByteSeq(tGuid[7]);
 
             *data << uint32_t(obj_movement_info.transport_time);
             *data << float(LocationVector::normalizeOrientation(GetTransOffsetO()));
@@ -3120,35 +3120,35 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
             *data << float(GetTransOffsetY());
             *data << float(GetTransOffsetX());
 
-            data->WriteByteSeq(tGuid[3]);
+            data->writeByteSeq(tGuid[3]);
 
             *data << float(GetTransOffsetZ());
 
-            data->WriteByteSeq(tGuid[0]);
+            data->writeByteSeq(tGuid[0]);
 
             if (hasVehicleId)
                 *data << uint32_t(unit->getVehicleKit()->getVehicleInfo()->ID);
 
             *data << int8_t(obj_movement_info.transport_seat);
 
-            data->WriteByteSeq(tGuid[1]);
-            data->WriteByteSeq(tGuid[6]);
-            data->WriteByteSeq(tGuid[2]);
-            data->WriteByteSeq(tGuid[4]);
+            data->writeByteSeq(tGuid[1]);
+            data->writeByteSeq(tGuid[6]);
+            data->writeByteSeq(tGuid[2]);
+            data->writeByteSeq(tGuid[4]);
         }
 
         *data << float(GetPositionX());
         *data << float(unit->getSpeedRate(TYPE_PITCH_RATE, true));
 
-        data->WriteByteSeq(Guid[3]);
-        data->WriteByteSeq(Guid[0]);
+        data->writeByteSeq(Guid[3]);
+        data->writeByteSeq(Guid[0]);
 
         *data << float(unit->getSpeedRate(TYPE_SWIM, true));
         *data << float(unit->GetPositionY());
 
-        data->WriteByteSeq(Guid[7]);
-        data->WriteByteSeq(Guid[1]);
-        data->WriteByteSeq(Guid[2]);
+        data->writeByteSeq(Guid[7]);
+        data->writeByteSeq(Guid[1]);
+        data->writeByteSeq(Guid[2]);
 
         *data << float(unit->getSpeedRate(TYPE_WALK, true));
 
@@ -3156,7 +3156,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
 
         *data << float(unit->getSpeedRate(TYPE_TURN_RATE, true));
 
-        data->WriteByteSeq(Guid[6]);
+        data->writeByteSeq(Guid[6]);
 
         *data << float(unit->getSpeedRate(TYPE_FLY, true));
 
@@ -3193,25 +3193,25 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
     {
         WoWGuid transGuid;
 
-        data->WriteByteSeq(transGuid[0]);
-        data->WriteByteSeq(transGuid[5]);
+        data->writeByteSeq(transGuid[0]);
+        data->writeByteSeq(transGuid[5]);
 
         if (hasVehicleId)
             *data << uint32_t(static_cast<Creature*>(this)->GetCreatureProperties()->vehicleid);
 
-        data->WriteByteSeq(transGuid[3]);
+        data->writeByteSeq(transGuid[3]);
 
         *data << float(GetTransOffsetX());
 
-        data->WriteByteSeq(transGuid[4]);
-        data->WriteByteSeq(transGuid[6]);
-        data->WriteByteSeq(transGuid[1]);
+        data->writeByteSeq(transGuid[4]);
+        data->writeByteSeq(transGuid[6]);
+        data->writeByteSeq(transGuid[1]);
 
         *data << uint32_t(obj_movement_info.transport_time);
         *data << float(GetTransOffsetY());
 
-        data->WriteByteSeq(transGuid[2]);
-        data->WriteByteSeq(transGuid[7]);
+        data->writeByteSeq(transGuid[2]);
+        data->writeByteSeq(transGuid[7]);
 
         *data << float(GetTransOffsetZ());
         *data << int8_t(obj_movement_info.transport_seat);
@@ -3262,14 +3262,14 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         {
             WoWGuid victimGuid = static_cast<Unit*>(this)->getTargetGuid();
 
-            data->WriteByteSeq(victimGuid[4]);
-            data->WriteByteSeq(victimGuid[0]);
-            data->WriteByteSeq(victimGuid[3]);
-            data->WriteByteSeq(victimGuid[5]);
-            data->WriteByteSeq(victimGuid[7]);
-            data->WriteByteSeq(victimGuid[6]);
-            data->WriteByteSeq(victimGuid[2]);
-            data->WriteByteSeq(victimGuid[1]);
+            data->writeByteSeq(victimGuid[4]);
+            data->writeByteSeq(victimGuid[0]);
+            data->writeByteSeq(victimGuid[3]);
+            data->writeByteSeq(victimGuid[5]);
+            data->writeByteSeq(victimGuid[7]);
+            data->writeByteSeq(victimGuid[6]);
+            data->writeByteSeq(victimGuid[2]);
+            data->writeByteSeq(victimGuid[1]);
         }
         else
         {
@@ -3468,7 +3468,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         {
             WoWGuid tGuid = obj_movement_info.transport_guid;
 
-            data->WriteByteSeq(tGuid[7]);
+            data->writeByteSeq(tGuid[7]);
             *data << float(GetTransOffsetX());
 
             if (hasTransportTime3)
@@ -3476,23 +3476,23 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
 
             *data << float(GetTransOffsetO());
             *data << float(GetTransOffsetY());
-            data->WriteByteSeq(tGuid[4]);
-            data->WriteByteSeq(tGuid[1]);
-            data->WriteByteSeq(tGuid[3]);
+            data->writeByteSeq(tGuid[4]);
+            data->writeByteSeq(tGuid[1]);
+            data->writeByteSeq(tGuid[3]);
             *data << float(GetTransOffsetZ());
-            data->WriteByteSeq(tGuid[5]);
+            data->writeByteSeq(tGuid[5]);
 
             if (hasTransportTime2)
                 *data << uint32_t(obj_movement_info.transport_time2);
 
-            data->WriteByteSeq(tGuid[0]);
+            data->writeByteSeq(tGuid[0]);
             *data << int8_t(obj_movement_info.transport_seat);
-            data->WriteByteSeq(tGuid[6]);
-            data->WriteByteSeq(tGuid[2]);
+            data->writeByteSeq(tGuid[6]);
+            data->writeByteSeq(tGuid[2]);
             *data << uint32_t(obj_movement_info.transport_time);
         }
 
-        data->WriteByteSeq(Guid[4]);
+        data->writeByteSeq(Guid[4]);
 
         if (isSplineEnabled)
         {
@@ -3503,7 +3503,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
 
         //todo movementcounter
 
-        data->WriteByteSeq(Guid[2]);
+        data->writeByteSeq(Guid[2]);
 
         if (hasFallData)
         {
@@ -3518,7 +3518,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
             *data << float(obj_movement_info.jump_info.velocity);
         }
 
-        data->WriteByteSeq(Guid[1]);
+        data->writeByteSeq(Guid[1]);
         *data << float(unit->getSpeedRate(TYPE_TURN_RATE, true));
 
         if (obj_movement_info.update_time)
@@ -3529,7 +3529,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         if (hasElevation)
             *data << float(obj_movement_info.spline_elevation);
 
-        data->WriteByteSeq(Guid[7]);
+        data->writeByteSeq(Guid[7]);
         *data << float(unit->getSpeedRate(TYPE_PITCH_RATE, true));
         *data << float(GetPositionX());
 
@@ -3542,10 +3542,10 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         *data << float(unit->getSpeedRate(TYPE_WALK, true));
         *data << float(GetPositionY());
         *data << float(unit->getSpeedRate(TYPE_FLY_BACK, true));
-        data->WriteByteSeq(Guid[3]);
-        data->WriteByteSeq(Guid[5]);
-        data->WriteByteSeq(Guid[6]);
-        data->WriteByteSeq(Guid[0]);
+        data->writeByteSeq(Guid[3]);
+        data->writeByteSeq(Guid[5]);
+        data->writeByteSeq(Guid[6]);
+        data->writeByteSeq(Guid[0]);
         *data << unit->getSpeedRate(TYPE_SWIM_BACK, true);
         *data << float(unit->getSpeedRate(TYPE_RUN, true));
         *data << float(unit->getSpeedRate(TYPE_SWIM, true));
@@ -3562,9 +3562,9 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         *data << float(GetTransOffsetY());
         *data << int8_t(GetTransSeat());
         *data << float(GetTransOffsetX());
-        data->WriteByteSeq(transGuid[2]);
-        data->WriteByteSeq(transGuid[4]);
-        data->WriteByteSeq(transGuid[1]);
+        data->writeByteSeq(transGuid[2]);
+        data->writeByteSeq(transGuid[4]);
+        data->writeByteSeq(transGuid[1]);
 
         if (obj_movement_info.transport_time3 && obj_movement_info.transport_guid)
             *data << obj_movement_info.transport_time3;
@@ -3574,25 +3574,25 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
         *data << float(GetTransOffsetO());
         *data << float(GetTransOffsetZ());
 
-        data->WriteByteSeq(transGuid[6]);
-        data->WriteByteSeq(transGuid[0]);
-        data->WriteByteSeq(transGuid[5]);
-        data->WriteByteSeq(transGuid[3]);
-        data->WriteByteSeq(transGuid[7]);
+        data->writeByteSeq(transGuid[6]);
+        data->writeByteSeq(transGuid[0]);
+        data->writeByteSeq(transGuid[5]);
+        data->writeByteSeq(transGuid[3]);
+        data->writeByteSeq(transGuid[7]);
     }
 
     if (updateFlags & UPDATEFLAG_HAS_TARGET)
     {
         WoWGuid victimGuid = static_cast<Unit*>(this)->getTargetGuid();
 
-        data->WriteByteSeq(victimGuid[7]);
-        data->WriteByteSeq(victimGuid[1]);
-        data->WriteByteSeq(victimGuid[5]);
-        data->WriteByteSeq(victimGuid[2]);
-        data->WriteByteSeq(victimGuid[6]);
-        data->WriteByteSeq(victimGuid[3]);
-        data->WriteByteSeq(victimGuid[0]);
-        data->WriteByteSeq(victimGuid[4]);
+        data->writeByteSeq(victimGuid[7]);
+        data->writeByteSeq(victimGuid[1]);
+        data->writeByteSeq(victimGuid[5]);
+        data->writeByteSeq(victimGuid[2]);
+        data->writeByteSeq(victimGuid[6]);
+        data->writeByteSeq(victimGuid[3]);
+        data->writeByteSeq(victimGuid[0]);
+        data->writeByteSeq(victimGuid[4]);
     }
 
     if (updateFlags & UPDATEFLAG_VEHICLE)

@@ -40,7 +40,7 @@ namespace AscEmu::Packets
         {
             packet << criteriaId;
 
-            packet.appendPackGUID(counter);
+            packet.appendPackGuid(counter);
 
             packet << guid;
             packet << uint32_t(0);

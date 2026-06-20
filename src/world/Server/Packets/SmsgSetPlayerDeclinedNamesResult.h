@@ -56,14 +56,14 @@ namespace AscEmu::Packets
             if (success)
             {
                 WoWGuid g(guid);
-                packet.WriteByteSeq(g[2]);
-                packet.WriteByteSeq(g[7]);
-                packet.WriteByteSeq(g[1]);
-                packet.WriteByteSeq(g[0]);
-                packet.WriteByteSeq(g[4]);
-                packet.WriteByteSeq(g[3]);
-                packet.WriteByteSeq(g[6]);
-                packet.WriteByteSeq(g[5]);
+                packet.writeByteSeq(g[2]);
+                packet.writeByteSeq(g[7]);
+                packet.writeByteSeq(g[1]);
+                packet.writeByteSeq(g[0]);
+                packet.writeByteSeq(g[4]);
+                packet.writeByteSeq(g[3]);
+                packet.writeByteSeq(g[6]);
+                packet.writeByteSeq(g[5]);
             }
             packet << error;
             return true;

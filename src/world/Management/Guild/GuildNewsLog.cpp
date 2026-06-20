@@ -79,19 +79,19 @@ void GuildNewsLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer&) cons
 
     data.flushBits();
 
-    data.WriteByteSeq(guid[5]);
+    data.writeByteSeq(guid[5]);
 
     data << uint32_t(getFlags());
     data << uint32_t(getValue());
     data << uint32_t(0);
 
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[1]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[1]);
 
     data << uint32_t(getGUID());
     data << uint32_t(getType());

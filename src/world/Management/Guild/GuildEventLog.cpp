@@ -52,31 +52,31 @@ void GuildEventLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer& cont
     data.writeBit(guid1[1]);
     data.writeBit(guid1[6]);
 
-    content.WriteByteSeq(guid2[3]);
-    content.WriteByteSeq(guid2[2]);
-    content.WriteByteSeq(guid2[5]);
+    content.writeByteSeq(guid2[3]);
+    content.writeByteSeq(guid2[2]);
+    content.writeByteSeq(guid2[5]);
 
     content << uint8_t(mNewRank);
 
-    content.WriteByteSeq(guid2[4]);
-    content.WriteByteSeq(guid1[0]);
-    content.WriteByteSeq(guid1[4]);
+    content.writeByteSeq(guid2[4]);
+    content.writeByteSeq(guid1[0]);
+    content.writeByteSeq(guid1[4]);
 
     content << uint32_t(::time(nullptr) - mTimestamp);
 
-    content.WriteByteSeq(guid1[7]);
-    content.WriteByteSeq(guid1[3]);
-    content.WriteByteSeq(guid2[0]);
-    content.WriteByteSeq(guid2[6]);
-    content.WriteByteSeq(guid2[7]);
-    content.WriteByteSeq(guid1[5]);
+    content.writeByteSeq(guid1[7]);
+    content.writeByteSeq(guid1[3]);
+    content.writeByteSeq(guid2[0]);
+    content.writeByteSeq(guid2[6]);
+    content.writeByteSeq(guid2[7]);
+    content.writeByteSeq(guid1[5]);
 
     content << uint8_t(mEventType);
 
-    content.WriteByteSeq(guid2[1]);
-    content.WriteByteSeq(guid1[2]);
-    content.WriteByteSeq(guid1[6]);
-    content.WriteByteSeq(guid1[1]);
+    content.writeByteSeq(guid2[1]);
+    content.writeByteSeq(guid1[2]);
+    content.writeByteSeq(guid1[6]);
+    content.writeByteSeq(guid1[1]);
 #else
 void GuildEventLogEntry::writeGuildLogPacket(WorldPacket& data, ByteBuffer& /*content*/) const
 {

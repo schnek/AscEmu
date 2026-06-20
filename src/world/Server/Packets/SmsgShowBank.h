@@ -45,14 +45,14 @@ namespace AscEmu::Packets
             packet.writeBit(wowGuid[7]);
             packet.writeBit(wowGuid[0]);
 
-            packet.WriteByteSeq(wowGuid[7]);
-            packet.WriteByteSeq(wowGuid[0]);
-            packet.WriteByteSeq(wowGuid[5]);
-            packet.WriteByteSeq(wowGuid[3]);
-            packet.WriteByteSeq(wowGuid[6]);
-            packet.WriteByteSeq(wowGuid[1]);
-            packet.WriteByteSeq(wowGuid[4]);
-            packet.WriteByteSeq(wowGuid[2]);
+            packet.writeByteSeq(wowGuid[7]);
+            packet.writeByteSeq(wowGuid[0]);
+            packet.writeByteSeq(wowGuid[5]);
+            packet.writeByteSeq(wowGuid[3]);
+            packet.writeByteSeq(wowGuid[6]);
+            packet.writeByteSeq(wowGuid[1]);
+            packet.writeByteSeq(wowGuid[4]);
+            packet.writeByteSeq(wowGuid[2]);
 #endif
             return true;
         }

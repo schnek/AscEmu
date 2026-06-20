@@ -153,22 +153,22 @@ namespace AscEmu::Packets
                 case CHAT_MSG_AFK:
                 case CHAT_MSG_DND:
                     textLength = packet.readBits(9);
-                    message = packet.ReadString(textLength);
+                    message = packet.readString(textLength);
                     break;
                 case CHAT_MSG_WHISPER:
                 {
                     receiverLength = packet.readBits(10);
                     textLength = packet.readBits(9);
-                    destination = packet.ReadString(receiverLength);
-                    message = packet.ReadString(textLength);
+                    destination = packet.readString(receiverLength);
+                    message = packet.readString(textLength);
 
                 } break;
                 case CHAT_MSG_CHANNEL:
                 {
                     receiverLength = packet.readBits(10);
                     textLength = packet.readBits(9);
-                    message = packet.ReadString(textLength);
-                    destination = packet.ReadString(receiverLength);
+                    message = packet.readString(textLength);
+                    destination = packet.readString(receiverLength);
                 } break;
                 default: break;
             }
@@ -219,22 +219,22 @@ namespace AscEmu::Packets
                 case CHAT_MSG_AFK:
                 case CHAT_MSG_DND:
                     textLength = packet.readBits(8);
-                    message = packet.ReadString(textLength);
+                    message = packet.readString(textLength);
                     break;
                 case CHAT_MSG_WHISPER:
                 {
                     receiverLength = packet.readBits(9);
                     textLength = packet.readBits(8);
-                    destination = packet.ReadString(receiverLength);
-                    message = packet.ReadString(textLength);
+                    destination = packet.readString(receiverLength);
+                    message = packet.readString(textLength);
 
                 } break;
                 case CHAT_MSG_CHANNEL:
                 {
                     receiverLength = packet.readBits(9);
                     textLength = packet.readBits(8);
-                    message = packet.ReadString(textLength);
-                    destination = packet.ReadString(receiverLength);
+                    message = packet.readString(textLength);
+                    destination = packet.readString(receiverLength);
                 } break;
                 default: break;
             }

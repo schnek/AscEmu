@@ -103,23 +103,23 @@ namespace AscEmu::Packets
 
             if (hasTransportData)
             {
-                packet.WriteByteSeq(mi.transport_guid[4]);
-                packet.WriteByteSeq(mi.transport_guid[5]);
+                packet.writeByteSeq(mi.transport_guid[4]);
+                packet.writeByteSeq(mi.transport_guid[5]);
                 packet << float(mi.transport_position.x);
                 packet << float(LocationVector::normalizeOrientation(mi.transport_position.o));
-                packet.WriteByteSeq(mi.transport_guid[1]);
-                packet.WriteByteSeq(mi.transport_guid[0]);
-                packet.WriteByteSeq(mi.transport_guid[6]);
+                packet.writeByteSeq(mi.transport_guid[1]);
+                packet.writeByteSeq(mi.transport_guid[0]);
+                packet.writeByteSeq(mi.transport_guid[6]);
                 packet << uint32_t(mi.transport_time);
-                packet.WriteByteSeq(mi.transport_guid[7]);
+                packet.writeByteSeq(mi.transport_guid[7]);
                 packet << int8_t(mi.transport_seat);
 
                 if (mi.status_info.hasTransportTime2)
                     packet << uint32_t(mi.transport_time2);
 
                 packet << float(mi.transport_position.y);
-                packet.WriteByteSeq(mi.transport_guid[3]);
-                packet.WriteByteSeq(mi.transport_guid[2]);
+                packet.writeByteSeq(mi.transport_guid[3]);
+                packet.writeByteSeq(mi.transport_guid[2]);
 
                 if (mi.status_info.hasTransportTime3)
                     packet << uint32_t(mi.transport_time3);
@@ -145,22 +145,22 @@ namespace AscEmu::Packets
             if (mi.status_info.hasPitch)
                 packet << float(mi.pitch_rate);
 
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[6]);
 
             if (mi.status_info.hasSplineElevation)
                 packet << float(mi.spline_elevation);
 
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[4]);
 
             if (mi.status_info.hasOrientation)
                 packet << float(LocationVector::normalizeOrientation(mi.position.o));
 
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[1]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[1]);
 #else // TODO: Mop
 
 #endif

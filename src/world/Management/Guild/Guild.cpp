@@ -326,7 +326,7 @@ void Guild::handleRoster(WorldSession* session)
 
         memberData << uint8_t(member->getClass());
         memberData << uint32_t(member->getTotalReputation());
-        memberData.WriteByteSeq(guid[0]);
+        memberData.writeByteSeq(guid[0]);
         memberData << uint64_t(member->getWeekActivity());
         memberData << uint32_t(member->getRankId());
         memberData << uint32_t(member->getAchievementPoints());
@@ -338,34 +338,34 @@ void Guild::handleRoster(WorldSession* session)
         memberData << uint32_t(0);
         memberData << uint32_t(0);
 
-        memberData.WriteByteSeq(guid[2]);
+        memberData.writeByteSeq(guid[2]);
         memberData << uint8_t(member->getFlags());
         memberData << uint32_t(member->getZoneId());
         memberData << uint64_t(member->getTotalActivity());
-        memberData.WriteByteSeq(guid[7]);
+        memberData.writeByteSeq(guid[7]);
         memberData << uint32_t(worldConfig.guild.maxRepPerWeek - member->getWeekReputation());
 
         if (pubNoteLength)
         {
-            memberData.WriteString(member->getPublicNote());
+            memberData.writeString(member->getPublicNote());
         }
 
-        memberData.WriteByteSeq(guid[3]);
+        memberData.writeByteSeq(guid[3]);
         memberData << uint8_t(member->getLevel());
         memberData << int32_t(0);
-        memberData.WriteByteSeq(guid[5]);
-        memberData.WriteByteSeq(guid[4]);
+        memberData.writeByteSeq(guid[5]);
+        memberData.writeByteSeq(guid[4]);
         memberData << uint8_t(0);
-        memberData.WriteByteSeq(guid[1]);
+        memberData.writeByteSeq(guid[1]);
         memberData << float(member->isOnline() ? 0.0f : float(::time(nullptr) - member->getLogoutTime()) / static_cast<uint64_t>(DAY));
 
         if (offNoteLength)
         {
-            memberData.WriteString(member->getOfficerNote());
+            memberData.writeString(member->getOfficerNote());
         }
 
-        memberData.WriteByteSeq(guid[6]);
-        memberData.WriteString(member->getName());
+        memberData.writeByteSeq(guid[6]);
+        memberData.writeString(member->getName());
     }
 
     size_t infoLength = m_info.length();
@@ -376,10 +376,10 @@ void Guild::handleRoster(WorldSession* session)
 
     if (infoLength)
     {
-        data.WriteString(m_info);
+        data.writeString(m_info);
     }
 
-    data.WriteString(m_motd);
+    data.writeString(m_motd);
     data << uint32_t(mAccountsNumber);
     data << uint32_t(worldConfig.guild.maxRepPerWeek);
     data.appendPackedTime(m_createdDate);
@@ -473,7 +473,7 @@ void Guild::sendGuildRankInfo(WorldSession* session) const
 
         if (rankInfo->getName().length())
         {
-            rankData.WriteString(rankInfo->getName());
+            rankData.writeString(rankInfo->getName());
         }
 
         rankData << uint32_t(i);
@@ -971,19 +971,19 @@ void Guild::sendNewsUpdate(WorldSession* session)
     {
         GuildNewsLogEntry* news = static_cast<GuildNewsLogEntry*>(itr->get());
         WoWGuid guid = news->getPlayerGuid();
-        data.WriteByteSeq(guid[5]);
+        data.writeByteSeq(guid[5]);
 
         data << uint32_t(news->getFlags());
         data << uint32_t(news->getValue());
         data << uint32_t(0);
 
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[6]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[1]);
+        data.writeByteSeq(guid[7]);
+        data.writeByteSeq(guid[6]);
+        data.writeByteSeq(guid[2]);
+        data.writeByteSeq(guid[3]);
+        data.writeByteSeq(guid[0]);
+        data.writeByteSeq(guid[4]);
+        data.writeByteSeq(guid[1]);
 
         data << uint32_t(news->getGUID());
         data << uint32_t(news->getType());
@@ -1405,7 +1405,7 @@ void Guild::massInviteToEvent([[maybe_unused]]WorldSession* session, [[maybe_unu
 
         if (member->getGUID() != session->GetPlayer()->getGuid() && level >= minLevel && level <= maxLevel && member->isRankNotLower(static_cast<uint8_t>(minRank)))
         {
-            data.appendPackGUID(member->getGUID());
+            data.appendPackGuid(member->getGUID());
             data << uint8_t(0);
             ++count;
         }
@@ -1984,9 +1984,9 @@ void Guild::sendBankList(WorldSession* session, uint8_t tabId, bool withContent,
     {
         for (uint8_t i = 0; i < _getPurchasedTabsSize(); ++i)
         {
-            data.WriteString(_guildBankTabsStore[i]->getIcon());
+            data.writeString(_guildBankTabsStore[i]->getIcon());
             data << uint32_t(i);
-            data.WriteString(_guildBankTabsStore[i]->getName());
+            data.writeString(_guildBankTabsStore[i]->getName());
         }
     }
 
@@ -2044,29 +2044,29 @@ void Guild::sendGuildRanksUpdate(uint64_t setterGuid, uint64_t targetGuid, uint3
 
     data << uint32_t(rank);
 
-    data.WriteByteSeq(setGuid[3]);
+    data.writeByteSeq(setGuid[3]);
 
-    data.WriteByteSeq(tarGuid[7]);
+    data.writeByteSeq(tarGuid[7]);
 
-    data.WriteByteSeq(setGuid[6]);
-    data.WriteByteSeq(setGuid[2]);
+    data.writeByteSeq(setGuid[6]);
+    data.writeByteSeq(setGuid[2]);
 
-    data.WriteByteSeq(tarGuid[5]);
-    data.WriteByteSeq(tarGuid[0]);
+    data.writeByteSeq(tarGuid[5]);
+    data.writeByteSeq(tarGuid[0]);
 
-    data.WriteByteSeq(setGuid[7]);
-    data.WriteByteSeq(setGuid[5]);
+    data.writeByteSeq(setGuid[7]);
+    data.writeByteSeq(setGuid[5]);
 
-    data.WriteByteSeq(tarGuid[2]);
-    data.WriteByteSeq(tarGuid[1]);
+    data.writeByteSeq(tarGuid[2]);
+    data.writeByteSeq(tarGuid[1]);
 
-    data.WriteByteSeq(setGuid[0]);
-    data.WriteByteSeq(setGuid[4]);
-    data.WriteByteSeq(setGuid[1]);
+    data.writeByteSeq(setGuid[0]);
+    data.writeByteSeq(setGuid[4]);
+    data.writeByteSeq(setGuid[1]);
 
-    data.WriteByteSeq(tarGuid[3]);
-    data.WriteByteSeq(tarGuid[6]);
-    data.WriteByteSeq(tarGuid[4]);
+    data.writeByteSeq(tarGuid[3]);
+    data.writeByteSeq(tarGuid[6]);
+    data.writeByteSeq(tarGuid[4]);
 
     broadcastPacket(&data);
 

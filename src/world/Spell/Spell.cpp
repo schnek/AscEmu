@@ -4758,43 +4758,43 @@ void Spell::sendSpellStart()
 
     data.flushBits();
 
-    data.WriteByteSeq(itemTargetGuid[1]);
-    data.WriteByteSeq(itemTargetGuid[7]);
-    data.WriteByteSeq(itemTargetGuid[6]);
-    data.WriteByteSeq(itemTargetGuid[0]);
-    data.WriteByteSeq(itemTargetGuid[4]);
-    data.WriteByteSeq(itemTargetGuid[2]);
-    data.WriteByteSeq(itemTargetGuid[3]);
-    data.WriteByteSeq(itemTargetGuid[5]);
+    data.writeByteSeq(itemTargetGuid[1]);
+    data.writeByteSeq(itemTargetGuid[7]);
+    data.writeByteSeq(itemTargetGuid[6]);
+    data.writeByteSeq(itemTargetGuid[0]);
+    data.writeByteSeq(itemTargetGuid[4]);
+    data.writeByteSeq(itemTargetGuid[2]);
+    data.writeByteSeq(itemTargetGuid[3]);
+    data.writeByteSeq(itemTargetGuid[5]);
 
     //for (uint32_t i = 0; i < hitCount; ++i)
     //{
     //}
 
-    data.WriteByteSeq(targetGuid[4]);
-    data.WriteByteSeq(targetGuid[5]);
-    data.WriteByteSeq(targetGuid[1]);
-    data.WriteByteSeq(targetGuid[7]);
-    data.WriteByteSeq(targetGuid[6]);
-    data.WriteByteSeq(targetGuid[3]);
-    data.WriteByteSeq(targetGuid[2]);
-    data.WriteByteSeq(targetGuid[0]);
+    data.writeByteSeq(targetGuid[4]);
+    data.writeByteSeq(targetGuid[5]);
+    data.writeByteSeq(targetGuid[1]);
+    data.writeByteSeq(targetGuid[7]);
+    data.writeByteSeq(targetGuid[6]);
+    data.writeByteSeq(targetGuid[3]);
+    data.writeByteSeq(targetGuid[2]);
+    data.writeByteSeq(targetGuid[0]);
 
     data << uint32_t(m_castTime);
 
-    data.WriteByteSeq(unkGuid[4]);
-    data.WriteByteSeq(unkGuid[5]);
-    data.WriteByteSeq(unkGuid[3]);
-    data.WriteByteSeq(unkGuid[2]);
-    data.WriteByteSeq(unkGuid[1]);
-    data.WriteByteSeq(unkGuid[6]);
-    data.WriteByteSeq(unkGuid[7]);
-    data.WriteByteSeq(unkGuid[0]);
+    data.writeByteSeq(unkGuid[4]);
+    data.writeByteSeq(unkGuid[5]);
+    data.writeByteSeq(unkGuid[3]);
+    data.writeByteSeq(unkGuid[2]);
+    data.writeByteSeq(unkGuid[1]);
+    data.writeByteSeq(unkGuid[6]);
+    data.writeByteSeq(unkGuid[7]);
+    data.writeByteSeq(unkGuid[0]);
 
 
 
 
-    data.WriteByteSeq(casterGuid[4]);
+    data.writeByteSeq(casterGuid[4]);
 
     //for (uint32_t i = 0; i < missCount; ++i)
     //{
@@ -4803,7 +4803,7 @@ void Spell::sendSpellStart()
     if (hasCastSchoolImmunities)
         data << uint32_t(0);
 
-    data.WriteByteSeq(casterGuid[2]);
+    data.writeByteSeq(casterGuid[2]);
 
     if (hasCastImmunities)
         data << uint32_t(0);
@@ -4822,17 +4822,17 @@ void Spell::sendSpellStart()
 
     data << uint32_t(castFlags);
 
-    data.WriteByteSeq(casterGuid[5]);
-    data.WriteByteSeq(casterGuid[7]);
-    data.WriteByteSeq(casterGuid[1]);
+    data.writeByteSeq(casterGuid[5]);
+    data.writeByteSeq(casterGuid[7]);
+    data.writeByteSeq(casterGuid[1]);
 
     data << uint8_t(extra_cast_number);
 
-    data.WriteByteSeq(casterUnitGuid[7]);
-    data.WriteByteSeq(casterUnitGuid[0]);
-    data.WriteByteSeq(casterGuid[6]);
-    data.WriteByteSeq(casterGuid[0]);
-    data.WriteByteSeq(casterUnitGuid[1]);
+    data.writeByteSeq(casterUnitGuid[7]);
+    data.writeByteSeq(casterUnitGuid[0]);
+    data.writeByteSeq(casterGuid[6]);
+    data.writeByteSeq(casterGuid[0]);
+    data.writeByteSeq(casterUnitGuid[1]);
 
     if (hasAmmoInventoryType)
         data << uint8_t(0);
@@ -4840,25 +4840,25 @@ void Spell::sendSpellStart()
     if (hasPredictedHeal)
         data << uint32_t(0);
 
-    data.WriteByteSeq(casterUnitGuid[6]);
-    data.WriteByteSeq(casterUnitGuid[3]);
+    data.writeByteSeq(casterUnitGuid[6]);
+    data.writeByteSeq(casterUnitGuid[3]);
 
     data << uint32_t(m_spellInfo->getId());
 
     if (hasAmmoDisplayId)
         data << uint32_t(0);
 
-    data.WriteByteSeq(casterUnitGuid[4]);
-    data.WriteByteSeq(casterUnitGuid[5]);
-    data.WriteByteSeq(casterUnitGuid[2]);
+    data.writeByteSeq(casterUnitGuid[4]);
+    data.writeByteSeq(casterUnitGuid[5]);
+    data.writeByteSeq(casterUnitGuid[2]);
 
     if (hasTargetString)
-        data.WriteString(m_targets.getStringTarget());
+        data.writeString(m_targets.getStringTarget());
 
     if (hasPredictedType)
         data << uint8_t(0);
 
-    data.WriteByteSeq(casterGuid[3]);
+    data.writeByteSeq(casterGuid[3]);
 
     m_caster->sendMessageToSet(&data, true);
 #else
@@ -5064,41 +5064,41 @@ void Spell::sendSpellGo()
     data.writeBit(casterGuid[3]);
     data.flushBits();
 
-    data.WriteByteSeq(targetGuid[5]);
-    data.WriteByteSeq(targetGuid[2]);
-    data.WriteByteSeq(targetGuid[1]);
-    data.WriteByteSeq(targetGuid[6]);
-    data.WriteByteSeq(targetGuid[0]);
-    data.WriteByteSeq(targetGuid[3]);
-    data.WriteByteSeq(targetGuid[4]);
-    data.WriteByteSeq(targetGuid[7]);
+    data.writeByteSeq(targetGuid[5]);
+    data.writeByteSeq(targetGuid[2]);
+    data.writeByteSeq(targetGuid[1]);
+    data.writeByteSeq(targetGuid[6]);
+    data.writeByteSeq(targetGuid[0]);
+    data.writeByteSeq(targetGuid[3]);
+    data.writeByteSeq(targetGuid[4]);
+    data.writeByteSeq(targetGuid[7]);
 
-    data.WriteByteSeq(itemTargetGuid[5]);
-    data.WriteByteSeq(itemTargetGuid[2]);
-    data.WriteByteSeq(itemTargetGuid[0]);
-    data.WriteByteSeq(itemTargetGuid[6]);
-    data.WriteByteSeq(itemTargetGuid[7]);
-    data.WriteByteSeq(itemTargetGuid[3]);
-    data.WriteByteSeq(itemTargetGuid[1]);
-    data.WriteByteSeq(itemTargetGuid[4]);
+    data.writeByteSeq(itemTargetGuid[5]);
+    data.writeByteSeq(itemTargetGuid[2]);
+    data.writeByteSeq(itemTargetGuid[0]);
+    data.writeByteSeq(itemTargetGuid[6]);
+    data.writeByteSeq(itemTargetGuid[7]);
+    data.writeByteSeq(itemTargetGuid[3]);
+    data.writeByteSeq(itemTargetGuid[1]);
+    data.writeByteSeq(itemTargetGuid[4]);
 
-    data.WriteByteSeq(casterGuid[2]);
+    data.writeByteSeq(casterGuid[2]);
 
-    data.WriteByteSeq(unkGuid[6]);
-    data.WriteByteSeq(unkGuid[2]);
-    data.WriteByteSeq(unkGuid[7]);
-    data.WriteByteSeq(unkGuid[1]);
-    data.WriteByteSeq(unkGuid[4]);
-    data.WriteByteSeq(unkGuid[3]);
-    data.WriteByteSeq(unkGuid[5]);
-    data.WriteByteSeq(unkGuid[0]);
+    data.writeByteSeq(unkGuid[6]);
+    data.writeByteSeq(unkGuid[2]);
+    data.writeByteSeq(unkGuid[7]);
+    data.writeByteSeq(unkGuid[1]);
+    data.writeByteSeq(unkGuid[4]);
+    data.writeByteSeq(unkGuid[3]);
+    data.writeByteSeq(unkGuid[5]);
+    data.writeByteSeq(unkGuid[0]);
 
 
     data << uint32_t(Util::getMSTime());
 
-    data.WriteByteSeq(casterGuid[6]);
-    data.WriteByteSeq(casterUnitGuid[7]);
-    data.WriteByteSeq(casterGuid[1]);
+    data.writeByteSeq(casterGuid[6]);
+    data.writeByteSeq(casterUnitGuid[7]);
+    data.writeByteSeq(casterGuid[1]);
 
     if (hasVisualChain)
     {
@@ -5108,29 +5108,29 @@ void Spell::sendSpellGo()
 
     data << uint32_t(0);
 
-    data.WriteByteSeq(casterUnitGuid[6]);
+    data.writeByteSeq(casterUnitGuid[6]);
 
     if (hasPredictedType)
         data << uint8_t(0);
 
-    data.WriteByteSeq(casterGuid[4]);
-    data.WriteByteSeq(casterUnitGuid[1]);
+    data.writeByteSeq(casterGuid[4]);
+    data.writeByteSeq(casterUnitGuid[1]);
 
-    data.WriteByteSeq(casterGuid[0]);
+    data.writeByteSeq(casterGuid[0]);
 
     data << uint8_t(0);
 
-    data.WriteByteSeq(casterGuid[5]);
-    data.WriteByteSeq(casterUnitGuid[2]);
-    data.WriteByteSeq(casterGuid[3]);
-    data.WriteByteSeq(casterUnitGuid[5]);
+    data.writeByteSeq(casterGuid[5]);
+    data.writeByteSeq(casterUnitGuid[2]);
+    data.writeByteSeq(casterGuid[3]);
+    data.writeByteSeq(casterUnitGuid[5]);
 
     data << uint32_t(m_spellInfo->getId());
 
-    data.WriteByteSeq(casterUnitGuid[0]);
-    data.WriteByteSeq(casterUnitGuid[3]);
-    data.WriteByteSeq(casterUnitGuid[4]);
-    data.WriteByteSeq(casterGuid[7]);
+    data.writeByteSeq(casterUnitGuid[0]);
+    data.writeByteSeq(casterUnitGuid[3]);
+    data.writeByteSeq(casterUnitGuid[4]);
+    data.writeByteSeq(casterGuid[7]);
 
     m_caster->sendMessageToSet(&data, true);
 #else

@@ -37,7 +37,7 @@ namespace AscEmu::Packets
             packet >> message;
 #else
             const uint32_t motdLength = packet.readBits(11);
-            message = packet.ReadString(motdLength);
+            message = packet.readString(motdLength);
 #endif
             return true;
         }

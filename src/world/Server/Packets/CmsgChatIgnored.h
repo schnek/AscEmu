@@ -56,14 +56,14 @@ namespace AscEmu::Packets
             playerGuid[1] = packet.readBit();
             playerGuid[3] = packet.readBit();
 
-            packet.ReadByteSeq(playerGuid[0]);
-            packet.ReadByteSeq(playerGuid[6]);
-            packet.ReadByteSeq(playerGuid[5]);
-            packet.ReadByteSeq(playerGuid[1]);
-            packet.ReadByteSeq(playerGuid[4]);
-            packet.ReadByteSeq(playerGuid[3]);
-            packet.ReadByteSeq(playerGuid[7]);
-            packet.ReadByteSeq(playerGuid[2]);
+            packet.readByteSeq(playerGuid[0]);
+            packet.readByteSeq(playerGuid[6]);
+            packet.readByteSeq(playerGuid[5]);
+            packet.readByteSeq(playerGuid[1]);
+            packet.readByteSeq(playerGuid[4]);
+            packet.readByteSeq(playerGuid[3]);
+            packet.readByteSeq(playerGuid[7]);
+            packet.readByteSeq(playerGuid[2]);
 #else // Mop
             playerGuid[5] = packet.readBit();
 
@@ -77,14 +77,14 @@ namespace AscEmu::Packets
             playerGuid[4] = packet.readBit();
             playerGuid[2] = packet.readBit();
 
-            packet.ReadByteSeq(playerGuid[2]);
-            packet.ReadByteSeq(playerGuid[0]);
-            packet.ReadByteSeq(playerGuid[3]);
-            packet.ReadByteSeq(playerGuid[4]);
-            packet.ReadByteSeq(playerGuid[7]);
-            packet.ReadByteSeq(playerGuid[6]);
-            packet.ReadByteSeq(playerGuid[0]);
-            packet.ReadByteSeq(playerGuid[5]);
+            packet.readByteSeq(playerGuid[2]);
+            packet.readByteSeq(playerGuid[0]);
+            packet.readByteSeq(playerGuid[3]);
+            packet.readByteSeq(playerGuid[4]);
+            packet.readByteSeq(playerGuid[7]);
+            packet.readByteSeq(playerGuid[6]);
+            packet.readByteSeq(playerGuid[0]);
+            packet.readByteSeq(playerGuid[5]);
 #endif
 
             guid.init(playerGuid);

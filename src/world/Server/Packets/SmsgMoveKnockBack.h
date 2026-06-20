@@ -49,28 +49,28 @@ namespace AscEmu::Packets
 #else
             WoWGuid objectGuid = guid.getRawGuid();
 
-            packet.WriteByteMask(objectGuid[0]);
-            packet.WriteByteMask(objectGuid[3]);
-            packet.WriteByteMask(objectGuid[6]);
-            packet.WriteByteMask(objectGuid[7]);
-            packet.WriteByteMask(objectGuid[2]);
-            packet.WriteByteMask(objectGuid[5]);
-            packet.WriteByteMask(objectGuid[1]);
-            packet.WriteByteMask(objectGuid[4]);
+            packet.writeByteMask(objectGuid[0]);
+            packet.writeByteMask(objectGuid[3]);
+            packet.writeByteMask(objectGuid[6]);
+            packet.writeByteMask(objectGuid[7]);
+            packet.writeByteMask(objectGuid[2]);
+            packet.writeByteMask(objectGuid[5]);
+            packet.writeByteMask(objectGuid[1]);
+            packet.writeByteMask(objectGuid[4]);
 
-            packet.WriteByteSeq(objectGuid[1]);
+            packet.writeByteSeq(objectGuid[1]);
             packet << float(sin);
             packet << uint32_t(0);
-            packet.WriteByteSeq(objectGuid[6]);
-            packet.WriteByteSeq(objectGuid[7]);
+            packet.writeByteSeq(objectGuid[6]);
+            packet.writeByteSeq(objectGuid[7]);
             packet << float(horizontal);
-            packet.WriteByteSeq(objectGuid[4]);
-            packet.WriteByteSeq(objectGuid[5]);
-            packet.WriteByteSeq(objectGuid[3]);
+            packet.writeByteSeq(objectGuid[4]);
+            packet.writeByteSeq(objectGuid[5]);
+            packet.writeByteSeq(objectGuid[3]);
             packet << float(-vertical);
             packet << float(cos);
-            packet.WriteByteSeq(objectGuid[2]);
-            packet.WriteByteSeq(objectGuid[0]);
+            packet.writeByteSeq(objectGuid[2]);
+            packet.writeByteSeq(objectGuid[0]);
 #endif
             return true;
         }

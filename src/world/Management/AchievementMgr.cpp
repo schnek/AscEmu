@@ -1219,7 +1219,7 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
                 if (canSendAchievementProgress(progressIter->second.get()))
                 {
                     data << uint32_t(progressIter->first);
-                    data.appendPackGUID(progressIter->second->counter);
+                    data.appendPackGuid(progressIter->second->counter);
                     data << getPlayer()->GetNewGUID();
                     data << uint32_t(0);
                     data << uint32_t(secsToTimeBitFields(progressIter->second->date));
@@ -1234,7 +1234,7 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
                 if ((progressIter->second->counter > 0) && (achievement->flags & ACHIEVEMENT_FLAG_COUNTER))
                 {
                     data << uint32_t(progressIter->first);
-                    data.appendPackGUID(progressIter->second->counter);
+                    data.appendPackGuid(progressIter->second->counter);
                     data << getPlayer()->GetNewGUID();
                     data << uint32_t(0);
                     data << uint32_t(secsToTimeBitFields(progressIter->second->date));
@@ -1314,27 +1314,27 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
         data.writeBit(counter[5]);
         data.writeBit(guid[1]);
 
-        criteriaData.WriteByteSeq(guid[3]);
-        criteriaData.WriteByteSeq(counter[5]);
-        criteriaData.WriteByteSeq(counter[6]);
-        criteriaData.WriteByteSeq(guid[4]);
-        criteriaData.WriteByteSeq(guid[6]);
-        criteriaData.WriteByteSeq(counter[2]);
+        criteriaData.writeByteSeq(guid[3]);
+        criteriaData.writeByteSeq(counter[5]);
+        criteriaData.writeByteSeq(counter[6]);
+        criteriaData.writeByteSeq(guid[4]);
+        criteriaData.writeByteSeq(guid[6]);
+        criteriaData.writeByteSeq(counter[2]);
         criteriaData << uint32_t(0);    // timer 2
-        criteriaData.WriteByteSeq(guid[2]);
+        criteriaData.writeByteSeq(guid[2]);
 
         criteriaData << uint32_t(progressIter.first);   // criteria id
-        criteriaData.WriteByteSeq(guid[5]);
-        criteriaData.WriteByteSeq(counter[0]);
-        criteriaData.WriteByteSeq(counter[3]);
-        criteriaData.WriteByteSeq(counter[1]);
-        criteriaData.WriteByteSeq(counter[4]);
-        criteriaData.WriteByteSeq(guid[0]);
-        criteriaData.WriteByteSeq(guid[7]);
-        criteriaData.WriteByteSeq(counter[7]);
+        criteriaData.writeByteSeq(guid[5]);
+        criteriaData.writeByteSeq(counter[0]);
+        criteriaData.writeByteSeq(counter[3]);
+        criteriaData.writeByteSeq(counter[1]);
+        criteriaData.writeByteSeq(counter[4]);
+        criteriaData.writeByteSeq(guid[0]);
+        criteriaData.writeByteSeq(guid[7]);
+        criteriaData.writeByteSeq(counter[7]);
         criteriaData << uint32_t(0); // timer 1
         criteriaData.appendPackedTime(progressIter.second->date);   // criteria date
-        criteriaData.WriteByteSeq(guid[1]);
+        criteriaData.writeByteSeq(guid[1]);
     }
 
     data.writeBits(m_completedAchievements.size(), 23);
@@ -1409,37 +1409,37 @@ void AchievementMgr::sendRespondInspectAchievements(Player* _player)
         data.writeBit(guid[6]);
         data.writeBit(counter[7]);
 
-        criteriaData.WriteByteSeq(guid[3]);
-        criteriaData.WriteByteSeq(counter[4]);
+        criteriaData.writeByteSeq(guid[3]);
+        criteriaData.writeByteSeq(counter[4]);
         criteriaData << uint32_t(0);    // timer 1
-        criteriaData.WriteByteSeq(guid[1]);
+        criteriaData.writeByteSeq(guid[1]);
         criteriaData.appendPackedTime(progressIter.second->date);
-        criteriaData.WriteByteSeq(counter[3]);
-        criteriaData.WriteByteSeq(counter[7]);
-        criteriaData.WriteByteSeq(guid[5]);
-        criteriaData.WriteByteSeq(counter[0]);
-        criteriaData.WriteByteSeq(guid[4]);
-        criteriaData.WriteByteSeq(guid[2]);
-        criteriaData.WriteByteSeq(guid[6]);
-        criteriaData.WriteByteSeq(guid[7]);
-        criteriaData.WriteByteSeq(counter[6]);
+        criteriaData.writeByteSeq(counter[3]);
+        criteriaData.writeByteSeq(counter[7]);
+        criteriaData.writeByteSeq(guid[5]);
+        criteriaData.writeByteSeq(counter[0]);
+        criteriaData.writeByteSeq(guid[4]);
+        criteriaData.writeByteSeq(guid[2]);
+        criteriaData.writeByteSeq(guid[6]);
+        criteriaData.writeByteSeq(guid[7]);
+        criteriaData.writeByteSeq(counter[6]);
         criteriaData << uint32_t(progressIter.first);
         criteriaData << uint32_t(0);    // timer 2
-        criteriaData.WriteByteSeq(counter[1]);
-        criteriaData.WriteByteSeq(counter[5]);
-        criteriaData.WriteByteSeq(guid[0]);
-        criteriaData.WriteByteSeq(counter[2]);
+        criteriaData.writeByteSeq(counter[1]);
+        criteriaData.writeByteSeq(counter[5]);
+        criteriaData.writeByteSeq(guid[0]);
+        criteriaData.writeByteSeq(counter[2]);
     }
 
     data.writeBit(guid[6]);
     data.writeBit(guid[5]);
     data.flushBits();
     data.append(criteriaData);
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[2]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[2]);
 
     for (auto completeIter : m_completedAchievements)
     {
@@ -1450,9 +1450,9 @@ void AchievementMgr::sendRespondInspectAchievements(Player* _player)
         data.appendPackedTime(completeIter.second);
     }
 
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[5]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[5]);
 
     _player->getSession()->SendPacket(&data);
 }
@@ -1503,25 +1503,25 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
         data.writeBits(0, 4);
         data.writeBit(counter[6]);
 
-        criteriaData.WriteByteSeq(counter[7]);
+        criteriaData.writeByteSeq(counter[7]);
         criteriaData << uint32_t(0);                                // timer 1
-        criteriaData.WriteByteSeq(counter[6]);
-        criteriaData.WriteByteSeq(guid[1]);
+        criteriaData.writeByteSeq(counter[6]);
+        criteriaData.writeByteSeq(guid[1]);
         criteriaData << uint32_t(progressIter.first);               // criteria id
-        criteriaData.WriteByteSeq(counter[4]);
-        criteriaData.WriteByteSeq(guid[0]);
-        criteriaData.WriteByteSeq(guid[4]);
-        criteriaData.WriteByteSeq(guid[6]);
-        criteriaData.WriteByteSeq(counter[1]);
-        criteriaData.WriteByteSeq(counter[5]);
-        criteriaData.WriteByteSeq(guid[7]);
-        criteriaData.WriteByteSeq(guid[2]);
-        criteriaData.WriteByteSeq(counter[2]);
-        criteriaData.WriteByteSeq(counter[0]);
-        criteriaData.WriteByteSeq(guid[3]);
-        criteriaData.WriteByteSeq(counter[3]);
+        criteriaData.writeByteSeq(counter[4]);
+        criteriaData.writeByteSeq(guid[0]);
+        criteriaData.writeByteSeq(guid[4]);
+        criteriaData.writeByteSeq(guid[6]);
+        criteriaData.writeByteSeq(counter[1]);
+        criteriaData.writeByteSeq(counter[5]);
+        criteriaData.writeByteSeq(guid[7]);
+        criteriaData.writeByteSeq(guid[2]);
+        criteriaData.writeByteSeq(counter[2]);
+        criteriaData.writeByteSeq(counter[0]);
+        criteriaData.writeByteSeq(guid[3]);
+        criteriaData.writeByteSeq(counter[3]);
         criteriaData << uint32_t(0);                                // timer 2
-        criteriaData.WriteByteSeq(guid[5]);
+        criteriaData.writeByteSeq(guid[5]);
         criteriaData.appendPackedTime(progressIter.second->date);   // criteria date
     }
 
@@ -1542,16 +1542,16 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
 
         completedData << uint32_t(completeIter.first);              // achievement Id
         completedData << uint32_t(1);
-        completedData.WriteByteSeq(guid[5]);
-        completedData.WriteByteSeq(guid[7]);
+        completedData.writeByteSeq(guid[5]);
+        completedData.writeByteSeq(guid[7]);
         completedData << uint32_t(1);
         completedData.appendPackedTime(completeIter.second);        // achievement date
-        completedData.WriteByteSeq(guid[0]);
-        completedData.WriteByteSeq(guid[4]);
-        completedData.WriteByteSeq(guid[1]);
-        completedData.WriteByteSeq(guid[6]);
-        completedData.WriteByteSeq(guid[2]);
-        completedData.WriteByteSeq(guid[3]);
+        completedData.writeByteSeq(guid[0]);
+        completedData.writeByteSeq(guid[4]);
+        completedData.writeByteSeq(guid[1]);
+        completedData.writeByteSeq(guid[6]);
+        completedData.writeByteSeq(guid[2]);
+        completedData.writeByteSeq(guid[3]);
     }
 
     data.flushBits();
@@ -1616,26 +1616,26 @@ void AchievementMgr::sendRespondInspectAchievements(Player* _player)
         data.writeBit(counter[1]);
         data.writeBit(guid[3]);
 
-        criteriaData.WriteByteSeq(counter[4]);
+        criteriaData.writeByteSeq(counter[4]);
         criteriaData << uint32_t(0);    // timer 1
-        criteriaData.WriteByteSeq(counter[1]);
-        criteriaData.WriteByteSeq(guid[1]);
-        criteriaData.WriteByteSeq(counter[7]);
+        criteriaData.writeByteSeq(counter[1]);
+        criteriaData.writeByteSeq(guid[1]);
+        criteriaData.writeByteSeq(counter[7]);
         criteriaData << uint32_t(progressIter.first);
-        criteriaData.WriteByteSeq(guid[3]);
-        criteriaData.WriteByteSeq(counter[3]);
-        criteriaData.WriteByteSeq(counter[5]);
-        criteriaData.WriteByteSeq(counter[2]);
-        criteriaData.WriteByteSeq(guid[4]);
-        criteriaData.WriteByteSeq(counter[0]);
-        criteriaData.WriteByteSeq(guid[0]);
+        criteriaData.writeByteSeq(guid[3]);
+        criteriaData.writeByteSeq(counter[3]);
+        criteriaData.writeByteSeq(counter[5]);
+        criteriaData.writeByteSeq(counter[2]);
+        criteriaData.writeByteSeq(guid[4]);
+        criteriaData.writeByteSeq(counter[0]);
+        criteriaData.writeByteSeq(guid[0]);
         criteriaData << uint32_t(0);    // timer 2
-        criteriaData.WriteByteSeq(guid[7]);
+        criteriaData.writeByteSeq(guid[7]);
         criteriaData.appendPackedTime(progressIter.second->date);
-        criteriaData.WriteByteSeq(counter[6]);
-        criteriaData.WriteByteSeq(guid[2]);
-        criteriaData.WriteByteSeq(guid[6]);
-        criteriaData.WriteByteSeq(guid[5]);
+        criteriaData.writeByteSeq(counter[6]);
+        criteriaData.writeByteSeq(guid[2]);
+        criteriaData.writeByteSeq(guid[6]);
+        criteriaData.writeByteSeq(guid[5]);
     }
 
     data.writeBit(guid[5]);
@@ -1654,17 +1654,17 @@ void AchievementMgr::sendRespondInspectAchievements(Player* _player)
         data.writeBit(guid[1]);
         data.writeBit(guid[7]);
         
-        achievementsData.WriteByteSeq(guid[1]);
-        achievementsData.WriteByteSeq(guid[0]);
+        achievementsData.writeByteSeq(guid[1]);
+        achievementsData.writeByteSeq(guid[0]);
         achievementsData.appendPackedTime(completeIter.second);        // achievement date
         achievementsData << uint32_t(1);
         achievementsData << uint32_t(completeIter.first);              // achievement Id
-        achievementsData.WriteByteSeq(guid[7]);
-        achievementsData.WriteByteSeq(guid[4]);
-        achievementsData.WriteByteSeq(guid[6]);
-        achievementsData.WriteByteSeq(guid[2]);
-        achievementsData.WriteByteSeq(guid[3]);
-        achievementsData.WriteByteSeq(guid[5]);
+        achievementsData.writeByteSeq(guid[7]);
+        achievementsData.writeByteSeq(guid[4]);
+        achievementsData.writeByteSeq(guid[6]);
+        achievementsData.writeByteSeq(guid[2]);
+        achievementsData.writeByteSeq(guid[3]);
+        achievementsData.writeByteSeq(guid[5]);
         achievementsData << uint32_t(1);
     }
 
@@ -1673,18 +1673,18 @@ void AchievementMgr::sendRespondInspectAchievements(Player* _player)
     data.writeBit(guid[1]);
 
     data.flushBits();
-    data.WriteByteSeq(guid[5]);
+    data.writeByteSeq(guid[5]);
 
     data.append(achievementsData);
     data.append(criteriaData);
 
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[1]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[1]);
 
     _player->getSession()->SendPacket(&data);
 }

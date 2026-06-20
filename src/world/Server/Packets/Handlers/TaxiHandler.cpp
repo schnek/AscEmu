@@ -243,7 +243,7 @@ void WorldSession::handleMoveSplineDoneOpcode(WorldPacket& recvData)
     MovementInfo movementInfo;  // used only for proper packet read
     movementInfo.readMovementInfo(recvData, recvData.GetOpcode());
 
-    recvData.read_skip<uint32_t>();   // spline id
+    recvData.readSkip<uint32_t>();   // spline id
 
     uint32_t curDest = GetPlayer()->m_taxi->getTaxiDestination();
     if (curDest)

@@ -40,14 +40,14 @@ void WorldSession::handleVoidStorageUnlock([[maybe_unused]] WorldPacket& recvDat
     npcGuid[7] = recvData.readBit();
     npcGuid[6] = recvData.readBit();
 
-    recvData.ReadByteSeq(npcGuid[7]);
-    recvData.ReadByteSeq(npcGuid[1]);
-    recvData.ReadByteSeq(npcGuid[2]);
-    recvData.ReadByteSeq(npcGuid[3]);
-    recvData.ReadByteSeq(npcGuid[5]);
-    recvData.ReadByteSeq(npcGuid[0]);
-    recvData.ReadByteSeq(npcGuid[6]);
-    recvData.ReadByteSeq(npcGuid[4]);
+    recvData.readByteSeq(npcGuid[7]);
+    recvData.readByteSeq(npcGuid[1]);
+    recvData.readByteSeq(npcGuid[2]);
+    recvData.readByteSeq(npcGuid[3]);
+    recvData.readByteSeq(npcGuid[5]);
+    recvData.readByteSeq(npcGuid[0]);
+    recvData.readByteSeq(npcGuid[6]);
+    recvData.readByteSeq(npcGuid[4]);
 
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
@@ -90,14 +90,14 @@ void WorldSession::handleVoidStorageQuery([[maybe_unused]] WorldPacket& recvData
     npcGuid[1] = recvData.readBit();
     npcGuid[2] = recvData.readBit();
 
-    recvData.ReadByteSeq(npcGuid[5]);
-    recvData.ReadByteSeq(npcGuid[6]);
-    recvData.ReadByteSeq(npcGuid[3]);
-    recvData.ReadByteSeq(npcGuid[7]);
-    recvData.ReadByteSeq(npcGuid[1]);
-    recvData.ReadByteSeq(npcGuid[0]);
-    recvData.ReadByteSeq(npcGuid[4]);
-    recvData.ReadByteSeq(npcGuid[2]);
+    recvData.readByteSeq(npcGuid[5]);
+    recvData.readByteSeq(npcGuid[6]);
+    recvData.readByteSeq(npcGuid[3]);
+    recvData.readByteSeq(npcGuid[7]);
+    recvData.readByteSeq(npcGuid[1]);
+    recvData.readByteSeq(npcGuid[0]);
+    recvData.readByteSeq(npcGuid[4]);
+    recvData.readByteSeq(npcGuid[2]);
 
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
@@ -156,33 +156,33 @@ void WorldSession::handleVoidStorageQuery([[maybe_unused]] WorldPacket& recvData
         data.writeBit(creatorGuid[0]);
         data.writeBit(creatorGuid[7]);
 
-        itemData.WriteByteSeq(creatorGuid[3]);
+        itemData.writeByteSeq(creatorGuid[3]);
 
         itemData << uint32_t(item->itemSuffixFactor);
 
-        itemData.WriteByteSeq(creatorGuid[4]);
+        itemData.writeByteSeq(creatorGuid[4]);
 
         itemData << uint32_t(i);
 
-        itemData.WriteByteSeq(itemId[0]);
-        itemData.WriteByteSeq(itemId[6]);
-        itemData.WriteByteSeq(creatorGuid[0]);
+        itemData.writeByteSeq(itemId[0]);
+        itemData.writeByteSeq(itemId[6]);
+        itemData.writeByteSeq(creatorGuid[0]);
 
         itemData << uint32_t(item->itemRandomPropertyId);
 
-        itemData.WriteByteSeq(itemId[4]);
-        itemData.WriteByteSeq(itemId[5]);
-        itemData.WriteByteSeq(itemId[2]);
-        itemData.WriteByteSeq(creatorGuid[2]);
-        itemData.WriteByteSeq(creatorGuid[6]);
-        itemData.WriteByteSeq(itemId[1]);
-        itemData.WriteByteSeq(itemId[3]);
-        itemData.WriteByteSeq(creatorGuid[5]);
-        itemData.WriteByteSeq(creatorGuid[7]);
+        itemData.writeByteSeq(itemId[4]);
+        itemData.writeByteSeq(itemId[5]);
+        itemData.writeByteSeq(itemId[2]);
+        itemData.writeByteSeq(creatorGuid[2]);
+        itemData.writeByteSeq(creatorGuid[6]);
+        itemData.writeByteSeq(itemId[1]);
+        itemData.writeByteSeq(itemId[3]);
+        itemData.writeByteSeq(creatorGuid[5]);
+        itemData.writeByteSeq(creatorGuid[7]);
 
         itemData << uint32_t(item->itemEntry);
 
-        itemData.WriteByteSeq(itemId[7]);
+        itemData.writeByteSeq(itemId[7]);
     }
 
     data.flushBits();
@@ -258,37 +258,37 @@ void WorldSession::handleVoidStorageTransfer([[maybe_unused]] WorldPacket& recvD
 
     for (uint32_t i = 0; i < countDeposit; ++i)
     {
-        recvData.ReadByteSeq(itemGuids[i][6]);
-        recvData.ReadByteSeq(itemGuids[i][1]);
-        recvData.ReadByteSeq(itemGuids[i][0]);
-        recvData.ReadByteSeq(itemGuids[i][2]);
-        recvData.ReadByteSeq(itemGuids[i][4]);
-        recvData.ReadByteSeq(itemGuids[i][5]);
-        recvData.ReadByteSeq(itemGuids[i][3]);
-        recvData.ReadByteSeq(itemGuids[i][7]);
+        recvData.readByteSeq(itemGuids[i][6]);
+        recvData.readByteSeq(itemGuids[i][1]);
+        recvData.readByteSeq(itemGuids[i][0]);
+        recvData.readByteSeq(itemGuids[i][2]);
+        recvData.readByteSeq(itemGuids[i][4]);
+        recvData.readByteSeq(itemGuids[i][5]);
+        recvData.readByteSeq(itemGuids[i][3]);
+        recvData.readByteSeq(itemGuids[i][7]);
     }
 
-    recvData.ReadByteSeq(npcGuid[5]);
-    recvData.ReadByteSeq(npcGuid[6]);
+    recvData.readByteSeq(npcGuid[5]);
+    recvData.readByteSeq(npcGuid[6]);
 
     for (uint32_t i = 0; i < countWithdraw; ++i)
     {
-        recvData.ReadByteSeq(itemIds[i][3]);
-        recvData.ReadByteSeq(itemIds[i][1]);
-        recvData.ReadByteSeq(itemIds[i][0]);
-        recvData.ReadByteSeq(itemIds[i][6]);
-        recvData.ReadByteSeq(itemIds[i][2]);
-        recvData.ReadByteSeq(itemIds[i][7]);
-        recvData.ReadByteSeq(itemIds[i][5]);
-        recvData.ReadByteSeq(itemIds[i][4]);
+        recvData.readByteSeq(itemIds[i][3]);
+        recvData.readByteSeq(itemIds[i][1]);
+        recvData.readByteSeq(itemIds[i][0]);
+        recvData.readByteSeq(itemIds[i][6]);
+        recvData.readByteSeq(itemIds[i][2]);
+        recvData.readByteSeq(itemIds[i][7]);
+        recvData.readByteSeq(itemIds[i][5]);
+        recvData.readByteSeq(itemIds[i][4]);
     }
 
-    recvData.ReadByteSeq(npcGuid[1]);
-    recvData.ReadByteSeq(npcGuid[4]);
-    recvData.ReadByteSeq(npcGuid[7]);
-    recvData.ReadByteSeq(npcGuid[3]);
-    recvData.ReadByteSeq(npcGuid[2]);
-    recvData.ReadByteSeq(npcGuid[0]);
+    recvData.readByteSeq(npcGuid[1]);
+    recvData.readByteSeq(npcGuid[4]);
+    recvData.readByteSeq(npcGuid[7]);
+    recvData.readByteSeq(npcGuid[3]);
+    recvData.readByteSeq(npcGuid[2]);
+    recvData.readByteSeq(npcGuid[0]);
 
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
@@ -436,14 +436,14 @@ void WorldSession::handleVoidStorageTransfer([[maybe_unused]] WorldPacket& recvD
     for (uint8_t i = 0; i < withdrawCount; ++i)
     {
         WoWGuid itemId = withdrawItems[i].itemId;
-        data.WriteByteSeq(itemId[3]);
-        data.WriteByteSeq(itemId[1]);
-        data.WriteByteSeq(itemId[0]);
-        data.WriteByteSeq(itemId[2]);
-        data.WriteByteSeq(itemId[7]);
-        data.WriteByteSeq(itemId[5]);
-        data.WriteByteSeq(itemId[6]);
-        data.WriteByteSeq(itemId[4]);
+        data.writeByteSeq(itemId[3]);
+        data.writeByteSeq(itemId[1]);
+        data.writeByteSeq(itemId[0]);
+        data.writeByteSeq(itemId[2]);
+        data.writeByteSeq(itemId[7]);
+        data.writeByteSeq(itemId[5]);
+        data.writeByteSeq(itemId[6]);
+        data.writeByteSeq(itemId[4]);
     }
 
     for (uint8_t i = 0; i < depositCount; ++i)
@@ -453,28 +453,28 @@ void WorldSession::handleVoidStorageTransfer([[maybe_unused]] WorldPacket& recvD
 
         data << uint32_t(depositItems[i].first.itemSuffixFactor);
 
-        data.WriteByteSeq(itemId[6]);
-        data.WriteByteSeq(itemId[4]);
-        data.WriteByteSeq(creatorGuid[4]);
-        data.WriteByteSeq(itemId[2]);
-        data.WriteByteSeq(creatorGuid[1]);
-        data.WriteByteSeq(creatorGuid[3]);
-        data.WriteByteSeq(itemId[3]);
-        data.WriteByteSeq(creatorGuid[0]);
-        data.WriteByteSeq(itemId[0]);
-        data.WriteByteSeq(creatorGuid[6]);
-        data.WriteByteSeq(itemId[5]);
-        data.WriteByteSeq(creatorGuid[5]);
-        data.WriteByteSeq(creatorGuid[7]);
+        data.writeByteSeq(itemId[6]);
+        data.writeByteSeq(itemId[4]);
+        data.writeByteSeq(creatorGuid[4]);
+        data.writeByteSeq(itemId[2]);
+        data.writeByteSeq(creatorGuid[1]);
+        data.writeByteSeq(creatorGuid[3]);
+        data.writeByteSeq(itemId[3]);
+        data.writeByteSeq(creatorGuid[0]);
+        data.writeByteSeq(itemId[0]);
+        data.writeByteSeq(creatorGuid[6]);
+        data.writeByteSeq(itemId[5]);
+        data.writeByteSeq(creatorGuid[5]);
+        data.writeByteSeq(creatorGuid[7]);
 
         data << uint32_t(depositItems[i].first.itemEntry);
 
-        data.WriteByteSeq(itemId[1]);
+        data.writeByteSeq(itemId[1]);
 
         data << uint32_t(depositItems[i].second); // slot
 
-        data.WriteByteSeq(creatorGuid[2]);
-        data.WriteByteSeq(itemId[7]);
+        data.writeByteSeq(creatorGuid[2]);
+        data.writeByteSeq(itemId[7]);
 
         data << uint32_t(depositItems[i].first.itemRandomPropertyId);
     }
@@ -516,22 +516,22 @@ void WorldSession::handleVoidSwapItem([[maybe_unused]] WorldPacket& recvData)
     itemId[1] = recvData.readBit();
     itemId[4] = recvData.readBit();
 
-    recvData.ReadByteSeq(npcGuid[1]);
-    recvData.ReadByteSeq(itemId[3]);
-    recvData.ReadByteSeq(itemId[2]);
-    recvData.ReadByteSeq(itemId[4]);
-    recvData.ReadByteSeq(npcGuid[3]);
-    recvData.ReadByteSeq(npcGuid[0]);
-    recvData.ReadByteSeq(itemId[6]);
-    recvData.ReadByteSeq(itemId[1]);
-    recvData.ReadByteSeq(npcGuid[5]);
-    recvData.ReadByteSeq(itemId[5]);
-    recvData.ReadByteSeq(npcGuid[6]);
-    recvData.ReadByteSeq(itemId[0]);
-    recvData.ReadByteSeq(npcGuid[2]);
-    recvData.ReadByteSeq(npcGuid[7]);
-    recvData.ReadByteSeq(npcGuid[4]);
-    recvData.ReadByteSeq(itemId[7]);
+    recvData.readByteSeq(npcGuid[1]);
+    recvData.readByteSeq(itemId[3]);
+    recvData.readByteSeq(itemId[2]);
+    recvData.readByteSeq(itemId[4]);
+    recvData.readByteSeq(npcGuid[3]);
+    recvData.readByteSeq(npcGuid[0]);
+    recvData.readByteSeq(itemId[6]);
+    recvData.readByteSeq(itemId[1]);
+    recvData.readByteSeq(npcGuid[5]);
+    recvData.readByteSeq(itemId[5]);
+    recvData.readByteSeq(npcGuid[6]);
+    recvData.readByteSeq(itemId[0]);
+    recvData.readByteSeq(npcGuid[2]);
+    recvData.readByteSeq(npcGuid[7]);
+    recvData.readByteSeq(npcGuid[4]);
+    recvData.readByteSeq(itemId[7]);
 
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
@@ -609,26 +609,26 @@ void WorldSession::handleVoidSwapItem([[maybe_unused]] WorldPacket& recvData)
 
     if (usedDestSlot)
     {
-        data.WriteByteSeq(itemIdDest[4]);
-        data.WriteByteSeq(itemIdDest[6]);
-        data.WriteByteSeq(itemIdDest[5]);
-        data.WriteByteSeq(itemIdDest[2]);
-        data.WriteByteSeq(itemIdDest[3]);
-        data.WriteByteSeq(itemIdDest[1]);
-        data.WriteByteSeq(itemIdDest[7]);
-        data.WriteByteSeq(itemIdDest[0]);
+        data.writeByteSeq(itemIdDest[4]);
+        data.writeByteSeq(itemIdDest[6]);
+        data.writeByteSeq(itemIdDest[5]);
+        data.writeByteSeq(itemIdDest[2]);
+        data.writeByteSeq(itemIdDest[3]);
+        data.writeByteSeq(itemIdDest[1]);
+        data.writeByteSeq(itemIdDest[7]);
+        data.writeByteSeq(itemIdDest[0]);
     }
 
     if (usedSrcSlot)
     {
-        data.WriteByteSeq(itemId[6]);
-        data.WriteByteSeq(itemId[3]);
-        data.WriteByteSeq(itemId[5]);
-        data.WriteByteSeq(itemId[0]);
-        data.WriteByteSeq(itemId[1]);
-        data.WriteByteSeq(itemId[2]);
-        data.WriteByteSeq(itemId[4]);
-        data.WriteByteSeq(itemId[7]);
+        data.writeByteSeq(itemId[6]);
+        data.writeByteSeq(itemId[3]);
+        data.writeByteSeq(itemId[5]);
+        data.writeByteSeq(itemId[0]);
+        data.writeByteSeq(itemId[1]);
+        data.writeByteSeq(itemId[2]);
+        data.writeByteSeq(itemId[4]);
+        data.writeByteSeq(itemId[7]);
     }
 
     if (usedDestSlot)

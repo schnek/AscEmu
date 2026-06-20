@@ -489,7 +489,7 @@ void WorldSession::sendRefundInfo(uint64_t GUID)
         data.writeBit(objectGuid[0]);
         data.writeBit(objectGuid[1]);
         data.flushBits();
-        data.WriteByteSeq(objectGuid[7]);
+        data.writeByteSeq(objectGuid[7]);
 
         uint32_t* played = _player->getPlayedTime();
 
@@ -504,20 +504,20 @@ void WorldSession::sendRefundInfo(uint64_t GUID)
             data << uint32_t(itemExtendedCostEntry->count[i]);
         }
 
-        data.WriteByteSeq(objectGuid[6]);
-        data.WriteByteSeq(objectGuid[4]);
-        data.WriteByteSeq(objectGuid[3]);
-        data.WriteByteSeq(objectGuid[2]);
+        data.writeByteSeq(objectGuid[6]);
+        data.writeByteSeq(objectGuid[4]);
+        data.writeByteSeq(objectGuid[3]);
+        data.writeByteSeq(objectGuid[2]);
         for (uint8_t i = 0; i < 5; ++i)
         {
             data << uint32_t(itemExtendedCostEntry->reqcurrcount[i]);
             data << uint32_t(itemExtendedCostEntry->reqcur[i]);
         }
 
-        data.WriteByteSeq(objectGuid[1]);
-        data.WriteByteSeq(objectGuid[5]);
+        data.writeByteSeq(objectGuid[1]);
+        data.writeByteSeq(objectGuid[5]);
         data << uint32_t(0);
-        data.WriteByteSeq(objectGuid[0]);
+        data.writeByteSeq(objectGuid[0]);
         data << uint32_t(item_properties->BuyPrice);
 
         SendPacket(&data);
@@ -574,26 +574,26 @@ void WorldSession::handleTransmogrifyItems([[maybe_unused]] WorldPacket& recvDat
     {
         recvData >> newEntries[i];
 
-        recvData.ReadByteSeq(itemGuids[i][1]);
-        recvData.ReadByteSeq(itemGuids[i][5]);
-        recvData.ReadByteSeq(itemGuids[i][0]);
-        recvData.ReadByteSeq(itemGuids[i][4]);
-        recvData.ReadByteSeq(itemGuids[i][6]);
-        recvData.ReadByteSeq(itemGuids[i][7]);
-        recvData.ReadByteSeq(itemGuids[i][3]);
-        recvData.ReadByteSeq(itemGuids[i][2]);
+        recvData.readByteSeq(itemGuids[i][1]);
+        recvData.readByteSeq(itemGuids[i][5]);
+        recvData.readByteSeq(itemGuids[i][0]);
+        recvData.readByteSeq(itemGuids[i][4]);
+        recvData.readByteSeq(itemGuids[i][6]);
+        recvData.readByteSeq(itemGuids[i][7]);
+        recvData.readByteSeq(itemGuids[i][3]);
+        recvData.readByteSeq(itemGuids[i][2]);
 
         recvData >> slots[i];
     }
 
-    recvData.ReadByteSeq(npcGuid[7]);
-    recvData.ReadByteSeq(npcGuid[2]);
-    recvData.ReadByteSeq(npcGuid[5]);
-    recvData.ReadByteSeq(npcGuid[4]);
-    recvData.ReadByteSeq(npcGuid[3]);
-    recvData.ReadByteSeq(npcGuid[1]);
-    recvData.ReadByteSeq(npcGuid[6]);
-    recvData.ReadByteSeq(npcGuid[0]);
+    recvData.readByteSeq(npcGuid[7]);
+    recvData.readByteSeq(npcGuid[2]);
+    recvData.readByteSeq(npcGuid[5]);
+    recvData.readByteSeq(npcGuid[4]);
+    recvData.readByteSeq(npcGuid[3]);
+    recvData.readByteSeq(npcGuid[1]);
+    recvData.readByteSeq(npcGuid[6]);
+    recvData.readByteSeq(npcGuid[0]);
 
     Creature* creature = player->getWorldMapCreature(npcGuid);
     if (!creature)
@@ -704,14 +704,14 @@ void WorldSession::handleReforgeItemOpcode([[maybe_unused]] WorldPacket& recvDat
     guid[7] = recvData.readBit();
     guid[5] = recvData.readBit();
 
-    recvData.ReadByteSeq(guid[2]);
-    recvData.ReadByteSeq(guid[3]);
-    recvData.ReadByteSeq(guid[6]);
-    recvData.ReadByteSeq(guid[4]);
-    recvData.ReadByteSeq(guid[1]);
-    recvData.ReadByteSeq(guid[0]);
-    recvData.ReadByteSeq(guid[7]);
-    recvData.ReadByteSeq(guid[5]);
+    recvData.readByteSeq(guid[2]);
+    recvData.readByteSeq(guid[3]);
+    recvData.readByteSeq(guid[6]);
+    recvData.readByteSeq(guid[4]);
+    recvData.readByteSeq(guid[1]);
+    recvData.readByteSeq(guid[0]);
+    recvData.readByteSeq(guid[7]);
+    recvData.readByteSeq(guid[5]);
 
     Creature* creature = player->getWorldMapCreature(guid);
     if (!creature)
@@ -2454,17 +2454,17 @@ void WorldSession::sendInventoryList(Creature* unit)
     data.flushBits();
     data.append(itemsData);
 
-    data.WriteByteSeq(guid[5]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[6]);
+    data.writeByteSeq(guid[5]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[6]);
 
     data << uint8_t(counter == 0); // unk byte, item count 0: 1, item count != 0: 0 or some "random" value below 300
 
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[7]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[7]);
 #endif
 
     SendPacket(&data);

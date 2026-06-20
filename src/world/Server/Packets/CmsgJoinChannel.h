@@ -55,8 +55,8 @@ namespace AscEmu::Packets
             const uint32_t channelLength = packet.readBits(8);
             const uint32_t passwordLength = packet.readBits(8);
 
-            channelName = packet.ReadString(channelLength);
-            password = packet.ReadString(passwordLength);
+            channelName = packet.readString(channelLength);
+            password = packet.readString(passwordLength);
 #else // Mop
             packet >> dbcId;
 
@@ -67,8 +67,8 @@ namespace AscEmu::Packets
 
             packet.readBit();       // zone update
 
-            channelName = packet.ReadString(channelLength);
-            password = packet.ReadString(passwordLength);
+            channelName = packet.readString(channelLength);
+            password = packet.readString(passwordLength);
 #endif
 #endif
             return true;

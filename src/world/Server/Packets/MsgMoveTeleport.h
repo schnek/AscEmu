@@ -76,28 +76,28 @@ namespace AscEmu::Packets
 
             if (hasTransportData)
             {
-                packet.WriteByteSeq(mi.transport_guid[5]);
-                packet.WriteByteSeq(mi.transport_guid[6]);
-                packet.WriteByteSeq(mi.transport_guid[1]);
-                packet.WriteByteSeq(mi.transport_guid[7]);
-                packet.WriteByteSeq(mi.transport_guid[0]);
-                packet.WriteByteSeq(mi.transport_guid[2]);
-                packet.WriteByteSeq(mi.transport_guid[4]);
-                packet.WriteByteSeq(mi.transport_guid[3]);
+                packet.writeByteSeq(mi.transport_guid[5]);
+                packet.writeByteSeq(mi.transport_guid[6]);
+                packet.writeByteSeq(mi.transport_guid[1]);
+                packet.writeByteSeq(mi.transport_guid[7]);
+                packet.writeByteSeq(mi.transport_guid[0]);
+                packet.writeByteSeq(mi.transport_guid[2]);
+                packet.writeByteSeq(mi.transport_guid[4]);
+                packet.writeByteSeq(mi.transport_guid[3]);
             }
 
             packet << uint32_t(0); // unk
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[5]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[5]);
             packet << lv.x;
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[4]);
             packet << lv.o;
-            packet.WriteByteSeq(guid[7]);
+            packet.writeByteSeq(guid[7]);
             packet << lv.z;
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[6]);
             packet << lv.y;
 #else // TODO: Mop
 #endif

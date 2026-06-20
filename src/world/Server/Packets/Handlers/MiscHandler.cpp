@@ -281,14 +281,14 @@ void WorldSession::handleWhoOpcode(WorldPacket& recvPacket)
     {
         WoWGuid guid = player->getGuid();
 
-        data.WriteByteSeq(guid[1]);
-        data.WriteByteSeq(guid[7]);
-        data.WriteByteSeq(guid[2]);
-        data.WriteByteSeq(guid[4]);
-        data.WriteByteSeq(guid[5]);
-        data.WriteByteSeq(guid[0]);
-        data.WriteByteSeq(guid[3]);
-        data.WriteByteSeq(guid[6]);
+        data.writeByteSeq(guid[1]);
+        data.writeByteSeq(guid[7]);
+        data.writeByteSeq(guid[2]);
+        data.writeByteSeq(guid[4]);
+        data.writeByteSeq(guid[5]);
+        data.writeByteSeq(guid[0]);
+        data.writeByteSeq(guid[3]);
+        data.writeByteSeq(guid[6]);
 
         data << uint32_t(0);
 
@@ -1089,7 +1089,7 @@ void WorldSession::handleBugOpcode(WorldPacket& recv_data)
     lenght += unk2 / 16;
 
     std::string bugMessage;
-    bugMessage = recv_data.ReadString(lenght);
+    bugMessage = recv_data.readString(lenght);
 
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_BUG [Bug Report] lenght: {} message: {}", lenght, bugMessage);
 
@@ -1125,7 +1125,7 @@ void WorldSession::handleSuggestionOpcode([[maybe_unused]] WorldPacket& recvPack
     length += unk2 / 16;
 
     std::string suggestionMessage;
-    suggestionMessage = recvPacket.ReadString(length);
+    suggestionMessage = recvPacket.readString(length);
 
     sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_SUGGESTIONS [Suggestion] length: {} message: {}", length, suggestionMessage);
 
@@ -1382,14 +1382,14 @@ void WorldSession::handleObjectUpdateFailedOpcode(WorldPacket& recvPacket)
     guid[3] = recvPacket.readBit();
     guid[2] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guid[6]);
-    recvPacket.ReadByteSeq(guid[7]);
-    recvPacket.ReadByteSeq(guid[2]);
-    recvPacket.ReadByteSeq(guid[3]);
-    recvPacket.ReadByteSeq(guid[1]);
-    recvPacket.ReadByteSeq(guid[4]);
-    recvPacket.ReadByteSeq(guid[0]);
-    recvPacket.ReadByteSeq(guid[5]);
+    recvPacket.readByteSeq(guid[6]);
+    recvPacket.readByteSeq(guid[7]);
+    recvPacket.readByteSeq(guid[2]);
+    recvPacket.readByteSeq(guid[3]);
+    recvPacket.readByteSeq(guid[1]);
+    recvPacket.readByteSeq(guid[4]);
+    recvPacket.readByteSeq(guid[0]);
+    recvPacket.readByteSeq(guid[5]);
 #elif VERSION_STRING == Mop
     guid[3] = recvPacket.readBit();
     guid[5] = recvPacket.readBit();
@@ -1400,14 +1400,14 @@ void WorldSession::handleObjectUpdateFailedOpcode(WorldPacket& recvPacket)
     guid[7] = recvPacket.readBit();
     guid[4] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(guid[0]);
-    recvPacket.ReadByteSeq(guid[6]);
-    recvPacket.ReadByteSeq(guid[5]);
-    recvPacket.ReadByteSeq(guid[7]);
-    recvPacket.ReadByteSeq(guid[2]);
-    recvPacket.ReadByteSeq(guid[1]);
-    recvPacket.ReadByteSeq(guid[3]);
-    recvPacket.ReadByteSeq(guid[4]);
+    recvPacket.readByteSeq(guid[0]);
+    recvPacket.readByteSeq(guid[6]);
+    recvPacket.readByteSeq(guid[5]);
+    recvPacket.readByteSeq(guid[7]);
+    recvPacket.readByteSeq(guid[2]);
+    recvPacket.readByteSeq(guid[1]);
+    recvPacket.readByteSeq(guid[3]);
+    recvPacket.readByteSeq(guid[4]);
 #endif
 
     sLogger.failure("handleObjectUpdateFailedOpcode : Object update failed for playerguid {}", WoWGuid::getGuidLowPartFromUInt64(guid));
@@ -1654,15 +1654,15 @@ void WorldSession::handleRequestHotfix([[maybe_unused]] WorldPacket& recvPacket)
     uint32_t entry;
     for (uint32_t i = 0; i < count; ++i)
     {
-        recvPacket.ReadByteSeq(guids[i][5]);
-        recvPacket.ReadByteSeq(guids[i][6]);
-        recvPacket.ReadByteSeq(guids[i][7]);
-        recvPacket.ReadByteSeq(guids[i][0]);
-        recvPacket.ReadByteSeq(guids[i][1]);
-        recvPacket.ReadByteSeq(guids[i][3]);
-        recvPacket.ReadByteSeq(guids[i][4]);
+        recvPacket.readByteSeq(guids[i][5]);
+        recvPacket.readByteSeq(guids[i][6]);
+        recvPacket.readByteSeq(guids[i][7]);
+        recvPacket.readByteSeq(guids[i][0]);
+        recvPacket.readByteSeq(guids[i][1]);
+        recvPacket.readByteSeq(guids[i][3]);
+        recvPacket.readByteSeq(guids[i][4]);
         recvPacket >> entry;
-        recvPacket.ReadByteSeq(guids[i][2]);
+        recvPacket.readByteSeq(guids[i][2]);
 
         switch (type)
         {
@@ -1706,15 +1706,15 @@ void WorldSession::handleRequestHotfix([[maybe_unused]] WorldPacket& recvPacket)
     uint32_t entry;
     for (uint32_t i = 0; i < count; ++i)
     {
-        recvPacket.ReadByteSeq(guids[i][1]);
+        recvPacket.readByteSeq(guids[i][1]);
         recvPacket >> entry;
-        recvPacket.ReadByteSeq(guids[i][0]);
-        recvPacket.ReadByteSeq(guids[i][5]);
-        recvPacket.ReadByteSeq(guids[i][6]);
-        recvPacket.ReadByteSeq(guids[i][4]);
-        recvPacket.ReadByteSeq(guids[i][7]);
-        recvPacket.ReadByteSeq(guids[i][2]);
-        recvPacket.ReadByteSeq(guids[i][3]);
+        recvPacket.readByteSeq(guids[i][0]);
+        recvPacket.readByteSeq(guids[i][5]);
+        recvPacket.readByteSeq(guids[i][6]);
+        recvPacket.readByteSeq(guids[i][4]);
+        recvPacket.readByteSeq(guids[i][7]);
+        recvPacket.readByteSeq(guids[i][2]);
+        recvPacket.readByteSeq(guids[i][3]);
 
         sLogger.debug("Received unknown hotfix type {}", type);
     }
@@ -1962,7 +1962,7 @@ void WorldSession::handleWhoIsOpcode(WorldPacket& recvPacket)
     data.writeBits(msg.size(), 11);
     data.flushBits();
     if (msg.size())
-        data.WriteString(msg);
+        data.writeString(msg);
 #endif
     SendPacket(&data);
 }
@@ -2125,7 +2125,7 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
 #if VERSION_STRING < Mop
     ByteBuffer packedGuid;
     WorldPacket data(SMSG_INSPECT_TALENT, 1000);
-    packedGuid.appendPackGUID(inspectedPlayer->getGuid());
+    packedGuid.appendPackGuid(inspectedPlayer->getGuid());
     data.append(packedGuid);
 
     data << uint32_t(inspectedPlayer->getActiveSpec().getTalentPoints());
@@ -2299,7 +2299,7 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
         data.writeBit(creatorGuid[5]);
         data.writeBit(creatorGuid[7]);
 
-        enchantData.WriteByteSeq(creatorGuid[3]);
+        enchantData.writeByteSeq(creatorGuid[3]);
         enchantData << uint32_t(0);
 
         for (uint8_t enchantSlot = 0; enchantSlot < MAX_ENCHANTMENT_SLOT; ++enchantSlot)
@@ -2314,24 +2314,24 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
             enchantData << uint8_t(enchantSlot);
         }
 
-        data.PutBits(enchCountBitPos, enchantCount, 21);
+        data.putBits(enchCountBitPos, enchantCount, 21);
 
         enchantData << inventoryItem->getEntry();
 
-        enchantData.WriteByteSeq(creatorGuid[6]);
-        enchantData.WriteByteSeq(creatorGuid[4]);
-        enchantData.WriteByteSeq(creatorGuid[7]);
-        enchantData.WriteByteSeq(creatorGuid[2]);
+        enchantData.writeByteSeq(creatorGuid[6]);
+        enchantData.writeByteSeq(creatorGuid[4]);
+        enchantData.writeByteSeq(creatorGuid[7]);
+        enchantData.writeByteSeq(creatorGuid[2]);
 
-        enchantData.WriteByteSeq(creatorGuid[5]);
+        enchantData.writeByteSeq(creatorGuid[5]);
 
         enchantData << uint8_t(itemSlot);
 
-        enchantData.WriteByteSeq(creatorGuid[0]);
-        enchantData.WriteByteSeq(creatorGuid[1]);
+        enchantData.writeByteSeq(creatorGuid[0]);
+        enchantData.writeByteSeq(creatorGuid[1]);
     }
 
-    data.PutBits(slotCountBitPos, slotCount, 20);
+    data.putBits(slotCountBitPos, slotCount, 20);
 
     size_t glyphCountBitPos = data.bitwpos();
     data.writeBits(0, 23);
@@ -2343,34 +2343,34 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
     data.writeBit(guid[1]);
     data.flushBits();
 
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[2]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[2]);
 
     data.append(enchantData);
 
     if (guild)
     {
-        data.WriteByteSeq(guildGuid[6]);
-        data.WriteByteSeq(guildGuid[2]);
-        data.WriteByteSeq(guildGuid[5]);
-        data.WriteByteSeq(guildGuid[0]);
+        data.writeByteSeq(guildGuid[6]);
+        data.writeByteSeq(guildGuid[2]);
+        data.writeByteSeq(guildGuid[5]);
+        data.writeByteSeq(guildGuid[0]);
 
         data << uint32_t(guild->getMembersCount());
 
-        data.WriteByteSeq(guildGuid[4]);
-        data.WriteByteSeq(guildGuid[7]);
+        data.writeByteSeq(guildGuid[4]);
+        data.writeByteSeq(guildGuid[7]);
 
         data << uint64_t(guild->getExperience());
 
-        data.WriteByteSeq(guildGuid[1]);
+        data.writeByteSeq(guildGuid[1]);
 
         data << uint32_t(guild->getLevel());
 
-        data.WriteByteSeq(guildGuid[3]);
+        data.writeByteSeq(guildGuid[3]);
     }
 
-    data.WriteByteSeq(guid[5]);
+    data.writeByteSeq(guid[5]);
 
     const PlayerSpec playerSpec = inspectedPlayer->m_specs[inspectedPlayer->m_talentActiveSpec];
 
@@ -2383,9 +2383,9 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
         }
     }
 
-    data.PutBits(glyphCountBitPos, glyphCount, 23);
+    data.putBits(glyphCountBitPos, glyphCount, 23);
 
-    data.WriteByteSeq(guid[0]);
+    data.writeByteSeq(guid[0]);
 
     data << uint32_t(inspectedPlayer->getActiveSpec().getTalentPoints());
 
@@ -2410,11 +2410,11 @@ void WorldSession::handleInspectOpcode(WorldPacket& recvPacket)
         }
     }
 
-    data.PutBits(talentCountBitPos, talentCount, 23);
+    data.putBits(talentCountBitPos, talentCount, 23);
 
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[6]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[6]);
 #endif
 
     SendPacket(&data);
@@ -2645,7 +2645,7 @@ void WorldSession::handleAddonRegisteredPrefixesOpcode([[maybe_unused]] WorldPac
         nameLengths[i] = static_cast<uint8_t>(recvPacket.readBits(5));
 
     for (uint32_t i = 0; i < addonCount; ++i)
-        mRegisteredAddonPrefixesVector.push_back(recvPacket.ReadString(nameLengths[i]));
+        mRegisteredAddonPrefixesVector.push_back(recvPacket.readString(nameLengths[i]));
 
     if (mRegisteredAddonPrefixesVector.size() > 64)
     {
@@ -2723,7 +2723,7 @@ void WorldSession::handleReportPlayerOpcode([[maybe_unused]] WorldPacket& recvPa
     uint32_t length = recvPacket.readBits(9);               // length * 2
     recvPacket >> unk3;                                     // type
     recvPacket >> unk4;                                     // guid - 1?
-    message = recvPacket.ReadString(length / 2);            // message
+    message = recvPacket.readString(length / 2);            // message
     recvPacket >> unk5;                                     // unk
     recvPacket >> unk6;                                     // unk
     recvPacket >> unk7;                                     // unk

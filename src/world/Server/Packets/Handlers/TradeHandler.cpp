@@ -44,14 +44,14 @@ void WorldSession::handleInitiateTradeOpcode(WorldPacket& recvPacket)
     targetGuid[7] = recvPacket.readBit();
     targetGuid[2] = recvPacket.readBit();
 
-    recvPacket.ReadByteSeq(targetGuid[7]);
-    recvPacket.ReadByteSeq(targetGuid[4]);
-    recvPacket.ReadByteSeq(targetGuid[3]);
-    recvPacket.ReadByteSeq(targetGuid[5]);
-    recvPacket.ReadByteSeq(targetGuid[1]);
-    recvPacket.ReadByteSeq(targetGuid[2]);
-    recvPacket.ReadByteSeq(targetGuid[6]);
-    recvPacket.ReadByteSeq(targetGuid[0]);
+    recvPacket.readByteSeq(targetGuid[7]);
+    recvPacket.readByteSeq(targetGuid[4]);
+    recvPacket.readByteSeq(targetGuid[3]);
+    recvPacket.readByteSeq(targetGuid[5]);
+    recvPacket.readByteSeq(targetGuid[1]);
+    recvPacket.readByteSeq(targetGuid[2]);
+    recvPacket.readByteSeq(targetGuid[6]);
+    recvPacket.readByteSeq(targetGuid[0]);
 
     const auto playerTarget = _player->getWorldMapPlayer(static_cast<uint32_t>(targetGuid));
 #endif
@@ -133,23 +133,23 @@ void WorldSession::handleInitiateTradeOpcode(WorldPacket& recvPacket)
     data.writeBits(TRADE_STATUS_PROPOSED, 5);
 
     WoWGuid source_guid = _player->getGuid();
-    data.WriteByteMask(source_guid[2]);
-    data.WriteByteMask(source_guid[4]);
-    data.WriteByteMask(source_guid[6]);
-    data.WriteByteMask(source_guid[0]);
-    data.WriteByteMask(source_guid[1]);
-    data.WriteByteMask(source_guid[3]);
-    data.WriteByteMask(source_guid[7]);
-    data.WriteByteMask(source_guid[5]);
+    data.writeByteMask(source_guid[2]);
+    data.writeByteMask(source_guid[4]);
+    data.writeByteMask(source_guid[6]);
+    data.writeByteMask(source_guid[0]);
+    data.writeByteMask(source_guid[1]);
+    data.writeByteMask(source_guid[3]);
+    data.writeByteMask(source_guid[7]);
+    data.writeByteMask(source_guid[5]);
 
-    data.WriteByteSeq(source_guid[4]);
-    data.WriteByteSeq(source_guid[1]);
-    data.WriteByteSeq(source_guid[2]);
-    data.WriteByteSeq(source_guid[3]);
-    data.WriteByteSeq(source_guid[0]);
-    data.WriteByteSeq(source_guid[7]);
-    data.WriteByteSeq(source_guid[6]);
-    data.WriteByteSeq(source_guid[5]);
+    data.writeByteSeq(source_guid[4]);
+    data.writeByteSeq(source_guid[1]);
+    data.writeByteSeq(source_guid[2]);
+    data.writeByteSeq(source_guid[3]);
+    data.writeByteSeq(source_guid[0]);
+    data.writeByteSeq(source_guid[7]);
+    data.writeByteSeq(source_guid[6]);
+    data.writeByteSeq(source_guid[5]);
 
     data << uint32_t(0);              // unk
 
@@ -641,14 +641,14 @@ void WorldSession::sendTradeResult(TradeStatus result, uint64_t /*guid = 0*/)
 
             data.flushBits();
 
-            data.WriteByteSeq(guid[4]);
-            data.WriteByteSeq(guid[1]);
-            data.WriteByteSeq(guid[2]);
-            data.WriteByteSeq(guid[3]);
-            data.WriteByteSeq(guid[0]);
-            data.WriteByteSeq(guid[7]);
-            data.WriteByteSeq(guid[6]);
-            data.WriteByteSeq(guid[5]);
+            data.writeByteSeq(guid[4]);
+            data.writeByteSeq(guid[1]);
+            data.writeByteSeq(guid[2]);
+            data.writeByteSeq(guid[3]);
+            data.writeByteSeq(guid[0]);
+            data.writeByteSeq(guid[7]);
+            data.writeByteSeq(guid[6]);
+            data.writeByteSeq(guid[5]);
             break;
         }
         case TRADE_STATUS_INITIATED:
@@ -813,7 +813,7 @@ void WorldSession::sendTradeUpdate(bool tradeState /*= true*/)
 
             if (!item->hasFlags(ITEM_FLAG_WRAPPED))
             {
-                data.WriteByteSeq(creatorGuid[1]);
+                data.writeByteSeq(creatorGuid[1]);
 
                 data << uint32_t(item->getEnchantmentId(PERM_ENCHANTMENT_SLOT));
                 for (uint8_t enchant_slot = SOCK_ENCHANTMENT_SLOT1; enchant_slot < BONUS_ENCHANTMENT_SLOT; ++enchant_slot)
@@ -823,44 +823,44 @@ void WorldSession::sendTradeUpdate(bool tradeState /*= true*/)
 
                 data << uint32_t(item->getMaxDurability());
 
-                data.WriteByteSeq(creatorGuid[6]);
-                data.WriteByteSeq(creatorGuid[2]);
-                data.WriteByteSeq(creatorGuid[7]);
-                data.WriteByteSeq(creatorGuid[4]);
+                data.writeByteSeq(creatorGuid[6]);
+                data.writeByteSeq(creatorGuid[2]);
+                data.writeByteSeq(creatorGuid[7]);
+                data.writeByteSeq(creatorGuid[4]);
 
                 data << uint32_t(item->getEnchantmentId(REFORGE_ENCHANTMENT_SLOT));
                 data << uint32_t(item->getDurability());
                 data << uint32_t(item->getRandomPropertiesId());
 
-                data.WriteByteSeq(creatorGuid[3]);
+                data.writeByteSeq(creatorGuid[3]);
 
                 data << uint32_t(0);                      // unk
 
-                data.WriteByteSeq(creatorGuid[0]);
+                data.writeByteSeq(creatorGuid[0]);
 
                 data << uint32_t(item->getSpellCharges(0));
                 data << uint32_t(item->getPropertySeed());
 
-                data.WriteByteSeq(creatorGuid[5]);
+                data.writeByteSeq(creatorGuid[5]);
             }
 
-            data.WriteByteSeq(giftCreatorGuid[6]);
-            data.WriteByteSeq(giftCreatorGuid[1]);
-            data.WriteByteSeq(giftCreatorGuid[7]);
-            data.WriteByteSeq(giftCreatorGuid[4]);
+            data.writeByteSeq(giftCreatorGuid[6]);
+            data.writeByteSeq(giftCreatorGuid[1]);
+            data.writeByteSeq(giftCreatorGuid[7]);
+            data.writeByteSeq(giftCreatorGuid[4]);
 
             data << uint32_t(item->getItemProperties()->ItemId);
 
-            data.WriteByteSeq(giftCreatorGuid[0]);
+            data.writeByteSeq(giftCreatorGuid[0]);
 
             data << uint32_t(item->getStackCount());
 
-            data.WriteByteSeq(giftCreatorGuid[5]);
+            data.writeByteSeq(giftCreatorGuid[5]);
 
             data << uint8_t(i);                           // slot
 
-            data.WriteByteSeq(giftCreatorGuid[2]);
-            data.WriteByteSeq(giftCreatorGuid[3]);
+            data.writeByteSeq(giftCreatorGuid[2]);
+            data.writeByteSeq(giftCreatorGuid[3]);
         }
     }
 #endif

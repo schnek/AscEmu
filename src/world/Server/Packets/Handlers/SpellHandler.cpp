@@ -230,7 +230,7 @@ void WorldSession::handleCancelCastOpcode(WorldPacket& recvPacket)
 
 #else
 #if VERSION_STRING > TBC
-    recvPacket.read_skip<uint8_t>(); // Increments with every HandleCancelCast packet, unused
+    recvPacket.readSkip<uint8_t>(); // Increments with every HandleCancelCast packet, unused
 #endif
     recvPacket >> spellId;
 #endif
@@ -282,7 +282,7 @@ void WorldSession::handleCancelAuraOpcode(WorldPacket& recvPacket)
 
 void WorldSession::handleCancelChannellingOpcode(WorldPacket& recvPacket)
 {
-    recvPacket.read_skip<uint32_t>(); // Spell Id, unused
+    recvPacket.readSkip<uint32_t>(); // Spell Id, unused
 
     _player->interruptSpellWithSpellType(CURRENT_CHANNELED_SPELL);
 }

@@ -58,7 +58,7 @@ namespace AscEmu::Packets
             packet >> subject;
             packet >> body;
             packet >> stationery;
-            packet.read_skip<uint32_t>();
+            packet.readSkip<uint32_t>();
             packet >> itemCount;
 
             if (itemCount > 12)
@@ -75,8 +75,8 @@ namespace AscEmu::Packets
 
             return true;
 #else
-            packet.read_skip<uint32_t>();
-            packet.read_skip<uint32_t>();
+            packet.readSkip<uint32_t>();
+            packet.readSkip<uint32_t>();
 
             packet >> cod;
             packet >> money;
@@ -114,35 +114,35 @@ namespace AscEmu::Packets
             gobjGuid[7] = packet.readBit();
             gobjGuid[5] = packet.readBit();
 
-            packet.ReadByteSeq(gobjGuid[4]);
+            packet.readByteSeq(gobjGuid[4]);
 
             for (uint8_t i = 0; i < itemCount; ++i)
             {
-                packet.ReadByteSeq(itemGUIDs[i][6]);
-                packet.ReadByteSeq(itemGUIDs[i][1]);
-                packet.ReadByteSeq(itemGUIDs[i][7]);
-                packet.ReadByteSeq(itemGUIDs[i][2]);
+                packet.readByteSeq(itemGUIDs[i][6]);
+                packet.readByteSeq(itemGUIDs[i][1]);
+                packet.readByteSeq(itemGUIDs[i][7]);
+                packet.readByteSeq(itemGUIDs[i][2]);
                 packet >> itemSlot;
-                packet.ReadByteSeq(itemGUIDs[i][3]);
-                packet.ReadByteSeq(itemGUIDs[i][0]);
-                packet.ReadByteSeq(itemGUIDs[i][4]);
-                packet.ReadByteSeq(itemGUIDs[i][5]);
+                packet.readByteSeq(itemGUIDs[i][3]);
+                packet.readByteSeq(itemGUIDs[i][0]);
+                packet.readByteSeq(itemGUIDs[i][4]);
+                packet.readByteSeq(itemGUIDs[i][5]);
             }
 
-            packet.ReadByteSeq(gobjGuid[7]);
-            packet.ReadByteSeq(gobjGuid[3]);
-            packet.ReadByteSeq(gobjGuid[6]);
-            packet.ReadByteSeq(gobjGuid[5]);
+            packet.readByteSeq(gobjGuid[7]);
+            packet.readByteSeq(gobjGuid[3]);
+            packet.readByteSeq(gobjGuid[6]);
+            packet.readByteSeq(gobjGuid[5]);
 
-            subject = packet.ReadString(subjectLength);
-            receiverName = packet.ReadString(receiverLength);
+            subject = packet.readString(subjectLength);
+            receiverName = packet.readString(receiverLength);
 
-            packet.ReadByteSeq(gobjGuid[2]);
-            packet.ReadByteSeq(gobjGuid[0]);
+            packet.readByteSeq(gobjGuid[2]);
+            packet.readByteSeq(gobjGuid[0]);
 
-            body = packet.ReadString(bodyLength);
+            body = packet.readString(bodyLength);
 
-            packet.ReadByteSeq(gobjGuid[1]);
+            packet.readByteSeq(gobjGuid[1]);
 
             return true;
 #endif

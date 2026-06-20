@@ -50,14 +50,14 @@ namespace AscEmu::Packets
             npcGuid[1] = packet.readBit();
             npcGuid[3] = packet.readBit();
 
-            packet.ReadByteSeq(npcGuid[0]);
-            packet.ReadByteSeq(npcGuid[4]);
-            packet.ReadByteSeq(npcGuid[2]);
-            packet.ReadByteSeq(npcGuid[3]);
-            packet.ReadByteSeq(npcGuid[7]);
-            packet.ReadByteSeq(npcGuid[1]);
-            packet.ReadByteSeq(npcGuid[5]);
-            packet.ReadByteSeq(npcGuid[6]);
+            packet.readByteSeq(npcGuid[0]);
+            packet.readByteSeq(npcGuid[4]);
+            packet.readByteSeq(npcGuid[2]);
+            packet.readByteSeq(npcGuid[3]);
+            packet.readByteSeq(npcGuid[7]);
+            packet.readByteSeq(npcGuid[1]);
+            packet.readByteSeq(npcGuid[5]);
+            packet.readByteSeq(npcGuid[6]);
 
             guid.init(npcGuid);
 #endif

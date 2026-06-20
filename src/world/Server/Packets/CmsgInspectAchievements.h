@@ -35,7 +35,7 @@ namespace AscEmu::Packets
 
         bool internalDeserialise(WorldPacket& packet) override
         {
-            guid.init(packet.unpackGUID());
+            guid.init(packet.unpackGuid());
             return true;
         }
 #endif

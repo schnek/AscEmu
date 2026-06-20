@@ -218,23 +218,23 @@ namespace AscEmu::Packets
 
             for (uint8_t i = 0; i < researchCount; ++i)
             {
-                packet.read_skip<uint32_t>();
-                packet.read_skip<uint32_t>();
+                packet.readSkip<uint32_t>();
+                packet.readSkip<uint32_t>();
             }
 
             if (hasMovement)
             {
                 packet >> movementInfo.position.x;
-                packet.ReadByteSeq(movementInfo.guid[0]);
+                packet.readByteSeq(movementInfo.guid[0]);
 
                 if (hasTransport)
                 {
-                    packet.ReadByteSeq(movementInfo.transport_guid[2]);
+                    packet.readByteSeq(movementInfo.transport_guid[2]);
                     packet >> movementInfo.transport_seat;
-                    packet.ReadByteSeq(movementInfo.transport_guid[3]);
-                    packet.ReadByteSeq(movementInfo.transport_guid[7]);
+                    packet.readByteSeq(movementInfo.transport_guid[3]);
+                    packet.readByteSeq(movementInfo.transport_guid[7]);
                     packet >> movementInfo.transport_position.x;
-                    packet.ReadByteSeq(movementInfo.transport_guid[5]);
+                    packet.readByteSeq(movementInfo.transport_guid[5]);
 
                     if (movementInfo.status_info.hasTransportTime3)
                         packet >> movementInfo.transport_time3;
@@ -242,20 +242,20 @@ namespace AscEmu::Packets
                     packet >> movementInfo.transport_position.z;
                     packet >> movementInfo.transport_position.y;
 
-                    packet.ReadByteSeq(movementInfo.transport_guid[6]);
-                    packet.ReadByteSeq(movementInfo.transport_guid[1]);
+                    packet.readByteSeq(movementInfo.transport_guid[6]);
+                    packet.readByteSeq(movementInfo.transport_guid[1]);
                     packet >> movementInfo.transport_position.o;
 
-                    packet.ReadByteSeq(movementInfo.transport_guid[4]);
+                    packet.readByteSeq(movementInfo.transport_guid[4]);
 
                     if (movementInfo.status_info.hasTransportTime2)
                         packet >> movementInfo.transport_time2;
 
-                    packet.ReadByteSeq(movementInfo.transport_guid[0]);
+                    packet.readByteSeq(movementInfo.transport_guid[0]);
                     packet >> movementInfo.transport_time;
                 }
 
-                packet.ReadByteSeq(movementInfo.guid[5]);
+                packet.readByteSeq(movementInfo.guid[5]);
 
                 if (movementInfo.status_info.hasFallData)
                 {
@@ -273,12 +273,12 @@ namespace AscEmu::Packets
                 if (movementInfo.status_info.hasSplineElevation)
                     packet >> movementInfo.spline_elevation;
 
-                packet.ReadByteSeq(movementInfo.guid[6]);
+                packet.readByteSeq(movementInfo.guid[6]);
 
                 if (hasUnkField)
-                    packet.read_skip<uint32_t>();
+                    packet.readSkip<uint32_t>();
 
-                packet.ReadByteSeq(movementInfo.guid[4]);
+                packet.readByteSeq(movementInfo.guid[4]);
 
                 if (movementInfo.status_info.hasOrientation)
                     movementInfo.position.o;
@@ -286,72 +286,72 @@ namespace AscEmu::Packets
                 if (movementInfo.status_info.hasTimeStamp)
                     packet >> movementInfo.update_time;
 
-                packet.ReadByteSeq(movementInfo.guid[1]);
+                packet.readByteSeq(movementInfo.guid[1]);
 
                 if (movementInfo.status_info.hasPitch)
                     packet >> movementInfo.pitch_rate;
 
-                packet.ReadByteSeq(movementInfo.guid[3]);
+                packet.readByteSeq(movementInfo.guid[3]);
 
                 for (uint8_t i = 0; i != unkCounter; i++)
-                    packet.read_skip<uint32_t>();
+                    packet.readSkip<uint32_t>();
 
                 packet >> movementInfo.position.y;
-                packet.ReadByteSeq(movementInfo.guid[7]);
+                packet.readByteSeq(movementInfo.guid[7]);
                 packet >> movementInfo.position.z;
-                packet.ReadByteSeq(movementInfo.guid[2]);
+                packet.readByteSeq(movementInfo.guid[2]);
             }
 
-            packet.ReadByteSeq(itemTargetGuid[4]);
-            packet.ReadByteSeq(itemTargetGuid[2]);
-            packet.ReadByteSeq(itemTargetGuid[1]);
-            packet.ReadByteSeq(itemTargetGuid[5]);
-            packet.ReadByteSeq(itemTargetGuid[7]);
-            packet.ReadByteSeq(itemTargetGuid[3]);
-            packet.ReadByteSeq(itemTargetGuid[6]);
-            packet.ReadByteSeq(itemTargetGuid[0]);
+            packet.readByteSeq(itemTargetGuid[4]);
+            packet.readByteSeq(itemTargetGuid[2]);
+            packet.readByteSeq(itemTargetGuid[1]);
+            packet.readByteSeq(itemTargetGuid[5]);
+            packet.readByteSeq(itemTargetGuid[7]);
+            packet.readByteSeq(itemTargetGuid[3]);
+            packet.readByteSeq(itemTargetGuid[6]);
+            packet.readByteSeq(itemTargetGuid[0]);
 
             if (hasDestLocation)
             {
                 float x, y, z;
-                packet.ReadByteSeq(destTransGuid[2]);
+                packet.readByteSeq(destTransGuid[2]);
                 packet >> x;
-                packet.ReadByteSeq(destTransGuid[4]);
-                packet.ReadByteSeq(destTransGuid[1]);
-                packet.ReadByteSeq(destTransGuid[0]);
-                packet.ReadByteSeq(destTransGuid[3]);
+                packet.readByteSeq(destTransGuid[4]);
+                packet.readByteSeq(destTransGuid[1]);
+                packet.readByteSeq(destTransGuid[0]);
+                packet.readByteSeq(destTransGuid[3]);
                 packet >> y;
-                packet.ReadByteSeq(destTransGuid[7]);
+                packet.readByteSeq(destTransGuid[7]);
                 packet >> z;
-                packet.ReadByteSeq(destTransGuid[5]);
-                packet.ReadByteSeq(destTransGuid[6]);
+                packet.readByteSeq(destTransGuid[5]);
+                packet.readByteSeq(destTransGuid[6]);
 
                 targets.setDestination({x, y, z});
                 targets.setTransportDestinationGuid(destTransGuid);
             }
 
-            packet.ReadByteSeq(targetGuid[3]);
-            packet.ReadByteSeq(targetGuid[4]);
-            packet.ReadByteSeq(targetGuid[7]);
-            packet.ReadByteSeq(targetGuid[6]);
-            packet.ReadByteSeq(targetGuid[2]);
-            packet.ReadByteSeq(targetGuid[0]);
-            packet.ReadByteSeq(targetGuid[1]);
-            packet.ReadByteSeq(targetGuid[5]);
+            packet.readByteSeq(targetGuid[3]);
+            packet.readByteSeq(targetGuid[4]);
+            packet.readByteSeq(targetGuid[7]);
+            packet.readByteSeq(targetGuid[6]);
+            packet.readByteSeq(targetGuid[2]);
+            packet.readByteSeq(targetGuid[0]);
+            packet.readByteSeq(targetGuid[1]);
+            packet.readByteSeq(targetGuid[5]);
 
             if (hasSrcLocation)
             {
                 float x, y, z;
                 packet >> y;
-                packet.ReadByteSeq(srcTransGuid[5]);
-                packet.ReadByteSeq(srcTransGuid[1]);
-                packet.ReadByteSeq(srcTransGuid[7]);
-                packet.ReadByteSeq(srcTransGuid[6]);
+                packet.readByteSeq(srcTransGuid[5]);
+                packet.readByteSeq(srcTransGuid[1]);
+                packet.readByteSeq(srcTransGuid[7]);
+                packet.readByteSeq(srcTransGuid[6]);
                 packet >> x;
-                packet.ReadByteSeq(srcTransGuid[3]);
-                packet.ReadByteSeq(srcTransGuid[2]);
-                packet.ReadByteSeq(srcTransGuid[0]);
-                packet.ReadByteSeq(srcTransGuid[4]);
+                packet.readByteSeq(srcTransGuid[3]);
+                packet.readByteSeq(srcTransGuid[2]);
+                packet.readByteSeq(srcTransGuid[0]);
+                packet.readByteSeq(srcTransGuid[4]);
                 packet >> z;
 
                 targets.setSource({x, y, z});
@@ -359,7 +359,7 @@ namespace AscEmu::Packets
             }
 
             if (hasTargetString)
-                targets.setStringTarget(packet.ReadString(targetStringLength));
+                targets.setStringTarget(packet.readString(targetStringLength));
 
             if (hasMissileSpeed)
                 packet >> projectileSpeed;

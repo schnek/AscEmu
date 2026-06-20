@@ -52,14 +52,14 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(oGuid[0]);
-            packet.WriteByteSeq(oGuid[4]);
-            packet.WriteByteSeq(oGuid[7]);
-            packet.WriteByteSeq(oGuid[2]);
-            packet.WriteByteSeq(oGuid[6]);
-            packet.WriteByteSeq(oGuid[3]);
-            packet.WriteByteSeq(oGuid[1]);
-            packet.WriteByteSeq(oGuid[5]);
+            packet.writeByteSeq(oGuid[0]);
+            packet.writeByteSeq(oGuid[4]);
+            packet.writeByteSeq(oGuid[7]);
+            packet.writeByteSeq(oGuid[2]);
+            packet.writeByteSeq(oGuid[6]);
+            packet.writeByteSeq(oGuid[3]);
+            packet.writeByteSeq(oGuid[1]);
+            packet.writeByteSeq(oGuid[5]);
 
 #endif
             return true;

@@ -49,14 +49,14 @@ namespace AscEmu::Packets
             unpackedGuid[1] = packet.readBit();
             unpackedGuid[7] = packet.readBit();
 
-            packet.ReadByteSeq(unpackedGuid[2]);
-            packet.ReadByteSeq(unpackedGuid[7]);
-            packet.ReadByteSeq(unpackedGuid[0]);
-            packet.ReadByteSeq(unpackedGuid[3]);
-            packet.ReadByteSeq(unpackedGuid[5]);
-            packet.ReadByteSeq(unpackedGuid[6]);
-            packet.ReadByteSeq(unpackedGuid[1]);
-            packet.ReadByteSeq(unpackedGuid[4]);
+            packet.readByteSeq(unpackedGuid[2]);
+            packet.readByteSeq(unpackedGuid[7]);
+            packet.readByteSeq(unpackedGuid[0]);
+            packet.readByteSeq(unpackedGuid[3]);
+            packet.readByteSeq(unpackedGuid[5]);
+            packet.readByteSeq(unpackedGuid[6]);
+            packet.readByteSeq(unpackedGuid[1]);
+            packet.readByteSeq(unpackedGuid[4]);
 #elif VERSION_STRING == Mop
             WoWGuid unpackedGuid;
             float unknown;
@@ -71,14 +71,14 @@ namespace AscEmu::Packets
             unpackedGuid[5] = packet.readBit();
             unpackedGuid[0] = packet.readBit();
 
-            packet.ReadByteSeq(unpackedGuid[5]);
-            packet.ReadByteSeq(unpackedGuid[1]);
-            packet.ReadByteSeq(unpackedGuid[0]);
-            packet.ReadByteSeq(unpackedGuid[6]);
-            packet.ReadByteSeq(unpackedGuid[2]);
-            packet.ReadByteSeq(unpackedGuid[4]);
-            packet.ReadByteSeq(unpackedGuid[7]);
-            packet.ReadByteSeq(unpackedGuid[3]);
+            packet.readByteSeq(unpackedGuid[5]);
+            packet.readByteSeq(unpackedGuid[1]);
+            packet.readByteSeq(unpackedGuid[0]);
+            packet.readByteSeq(unpackedGuid[6]);
+            packet.readByteSeq(unpackedGuid[2]);
+            packet.readByteSeq(unpackedGuid[4]);
+            packet.readByteSeq(unpackedGuid[7]);
+            packet.readByteSeq(unpackedGuid[3]);
 #endif
             guid.init(unpackedGuid);
             return true;

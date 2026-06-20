@@ -53,14 +53,14 @@ namespace AscEmu::Packets
             unpackedGuid[0] = packet.readBit();
             unpackedGuid[5] = packet.readBit();
 
-            packet.ReadByteSeq(unpackedGuid[7]);
-            packet.ReadByteSeq(unpackedGuid[1]);
-            packet.ReadByteSeq(unpackedGuid[6]);
-            packet.ReadByteSeq(unpackedGuid[0]);
-            packet.ReadByteSeq(unpackedGuid[3]);
-            packet.ReadByteSeq(unpackedGuid[4]);
-            packet.ReadByteSeq(unpackedGuid[2]);
-            packet.ReadByteSeq(unpackedGuid[5]);
+            packet.readByteSeq(unpackedGuid[7]);
+            packet.readByteSeq(unpackedGuid[1]);
+            packet.readByteSeq(unpackedGuid[6]);
+            packet.readByteSeq(unpackedGuid[0]);
+            packet.readByteSeq(unpackedGuid[3]);
+            packet.readByteSeq(unpackedGuid[4]);
+            packet.readByteSeq(unpackedGuid[2]);
+            packet.readByteSeq(unpackedGuid[5]);
 #endif
             guid.init(unpackedGuid);
             return true;

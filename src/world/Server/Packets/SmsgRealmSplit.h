@@ -38,7 +38,7 @@ namespace AscEmu::Packets
 #else
             packet << unknown << splitState;
             packet.writeBits(dateFormat.size(), 7);
-            packet.WriteString(dateFormat);
+            packet.writeString(dateFormat);
 #endif
             return true;
         }

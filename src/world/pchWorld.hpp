@@ -23,7 +23,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "WorldPacket.h"
 #include "Logging/Log.hpp"
 #include "Logging/Logger.hpp"
-#include "ByteBuffer.h"
+#include "ByteBuffer.hpp"
 #include "Config/Config.hpp"
 #include "LocationVector.hpp"
 #include "Utilities/Strings.hpp"

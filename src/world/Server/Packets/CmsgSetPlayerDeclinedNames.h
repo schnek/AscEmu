@@ -51,16 +51,16 @@ namespace AscEmu::Packets
                 nameLength[i] = packet.readBits(7);
 
             for (int i = 0; i < 5; ++i)
-                declinedNames.push_back(nameLength[i] ? packet.ReadString(nameLength[i]) : std::string());
+                declinedNames.push_back(nameLength[i] ? packet.readString(nameLength[i]) : std::string());
 
-            packet.ReadByteSeq(unpackedGuid[0]);
-            packet.ReadByteSeq(unpackedGuid[7]);
-            packet.ReadByteSeq(unpackedGuid[3]);
-            packet.ReadByteSeq(unpackedGuid[6]);
-            packet.ReadByteSeq(unpackedGuid[4]);
-            packet.ReadByteSeq(unpackedGuid[2]);
-            packet.ReadByteSeq(unpackedGuid[1]);
-            packet.ReadByteSeq(unpackedGuid[5]);
+            packet.readByteSeq(unpackedGuid[0]);
+            packet.readByteSeq(unpackedGuid[7]);
+            packet.readByteSeq(unpackedGuid[3]);
+            packet.readByteSeq(unpackedGuid[6]);
+            packet.readByteSeq(unpackedGuid[4]);
+            packet.readByteSeq(unpackedGuid[2]);
+            packet.readByteSeq(unpackedGuid[1]);
+            packet.readByteSeq(unpackedGuid[5]);
 
             guid = unpackedGuid.getRawGuid();
             return true;

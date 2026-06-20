@@ -95,33 +95,33 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(newGuildGuid[1]);
-            packet.WriteByteSeq(oldGuildGuid[3]);
-            packet.WriteByteSeq(newGuildGuid[6]);
-            packet.WriteByteSeq(oldGuildGuid[2]);
-            packet.WriteByteSeq(oldGuildGuid[1]);
-            packet.WriteByteSeq(newGuildGuid[0]);
+            packet.writeByteSeq(newGuildGuid[1]);
+            packet.writeByteSeq(oldGuildGuid[3]);
+            packet.writeByteSeq(newGuildGuid[6]);
+            packet.writeByteSeq(oldGuildGuid[2]);
+            packet.writeByteSeq(oldGuildGuid[1]);
+            packet.writeByteSeq(newGuildGuid[0]);
 
-            packet.WriteString(guildName);
+            packet.writeString(guildName);
 
-            packet.WriteByteSeq(newGuildGuid[7]);
-            packet.WriteByteSeq(newGuildGuid[2]);
+            packet.writeByteSeq(newGuildGuid[7]);
+            packet.writeByteSeq(newGuildGuid[2]);
 
-            packet.WriteString(inviterName);
+            packet.writeString(inviterName);
 
-            packet.WriteByteSeq(oldGuildGuid[7]);
-            packet.WriteByteSeq(oldGuildGuid[6]);
-            packet.WriteByteSeq(oldGuildGuid[5]);
-            packet.WriteByteSeq(oldGuildGuid[0]);
+            packet.writeByteSeq(oldGuildGuid[7]);
+            packet.writeByteSeq(oldGuildGuid[6]);
+            packet.writeByteSeq(oldGuildGuid[5]);
+            packet.writeByteSeq(oldGuildGuid[0]);
 
-            packet.WriteByteSeq(newGuildGuid[4]);
+            packet.writeByteSeq(newGuildGuid[4]);
 
-            packet.WriteString(guildName);
+            packet.writeString(guildName);
 
-            packet.WriteByteSeq(newGuildGuid[5]);
-            packet.WriteByteSeq(newGuildGuid[3]);
+            packet.writeByteSeq(newGuildGuid[5]);
+            packet.writeByteSeq(newGuildGuid[3]);
 
-            packet.WriteByteSeq(oldGuildGuid[4]);
+            packet.writeByteSeq(oldGuildGuid[4]);
 #endif
             return true;
         }

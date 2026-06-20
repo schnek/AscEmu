@@ -2780,7 +2780,7 @@ void Unit::updateSplineMovement(uint32_t t_diff)
             m_splineSyncTimer = 5000; // Retail value, do not change
 
             ByteBuffer packedGuid;
-            packedGuid.appendPackGUID(getGuid());
+            packedGuid.appendPackGuid(getGuid());
 
             WorldPacket data(SMSG_FLIGHT_SPLINE_SYNC, 4 + packedGuid.size());
             MovementMgr::PacketBuilder::WriteSplineSync(*movespline, data);

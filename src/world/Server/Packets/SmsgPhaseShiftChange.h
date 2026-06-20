@@ -51,30 +51,30 @@ namespace AscEmu::Packets
             packet.writeBit(guid[0]);
             packet.writeBit(guid[7]);
 
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[4]);
 
             packet << uint32_t(0);              // size AreaId swaps
 
-            packet.WriteByteSeq(guid[1]);
+            packet.writeByteSeq(guid[1]);
 
             packet << uint32_t(phaseFlags);     // flags
 
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[6]);
 
             packet << uint32_t(0);              // unknown
 
             packet << uint32_t(1 * 2);          // size phaseIds
             packet << uint16_t(phaseId);
 
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[0]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[0]);
 
             packet << uint32_t(1);              // size visible mapIds
             packet << uint16_t(mapId);
 
-            packet.WriteByteSeq(guid[5]);
+            packet.writeByteSeq(guid[5]);
 
 #elif VERSION_STRING == Mop
             packet.writeBit(guid[0]);
@@ -86,27 +86,27 @@ namespace AscEmu::Packets
             packet.writeBit(guid[7]);
             packet.writeBit(guid[5]);
 
-            packet.WriteByteSeq(guid[4]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[2]);
+            packet.writeByteSeq(guid[4]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[2]);
 
             packet << uint32_t(1);              // size phaseIds
             packet << uint16_t(phaseId);
 
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[6]);
 
             packet << uint32_t(0);              // unknown
 
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[7]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[7]);
 
             packet << uint32_t(1);              // size visible mapIds
             packet << uint16_t(mapId);
 
             packet << uint32_t(0);              // size AreaId swaps
 
-            packet.WriteByteSeq(guid[5]);
+            packet.writeByteSeq(guid[5]);
 
             packet << uint32_t(phaseFlags);     // flags
 #endif

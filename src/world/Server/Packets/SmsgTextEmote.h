@@ -77,33 +77,33 @@ namespace AscEmu::Packets
             packet.writeBit(playerGuid[0]);
             packet.writeBit(playerGuid[5]);
 
-            packet.WriteByteSeq(targetGuid[2]);
-            packet.WriteByteSeq(targetGuid[1]);
+            packet.writeByteSeq(targetGuid[2]);
+            packet.writeByteSeq(targetGuid[1]);
 
-            packet.WriteByteSeq(playerGuid[7]);
-            packet.WriteByteSeq(playerGuid[4]);
+            packet.writeByteSeq(playerGuid[7]);
+            packet.writeByteSeq(playerGuid[4]);
 
-            packet.WriteByteSeq(targetGuid[7]);
+            packet.writeByteSeq(targetGuid[7]);
 
-            packet.WriteByteSeq(playerGuid[5]);
-            packet.WriteByteSeq(playerGuid[2]);
+            packet.writeByteSeq(playerGuid[5]);
+            packet.writeByteSeq(playerGuid[2]);
 
             packet << textEmote;
 
-            packet.WriteByteSeq(playerGuid[6]);
+            packet.writeByteSeq(playerGuid[6]);
 
-            packet.WriteByteSeq(targetGuid[0]);
+            packet.writeByteSeq(targetGuid[0]);
 
-            packet.WriteByteSeq(playerGuid[3]);
-            packet.WriteByteSeq(playerGuid[1]);
+            packet.writeByteSeq(playerGuid[3]);
+            packet.writeByteSeq(playerGuid[1]);
 
-            packet.WriteByteSeq(targetGuid[6]);
+            packet.writeByteSeq(targetGuid[6]);
 
-            packet.WriteByteSeq(playerGuid[0]);
+            packet.writeByteSeq(playerGuid[0]);
 
-            packet.WriteByteSeq(targetGuid[3]);
-            packet.WriteByteSeq(targetGuid[5]);
-            packet.WriteByteSeq(targetGuid[4]);
+            packet.writeByteSeq(targetGuid[3]);
+            packet.writeByteSeq(targetGuid[5]);
+            packet.writeByteSeq(targetGuid[4]);
 
             packet << numEmote;
 #endif

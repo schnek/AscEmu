@@ -61,10 +61,10 @@ namespace AscEmu::Packets
             if (bankToBank)
             {
                 packet >> destTabId >> destSlotId;
-                packet.read_skip<uint32_t>();
+                packet.readSkip<uint32_t>();
 
                 packet >> tabId >> slotId >> itemEntry;
-                packet.read_skip<uint8_t>();
+                packet.readSkip<uint8_t>();
 
                 packet >> splitedAmount;
             }
@@ -73,9 +73,9 @@ namespace AscEmu::Packets
                 packet >> tabId >> slotId >> itemEntry >> autoStore;
                 if (autoStore)
                 {
-                    packet.read_skip<uint32_t>();
-                    packet.read_skip<uint8_t>();
-                    packet.read_skip<uint32_t>();
+                    packet.readSkip<uint32_t>();
+                    packet.readSkip<uint8_t>();
+                    packet.readSkip<uint32_t>();
                 }
                 else
                 {

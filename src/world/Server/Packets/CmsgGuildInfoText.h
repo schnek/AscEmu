@@ -37,7 +37,7 @@ namespace AscEmu::Packets
             packet >> text;
 #else
             const uint32_t length = static_cast<uint32_t>(packet.readBits(12));
-            text = packet.ReadString(length);
+            text = packet.readString(length);
 #endif
             return true;
         }

@@ -38,7 +38,7 @@ namespace AscEmu::Packets
         bool internalDeserialise(WorldPacket& packet) override
         {
             uint64_t unpackedGuid;
-            packet.read_skip<uint32_t>();
+            packet.readSkip<uint32_t>();
             packet >> itemGuid >> unpackedGuid;
             playerGuid.init(unpackedGuid);
             return true;

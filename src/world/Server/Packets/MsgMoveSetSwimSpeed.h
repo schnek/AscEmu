@@ -55,16 +55,16 @@ namespace AscEmu::Packets
             packet.writeBit(guid[0]);
             packet.writeBit(guid[1]);
             packet.writeBit(guid[6]);
-            packet.WriteByteSeq(guid[0]);
+            packet.writeByteSeq(guid[0]);
             packet << uint32_t(0);
-            packet.WriteByteSeq(guid[6]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[2]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[2]);
             packet << float(rate);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[4]);
 #else // Mop
             packet.writeBit(guid[5]);
             packet.writeBit(guid[0]);
@@ -74,15 +74,15 @@ namespace AscEmu::Packets
             packet.writeBit(guid[2]);
             packet.writeBit(guid[4]);
             packet.writeBit(guid[1]);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[3]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[3]);
             packet << float(rate);
-            packet.WriteByteSeq(guid[6]);
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[4]);
 #endif
             return true;
         }

@@ -46,7 +46,7 @@ namespace AscEmu::Packets
         {
             packet >> list_flag;
 #if VERSION_STRING >= Mop
-            packet.read_skip<uint8_t>();
+            packet.readSkip<uint8_t>();
 #endif
             return true;
         }

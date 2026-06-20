@@ -43,7 +43,7 @@ namespace AscEmu::Packets
 
             const auto nameLength = packet.readBits(6);
             uint8_t unknown = packet.readBit();
-            createStruct.name = packet.ReadString(nameLength);
+            createStruct.name = packet.readString(nameLength);
 
             if (unknown)
                 packet.read<uint32_t>();

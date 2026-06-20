@@ -2895,14 +2895,14 @@ void Player::sendInitialLogonPackets()
     data.writeBit(guid[0]);
     data.writeBit(guid[6]);
 
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[5]);
-    data.WriteByteSeq(guid[1]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[5]);
+    data.writeByteSeq(guid[1]);
     getSession()->SendPacket(&data);
 
 #else
@@ -6089,7 +6089,7 @@ void Player::smsg_TalentsInfo([[maybe_unused]]bool SendPetTalents)
             data << uint16_t(talentId);
             talentCount++;
         }
-        data.PutBits(wpos[specId], talentCount, 23);
+        data.putBits(wpos[specId], talentCount, 23);
         data << uint32_t(spec.getTalentPoints());
     }
 
@@ -6303,28 +6303,28 @@ void Player::sendActionBars([[maybe_unused]]uint8_t action)
 
     // Data
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][0]);
+        data.writeByteSeq(buttons[i][0]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][1]);
+        data.writeByteSeq(buttons[i][1]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][4]);
+        data.writeByteSeq(buttons[i][4]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][6]);
+        data.writeByteSeq(buttons[i][6]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][7]);
+        data.writeByteSeq(buttons[i][7]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][2]);
+        data.writeByteSeq(buttons[i][2]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][5]);
+        data.writeByteSeq(buttons[i][5]);
 
     for (uint8_t i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
-        data.WriteByteSeq(buttons[i][3]);
+        data.writeByteSeq(buttons[i][3]);
 #endif
 
 #if VERSION_STRING >= Cata
@@ -7206,14 +7206,14 @@ void Player::die(Unit* unitAttacker, uint32_t /*damage*/, uint32_t /*spellId*/)
     data.writeBit(guid[5]);
     data.writeBit(guid[2]);
 
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[5]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[3]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[5]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[3]);
 #else
     data << GetNewGUID();
 #endif
@@ -10168,14 +10168,14 @@ void Player::setMover(Unit* target)
     data.writeBit(guid[1]);
     data.writeBit(guid[2]);
 
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[5]);
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[1]);
-    data.WriteByteSeq(guid[4]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[5]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[4]);
 
     sendPacket(&data);
 #endif
@@ -13424,14 +13424,14 @@ void Player::resendCreateAndActiveMoverForMoP()
     data.writeBit(guid[7]);
     data.writeBit(guid[0]);
     data.writeBit(guid[6]);
-    data.WriteByteSeq(guid[4]);
-    data.WriteByteSeq(guid[6]);
-    data.WriteByteSeq(guid[2]);
-    data.WriteByteSeq(guid[0]);
-    data.WriteByteSeq(guid[3]);
-    data.WriteByteSeq(guid[7]);
-    data.WriteByteSeq(guid[5]);
-    data.WriteByteSeq(guid[1]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[5]);
+    data.writeByteSeq(guid[1]);
     m_session->SendPacket(&data);
 
     ByteBuffer pbuf(10000);

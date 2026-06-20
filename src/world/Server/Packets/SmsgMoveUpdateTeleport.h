@@ -90,35 +90,35 @@ namespace AscEmu::Packets
 
             packet.writeBit(guid[1]);
 
-            packet.WriteByteSeq(guid[7]);
+            packet.writeByteSeq(guid[7]);
 
             if (hasTransportData)
             {
-                packet.WriteByteSeq(mi.transport_guid[3]);
-                packet.WriteByteSeq(mi.transport_guid[4]);
+                packet.writeByteSeq(mi.transport_guid[3]);
+                packet.writeByteSeq(mi.transport_guid[4]);
                 packet << float(LocationVector::normalizeOrientation(mi.transport_position.o));
 
                 if (mi.status_info.hasTransportTime3)
                     packet << uint32_t(mi.transport_time3);
 
-                packet.WriteByteSeq(mi.transport_guid[1]);
+                packet.writeByteSeq(mi.transport_guid[1]);
 
                 if (mi.status_info.hasTransportTime2)
                     packet << uint32_t(mi.transport_time2);
 
                 packet << float(mi.transport_position.z);
-                packet.WriteByteSeq(mi.transport_guid[7]);
-                packet.WriteByteSeq(mi.transport_guid[0]);
-                packet.WriteByteSeq(mi.transport_guid[6]);
-                packet.WriteByteSeq(mi.transport_guid[5]);
-                packet.WriteByteSeq(mi.transport_guid[2]);
+                packet.writeByteSeq(mi.transport_guid[7]);
+                packet.writeByteSeq(mi.transport_guid[0]);
+                packet.writeByteSeq(mi.transport_guid[6]);
+                packet.writeByteSeq(mi.transport_guid[5]);
+                packet.writeByteSeq(mi.transport_guid[2]);
                 packet << int8_t(mi.transport_seat);
                 packet << uint32_t(mi.transport_time);
                 packet << float(mi.transport_position.y);
                 packet << float(mi.transport_position.x);
             }
 
-            packet.WriteByteSeq(guid[6]);
+            packet.writeByteSeq(guid[6]);
 
             if (mi.status_info.hasPitch)
                 packet << float(mi.pitch_rate);
@@ -128,9 +128,9 @@ namespace AscEmu::Packets
                 packet << float(LocationVector::normalizeOrientation(mi.position.o));
 
 
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid[1]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid[1]);
 
             if (mi.status_info.hasFallData)
             {
@@ -144,13 +144,13 @@ namespace AscEmu::Packets
                 packet << float(mi.jump_info.velocity);
             }
 
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[4]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[4]);
 
             if (mi.status_info.hasTimeStamp)
                 packet << ::Util::getMSTime();
 
-            packet.WriteByteSeq(guid[0]);
+            packet.writeByteSeq(guid[0]);
 // TODO: Mop
 #endif
             return true;

@@ -706,8 +706,8 @@ void WorldSession::fullLogin(Player* player)
     data.writeBits(timeZone.length(), 7);
     data.writeBits(timeZone.length(), 7);
     data.flushBits();
-    data.WriteString(timeZone);
-    data.WriteString(timeZone);
+    data.writeString(timeZone);
+    data.writeString(timeZone);
     SendPacket(&data);
 
     data.Initialize(SMSG_HOTFIX_NOTIFY_BLOB);

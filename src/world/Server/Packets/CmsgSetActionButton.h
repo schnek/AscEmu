@@ -63,14 +63,14 @@ namespace AscEmu::Packets
             buttonStream[3] = packet.readBit();
             buttonStream[4] = packet.readBit();
 
-            packet.ReadByteSeq(buttonStream[6]);
-            packet.ReadByteSeq(buttonStream[7]);
-            packet.ReadByteSeq(buttonStream[3]);
-            packet.ReadByteSeq(buttonStream[5]);
-            packet.ReadByteSeq(buttonStream[2]);
-            packet.ReadByteSeq(buttonStream[1]);
-            packet.ReadByteSeq(buttonStream[4]);
-            packet.ReadByteSeq(buttonStream[0]);
+            packet.readByteSeq(buttonStream[6]);
+            packet.readByteSeq(buttonStream[7]);
+            packet.readByteSeq(buttonStream[3]);
+            packet.readByteSeq(buttonStream[5]);
+            packet.readByteSeq(buttonStream[2]);
+            packet.readByteSeq(buttonStream[1]);
+            packet.readByteSeq(buttonStream[4]);
+            packet.readByteSeq(buttonStream[0]);
 
             action = buttonStream.getGuidLowPart();
             type = buttonStream.getGuidHighPart();

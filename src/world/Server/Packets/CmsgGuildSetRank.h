@@ -69,7 +69,7 @@ namespace AscEmu::Packets
             packet >> moneyPerDay >> newRankId;
 
             const uint32_t nameLength = packet.readBits(7);
-            rankName = packet.ReadString(nameLength);
+            rankName = packet.readString(nameLength);
 #endif
             return true;
         }

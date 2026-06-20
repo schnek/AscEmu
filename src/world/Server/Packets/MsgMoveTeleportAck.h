@@ -76,14 +76,14 @@ namespace AscEmu::Packets
             cataGuid[2] = packet.readBit();
             cataGuid[4] = packet.readBit();
 
-            packet.ReadByteSeq(cataGuid[4]);
-            packet.ReadByteSeq(cataGuid[2]);
-            packet.ReadByteSeq(cataGuid[7]);
-            packet.ReadByteSeq(cataGuid[6]);
-            packet.ReadByteSeq(cataGuid[5]);
-            packet.ReadByteSeq(cataGuid[1]);
-            packet.ReadByteSeq(cataGuid[3]);
-            packet.ReadByteSeq(cataGuid[0]);
+            packet.readByteSeq(cataGuid[4]);
+            packet.readByteSeq(cataGuid[2]);
+            packet.readByteSeq(cataGuid[7]);
+            packet.readByteSeq(cataGuid[6]);
+            packet.readByteSeq(cataGuid[5]);
+            packet.readByteSeq(cataGuid[1]);
+            packet.readByteSeq(cataGuid[3]);
+            packet.readByteSeq(cataGuid[0]);
 
             guid.init(cataGuid);
 #endif

@@ -123,20 +123,20 @@ namespace AscEmu::Packets
                     const uint8_t facialHair = uint8_t(data.bytes2 & 0xFF);
 
                     buffer << uint32_t(data.pet_data.family);
-                    buffer.WriteByteSeq(guildGuid[2]);
+                    buffer.writeByteSeq(guildGuid[2]);
                     buffer << uint8_t(0);
                     buffer << uint8_t(hairStyle);
-                    buffer.WriteByteSeq(guildGuid[3]);
+                    buffer.writeByteSeq(guildGuid[3]);
                     buffer << uint32_t(data.pet_data.display_id);
                     buffer << uint32_t(data.char_flags);
                     buffer << uint8_t(hairColor);
-                    buffer.WriteByteSeq(guid[4]);
+                    buffer.writeByteSeq(guid[4]);
                     buffer << uint32_t(data.mapId);
-                    buffer.WriteByteSeq(guildGuid[5]);
+                    buffer.writeByteSeq(guildGuid[5]);
                     buffer << float(data.z);
-                    buffer.WriteByteSeq(guildGuid[6]);
+                    buffer.writeByteSeq(guildGuid[6]);
                     buffer << uint32_t(data.pet_data.level);
-                    buffer.WriteByteSeq(guid[3]);
+                    buffer.writeByteSeq(guid[3]);
                     buffer << float(data.y);
 
                     switch (data.loginFlags)
@@ -155,23 +155,23 @@ namespace AscEmu::Packets
                     }
 
                     buffer << uint8_t(facialHair);
-                    buffer.WriteByteSeq(guid[7]);
+                    buffer.writeByteSeq(guid[7]);
                     buffer << uint8_t(data.gender);
                     buffer.append(data.name.c_str(), data.name.length());
                     buffer << uint8_t(face);
-                    buffer.WriteByteSeq(guid[0]);
-                    buffer.WriteByteSeq(guid[2]);
-                    buffer.WriteByteSeq(guildGuid[1]);
-                    buffer.WriteByteSeq(guildGuid[7]);
+                    buffer.writeByteSeq(guid[0]);
+                    buffer.writeByteSeq(guid[2]);
+                    buffer.writeByteSeq(guildGuid[1]);
+                    buffer.writeByteSeq(guildGuid[7]);
                     buffer << float(data.x);
                     buffer << uint8_t(skin);
                     buffer << uint8_t(data.race);
                     buffer << uint8_t(data.level);
-                    buffer.WriteByteSeq(guid[6]);
-                    buffer.WriteByteSeq(guildGuid[4]);
-                    buffer.WriteByteSeq(guildGuid[0]);
-                    buffer.WriteByteSeq(guid[5]);
-                    buffer.WriteByteSeq(guid[1]);
+                    buffer.writeByteSeq(guid[6]);
+                    buffer.writeByteSeq(guildGuid[4]);
+                    buffer.writeByteSeq(guildGuid[0]);
+                    buffer.writeByteSeq(guid[5]);
+                    buffer.writeByteSeq(guid[1]);
                     buffer << uint32_t(data.zoneId);
                 }
                 packet.flushBits();
@@ -213,7 +213,7 @@ namespace AscEmu::Packets
 
                     buffer << uint32_t(0);
 
-                    buffer.WriteByteSeq(guid[1]);
+                    buffer.writeByteSeq(guid[1]);
 
                     buffer << uint8_t(listOrder++);
 
@@ -224,20 +224,20 @@ namespace AscEmu::Packets
                     const uint8_t facialHair = uint8_t(data.bytes2 & 0xFF);
                     buffer << uint8_t(hairStyle);
 
-                    buffer.WriteByteSeq(guildGuid[2]);
-                    buffer.WriteByteSeq(guildGuid[0]);
-                    buffer.WriteByteSeq(guildGuid[6]);
+                    buffer.writeByteSeq(guildGuid[2]);
+                    buffer.writeByteSeq(guildGuid[0]);
+                    buffer.writeByteSeq(guildGuid[6]);
 
                     buffer.append(data.name.c_str(), data.name.length());
 
-                    buffer.WriteByteSeq(guildGuid[3]);
+                    buffer.writeByteSeq(guildGuid[3]);
 
                     buffer << float(data.x);
                     buffer << uint32_t(0);
                     buffer << uint8_t(face);
                     buffer << uint8_t(data.Class);
 
-                    buffer.WriteByteSeq(guildGuid[5]);
+                    buffer.writeByteSeq(guildGuid[5]);
 
                     for (uint8_t i = 0; i < INVENTORY_SLOT_BAG_END; ++i)
                     {
@@ -261,23 +261,23 @@ namespace AscEmu::Packets
                             buffer << uint32_t(CHAR_CUSTOMIZE_FLAG_NONE);         //Character recustomization no flag set
                     }
 
-                    buffer.WriteByteSeq(guid[3]);
-                    buffer.WriteByteSeq(guid[5]);
+                    buffer.writeByteSeq(guid[3]);
+                    buffer.writeByteSeq(guid[5]);
 
                     buffer << uint32_t(data.pet_data.family);
 
-                    buffer.WriteByteSeq(guildGuid[4]);
+                    buffer.writeByteSeq(guildGuid[4]);
 
                     buffer << uint32_t(data.mapId);
                     buffer << uint8_t(data.race);
                     buffer << uint8_t(skin);
 
-                    buffer.WriteByteSeq(guildGuid[1]);
+                    buffer.writeByteSeq(guildGuid[1]);
 
                     buffer << uint8_t(data.level);
 
-                    buffer.WriteByteSeq(guid[0]);
-                    buffer.WriteByteSeq(guid[2]);
+                    buffer.writeByteSeq(guid[0]);
+                    buffer.writeByteSeq(guid[2]);
 
                     buffer << uint8_t(hairColor);
                     buffer << uint8_t(data.gender);
@@ -285,19 +285,19 @@ namespace AscEmu::Packets
 
                     buffer << uint32_t(data.pet_data.level);
 
-                    buffer.WriteByteSeq(guid[4]);
-                    buffer.WriteByteSeq(guid[7]);
+                    buffer.writeByteSeq(guid[4]);
+                    buffer.writeByteSeq(guid[7]);
 
                     buffer << float(data.y);
                     buffer << uint32_t(data.pet_data.display_id);
                     buffer << uint32_t(0);
 
-                    buffer.WriteByteSeq(guid[6]);
+                    buffer.writeByteSeq(guid[6]);
 
                     buffer << uint32_t(data.char_flags);
                     buffer << uint32_t(data.zoneId);
 
-                    buffer.WriteByteSeq(guildGuid[7]);
+                    buffer.writeByteSeq(guildGuid[7]);
 
                     buffer << float(data.z);
                 }

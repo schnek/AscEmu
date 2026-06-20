@@ -20,7 +20,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
 * 2008 | Debugging/CrashHandler.cpp
-* 2008 | ByteBuffer.h
 * 2005 | StackWalker.h
 * 2005 | StackWalker.cpp
 
@@ -200,6 +199,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 ### Removed on 16 June 2026
 * 2014 | CommonHelpers.hpp
 * 2014 | CommonTypes.hpp
+* 2008 | ByteBuffer.h
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
@@ -296,3 +296,4 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Cryptography/BigNumber.cpp
 * 2026 | Cryptography/BigNumber.hpp
 * 2026 | AuthCodes.hpp
+* 2026 | ByteBuffer.hpp

@@ -60,25 +60,25 @@ namespace AscEmu::Packets
             packet.writeBit(targetGuid[0]);
             packet.writeBit(casterGuid[5]);
 
-            packet.WriteByteSeq(targetGuid[0]);
-            packet.WriteByteSeq(casterGuid[5]);
-            packet.WriteByteSeq(targetGuid[6]);
-            packet.WriteByteSeq(casterGuid[6]);
-            packet.WriteByteSeq(targetGuid[2]);
-            packet.WriteByteSeq(casterGuid[0]);
-            packet.WriteByteSeq(targetGuid[1]);
+            packet.writeByteSeq(targetGuid[0]);
+            packet.writeByteSeq(casterGuid[5]);
+            packet.writeByteSeq(targetGuid[6]);
+            packet.writeByteSeq(casterGuid[6]);
+            packet.writeByteSeq(targetGuid[2]);
+            packet.writeByteSeq(casterGuid[0]);
+            packet.writeByteSeq(targetGuid[1]);
 
             packet << amount;
 
-            packet.WriteByteSeq(targetGuid[4]);
-            packet.WriteByteSeq(casterGuid[1]);
-            packet.WriteByteSeq(casterGuid[7]);
-            packet.WriteByteSeq(targetGuid[5]);
-            packet.WriteByteSeq(casterGuid[2]);
-            packet.WriteByteSeq(casterGuid[3]);
-            packet.WriteByteSeq(targetGuid[7]);
-            packet.WriteByteSeq(casterGuid[4]);
-            packet.WriteByteSeq(targetGuid[3]);
+            packet.writeByteSeq(targetGuid[4]);
+            packet.writeByteSeq(casterGuid[1]);
+            packet.writeByteSeq(casterGuid[7]);
+            packet.writeByteSeq(targetGuid[5]);
+            packet.writeByteSeq(casterGuid[2]);
+            packet.writeByteSeq(casterGuid[3]);
+            packet.writeByteSeq(targetGuid[7]);
+            packet.writeByteSeq(casterGuid[4]);
+            packet.writeByteSeq(targetGuid[3]);
 
             packet << spellId << type;
 #endif

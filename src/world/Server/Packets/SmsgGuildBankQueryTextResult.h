@@ -36,7 +36,7 @@ namespace AscEmu::Packets
         {
             packet.writeBits(tabInfo.length(), 14);
             packet << tabId;
-            packet.WriteString(tabInfo);
+            packet.writeString(tabInfo);
             return true;
         }
 

@@ -63,12 +63,12 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid[4]);
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[6]);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid[2]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[4]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[2]);
 
             packet << static_cast<uint8_t>(!hasData);
 
@@ -82,8 +82,8 @@ namespace AscEmu::Packets
                 packet << gender;
             }
 
-            packet.WriteByteSeq(guid[0]);
-            packet.WriteByteSeq(guid[3]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[3]);
 
             if (!hasData)
                 return true;
@@ -118,32 +118,32 @@ namespace AscEmu::Packets
 
             packet.flushBits();
 
-            packet.WriteByteSeq(guid[6]);
-            packet.WriteByteSeq(guid[0]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[0]);
 
-            packet.WriteString(player_name);
+            packet.writeString(player_name);
 
-            packet.WriteByteSeq(guid2[5]);
-            packet.WriteByteSeq(guid2[2]);
-            packet.WriteByteSeq(guid[3]);
-            packet.WriteByteSeq(guid2[4]);
-            packet.WriteByteSeq(guid2[3]);
-            packet.WriteByteSeq(guid[4]);
-            packet.WriteByteSeq(guid[2]);
-            packet.WriteByteSeq(guid2[7]);
+            packet.writeByteSeq(guid2[5]);
+            packet.writeByteSeq(guid2[2]);
+            packet.writeByteSeq(guid[3]);
+            packet.writeByteSeq(guid2[4]);
+            packet.writeByteSeq(guid2[3]);
+            packet.writeByteSeq(guid[4]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid2[7]);
 
             if (hasDeclinedNames)
             {
                 for (uint8_t i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
-                    packet.WriteString(declinedNames[i]);
+                    packet.writeString(declinedNames[i]);
             }
 
-            packet.WriteByteSeq(guid2[6]);
-            packet.WriteByteSeq(guid[7]);
-            packet.WriteByteSeq(guid[1]);
-            packet.WriteByteSeq(guid2[1]);
-            packet.WriteByteSeq(guid[5]);
-            packet.WriteByteSeq(guid2[0]);
+            packet.writeByteSeq(guid2[6]);
+            packet.writeByteSeq(guid[7]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid2[1]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid2[0]);
 
 #else
             // Classic/TBC
