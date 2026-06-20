@@ -1,303 +1,204 @@
 ﻿# shared
 
 ## Introduction
-Shared project for functions/structures/classes used by world and logon project.
-Do not add code which is not used by world AND logonserver.
 
-## State
-### Legacy Code
-Legacy code is mostly released under AGPL and highly outdated and can be rewritten with modern C++.
-Keep legacy code inside a AGPL file. Do NOT copy any legacy code to a MIT file!
+The `shared` project is the common systems layer used by both the **world server** and the **logon server**.
 
-Keep in mind that legacy code was written mostly in C-style/c++98 and horrible outdated.
+It contains the low-level runtime infrastructure that both executables depend on: configuration loading, cryptography, database support, debugging, logging, networking, threading, platform abstraction, and reusable utility code.
 
-### New Code
-New code has to be placed inside a MIT file. The current standard is C++20 and newer.
+This module exists to avoid duplicating core systems across multiple server binaries and to ensure that foundational behavior stays consistent throughout the project.
 
-### Ready to remove
+Only code that is required by **both** world and logon should be placed here.
 
-### Removed on 08 Jan 2017
-* 2008 | Tokenizer.h
-* 2008 | Config/ConfigEnv.h
-* 2008 | Database/DataStore.h
-* 2008 | Util.Legacy.h
-* 2008 | Util.Legacy.cpp
+---
 
-### Removed on 23 April 2017
-* 2008 | Config/Config.h
-* 2008 | Config/Config.cpp
+## Purpose
 
-### Removed on 16 Sep 2017
-* 2008 | Log.Legacy.h
-* 2008 | Log.Legacy.cpp
-* 2005 | Timer.h
+The purpose of `shared` is to provide one central place for common infrastructure and support code.
 
-### Removed on 23 Nov 2017
-* 2008 | ascemu_getopt.cpp
-* 2007 | ascemu_getopt.h
+Typical reasons for putting code into `shared`:
 
-### Removed on 23 Dez 2017
-* 2008 | MersenneTwister.h
-* 2008 | MersenneTwister.cpp
+- it is needed by both the world and logon server
+- it provides low-level runtime infrastructure
+- it should behave identically across executables
+- it abstracts platform- or compiler-specific behavior
+- it is reusable support code, not feature-specific gameplay logic
 
-### Removed between 2018 - 2020
-* 2008 | Threading/AtomicULong.h
-* 2008 | Threading/AtomicULong.cpp
-* 2008 | Threading/AtomicFloat.h
-* 2008 | Threading/AtomicFloat.cpp
-* 2008 | Threading/AtomicCounter.h
-* 2008 | Threading/AtomicCounter.cpp
-* 2008 | Threading/AtomicBoolean.h
-* 2008 | Threading/AtomicBoolean.cpp
+In practice, `shared` is the layer that the higher-level server code builds on top of.
 
-### Removed on 11 Jul 2019
-* 2008 | FindFilesResult.hpp
-* 2008 | FindFiles.hpp
-* 2008 | FindFiles.cpp
+---
 
-### Removed on 17 Nov 2019
-* 2008 | Singleton.h
+## Current structure
 
-### Removed on 20 Apr 2020
-* 2008 | Database/Field.h
+### `Config`
+Shared configuration loading and parsing code.
 
-### Removed on 28 Jan 2021
-* 2008 | Threading/Guard.h
-* 2001 | printStackTrace.h
-* 2001 | printStackTrace.cpp
-* 2001 | MapFileEntry.h
-* 2001 | MapFileEntry.cpp
-* 2001 | MapFile.h
-* 2001 | MapFile.cpp
-* 2001 | StackTrace.h
-* 2001 | StackTrace.cpp
+This area is responsible for reading server configuration data and exposing it in a reusable way to both server components.
 
-### Removed on 29 Jan 2021
-* 2001 | TextFile.h
-* 2001 | TextFile.cpp
-* 2008 | StackBuffer.h
-* 2001 | Array.h
+Typical responsibilities:
+- loading configuration files
+- parsing and validating settings
+- exposing typed access to shared configuration values
 
-### Removed on 30 Jan 2021
-* 2005 | CRefcounter.h
-* 2008 | Database/DatabaseEnv.h
+### `Cryptography`
+Shared cryptographic and authentication-related code.
 
-### Removed on 02 Feb 2021
-* 2008 | Threading/RWLock.h
+This directory contains common low-level crypto support needed by the project, especially in login- and authentication-related flows.
 
-### Removed on 10 May 2022
-* 2008 | TLSObject.h
+Typical responsibilities:
+- authentication helper types and constants
+- low-level cryptographic primitives
+- reusable secure protocol support code
 
-### Removed on 07 Jun 2022
-* 2014 | AscemuServerDefines.hpp
+### `Database`
+Shared database infrastructure.
 
-### Removed on 24 Aug 2023
-* 2008 | FastQueue.h
+This contains the common database layer used across the project and serves as the base for database access, query handling, and shared backend integration.
 
-### Removed on 16 Sep 2023
-* 2021 | Database/DatabaseCommon.hpp
+Typical responsibilities:
+- database connection and query support
+- shared data access abstractions
+- common backend and runtime database logic
 
-### Removed on 09 Mar 2024
-* 1996 | crc32.h
-* 1996 | crc32.cpp
+### `Debugging`
+Shared diagnostics and debugging infrastructure.
 
-### Removed on 03 Sep 2024
-* 2007 | Cryptography/Sha1.h
-* 2007 | Cryptography/MD5.h
-* 2007 | Cryptography/RC4Engine.h
+This is the common place for runtime diagnostics, assertions, debugging support, and crash investigation helpers.
 
-### Removed on 04 Sep 2024
-* 2008 | Common.Legacy.h
-* 2008 | Threading/Mutex.h
+Typical responsibilities:
+- assertion and fatal-error handling
+- crash reporting support
+- debugging utilities
+- stack trace and diagnostic infrastructure
 
-### Removed on 05 Oct 2025
-* 2008 | WoWGuid.h
+This directory is especially important because it provides the shared tools used to investigate failures in both executables.
 
-### Removed on 15 May 2026
-* 2008 | Debugging/Errors.h
+### `Exceptions`
+Shared exception-related code.
 
-### Removed on 31 May 2026
-* 2014 | CommonDefines.hpp
-* 2008 | LocationVector.h
-* 2008 | Threading/LegacyThreading.h
-* 2008 | Threading/LockedQueue.h
-* 2008 | Threading/Queue.h
+This directory contains common exception helpers and types that are intended to be reused across multiple subsystems.
 
-### Removed on 1 June 2026
-* 2024 | Threading/Mutex.hpp
-* 2024 | Threading/Mutex.cpp
-* 2005 | CircularQueue.h
-* 2008 | PreallocatedQueue.h
+### `Logging`
+Shared logging infrastructure.
 
-### Removed on 2 June 2026
-* 2017 | Threading/ThreadState.h
-* 2008 | Threading/ConditionVariable.h
-* 2008 | Threading/ConditionVariable.cpp
-* 2008 | CThreads.h
-* 2008 | CThreads.cpp
-* 2008 | DynLib.hpp
-* 2008 | DynLib.cpp
+This contains the common logging system used throughout the project.
 
-### Removed on 6 June 2026
-* 2007 | Network/CircularBuffer.cpp
-* 2007 | Network/CircularBuffer.h
+Typical responsibilities:
+- console and file logging
+- common log formatting
+- shared logging APIs and output paths
 
-### Removed on 7 June 2026
-* 2008 | Threading/LegacyThreadPool.h
-* 2008 | Threading/LegacyThreadPool.cpp
-* 2008 | Threading/LegacyThreadBase.h
+Using one shared logging layer keeps diagnostics consistent across all executables.
 
-### Removed on 13 June 2026
-* 2008 | Database/MySQLDatabase.h
-* 2005 | Database/MySQLDatabase.cpp
-* 2008 | Database/Database.h
-* 2008 | Database/Database.cpp
-* 2008 | Database/CreateInterface.cpp
+### `Network`
+Shared low-level networking infrastructure.
 
-### Removed on 14 June 2026
-* 2005 | SysInfo.hpp
-* 2005 | SysInfo.cpp
-* 2005 | PerformanceCounter.hpp
-* 2005 | PerformanceCounter.cpp
-* 2007 | Network/EPOLL/ListenSocketLinux.h
-* 2007 | Network/EPOLL/SocketLinux.cpp
-* 2007 | Network/EPOLL/SocketMgrLinux.cpp
-* 2007 | Network/EPOLL/SocketMgrLinux.h
-* 2007 | Network/EPOLL/SocketOpsLinux.cpp
-* 2007 | Network/IOCP/ListenSocketWin32.h
-* 2007 | Network/IOCP/SocketMgrWin32.cpp
-* 2007 | Network/IOCP/SocketMgrWin32.h
-* 2007 | Network/IOCP/SocketOpsWin32.cpp
-* 2007 | Network/IOCP/SocketWin32.cpp
-* 2007 | Network/KQUEUE/ListenSocketFreeBSD.h
-* 2007 | Network/KQUEUE/SocketFreeBSD.cpp
-* 2007 | Network/KQUEUE/SocketMgrFreeBSD.cpp
-* 2007 | Network/KQUEUE/SocketMgrFreeBSD.h
-* 2007 | Network/KQUEUE/SocketOpsFreeBSD.cpp
-* 2007 | Network/Network.h
-* 2014 | Network/NetworkIncludes.hpp
-* 2007 | Network/Socket.cpp
-* 2007 | Network/Socket.h
-* 2014 | Network/SocketDefines.h
-* 2007 | Network/SocketOps.h
+This is the common base for socket handling and related network support code that should not be duplicated between projects.
 
-### Removed on 15 June 2026
-* 2008 | Utilities/CallBack.h
-* 2008 | Cryptography/BigNumber.cpp
-* 2007 | Cryptography/BigNumber.h
-* 2008 | AuthCodes.h
+Typical responsibilities:
+- socket abstractions
+- low-level network support code
+- common protocol transport infrastructure
+- shared networking runtime helpers
 
-### Removed on 16 June 2026
-* 2014 | CommonHelpers.hpp
-* 2014 | CommonTypes.hpp
+This layer is infrastructure-focused and should stay separate from high-level gameplay or application logic.
 
-### Removed on 20 June 2026
-* 2008 | ByteBuffer.h
-* 2008 | WorldPacket.h
-* 2008 | LocationVector.cpp
-* 2008 | Debugging/CrashHandler.h
-* 2008 | Debugging/CrashHandler.cpp
-* 2005 | Debugging/StackWalker.h
-* 2005 | Debugging/StackWalker.cpp
+### `Platform`
+Shared platform and compiler abstraction.
 
-### New files
-* 2015 | Exceptions/PlayerExceptions.hpp
-* 2015 | Exceptions/Exceptions.hpp
-* 2016 | BuildInfo.hpp
-* 2017 | Config/Config.cpp
-* 2017 | Config/Config.hpp
-* 2017 | Logging/Log.cpp
-* 2017 | Logging/Log.hpp
-* 2017 | Logging/LoggerDefines.hpp
-* 2017 | Utilities/Util.cpp
-* 2017 | Utilities/Util.hpp
-* 2017 | LogonCommDefines.hpp
-* 2017 | Cryptography/WowCrypt.cpp
-* 2017 | Cryptography/WowCrypt.hpp
-* 2017 | Threading/Thread.cpp
-* 2017 | Threading/Thread.hpp
-* 2018 | Threading/ThreadPool.cpp
-* 2018 | Threading/ThreadPool.hpp
-* 2020 | Database/Field.hpp
-* 2020 | Database/DatabaseUpdater.cpp
-* 2020 | Database/DatabaseUpdater.hpp
-* 2021 | Registry/FactoryHolder.hpp
-* 2021 | Logging/Logger.cpp
-* 2021 | Logging/Logger.hpp
-* 2021 | Logging/MessageType.hpp
-* 2021 | Logging/Severity.hpp
-* 2021 | Registry/ObjectRegistry.hpp
-* 2021 | Utilities/Strings.cpp
-* 2021 | Utilities/Strings.hpp
-* 2022 | AEVersion.hpp
-* 2023 | pchShared.hpp
-* 2023 | Threading/ThreadSafeQueue.hpp
-* 2023 | Utilities/CommonTime.hpp
-* 2023 | Utilities/CommonFilesystem.hpp
-* 2024 | Cryptography/Sha1.hpp
-* 2024 | Cryptography/MD5.hpp
-* 2024 | Cryptography/RC4.hpp
-* 2025 | WoWGuid.hpp
-* 2026 | Debugging/Errors.hpp
-* 2026 | Utilities/MathConstants.hpp
-* 2026 | Utilities/LocationVector.cpp
-* 2026 | Utilities/LocationVector.hpp
-* 2026 | Network/BipBuffer.hpp
-* 2026 | Platform/DynamicLibrary.hpp
-* 2026 | Platform/DynamicLibrary.cpp
-* 2026 | Network/Backends/EPOLL/EpollBackend.hpp
-* 2026 | Network/Backends/IOCP/IocpBackend.hpp
-* 2026 | Network/Backends/IOCP/ListenSocketWin32.hpp
-* 2026 | Network/Backends/KQUEUE/KqueueBackend.hpp
-* 2026 | Network/Core/ListenCommon.hpp
-* 2026 | Network/Core/NetworkBackend.hpp
-* 2026 | Network/Core/NetworkBackendCommon.hpp
-* 2026 | Network/Core/PollBackend.hpp
-* 2026 | Network/Core/PollListenSocket.hpp
-* 2026 | Network/Core/PollSocketDispatch.hpp
-* 2026 | Network/Core/PollWorkerHelper.hpp
-* 2026 | Network/Core/PollWorkerLifecycle.hpp
-* 2026 | Network/Core/Resolver.hpp
-* 2026 | Network/Core/SocketAddress.hpp
-* 2026 | Network/Core/SocketCompletionHandlers.hpp
-* 2026 | Network/Core/SocketDescriptionDispatch.hpp
-* 2026 | Network/Core/SocketEventHandlers.hpp
-* 2026 | Network/Core/SocketPlatformOps.hpp
-* 2026 | Network/Core/SocketStateHelpers.hpp
-* 2026 | Network/Platforms/Posix/SocketOpsPosix.cpp
-* 2026 | Network/Platforms/Posix/SocketPosix.cpp
-* 2026 | Network/Platforms/Win32/SocketOpsWin32.cpp
-* 2026 | Network/Platforms/Win32/SocketWin32.cpp
-* 2026 | Network/Network.hpp
-* 2026 | Network/NetworkIncludes.hpp
-* 2026 | Network/Socket.cpp
-* 2026 | Network/Socket.hpp
-* 2026 | Network/SocketDefines.hpp
-* 2026 | Network/SocketMgr.cpp
-* 2026 | Network/SocketMgr.hpp
-* 2026 | Database/Database.cpp
-* 2026 | Database/Database.hpp
-* 2026 | Database/DatabaseRuntime.hpp
-* 2026 | Database/DatabaseSelfTest.cpp
-* 2026 | Database/DatabaseSelfTest.hpp
-* 2026 | Database/Field.cpp
-* 2026 | Database/Field.hpp
-* 2026 | Database/MySQLDatabase.cpp
-* 2026 | Database/MySQLDatabase.hpp
-* 2026 | Database/RowView.hpp
-* 2026 | Platform/SysInfo.hpp
-* 2026 | Platform/SysInfo.cpp
-* 2026 | Platform/PerformanceCounter.hpp
-* 2026 | Platform/PerformanceCounter.cpp
-* 2026 | Platform/SymbolVisibility.hpp
-* 2026 | Utilities/CallBack.hpp
-* 2026 | Cryptography/BigNumber.cpp
-* 2026 | Cryptography/BigNumber.hpp
-* 2026 | AuthCodes.hpp
-* 2026 | Network/ByteBuffer.hpp
-* 2026 | Network/WorldPacket.hpp
-* 2026 | Debugging/CrashHandler.hpp
-* 2026 | Debugging/CrashHandler.cpp
-* 2026 | Debugging/CrashHandlerSelfTest.cpp
-* 2026 | Debugging/StackWalker.hpp
-* 2026 | Debugging/StackWalker.cpp
+This contains the code needed to keep the project portable across operating systems and toolchains.
+
+Typical responsibilities:
+- platform detection
+- compiler compatibility helpers
+- symbol visibility and import/export definitions
+- platform-specific support code kept behind shared interfaces
+
+### `Registry`
+Shared registration-style support code.
+
+This directory is used for common registration patterns or globally accessible subsystem support where a registry-style approach is needed.
+
+### `Threading`
+Shared threading and synchronization infrastructure.
+
+This contains the concurrency-related building blocks reused across the project.
+
+Typical responsibilities:
+- threading helpers
+- synchronization support
+- reusable concurrency infrastructure
+- platform-safe thread-related abstractions
+
+### `Utilities`
+General reusable support code.
+
+This directory is intended for small shared helpers that do not belong more naturally in a more specialized subsystem.
+
+Typical responsibilities:
+- general reusable helpers
+- callback/support structures
+- small low-level utility code
+
+This directory should remain focused and should not become a generic dumping ground.
+
+---
+
+## Important top-level files
+
+### `AuthCodes.hpp`
+Shared authentication-related constants or definitions used across the project.
+
+### `BuildInfo.hpp.in`
+A generated build-information template used to expose build metadata such as version, branch, commit, platform, or configuration details.
+
+### `LogonCommDefines.hpp`
+Shared communication-related definitions for logon/world interaction or protocol-level shared constants.
+
+### `WoWGuid.hpp`
+A shared World of Warcraft GUID helper type.
+
+This file represents a domain/protocol-specific identifier abstraction that is used across multiple parts of the project.
+
+Typical responsibilities:
+- GUID representation
+- packed/unpacked GUID handling
+- shared protocol-facing identifier support
+
+### `AEVersion.hpp.in`
+A build-generated version template used to expose version information to the project at compile time.
+
+### `pchShared.hpp`
+The precompiled header for the shared module.
+
+This file exists to reduce build cost by centralizing commonly included headers for the shared project.
+
+---
+
+## Design rules
+
+### Shared-only scope
+`shared` should only contain code that is genuinely used by both the world and logon server.
+
+Code that is specific to only one executable should stay in that executable’s own module.
+
+### Infrastructure first
+`shared` is primarily an infrastructure layer, not a gameplay layer.
+
+It should contain foundational systems such as:
+- configuration
+- logging
+- debugging
+- database support
+- cryptography
+- threading
+- networking infrastructure
+- platform abstraction
+- shared utility code
+
+### Keep module boundaries clean
+Subsystem-specific high-level logic should not be moved into `shared` just because it is convenient.
+
+A good rule is:
+- if it is reusable infrastructure, it likely belongs here
+- if it is application or gameplay behavior, it likely does not
