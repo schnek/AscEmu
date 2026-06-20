@@ -40,7 +40,7 @@ namespace
     std::atomic<bool> g_isHandlingCrash{ false };
     std::mutex g_windowsCrashMutex;
 #else
-    volatile std::sig_atomic_t g_isHandlingSignalCrash = 0;
+    volatile sig_atomic_t g_isHandlingSignalCrash = 0;
     stack_t g_alternateStack{};
     alignas(std::max_align_t) std::byte g_signalStack[64 * 1024];
 #endif
@@ -287,8 +287,8 @@ namespace
         std::memset(&action, 0, sizeof(action));
         action.sa_sigaction = &posixSignalHandler;
         action.sa_flags = SA_SIGINFO | SA_ONSTACK | SA_RESETHAND;
-        ::sigemptyset(&action.sa_mask);
-        ::sigaction(signalNumber, &action, nullptr);
+        sigemptyset(&action.sa_mask);
+        sigaction(signalNumber, &action, nullptr);
     }
 #endif
 
@@ -316,7 +316,7 @@ void AscEmu::Debugging::installCrashHandler(const CrashHandlerOptions& options)
     g_alternateStack.ss_sp = g_signalStack;
     g_alternateStack.ss_size = sizeof(g_signalStack);
     g_alternateStack.ss_flags = 0;
-    ::sigaltstack(&g_alternateStack, nullptr);
+    sigaltstack(&g_alternateStack, nullptr);
 
     installSignal(SIGSEGV);
     installSignal(SIGABRT);
