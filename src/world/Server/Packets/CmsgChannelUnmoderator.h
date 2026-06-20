@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "ManagedPacket.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 
 namespace AscEmu::Packets
 {

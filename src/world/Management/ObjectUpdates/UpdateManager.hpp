@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <mutex>
 #include <vector>
 
-#include <WorldPacket.h>
+#include <Network/WorldPacket.hpp>
 
 class Player;
 

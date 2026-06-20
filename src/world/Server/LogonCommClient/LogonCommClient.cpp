@@ -26,7 +26,7 @@
 #include "Utilities/Util.hpp"
 #include "LogonCommClient.h"
 #include "LogonCommHandler.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Database/Database.hpp"
 #include "Server/World.h"
 #include "LogonCommDefines.hpp"
@@ -131,13 +131,13 @@ void LogonCommClientSocket::HandlePacket(WorldPacket& recvData)
         &LogonCommClientSocket::HandleResultAllAccount,         // LRSMSG_ALL_ACCOUNT_RESULT
     };
 
-    if (recvData.GetOpcode() >= LRMSG_MAX_OPCODES || Handlers[recvData.GetOpcode()] == 0)
+    if (recvData.getOpcode() >= LRMSG_MAX_OPCODES || Handlers[recvData.getOpcode()] == 0)
     {
-        sLogger.failure("Got unknown packet from logoncomm: {}", recvData.GetOpcode());
+        sLogger.failure("Got unknown packet from logoncomm: {}", recvData.getOpcode());
         return;
     }
 
-    (this->*(Handlers[recvData.GetOpcode()]))(recvData);
+    (this->*(Handlers[recvData.getOpcode()]))(recvData);
 }
 
 void LogonCommClientSocket::HandleRegister(WorldPacket& recvData)
@@ -212,7 +212,7 @@ void LogonCommClientSocket::SendPacket(WorldPacket* data, bool no_crypto)
 
     burstBegin();
 
-    header.opcode = data->GetOpcode();
+    header.opcode = data->getOpcode();
 
     uint32_t sizeVal = static_cast<uint32_t>(data->size());
     byteSwapUInt32(&sizeVal);

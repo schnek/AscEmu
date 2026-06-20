@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "AEVersion.hpp"
 #include "ManagedPacket.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 
 struct PlayerStablePet
 {

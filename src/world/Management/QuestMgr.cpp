@@ -383,7 +383,7 @@ void QuestMgr::BuildOfferReward(WorldPacket* data, QuestProperties const* qst, O
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
     ItemProperties const* it;
 
-    data->SetOpcode(SMSG_QUESTGIVER_OFFER_REWARD);
+    data->setOpcode(SMSG_QUESTGIVER_OFFER_REWARD);
     *data << uint64_t(qst_giver->getGuid());
     *data << uint32_t(qst->id);
 
@@ -482,7 +482,7 @@ void QuestMgr::BuildOfferReward(WorldPacket* data, QuestProperties const* qst, O
     std::string questTurnTextWindow = "";
     std::string questTurnTargetName = "";
 
-    data->SetOpcode(SMSG_QUESTGIVER_OFFER_REWARD);
+    data->setOpcode(SMSG_QUESTGIVER_OFFER_REWARD);
     *data << uint64_t(qst_giver->getGuid());
     *data << uint32_t(qst->id);
 
@@ -610,7 +610,7 @@ void QuestMgr::BuildQuestDetails(WorldPacket* data, QuestProperties const* qst, 
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
     //std::map<uint32_t, uint8_t>::const_iterator itr;
 
-    data->SetOpcode(SMSG_QUESTGIVER_QUEST_DETAILS);
+    data->setOpcode(SMSG_QUESTGIVER_QUEST_DETAILS);
 
     *data << qst_giver->getGuid(); // npc guid
 #if VERSION_STRING > TBC
@@ -723,7 +723,7 @@ void QuestMgr::BuildQuestDetails(WorldPacket* data, QuestProperties const* qst, 
     std::string questTurnTextWindow = "";
     std::string questTurnTargetName = "";
 
-    data->SetOpcode(SMSG_QUESTGIVER_QUEST_DETAILS);
+    data->setOpcode(SMSG_QUESTGIVER_QUEST_DETAILS);
     *data << uint64_t(qst_giver->getGuid());                                // npc guid
     *data << uint64_t(0);                                                   // (questsharer?) guid
     *data << uint32_t(qst->id);
@@ -853,7 +853,7 @@ void QuestMgr::BuildRequestItems(WorldPacket* data, QuestProperties const* qst, 
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
 
     ItemProperties const* it;
-    data->SetOpcode(SMSG_QUESTGIVER_REQUEST_ITEMS);
+    data->setOpcode(SMSG_QUESTGIVER_REQUEST_ITEMS);
 
     *data << qst_giver->getGuid();
     *data << qst->id;
@@ -943,7 +943,7 @@ void QuestMgr::BuildRequestItems(WorldPacket* data, QuestProperties const* qst, 
 #else
     MySQLStructure::LocalesQuest const* lq = (language > 0) ? sMySQLStore.getLocalizedQuest(qst->id, language) : nullptr;
 
-    data->SetOpcode(SMSG_QUESTGIVER_REQUEST_ITEMS);
+    data->setOpcode(SMSG_QUESTGIVER_REQUEST_ITEMS);
     *data << uint64_t(qst_giver->getGuid());
     *data << uint32_t(qst->id);
 
@@ -1060,7 +1060,7 @@ void QuestMgr::BuildQuestList(WorldPacket* data, Object* qst_giver, Player* plr,
     QuestRelationList::iterator ed;
     std::map<uint32_t, uint8_t> tmp_map;
 
-    data->Initialize(SMSG_QUESTGIVER_QUEST_LIST);
+    data->initialize(SMSG_QUESTGIVER_QUEST_LIST);
 
     *data << qst_giver->getGuid();
 
@@ -1160,7 +1160,7 @@ void QuestMgr::BuildQuestList(WorldPacket* data, Object* qst_giver, Player* plr,
 
 void QuestMgr::BuildQuestUpdateAddItem(WorldPacket* data, uint32_t itemid, uint32_t count)
 {
-    data->Initialize(SMSG_QUESTUPDATE_ADD_ITEM);
+    data->initialize(SMSG_QUESTUPDATE_ADD_ITEM);
     *data << itemid;
     *data << count;
 }
@@ -1168,7 +1168,7 @@ void QuestMgr::BuildQuestUpdateAddItem(WorldPacket* data, uint32_t itemid, uint3
 void QuestMgr::SendQuestUpdateAddKill(Player* plr, uint32_t questid, uint32_t entry, uint32_t count, uint32_t tcount, uint64_t guid)
 {
     WorldPacket data(32);
-    data.SetOpcode(SMSG_QUESTUPDATE_ADD_KILL);
+    data.setOpcode(SMSG_QUESTUPDATE_ADD_KILL);
     data << questid;
     data << entry;
     data << count;
@@ -1179,7 +1179,7 @@ void QuestMgr::SendQuestUpdateAddKill(Player* plr, uint32_t questid, uint32_t en
 
 void QuestMgr::BuildQuestUpdateComplete(WorldPacket* data, QuestProperties const* qst)
 {
-    data->Initialize(SMSG_QUESTUPDATE_COMPLETE);
+    data->initialize(SMSG_QUESTUPDATE_COMPLETE);
 
     *data << qst->id;
 }
@@ -1415,7 +1415,7 @@ void QuestMgr::OnPlayerItemPickup(Player* plr, Item* item)
                     if (pcount < questLog->getQuestProperties()->required_itemcount[j])
                     {
                         WorldPacket data(8);
-                        data.SetOpcode(SMSG_QUESTUPDATE_ADD_ITEM);
+                        data.setOpcode(SMSG_QUESTUPDATE_ADD_ITEM);
                         data << questLog->getQuestProperties()->required_item[j];
                         data << uint32_t(1);
                         plr->getSession()->SendPacket(&data);
@@ -1803,7 +1803,7 @@ void QuestMgr::OnQuestFinished(Player* plr, QuestProperties const* qst, Object* 
                 data << plr->getGuid();
                 plr->getSession()->SendPacket(&data);
 
-                data.Initialize(SMSG_SPELL_GO);
+                data.initialize(SMSG_SPELL_GO);
                 data << qst_giver->GetNewGUID();
                 data << qst_giver->GetNewGUID();
                 data << uint32_t(7763);             // spellID

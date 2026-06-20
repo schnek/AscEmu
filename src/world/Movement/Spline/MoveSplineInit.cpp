@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "MovementPacketBuilder.h"
 #include "Objects/Units/Unit.hpp"
 #include "Objects/Transporter.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Movement/PathGenerator.h"
 #include "Server/Opcodes.hpp"
 
@@ -146,7 +146,7 @@ int32_t MoveSplineInit::Launch()
     data << WoWGuid(unit->getGuid());
     if (transport)
     {
-        data.SetOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
+        data.setOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
         data << WoWGuid(unit->getTransGuid());
 #if VERSION_STRING >= WotLK
         data << int8_t(unit->GetTransSeat());
@@ -201,7 +201,7 @@ void MoveSplineInit::Stop()
     data << WoWGuid(unit->getGuid());
     if (transport)
     {
-        data.SetOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
+        data.setOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
         data << WoWGuid(unit->getTransGuid());
 #if VERSION_STRING >= WotLK
         data << int8_t(unit->GetTransSeat());

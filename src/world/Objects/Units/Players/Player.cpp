@@ -712,7 +712,7 @@ void Player::OnPushToWorld()
     data.flushBits();
     sendPacket(&data);
 
-    data.Initialize(SMSG_BATTLE_PET_JOURNAL);
+    data.initialize(SMSG_BATTLE_PET_JOURNAL);
     data.writeBits(0, 19);
     data.writeBit(0);
     data.writeBits(0, 25);
@@ -720,7 +720,7 @@ void Player::OnPushToWorld()
     data << uint16_t(0);
     sendPacket(&data);
 
-    data.Initialize(SMSG_BATTLE_PET_JOURNAL_LOCK_ACQUIRED);
+    data.initialize(SMSG_BATTLE_PET_JOURNAL_LOCK_ACQUIRED);
     sendPacket(&data);
 
 #endif
@@ -2865,7 +2865,7 @@ void Player::sendInitialLogonPackets()
 
     sendSmsgInitialFactions();
 
-    data.Initialize(SMSG_LOAD_EQUIPMENT_SET);
+    data.initialize(SMSG_LOAD_EQUIPMENT_SET);
     data.writeBits(0, 19);
     getSession()->SendPacket(&data);
 
@@ -2875,17 +2875,17 @@ void Player::sendInitialLogonPackets()
 
     m_session->SendPacket(SmsgUpdateWorldState(0xC77, worldConfig.arena.arenaProgress, 0xF3D, worldConfig.arena.arenaSeason).serialise().get());
 
-    data.Initialize(SMSG_SET_FORCED_REACTIONS, 1 + 4 + 4);
+    data.initialize(SMSG_SET_FORCED_REACTIONS, 1 + 4 + 4);
     data.writeBits(0, 6);
     data.flushBits();
     getSession()->SendPacket(&data);
 
-    data.Initialize(SMSG_SETUP_CURRENCY, 3 + 1 + 4 + 4 + 4 + 4);
+    data.initialize(SMSG_SETUP_CURRENCY, 3 + 1 + 4 + 4 + 4 + 4);
     data.writeBits(0, 21);
     getSession()->SendPacket(&data);
 
     WoWGuid guid = getGuid();
-    data.Initialize(SMSG_MOVE_SET_ACTIVE_MOVER, 9);
+    data.initialize(SMSG_MOVE_SET_ACTIVE_MOVER, 9);
     data.writeBit(guid[5]);
     data.writeBit(guid[1]);
     data.writeBit(guid[4]);
@@ -3021,7 +3021,7 @@ void Player::sendMessageToSet(WorldPacket* data, bool sendToSelf, bool sendToOwn
             if ((player->GetPhase() & GetPhase()) == 0)
                 continue;
 
-            if (data->GetOpcode() != SMSG_MESSAGECHAT)
+            if (data->getOpcode() != SMSG_MESSAGECHAT)
             {
                 if (m_isGmInvisible && !player->getSession()->hasPermissions())
                     continue;
@@ -10812,7 +10812,7 @@ void Player::sendLoot(uint64_t guid, uint8_t loot_type, uint32_t mapId)
     m_lootGuid = guid;
 
     WorldPacket data;
-    data.SetOpcode(SMSG_LOOT_RESPONSE);
+    data.setOpcode(SMSG_LOOT_RESPONSE);
     data << uint64_t(guid);
     data << uint8_t(loot_type);     //loot_type;
 
@@ -12784,7 +12784,7 @@ void Player::sendSavedInstances()
     }
 
     // true or false means, whether you have current raid/heroic instances
-    data.Initialize(SMSG_UPDATE_INSTANCE_OWNERSHIP);
+    data.initialize(SMSG_UPDATE_INSTANCE_OWNERSHIP);
     data << uint32_t(hasBeenSaved);
     sendPacket(&data);
 
@@ -12797,7 +12797,7 @@ void Player::sendSavedInstances()
         {
             if (itr->second.perm)
             {
-                data.Initialize(SMSG_UPDATE_LAST_INSTANCE);
+                data.initialize(SMSG_UPDATE_LAST_INSTANCE);
                 data << uint32_t(itr->second.save->getMapId());
                 sendPacket(&data);
             }

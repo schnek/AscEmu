@@ -612,7 +612,7 @@ void WorldSession::handleNpcTextQueryOpcode(WorldPacket& recvPacket)
     const auto localesNpcText = (language > 0) ? sMySQLStore.getLocalizedNpcGossipText(srlPacket.text_id, language) : nullptr;
 
     WorldPacket data;
-    data.Initialize(SMSG_NPC_TEXT_UPDATE);
+    data.initialize(SMSG_NPC_TEXT_UPDATE);
     data << srlPacket.text_id;
 
     if (const auto pGossip = sMySQLStore.getNpcGossipText(srlPacket.text_id))

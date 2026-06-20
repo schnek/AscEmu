@@ -35,7 +35,7 @@
 #include "Server/EventMgr.h"
 #include "Spell/Spell.hpp"
 #include "Storage/MySQLDataStore.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 #include "Utilities/Random.hpp"
 #include "Utilities/Util.hpp"
 #include "Utilities/MathConstants.hpp"

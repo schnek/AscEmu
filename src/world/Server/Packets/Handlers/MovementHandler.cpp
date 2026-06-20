@@ -161,7 +161,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
     //////////////////////////////////////////////////////////////////////////////////////////
     /// Set up some vars to simplify code. We use the internal opcode id for Multiversion support
     // Zyres: save the opcode here for better handling
-    const auto opcode = sOpcodeTables.getInternalIdForHex(recvData.GetOpcode());
+    const auto opcode = sOpcodeTables.getInternalIdForHex(recvData.getOpcode());
 
     // Zyres: We (the player) controles the movement of us or another player/unit.
     // this is always initialise with the player, can be changed to any other unit.
@@ -471,7 +471,7 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
 void WorldSession::handleAcknowledgementOpcodes(WorldPacket& recvPacket)
 {
     sLogger.debug("Opcode {} ({}) received. This opcode is not known/implemented right now!",
-        sOpcodeTables.getNameForInternalId(recvPacket.GetOpcode()), recvPacket.GetOpcode());
+        sOpcodeTables.getNameForInternalId(recvPacket.getOpcode()), recvPacket.getOpcode());
 
     recvPacket.rfinish();
 }
@@ -509,7 +509,7 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
 
     static char const* move_type_name[MAX_SPEED_TYPE] = { "Walk", "Run", "RunBack", "Swim", "SwimBack", "TurnRate", "Flight", "FlightBack", "PitchRate" };
 
-    const auto opcode = sOpcodeTables.getInternalIdForHex(recvPacket.GetOpcode());
+    const auto opcode = sOpcodeTables.getInternalIdForHex(recvPacket.getOpcode());
     switch (opcode)
     {
         case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:          move_type = TYPE_WALK;          force_move_type = TYPE_WALK;        break;
@@ -522,7 +522,7 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
         case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:   move_type = TYPE_FLY_BACK;      force_move_type = TYPE_FLY_BACK;    break;
         case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:          move_type = TYPE_PITCH_RATE;    force_move_type = TYPE_PITCH_RATE;  break;
         default:
-            sLogger.failure("WorldSession::handleForceSpeedChangeAck: Unknown move type opcode: {}", recvPacket.GetOpcode());
+            sLogger.failure("WorldSession::handleForceSpeedChangeAck: Unknown move type opcode: {}", recvPacket.getOpcode());
             return;
     }
 
@@ -548,7 +548,7 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
     }
 #else // todo fix for cata / mop
     sLogger.debug("Opcode {} ({}) received. This opcode is not known/implemented right now!",
-        sOpcodeTables.getNameForInternalId(recvPacket.GetOpcode()), recvPacket.GetOpcode());
+        sOpcodeTables.getNameForInternalId(recvPacket.getOpcode()), recvPacket.getOpcode());
 
     recvPacket.rfinish();
 #endif

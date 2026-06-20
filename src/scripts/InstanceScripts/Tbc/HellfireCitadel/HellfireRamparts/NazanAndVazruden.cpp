@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Instance_HellfireRamparts.hpp"
 #include "Movement/MovementManager.h"
 #include "Spell/SpellInfo.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 /// Boss: Nazan

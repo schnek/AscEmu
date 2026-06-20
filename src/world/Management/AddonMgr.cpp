@@ -107,7 +107,7 @@ void AddonMgr::SaveAddon(AddonEntry const& addon)
 void AddonMgr::SendAddonInfoPacket(WorldPacket* source, uint32_t /*pos*/, WorldSession* m_session)
 {
     WorldPacket returnpacket;
-    returnpacket.Initialize(SMSG_ADDON_INFO); // SMSG_ADDON_INFO
+    returnpacket.initialize(SMSG_ADDON_INFO); // SMSG_ADDON_INFO
 
     uint32_t realsize;
     uLongf rsize;

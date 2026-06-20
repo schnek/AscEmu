@@ -878,7 +878,7 @@ void WorldSession::handleQuestgiverChooseRewardOpcode(WorldPacket& recvPacket)
     if (qst->next_quest_id)
     {
         WorldPacket data(12);
-        data.Initialize(CMSG_QUESTGIVER_QUERY_QUEST);
+        data.initialize(CMSG_QUESTGIVER_QUERY_QUEST);
         data << srlPacket.questgiverGuid.getRawGuid();
         data << qst->next_quest_id;
         handleQuestGiverQueryQuestOpcode(data);

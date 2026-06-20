@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "LUAEngine.hpp"
 #include "LuaGlobal.hpp"
 #include "LuaMacros.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Objects/Object.hpp"
 #include "Server/Opcodes.hpp"
 
@@ -32,7 +32,7 @@ int LuaPacket::GetOpcode(lua_State* L, WorldPacket* packet)
     if (packet == nullptr)
         lua_pushnil(L);
     else
-        lua_pushinteger(L, packet->GetOpcode());
+        lua_pushinteger(L, packet->getOpcode());
     return 1;
 }
 int LuaPacket::GetSize(lua_State* L, WorldPacket* packet)

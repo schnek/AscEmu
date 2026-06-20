@@ -16,8 +16,6 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 
 ## List of Legacy files
 ### Not rewritten - yet
-* 2008 | WorldPacket.h
-* 2008 | LocationVector.cpp
 * 2008 | Debugging/CrashHandler.h
 * 2008 | Debugging/CrashHandler.cpp
 * 2005 | StackWalker.h
@@ -200,6 +198,8 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2014 | CommonHelpers.hpp
 * 2014 | CommonTypes.hpp
 * 2008 | ByteBuffer.h
+* 2008 | WorldPacket.h
+* 2008 | LocationVector.cpp
 
 ### New files
 * 2015 | Exceptions/PlayerExceptions.hpp
@@ -242,6 +242,7 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2025 | WoWGuid.hpp
 * 2026 | Debugging/Errors.hpp
 * 2026 | Utilities/MathConstants.hpp
+* 2026 | LocationVector.cpp
 * 2026 | LocationVector.hpp
 * 2026 | Network/BipBuffer.hpp
 * 2026 | Network/NetworkBuffer.hpp - temporarily
@@ -297,3 +298,4 @@ New code has to be placed inside a MIT file. The current standard is C++20 and n
 * 2026 | Cryptography/BigNumber.hpp
 * 2026 | AuthCodes.hpp
 * 2026 | ByteBuffer.hpp
+* 2026 | WorldPacket.hpp

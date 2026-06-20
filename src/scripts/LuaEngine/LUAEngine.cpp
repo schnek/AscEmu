@@ -26,7 +26,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/Item.hpp"
 #include "Spell/Spell.hpp"
 #include "Spell/SpellAura.hpp"
-#include "CommonFilesystem.hpp"
+#include "Utilities/CommonFilesystem.hpp"
 
 #ifdef __APPLE__
 #undef check

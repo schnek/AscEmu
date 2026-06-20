@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "Management/Guild/GuildDefinitions.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "GuildLog.hpp"
 
 class GuildNewsLogEntry : public GuildLogEntry

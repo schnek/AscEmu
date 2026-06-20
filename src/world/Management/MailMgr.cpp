@@ -25,7 +25,7 @@
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/DatabaseDefinition.hpp"
 #include "Server/Packets/SmsgReceivedMail.h"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 
 MailSystem& MailSystem::getInstance()
 {

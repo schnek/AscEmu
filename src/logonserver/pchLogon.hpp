@@ -12,10 +12,10 @@ This file is released under the MIT license. See README-MIT for more information
 #include <sstream>
 #include <string>
 #include <BuildInfo.hpp>
-#include <WorldPacket.h>
+#include <Network/WorldPacket.hpp>
 #include <Logging/Log.hpp>
 #include <Logging/Logger.hpp>
-#include <ByteBuffer.hpp>
+#include <Network/ByteBuffer.hpp>
 #include <Config/Config.hpp>
 #include <Utilities/Strings.hpp>
 #include <Utilities/Util.hpp>

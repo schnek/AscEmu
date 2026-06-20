@@ -37,7 +37,7 @@
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/EventMgr.h"
 #include "Spell/Spell.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 #include "Utilities/Random.hpp"
 #include "Utilities/Util.hpp"
 

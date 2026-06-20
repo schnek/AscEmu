@@ -22,7 +22,7 @@
 
 #include "DatabaseDefinition.hpp"
 #include "Threading/ThreadSafeQueue.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Objects/Item.hpp"
 #include "Exceptions/PlayerExceptions.hpp"
 #include "Management/ItemInterface.h"
@@ -705,13 +705,13 @@ void WorldSession::nothingToHandle(WorldPacket& recv_data)
     if (!recv_data.isEmpty())
     {
         sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Opcode {} [{}] (0x{:04X}) received. Apply nothingToHandle handler but size is {}!",
-            sOpcodeTables.getNameForOpcode(recv_data.GetOpcode()), sOpcodeTables.getNameForAEVersion(), recv_data.GetOpcode(), recv_data.size());
+            sOpcodeTables.getNameForOpcode(recv_data.getOpcode()), sOpcodeTables.getNameForAEVersion(), recv_data.getOpcode(), recv_data.size());
     }
 }
 
 void WorldSession::SendPacket(WorldPacket* packet)
 {
-    if (packet->GetOpcode() == 0x0000)
+    if (packet->getOpcode() == 0x0000)
     {
         sLogger.failure("Return, packet 0x0000 is not a valid packet!");
         return;

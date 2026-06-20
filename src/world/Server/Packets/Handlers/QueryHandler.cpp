@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgQueryPlayernameResponse.h"
 #include "Server/Packets/SmsgGameobjectQueryResponse.h"
 #include "Server/Packets/SmsgQueryTimeResponse.h"
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 #include "Logging/Log.hpp"
 #include "Logging/Logger.hpp"
 #include <Logging/Severity.hpp>
@@ -30,7 +30,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/CmsgItemNameQuery.h"
 #include "Server/Packets/SmsgItemNameQueryResponse.h"
 #include "Server/Packets/MsgCorpseQuery.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Objects/Units/Creatures/Corpse.hpp"
 
 using namespace AscEmu::Packets;

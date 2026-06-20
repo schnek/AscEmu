@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "TransportBase.hpp"
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 
 #include <cmath>
 

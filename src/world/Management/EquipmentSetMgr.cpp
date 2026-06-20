@@ -25,7 +25,7 @@
 #include "Database/Field.hpp"
 #include "Database/Database.hpp"
 #include "WoWGuid.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Logging/Logger.hpp"
 #include "Server/DatabaseDefinition.hpp"
 #include "Utilities/Util.hpp"

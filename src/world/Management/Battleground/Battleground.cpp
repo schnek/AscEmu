@@ -116,7 +116,7 @@ uint32_t Battleground::getType()
 
 void Battleground::buildPvPUpdateDataPacket(WorldPacket* data)
 {
-    data->Initialize(MSG_PVP_LOG_DATA);
+    data->initialize(MSG_PVP_LOG_DATA);
     data->reserve(10 * (m_players[0].size() + m_players[1].size()) + 50);
 
     BGScore* bs;
@@ -915,7 +915,7 @@ void Battleground::eventResurrectPlayers()
                 data << plr->getGuid();
                 plr->sendMessageToSet(&data, true);
 
-                data.Initialize(SMSG_SPELL_GO);
+                data.initialize(SMSG_SPELL_GO);
                 data << plr->GetNewGUID();
                 data << plr->GetNewGUID();
                 data << uint32_t(BattlegroundDef::RESURRECT);

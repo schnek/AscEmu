@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Channel.hpp"
 #include "ChannelMgr.hpp"
 #include "ChatDefines.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/WorldSession.h"
 #include "Server/Packets/SmsgChannelList.h"

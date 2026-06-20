@@ -1172,11 +1172,11 @@ void AchievementMgr::sendAllAchievementData(Player* _player)
         data.clear();
         if (_player == m_player)
         {
-            data.SetOpcode(SMSG_ALL_ACHIEVEMENT_DATA);
+            data.setOpcode(SMSG_ALL_ACHIEVEMENT_DATA);
         }
         else
         {
-            data.SetOpcode(SMSG_RESPOND_INSPECT_ACHIEVEMENTS);
+            data.setOpcode(SMSG_RESPOND_INSPECT_ACHIEVEMENTS);
             FastGUIDPack(data, m_player->getGuid());
         }
         packetFull = false;

@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "Server/Script/CreatureAIScript.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 
 namespace anubarak
 {

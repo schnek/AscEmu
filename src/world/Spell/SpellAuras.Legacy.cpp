@@ -61,7 +61,7 @@
 #include "Objects/Units/Creatures/Vehicle.hpp"
 #include "Server/EventMgr.h"
 #include "Storage/WDB/WDBStructures.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 #include "Utilities/Narrow.hpp"
 #include "Utilities/Random.hpp"
 

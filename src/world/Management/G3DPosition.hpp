@@ -5,7 +5,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 #include <G3D/Vector3.h>
 
 inline G3D::Vector3 positionToVector3(LocationVector p) { return { p.x, p.y, p.z }; }

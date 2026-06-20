@@ -16,6 +16,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Objects/Units/Players/Player.hpp"
 #include "Objects/Units/Creatures/Creature.h"
 #include "Objects/GameObject.h"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 #include "Utilities/Util.hpp"
 #include "Utilities/Random.hpp"

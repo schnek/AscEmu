@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <string>
 #include "AEVersion.hpp"
 #include "Server/Opcodes.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "WoWGuid.hpp"
 
 #include "ManagedPacket.h"

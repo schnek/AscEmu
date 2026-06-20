@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "ManagedPacket.h"
 #include "Objects/Units/Creatures/PetDefines.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 
 namespace AscEmu::Packets
 {

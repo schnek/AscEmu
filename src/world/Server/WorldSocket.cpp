@@ -236,7 +236,7 @@ void WorldSocket::UpdateQueuedPackets()
     {
         const auto& pck = itr.value();
         // try to push out as many as you can
-        switch (_OutPacket(pck->GetOpcode(), pck->size(), pck->size() ? pck->contents() : nullptr))
+        switch (_OutPacket(pck->getOpcode(), pck->size(), pck->size() ? pck->contents() : nullptr))
         {
             case OUTPACKET_RESULT_SUCCESS:
                 break;
@@ -1015,7 +1015,7 @@ bool WorldSocket::processHeader()
 
 void WorldSocket::dispatchPacket(std::unique_ptr<WorldPacket> packet)
 {
-    switch (sOpcodeTables.getInternalIdForHex(packet->GetOpcode()))
+    switch (sOpcodeTables.getInternalIdForHex(packet->getOpcode()))
     {
         case CMSG_PING:
             _HandlePing(std::move(packet));

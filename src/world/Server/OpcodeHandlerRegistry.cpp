@@ -7,7 +7,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Logging/Severity.hpp"
 #include "OpcodeHandlerRegistry.hpp"
 #include "OpcodeTable.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "WorldSession.h"
 
 #include <cstdint>
@@ -16,7 +16,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 bool OpcodeHandlerRegistry::handleOpcode(WorldSession& session, WorldPacket& packet)
 {
-    uint16_t rawOpcode = packet.GetOpcode();
+    uint16_t rawOpcode = packet.getOpcode();
 
     // Get the internal ID from the opcode table
     uint32_t internalId = sOpcodeTables.getInternalIdForHex(rawOpcode);

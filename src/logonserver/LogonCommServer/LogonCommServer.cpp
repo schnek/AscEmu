@@ -28,7 +28,7 @@
 #include "Realm/RealmManager.hpp"
 #include "Server/Master.hpp"
 #include "Network/Socket.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Server/AccountMgr.h"
 #include "Cryptography/Sha1.hpp"
 #include "Database/Database.hpp"
@@ -126,7 +126,7 @@ void LogonCommServerSocket::onRead()
 
 void LogonCommServerSocket::HandlePacket(WorldPacket & recvData)
 {
-    if (authenticated == 0 && recvData.GetOpcode() != LRCMSG_AUTH_REQUEST)
+    if (authenticated == 0 && recvData.getOpcode() != LRCMSG_AUTH_REQUEST)
     {
         // invalid
         disconnect();
@@ -162,13 +162,13 @@ void LogonCommServerSocket::HandlePacket(WorldPacket & recvData)
         NULL,                                               // LRSMSG_ALL_ACCOUNT_RESULT
     };
 
-    if (recvData.GetOpcode() >= LRMSG_MAX_OPCODES || Handlers[recvData.GetOpcode()] == 0)
+    if (recvData.getOpcode() >= LRMSG_MAX_OPCODES || Handlers[recvData.getOpcode()] == 0)
     {
-        sLogger.failure("Got unknwon packet from logoncomm: {}", recvData.GetOpcode());
+        sLogger.failure("Got unknwon packet from logoncomm: {}", recvData.getOpcode());
         return;
     }
 
-    (this->*(Handlers[recvData.GetOpcode()]))(recvData);
+    (this->*(Handlers[recvData.getOpcode()]))(recvData);
 }
 
 void LogonCommServerSocket::HandleRegister(WorldPacket & recvData)
@@ -215,7 +215,7 @@ void LogonCommServerSocket::HandleRegister(WorldPacket & recvData)
     server_ids.insert(realmId);
 
     // request character mapping for this realm
-    data.Initialize(LRSMSG_ACC_CHAR_MAPPING_REQUEST);
+    data.initialize(LRSMSG_ACC_CHAR_MAPPING_REQUEST);
     data << realmId;
     SendPacket(&data);
 }
@@ -278,7 +278,7 @@ void LogonCommServerSocket::SendPacket(WorldPacket* data)
     burstBegin();
 
     LogonWorldPacket header;
-    header.opcode = data->GetOpcode();
+    header.opcode = data->getOpcode();
 
     uint32_t sizeValue = static_cast<uint32_t>(data->size());
     byteSwapUInt32(&sizeValue);

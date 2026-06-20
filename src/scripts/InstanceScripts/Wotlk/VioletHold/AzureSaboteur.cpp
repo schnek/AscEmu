@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Movement/MovementGenerators/PointMovementGenerator.h"
 #include "Server/Script/CreatureAIScript.hpp"
 #include "Server/Script/InstanceScript.hpp"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // AzureSaboteur AI

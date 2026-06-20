@@ -112,7 +112,7 @@ void WorldSession::handleWhoOpcode(WorldPacket& recvPacket)
     uint32_t total_count = 0;
 
     WorldPacket data;
-    data.SetOpcode(SMSG_WHO);
+    data.setOpcode(SMSG_WHO);
 
 #if VERSION_STRING < Mop
     data << uint64_t(0);
@@ -1014,7 +1014,7 @@ void WorldSession::handleRequestAccountData(WorldPacket& recvPacket)
 
     AccountDataEntry* accountDataEntry = GetAccountData(accountDataId);
     WorldPacket data;
-    data.SetOpcode(SMSG_UPDATE_ACCOUNT_DATA);
+    data.setOpcode(SMSG_UPDATE_ACCOUNT_DATA);
     data << accountDataId;
 
     if (!accountDataEntry || !accountDataEntry->data)

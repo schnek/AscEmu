@@ -22,7 +22,7 @@
 #define WORLDSOCKET_H
 
 #include "Cryptography/WowCrypt.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Network/Network.hpp"
 #include "AEVersion.hpp"
 #include "Threading/ThreadSafeQueue.hpp"
@@ -59,7 +59,7 @@ public:
     void onDisconnect() override;
 
     // vs8 fix - send null on empty buffer
-    inline void SendPacket(WorldPacket* packet) { if (!packet) return; OutPacket(packet->GetOpcode(), packet->size(), (packet->size() ? (const void*)packet->contents() : NULL)); }
+    inline void SendPacket(WorldPacket* packet) { if (!packet) return; OutPacket(packet->getOpcode(), packet->size(), (packet->size() ? (const void*)packet->contents() : NULL)); }
 
 #if VERSION_STRING != Mop
     void OutPacket(uint16_t opcode, size_t len, const void* data);

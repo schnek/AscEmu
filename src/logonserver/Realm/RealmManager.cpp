@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Realm/RealmFlag.hpp"
 #include <Logging/Logger.hpp>
 #include "Server/Master.hpp"
-#include <WorldPacket.h>
+#include <Network/WorldPacket.hpp>
 #include <LogonCommServer/LogonCommServer.h>
 #include "Auth/AuthSocket.h"
 #include "Database/Database.hpp"

@@ -163,7 +163,7 @@ void WorldSession::sendCalendarRaidLockout(InstanceSaved const* save, bool add)
     WorldPacket data(SMSG_CALENDAR_RAID_LOCKOUT_REMOVED, (4) + 4 + 4 + 4 + 8);
     if (add)
     {
-        data.SetOpcode(SMSG_CALENDAR_RAID_LOCKOUT_ADDED);
+        data.setOpcode(SMSG_CALENDAR_RAID_LOCKOUT_ADDED);
         data.appendPackedTime(currTime);
     }
 

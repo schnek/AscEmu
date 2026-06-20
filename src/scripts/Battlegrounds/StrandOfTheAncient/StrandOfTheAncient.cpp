@@ -74,7 +74,7 @@
 #include "Objects/Units/Creatures/Creature.h"
 #include "Objects/Units/Players/Player.hpp"
 #include "Server/EventMgr.h"
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 #include "Utilities/Random.hpp"
 #include "Utilities/Util.hpp"
 

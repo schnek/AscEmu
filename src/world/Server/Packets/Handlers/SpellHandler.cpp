@@ -199,7 +199,7 @@ void WorldSession::handleCastSpellOpcode(WorldPacket& recvPacket)
         if (srlPacket.hasMovementData)
         {
 
-            recvPacket.SetOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
+            recvPacket.setOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
             handleMovementOpcodes(recvPacket);
         }
 
@@ -401,7 +401,7 @@ void WorldSession::handlePetCastSpell(WorldPacket& recvPacket)
 
         if (srlPacket.hasMovementData)
         {
-            recvPacket.SetOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
+            recvPacket.setOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
             handleMovementOpcodes(recvPacket);
         }
 

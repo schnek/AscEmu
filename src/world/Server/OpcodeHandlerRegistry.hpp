@@ -10,7 +10,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <functional>
 #include <optional>
 #include <string>
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "OpcodeTable.hpp"
 
 // Define the number of supported versions (0 = Classic, 1 = TBC, etc.)

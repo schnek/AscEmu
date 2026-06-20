@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #pragma once
 
 #include "AEVersion.hpp"
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 #include <string_view>
 
 // Do NOT extend the list, simply replace an unused value

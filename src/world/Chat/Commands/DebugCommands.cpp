@@ -1543,7 +1543,7 @@ bool ChatCommandHandler::HandleCastSpellNECommand(const char* args, WorldSession
 
     WorldPacket data;
 
-    data.Initialize(SMSG_SPELL_START);
+    data.initialize(SMSG_SPELL_START);
     data << caster->GetNewGUID();
     data << caster->GetNewGUID();
     data << spellId;
@@ -1554,7 +1554,7 @@ bool ChatCommandHandler::HandleCastSpellNECommand(const char* args, WorldSession
     data << target->getGuid();
     m_session->SendPacket(&data);
 
-    data.Initialize(SMSG_SPELL_GO);
+    data.initialize(SMSG_SPELL_GO);
     data << caster->GetNewGUID();
     data << caster->GetNewGUID();
     data << spellId;

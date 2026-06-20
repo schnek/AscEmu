@@ -378,7 +378,7 @@ void WorldSession::handleUseItemOpcode(WorldPacket& recvPacket)
 #if VERSION_STRING < Mop
         if (srlPacket.hasMovementData)
         {
-            recvPacket.SetOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
+            recvPacket.setOpcode(recvPacket.read<uint16_t>()); // MSG_MOVE_STOP
             handleMovementOpcodes(recvPacket);
         }
 #endif
@@ -1855,7 +1855,7 @@ void WorldSession::handleBuyBackOpcode(WorldPacket& recvPacket)
 
 #if VERSION_STRING < Cata
         WorldPacket data(16);
-        data.Initialize(SMSG_BUY_ITEM);
+        data.initialize(SMSG_BUY_ITEM);
         data << uint64_t(srlPacket.itemGuid);
         data << Util::getMSTime(); //VLack: seen is Aspire code
         data << uint32_t(itemid);
@@ -2343,7 +2343,7 @@ void WorldSession::sendInventoryList(Creature* unit)
 
 #if VERSION_STRING < Cata
     WorldPacket data((unit->GetSellItemCount() * 28 + 9));       // allocate
-    data.SetOpcode(SMSG_LIST_INVENTORY);
+    data.setOpcode(SMSG_LIST_INVENTORY);
     data << unit->getGuid();
     data << uint8_t(0);   // placeholder for item count
 #else
@@ -2434,7 +2434,7 @@ void WorldSession::sendInventoryList(Creature* unit)
 #else
     WoWGuid guid = unit->getGuid();
 
-    data.SetOpcode(SMSG_LIST_INVENTORY);
+    data.setOpcode(SMSG_LIST_INVENTORY);
     data.writeBit(guid[1]);
     data.writeBit(guid[0]);
 

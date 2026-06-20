@@ -8,7 +8,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <cstdint>
 
 #include "ManagedPacket.h"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Management/Group.h"
 
 const uint8_t iconCount = 8;

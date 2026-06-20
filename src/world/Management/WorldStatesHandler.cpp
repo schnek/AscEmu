@@ -6,7 +6,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "WorldStatesHandler.hpp"
 
 #include "ObjectMgr.hpp"
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Server/World.h"
 
 WorldStatesHandler::WorldStatesHandler(uint32_t _mapid) : m_map(_mapid) { }

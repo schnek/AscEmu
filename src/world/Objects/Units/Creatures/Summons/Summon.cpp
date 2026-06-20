@@ -23,7 +23,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Spell/SpellInfo.hpp"
 #include "Storage/WDB/WDBStructures.hpp"
 
-#include "CommonTime.hpp"
+#include "Utilities/CommonTime.hpp"
 
 static CreatureSummonDespawnType getDefaultDespawnTypeForSummon(Summon const* summon)
 {

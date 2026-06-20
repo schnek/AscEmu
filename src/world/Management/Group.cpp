@@ -857,7 +857,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
     for (uint8_t i = 1; i < GROUP_UPDATE_FLAGS_COUNT; ++i)
         if (mask & (1 << i))
             byteCount += GroupUpdateLength[i];
-    data->Initialize(SMSG_PARTY_MEMBER_STATS, 8 + 4 + byteCount);
+    data->initialize(SMSG_PARTY_MEMBER_STATS, 8 + 4 + byteCount);
     *data << pPlayer->GetNewGUID();
     *data << mask;
 
@@ -1462,7 +1462,7 @@ void Group::sendGroupLoot(Loot* loot, Object* object, Player* /*plr*/, uint32_t 
 
             // Send Roll
             WorldPacket data(32);
-            data.Initialize(SMSG_LOOT_START_ROLL);
+            data.initialize(SMSG_LOOT_START_ROLL);
             data << object->getGuid();
             data << uint32_t(mapId);
             data << uint32_t(itemSlot);

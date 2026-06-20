@@ -134,7 +134,7 @@ namespace AscEmu::Packets
                 }
                 case 1:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_QUEUED);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_QUEUED);
 
                     packet.writeBit(guid[3]);
                     packet.writeBit(guid[0]);
@@ -188,7 +188,7 @@ namespace AscEmu::Packets
                 }
                 case 2:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_NEEDCONFIRMATION);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_NEEDCONFIRMATION);
 
                     packet << uint32_t(instanceId);
                     packet << uint32_t(0);                    // time until closed
@@ -238,7 +238,7 @@ namespace AscEmu::Packets
                 }
                 case 3:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_ACTIVE);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_ACTIVE);
 
                     packet.writeBit(guid[2]);
                     packet.writeBit(guid[7]);
@@ -305,7 +305,7 @@ namespace AscEmu::Packets
             {
                 case 0:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS);
 
                     packet << uint32_t(time);                 // join time
                     packet << uint32_t(0);
@@ -332,7 +332,7 @@ namespace AscEmu::Packets
                 }
                 case 1:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_QUEUED);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_QUEUED);
 
                     packet.writeBit(bgGuid[1]);
                     packet.writeBit(bgGuid[5]);
@@ -386,7 +386,7 @@ namespace AscEmu::Packets
                 }
                 case 2:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_NEEDCONFIRMATION);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_NEEDCONFIRMATION);
 
                     packet.writeBit(guid[7]);
                     packet.writeBit(guid[5]);
@@ -436,7 +436,7 @@ namespace AscEmu::Packets
                 }
                 case 3:
                 {
-                    packet.Initialize(SMSG_BATTLEFIELD_STATUS_ACTIVE);
+                    packet.initialize(SMSG_BATTLEFIELD_STATUS_ACTIVE);
 
                     packet.writeBit(guid[0]);
                     packet.writeBit(bgGuid[3]);

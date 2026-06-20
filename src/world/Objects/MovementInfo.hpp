@@ -5,9 +5,9 @@ This file is released under the MIT license. See README-MIT for more information
 
 #pragma once
 
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "MovementDefines.hpp"
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 #include "Map/Cells/CellHandlerDefines.hpp"
 
 struct MovementInfo
@@ -162,13 +162,13 @@ struct MovementInfo
 
 inline WorldPacket& operator<< (WorldPacket& buf, MovementInfo const& mi)
 {
-    mi.writeMovementInfo(buf, buf.GetOpcode());
+    mi.writeMovementInfo(buf, buf.getOpcode());
     return buf;
 }
 
 inline WorldPacket& operator>> (WorldPacket& buf, MovementInfo& mi)
 {
-    mi.readMovementInfo(buf, buf.GetOpcode());
+    mi.readMovementInfo(buf, buf.getOpcode());
     return buf;
 }
 

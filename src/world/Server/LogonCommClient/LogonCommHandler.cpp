@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include <condition_variable>
 #include <mutex>
 
-#include "WorldPacket.h"
+#include "Network/WorldPacket.hpp"
 #include "Server/Master.h"
 #include "Config/Config.hpp"
 #include "LogonCommDefines.hpp"

@@ -4,7 +4,7 @@ This file is released under the MIT license. See README-MIT for more information
 */
 
 #include "MovementDefines.h"
-#include "LocationVector.hpp"
+#include "Utilities/LocationVector.hpp"
 #include "Objects/MovementInfo.hpp"
 #include "Utilities/MathConstants.hpp"
 

@@ -27,7 +27,7 @@ void WorldSession::handleDismissVehicle(WorldPacket& recvPacket)
         return;
     }
 
-    _player->obj_movement_info.readMovementInfo(recvPacket, recvPacket.GetOpcode());
+    _player->obj_movement_info.readMovementInfo(recvPacket, recvPacket.getOpcode());
     _player->callExitVehicle();
 #endif
 }

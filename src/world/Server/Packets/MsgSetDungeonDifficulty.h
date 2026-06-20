@@ -41,7 +41,7 @@ namespace AscEmu::Packets
         bool internalSerialise(WorldPacket& packet) override
         {
 #if VERSION_STRING == Mop
-            packet.Initialize(SMSG_SET_DUNGEON_DIFFICULTY, 4);
+            packet.initialize(SMSG_SET_DUNGEON_DIFFICULTY, 4);
             packet << uint32_t(difficulty);
 #else
             packet << uint32_t(difficulty) << unknown << uint32_t(isInGroup);

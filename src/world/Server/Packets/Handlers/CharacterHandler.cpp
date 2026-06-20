@@ -120,7 +120,7 @@ void WorldSession::handleCharFactionOrRaceChange([[maybe_unused]] WorldPacket& r
         return;
     }
 
-    const auto opcode = sOpcodeTables.getInternalIdForHex(recvPacket.GetOpcode());
+    const auto opcode = sOpcodeTables.getInternalIdForHex(recvPacket.getOpcode());
     const uint32_t used_loginFlag = ((opcode == CMSG_CHAR_RACE_CHANGE) ? LOGIN_CUSTOMIZE_RACE : LOGIN_CUSTOMIZE_FACTION);
     uint32_t newflags = 0;
 
@@ -710,7 +710,7 @@ void WorldSession::fullLogin(Player* player)
     data.writeString(timeZone);
     SendPacket(&data);
 
-    data.Initialize(SMSG_HOTFIX_NOTIFY_BLOB);
+    data.initialize(SMSG_HOTFIX_NOTIFY_BLOB);
     data.writeBits(0, 20);
     data.flushBits();
     SendPacket(&data);
