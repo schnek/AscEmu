@@ -252,7 +252,7 @@ namespace AscEmu::Packets
 
             if (hasMovement)
             {
-                for (uint8_t i = 0; i != unkCounter; i++)
+                for (uint32_t i = 0; i != unkCounter; i++)
                     packet.readSkip<uint32_t>();
 
                 if (hasTransport)

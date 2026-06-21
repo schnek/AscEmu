@@ -281,7 +281,7 @@ namespace AscEmu::Packets
                 packet.readByteSeq(movementInfo.guid[4]);
 
                 if (movementInfo.status_info.hasOrientation)
-                    movementInfo.position.o;
+                    packet >> movementInfo.position.o;
 
                 if (movementInfo.status_info.hasTimeStamp)
                     packet >> movementInfo.update_time;
@@ -293,7 +293,7 @@ namespace AscEmu::Packets
 
                 packet.readByteSeq(movementInfo.guid[3]);
 
-                for (uint8_t i = 0; i != unkCounter; i++)
+                for (uint32_t i = 0; i != unkCounter; i++)
                     packet.readSkip<uint32_t>();
 
                 packet >> movementInfo.position.y;
