@@ -2934,7 +2934,10 @@ void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t
             data.writeBit(guid[0]);
             data.writeBit(!status_info.hasOrientation);
             data.writeBit(status_info.hasFallData);
-            data.writeBit(false);
+
+            bool hascounter = false;
+            data.writeBit(!hascounter);
+
             data.writeBit(guid[3]);
             if (status_info.hasFallData)
                 data.writeBit(status_info.hasFallDirection);
@@ -2976,6 +2979,7 @@ void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t
             data.writeBit(guid[5]);
 
             data.writeBits(0, 22);
+
             data.writeBit(guid[6]);
             data << float(position.y);
 
@@ -3036,8 +3040,10 @@ void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t
             if (status_info.hasSplineElevation)
                 data << float(spline_elevation);
 
-            data.writeBits(0, 22);
-            data << float(transport_position.x);
+            if (hascounter)
+                data << uint32_t(0);
+
+            data << float(position.x);
             data.writeByteSeq(guid[4]);
             data.writeByteSeq(guid[7]);
 #endif
