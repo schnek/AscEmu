@@ -61,8 +61,6 @@ namespace AscEmu::Packets
             packet.writeBit(guid[0]);
             packet.writeBit(guid[1]);
 
-            packet.flushBits();
-
             packet.writeByteSeq(guid[5]);
             packet.writeByteSeq(guid[4]);
             packet.writeByteSeq(guid[7]);
