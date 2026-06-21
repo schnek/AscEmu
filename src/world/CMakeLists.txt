@@ -3,10 +3,9 @@
 # set up our project name.
 set(EXECUTABLE_NAME world)
 
-file(GLOB_RECURSE SRC_CHAT Chat/*.cpp Chat/*.h Chat/*.hpp)
-file(GLOB_RECURSE SRC_COMMAND Chat/Commands/*.cpp Chat/Commands/*.h Chat/Commands/*.hpp)
-file(GLOB_RECURSE SRC_DATA Data/*.cpp Data/*.h Data/*.hpp)
-file(GLOB_RECURSE SRC_MACROS Macros/*.cpp Macros/*.h Macros/*.hpp)
+file(GLOB_RECURSE SRC_CHAT Chat/*.cpp Chat/*.hpp)
+file(GLOB_RECURSE SRC_DATA Data/*.cpp Data/*.hpp)
+file(GLOB_RECURSE SRC_MACROS Macros/*.cpp Macros/*.hpp)
 file(GLOB_RECURSE SRC_MANAGEMENT Management/*.cpp Management/*.h Management/*.hpp)
 file(GLOB_RECURSE SRC_MAP Map/*.cpp Map/*.h Map/*.hpp)
 file(GLOB_RECURSE SRC_MOVEMENT Movement/*.cpp Movement/*.h Movement/*.hpp)
@@ -25,7 +24,6 @@ ascemu_source_group(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(${EXECUTABLE_NAME}
     ${SRC_CHAT}
-    ${SRC_COMMAND}
     ${SRC_DATA}
     ${SRC_MACROS}
     ${SRC_MANAGEMENT}
