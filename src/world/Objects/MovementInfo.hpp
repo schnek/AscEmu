@@ -12,19 +12,66 @@ This file is released under the MIT license. See README-MIT for more information
 
 struct MovementInfo
 {
-    MovementInfo() : flags(0), flags2(0), update_time(0),
-        position(0.f, 0.f, 0.f, 0.f),
-        pitch_rate(0.f), fall_time(0), spline_elevation(0.f),
-        transport_position(0.f, 0.f, 0.f, 0.f), transport_time(0)
-#if VERSION_STRING >= WotLK
-        , transport_seat(0), transport_time2(0)
-#endif
-#if VERSION_STRING >= Cata
-        , transport_time3(0)
-#endif
-         {
-        transport_guid = 0;
-    }
+    WoWGuid guid = 0;
+
+    //note: not present in versions before MoP
+    WoWGuid guid2 = 0;
+
+    uint32_t flags = 0;
+    //note: uint8_t for tbc
+    uint16_t flags2 = 0;
+
+    uint32_t update_time = 0;
+
+    LocationVector position { 0.f, 0.f, 0.f, 0.f };
+
+    // -1.55 looking down | 0 looking forward | +1.55 looking up
+    float pitch_rate = 0.f;
+
+    //todo: move this to jump
+    uint32_t fall_time = 0;
+
+    float spline_elevation = 0.f;
+
+    struct JumpInfo
+    {
+        float velocity = 0.f;
+        float sinAngle = 0.f;
+        float cosAngle = 0.f;
+        float xyspeed = 0.f;
+    };
+
+    JumpInfo jump_info;
+    JumpInfo const& getJumpInfo() const { return jump_info; }
+
+    //todo: build new struct for transport
+    WoWGuid transport_guid = 0;
+    LocationVector transport_position {0.f, 0.f, 0.f, 0.f};
+    uint32_t transport_time = 0;
+    uint8_t transport_seat = static_cast<uint8_t>(-1);
+    uint32_t transport_time2 = 0;
+    uint32_t transport_time3 = 0;
+
+    struct StatusInfo
+    {
+        bool hasFallData = false;
+        bool hasFallDirection = false;
+        bool hasOrientation = false;
+        bool hasPitch = false;
+        bool hasSpline = false;
+        bool hasSplineElevation = false;
+        bool hasTimeStamp = false;
+        bool hasTransportTime2 = false;
+        bool hasTransportTime3 = false;
+    };
+
+    //todo: move this to status
+    bool hasTransportData = false;
+    bool hasMovementFlags = false;
+    bool hasMovementFlags2 = false;
+
+    StatusInfo status_info;
+    StatusInfo const& getMovementStatusInfo() const { return status_info; }
 
     WoWGuid const& getGuid() const { return guid; }
     WoWGuid const& getGuid2() const { return guid2; }
@@ -52,38 +99,6 @@ struct MovementInfo
 
     void setFallTime(uint32_t val) { fall_time = val; }
 
-    struct JumpInfo
-    {
-        JumpInfo() : velocity(0.f), sinAngle(0.f), cosAngle(0.f), xyspeed(0.f) { }
-
-        float velocity;
-        float sinAngle;
-        float cosAngle;
-        float xyspeed;
-    };
-    JumpInfo const& getJumpInfo() const { return jump_info; }
-
-#if VERSION_STRING >= Cata
-    struct StatusInfo
-    {
-        StatusInfo() : hasFallData(false), hasFallDirection(false), hasOrientation(false),
-            hasPitch(false), hasSpline(false), hasSplineElevation(false),
-            hasTimeStamp(false), hasTransportTime2(false), hasTransportTime3(false) { }
-
-        bool hasFallData : 1;
-        bool hasFallDirection : 1;
-        bool hasOrientation : 1;
-        bool hasPitch : 1;
-        bool hasSpline : 1;
-        bool hasSplineElevation : 1;
-        bool hasTimeStamp : 1;
-        bool hasTransportTime2 : 1;
-        bool hasTransportTime3 : 1;
-    };
-    StatusInfo const& getMovementStatusInfo() const { return status_info; }
-#endif
-
-    // transport
     void setTransportData(WoWGuid _guid, float x, float y, float z, float o, uint32_t time, [[maybe_unused]]int8_t seat)
     {
         transport_guid = _guid;
@@ -92,9 +107,7 @@ struct MovementInfo
         transport_position.z = z;
         transport_position.o = o;
         transport_time = time;
-#if VERSION_STRING >= WotLK
-        transport_seat = seat;
-#endif
+        transport_seat = static_cast<uint8_t>(seat);
     }
 
     void clearTransportData()
@@ -105,59 +118,11 @@ struct MovementInfo
         transport_position.z = 0.0f;
         transport_position.o = 0.0f;
         transport_time = 0;
-#if VERSION_STRING >= WotLK
         transport_seat = static_cast<uint8_t>(-1);;
-#endif
     }
 
     void readMovementInfo(ByteBuffer& data, uint16_t opcode);
     void writeMovementInfo(ByteBuffer& data, uint16_t opcode, bool withGuid = true) const;
-
-    uint32_t flags;
-
-#if VERSION_STRING < WotLK
-    uint8_t flags2;
-#else
-    uint16_t flags2;
-#endif
-
-    WoWGuid guid;
-    WoWGuid guid2;
-
-    uint32_t update_time;
-
-    LocationVector position;
-
-    /*
-    *  -1.55   looking down
-    *  0       looking forward
-    *  +1.55   looking up
-    */
-    float pitch_rate;
-    uint32_t fall_time;
-    float spline_elevation;
-
-    JumpInfo jump_info;
-
-#if VERSION_STRING >= Cata
-    StatusInfo status_info;
-#endif
-
-    // transport
-    WoWGuid transport_guid;
-
-    LocationVector transport_position;
-    uint32_t transport_time;
-#if VERSION_STRING >= WotLK
-    uint8_t transport_seat;
-    uint32_t transport_time2;
-#endif
-#if VERSION_STRING >= Cata
-    uint32_t transport_time3;
-    bool hasTransportData = false;
-    bool hasMovementFlags = false;
-    bool hasMovementFlags2 = false;
-#endif
 };
 
 inline WorldPacket& operator<< (WorldPacket& buf, MovementInfo const& mi)
