@@ -9,6 +9,10 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include "Logging/Logger.hpp"
 
+#if VERSION_STRING == WotLK
+#include "Utilities/MathConstants.hpp"
+#endif
+
 namespace MovementMgr {
 
 #if VERSION_STRING >= Cata
