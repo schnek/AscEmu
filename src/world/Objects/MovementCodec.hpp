@@ -28,7 +28,7 @@ public:
             if (!checkReadCondition(step.cond, movementInfo))
                 continue;
 
-            executeReadStep(buffer, movementInfo, step.op);
+            executeReadStep(buffer, movementInfo, step.op, opcode);
         }
     }
 
@@ -52,7 +52,7 @@ public:
             if (!checkWriteCondition(step.cond, movementInfo, withGuid))
                 continue;
 
-            executeWriteStep(data, movementInfo, step.op);
+            executeWriteStep(data, movementInfo, step.op, opcode);
         }
 
         data.flushBits();
@@ -163,7 +163,7 @@ private:
             descriptor.size() == UnknownDescriptor.size();
     }
 
-    static void executeReadStep(ByteBuffer& buffer, MovementInfo& movementInfo, MovementOp op)
+    static void executeReadStep(ByteBuffer& buffer, MovementInfo& movementInfo, MovementOp op, uint16_t opcode)
     {
         switch (op)
         {
@@ -279,29 +279,54 @@ private:
             case MovementOp::HasCount:           movementInfo.hasCount = !buffer.readBit(); break;
 
             case MovementOp::ForcesCount:
+            {
                 movementInfo.forcesCount = buffer.readBits(22);
-                break;
+                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : ForcesCount is {}",
+                    sOpcodeTables.getNameForOpcode(opcode), movementInfo.forcesCount);
+            } break;
 
             case MovementOp::Count:
-                buffer.readSkip<uint32_t>();
-                break;
+            {
+                uint32_t counter;
+                buffer >> counter;
+                //buffer.readSkip<uint32_t>();
+                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : Count is {}",
+                    sOpcodeTables.getNameForOpcode(opcode), counter);
+            } break;
+
+            case MovementOp::NewSpeed: buffer >> movementInfo.newSpeed; break;
 
             case MovementOp::SkipForcesCountUInt32:
+            {
                 for (uint32_t i = 0; i < movementInfo.forcesCount; ++i)
-                    buffer.readSkip<uint32_t>();
-                break;
+                {
+                    uint32_t force;
+                    buffer >> force;
+                    //buffer.readSkip<uint32_t>();
+                    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : SkipForcesCountUInt32 {} is {}",
+                        sOpcodeTables.getNameForOpcode(opcode), i, force);
+                }
+            } break;
 
             case MovementOp::SkipBit:
-                buffer.readBit();
-                break;
+            {
+                uint8_t bit = buffer.readBit();
+                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : SkipBit is {}",
+                    sOpcodeTables.getNameForOpcode(opcode), bit);
+            } break;
 
             case MovementOp::SkipUInt32:
-                buffer.readSkip<uint32_t>();
-                break;
+            {
+                uint32_t uint;
+                buffer >> uint;
+                //buffer.readSkip<uint32_t>();
+                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : SkipUInt32 is {}",
+                    sOpcodeTables.getNameForOpcode(opcode), uint);
+            } break;
         }
     }
 
-    static void executeWriteStep(ByteBuffer& data, MovementInfo const& movementInfo, MovementOp op)
+    static void executeWriteStep(ByteBuffer& data, MovementInfo const& movementInfo, MovementOp op, uint16_t opcode)
     {
         switch (op)
         {

@@ -23,14 +23,7 @@ namespace AscEmu::Packets
         }
 
         MsgMoveSetFlightBackSpeed(WoWGuid guid, float rate) :
-//Zyres: Due to wrong understanding of these opcodes the logic gets turned around here
-#if VERSION_STRING < Cata
             ManagedPacket(SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE, 0),
-#elif VERSION_STRING == Cata
-            ManagedPacket(MSG_MOVE_SET_FLIGHT_BACK_SPEED, 0),
-#elif VERSION_STRING == Mop
-            ManagedPacket(SMSG_MOVE_SET_FLIGHT_BACK_SPEED, 0),
-#endif
             guid(guid),
             rate(rate)
         {

@@ -23,12 +23,7 @@ namespace AscEmu::Packets
         }
 
         MsgMoveSetPitchRate(WoWGuid guid, float rate) :
-//Zyres: Due to wrong understanding of these opcodes the logic gets turned around here
-#if VERSION_STRING < Cata
             ManagedPacket(SMSG_FORCE_PITCH_RATE_CHANGE, 0),
-#else
-            ManagedPacket(MSG_MOVE_SET_PITCH_RATE, 0),
-#endif
             guid(guid),
             rate(rate)
         {

@@ -24,12 +24,7 @@ namespace AscEmu::Packets
         }
 
         SmsgForceSwimBackSpeedChange(WoWGuid guid, float rate, MovementInfo mi) :
-//Zyres: Due to wrong understanding of these opcodes the logic gets turned around here
-#if VERSION_STRING < Cata
             ManagedPacket(MSG_MOVE_SET_SWIM_BACK_SPEED, 0),
-#else
-            ManagedPacket(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE, 0),
-#endif
             guid(guid),
             rate(rate),
             mi(mi)

@@ -2429,7 +2429,6 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
 
     // Spline packets are for units controlled by AI. "Force speed change" (wrongly named opcodes) and "move set speed" packets are for units controlled by a player.
 
-    // Zyres: keep this as a reference to the old logic. On Cata SMSG_FORCE and MSG_MOVE opcodes where flipped.
     static Opcodes const moveTypeToOpcode[MAX_SPEED_TYPE][3] =
     {//   ->send to all players              ->send to player                     ->send to all but player
         { SMSG_SPLINE_SET_WALK_SPEED,        SMSG_FORCE_WALK_SPEED_CHANGE,        MSG_MOVE_SET_WALK_SPEED        },
@@ -2462,6 +2461,19 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
 
     if (player_mover) // unit controlled by a player.
     {
+        /*MovementInfo mi = obj_movement_info;
+        mi.newSpeed = rate;
+        mi.guid = GetNewGUID();
+
+        WorldPacket setPacket(moveTypeToOpcode[mtype][2], 100);
+        setPacket << mi;
+
+        WorldPacket playerPacket(moveTypeToOpcode[mtype][1], 100);
+        playerPacket << mi;
+
+        player_mover->sendPacket(&playerPacket);
+        player_mover->sendMessageToSet(&setPacket, false);*/
+
         switch (mtype)
         {
             case TYPE_WALK:

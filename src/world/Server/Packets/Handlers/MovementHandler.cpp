@@ -478,30 +478,16 @@ void WorldSession::handleAcknowledgementOpcodes(WorldPacket& recvPacket)
 
 void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
 {
-#if VERSION_STRING < Cata
-    /* extract packet */
-    uint32_t unk1;
-    float  newspeed;
     Unit* mover = _player->m_controledUnit;
-
-    // continue parse packet
-
-    recvPacket >> unk1;                          // counter or moveEvent
 
     MovementInfo movementInfo;
     recvPacket >> movementInfo;
 
-    // now can skip not our packet
-    // TODO: following statement is always true -Appled
     if (movementInfo.getGuid() != mover->getGuid())
-    {
-        recvPacket.rfinish();                   // prevent warnings spam
         return;
-    }
 
-    recvPacket >> newspeed;
-    /*----------------*/
-
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "WorldSession::handleForceSpeedChangeAck: Counter {}, speed {} received",
+        movementInfo.counter, movementInfo.newSpeed);
     // client ACK send one packet for mounted/run case and need skip all except last from its
     // in other cases anti-cheat check can be fail in false case
     UnitSpeedType move_type;
@@ -535,9 +521,9 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
             return;
     }
 
-    if (!_player->GetTransport() && std::fabs(_player->getSpeedRate(move_type, false) - newspeed) > 0.01f)
+    if (!_player->GetTransport() && std::fabs(_player->getSpeedRate(move_type, false) - movementInfo.newSpeed) > 0.01f)
     {
-        if (_player->getSpeedRate(move_type, false) > newspeed)         // must be greater - just correct
+        if (_player->getSpeedRate(move_type, false) > movementInfo.newSpeed)         // must be greater - just correct
         {
             _player->setSpeedRate(move_type, _player->getSpeedRate(move_type, false), false);
         }
@@ -546,12 +532,6 @@ void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)
             // handle something here
         }
     }
-#else // todo fix for cata / mop
-    sLogger.debug("Opcode {} ({}) received. This opcode is not known/implemented right now!",
-        sOpcodeTables.getNameForInternalId(recvPacket.getOpcode()), recvPacket.getOpcode());
-
-    recvPacket.rfinish();
-#endif
 }
 
 void WorldSession::handleWorldTeleportOpcode(WorldPacket& recvPacket)

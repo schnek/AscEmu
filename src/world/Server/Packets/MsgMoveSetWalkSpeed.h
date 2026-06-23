@@ -23,14 +23,7 @@ namespace AscEmu::Packets
         }
 
         MsgMoveSetWalkSpeed(WoWGuid guid, float rate) :
-//Zyres: Due to wrong understanding of these opcodes the logic gets turned around here
-#if VERSION_STRING < Cata
             ManagedPacket(SMSG_FORCE_WALK_SPEED_CHANGE, 0),
-#elif VERSION_STRING == Cata
-            ManagedPacket(MSG_MOVE_SET_WALK_SPEED, 0),
-#elif VERSION_STRING == Mop
-            ManagedPacket(SMSG_MOVE_SET_WALK_SPEED, 0),
-#endif
             guid(guid),
             rate(rate)
         {

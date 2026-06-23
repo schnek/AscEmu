@@ -42,6 +42,48 @@ namespace
         MovementStep{ MovementOp::End }
     };
 
+    static constexpr std::array ClassicForceSpeedChangeACK
+    {
+        MovementStep{ MovementOp::Guid },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::Flags },
+        MovementStep{ MovementOp::Timestamp },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::Orientation },
+
+        MovementStep{ MovementOp::TGuid, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+
+        MovementStep{ MovementOp::FallTime },
+
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
+
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array ClassicForceSpeedChange
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array ClassicMoveSetSpeed
+    {
+        MovementStep{ MovementOp::End }
+    };
+
     static constexpr std::array TBCDefaultMovement
     {
         MovementStep{ MovementOp::Guid, Cond::NoReadOptWrite },
@@ -70,6 +112,48 @@ namespace
         MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
 
         MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array TBCForceSpeedChangeACK
+    {
+        MovementStep{ MovementOp::Guid },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::Flags },
+        MovementStep{ MovementOp::Timestamp },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::Orientation },
+
+        MovementStep{ MovementOp::TGuid, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+
+        MovementStep{ MovementOp::FallTime },
+
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
+
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array TBCForceSpeedChange
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array TBCMoveSetSpeed
+    {
         MovementStep{ MovementOp::End }
     };
 
@@ -103,6 +187,49 @@ namespace
         MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
 
         MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array WotLKForceSpeedChangeACK
+    {
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::Guid },
+        MovementStep{ MovementOp::Flags },
+        MovementStep{ MovementOp::Timestamp },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::Orientation },
+
+        MovementStep{ MovementOp::TGuid, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+
+        MovementStep{ MovementOp::FallTime },
+
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
+
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array WotLKForceSpeedChange
+    {
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array WotLKMoveSetSpeed
+    {
         MovementStep{ MovementOp::End }
     };
 
@@ -2265,6 +2392,619 @@ namespace
         MovementStep{ MovementOp::Pitch, Cond::HasPitch },
         MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
         MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_WALK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_RUN_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_SWIM_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasFallData },
+
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_TURN_RATE_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_FLIGHT_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasSpline },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasTimestamp },
+
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataCMSG_FORCE_PITCH_RATE_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_FORCE_WALK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_RUN_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_RUN_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_SWIM_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_SWIM_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_TURN_RATE_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_FLIGHT_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_FLIGHT_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataSMSG_FORCE_PITCH_RATE_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_WALK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_RUN_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_RUN_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_SWIM_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_SWIM_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_TURN_RATEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_FLIGHT_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array CataMSG_MOVE_SET_PITCH_RATEDescriptor
+    {
         MovementStep{ MovementOp::End }
     };
 
@@ -4786,6 +5526,799 @@ namespace
         MovementStep{ MovementOp::End }
     };
 
+    static constexpr std::array MopCMSG_FORCE_WALK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_RUN_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_SWIM_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_TURN_RATE_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_FLIGHT_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopCMSG_FORCE_PITCH_RATE_CHANGE_ACKDescriptor
+    {
+        MovementStep{ MovementOp::PosY },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::PosZ },
+        MovementStep{ MovementOp::PosX },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::ForcesCount },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::HasOrientation },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::HasFallData },
+        MovementStep{ MovementOp::HasTimestamp },
+        MovementStep{ MovementOp::HasCount },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::HasMovementFlags2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::HasPitch },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasMovementFlags },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::HasSplineElevation },
+        MovementStep{ MovementOp::HasTransport },
+        MovementStep{ MovementOp::SkipBit },
+        MovementStep{ MovementOp::TGuidBit6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit0, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime3, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit4, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit3, Cond::HasTransport },
+        MovementStep{ MovementOp::HasTransportTime2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidBit7, Cond::HasTransport },
+        MovementStep{ MovementOp::HasFallDirection, Cond::HasFallData },
+        MovementStep{ MovementOp::Flags, Cond::HasMovementFlags },
+        MovementStep{ MovementOp::Flags2, Cond::HasMovementFlags2 },
+
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::SkipForcesCountUInt32 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::TTime3, Cond::HasTransportTime3 },
+        MovementStep{ MovementOp::TGuidByte5, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte6, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte1, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte4, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosX, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime, Cond::HasTransport },
+        MovementStep{ MovementOp::TOrientation, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte3, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosY, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte0, Cond::HasTransport },
+        MovementStep{ MovementOp::TTime2, Cond::HasTransportTime2 },
+        MovementStep{ MovementOp::TSeat, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte2, Cond::HasTransport },
+        MovementStep{ MovementOp::TGuidByte7, Cond::HasTransport },
+        MovementStep{ MovementOp::TPosZ, Cond::HasTransport },
+        MovementStep{ MovementOp::JumpSin, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpCos, Cond::HasFallDirection },
+        MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallDirection },
+        MovementStep{ MovementOp::FallTime, Cond::HasFallData },
+        MovementStep{ MovementOp::JumpVelocity, Cond::HasFallData },
+        MovementStep{ MovementOp::Count, Cond::HasCount },
+        MovementStep{ MovementOp::Pitch, Cond::HasPitch },
+        MovementStep{ MovementOp::Orientation, Cond::HasOrientation },
+        MovementStep{ MovementOp::Timestamp, Cond::HasTimestamp },
+        MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_FORCE_WALK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_RUN_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_RUN_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_SWIM_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_SWIM_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_TURN_RATE_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_FLIGHT_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_FLIGHT_BACK_SPEED_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopSMSG_FORCE_PITCH_RATE_CHANGEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_WALK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_RUN_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_RUN_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_SWIM_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_SWIM_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_TURN_RATEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_FLIGHT_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+    static constexpr std::array MopMSG_MOVE_SET_PITCH_RATEDescriptor
+    {
+        MovementStep{ MovementOp::End }
+    };
+
     static constexpr std::array MopCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor
     {
         MovementStep{ MovementOp::PosZ },
@@ -5232,17 +6765,119 @@ std::span<MovementStep const> const UnknownDescriptor = kUnknownDescriptorStorag
 
 std::span<MovementStep const> getClassicMovementDescriptor(uint16_t opcode)
 {
-    return ClassicDefaultMovement;
+    switch (sOpcodeTables.getInternalIdForHex(opcode))
+    {
+        case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:
+            return ClassicForceSpeedChangeACK;
+        case SMSG_FORCE_WALK_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_TURN_RATE_CHANGE:
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_PITCH_RATE_CHANGE:
+            return ClassicForceSpeedChange;
+        case MSG_MOVE_SET_WALK_SPEED:
+        case MSG_MOVE_SET_RUN_SPEED:
+        case MSG_MOVE_SET_RUN_BACK_SPEED:
+        case MSG_MOVE_SET_SWIM_SPEED:
+        case MSG_MOVE_SET_SWIM_BACK_SPEED:
+        case MSG_MOVE_SET_TURN_RATE:
+        case MSG_MOVE_SET_FLIGHT_SPEED:
+        case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
+        case MSG_MOVE_SET_PITCH_RATE:
+            return ClassicMoveSetSpeed;
+        default:
+            return ClassicDefaultMovement;
+    }
 }
 
 std::span<MovementStep const> getTbcMovementDescriptor(uint16_t opcode)
 {
-    return TBCDefaultMovement;
+    switch (sOpcodeTables.getInternalIdForHex(opcode))
+    {
+        case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:
+            return TBCForceSpeedChangeACK;
+        case SMSG_FORCE_WALK_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_TURN_RATE_CHANGE:
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_PITCH_RATE_CHANGE:
+            return TBCForceSpeedChange;
+        case MSG_MOVE_SET_WALK_SPEED:
+        case MSG_MOVE_SET_RUN_SPEED:
+        case MSG_MOVE_SET_RUN_BACK_SPEED:
+        case MSG_MOVE_SET_SWIM_SPEED:
+        case MSG_MOVE_SET_SWIM_BACK_SPEED:
+        case MSG_MOVE_SET_TURN_RATE:
+        case MSG_MOVE_SET_FLIGHT_SPEED:
+        case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
+        case MSG_MOVE_SET_PITCH_RATE:
+            return TBCMoveSetSpeed;
+        default:
+            return TBCDefaultMovement;
+    }
 }
 
 std::span<MovementStep const> getWotlkMovementDescriptor(uint16_t opcode)
 {
-    return WotLKDefaultMovement;
+    switch (sOpcodeTables.getInternalIdForHex(opcode))
+    {
+        case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+        case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:
+            return WotLKForceSpeedChangeACK;
+        case SMSG_FORCE_WALK_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
+        case SMSG_FORCE_RUN_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_SPEED_CHANGE:
+        case SMSG_FORCE_SWIM_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_TURN_RATE_CHANGE:
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+        case SMSG_FORCE_PITCH_RATE_CHANGE:
+            return WotLKForceSpeedChange;
+        case MSG_MOVE_SET_WALK_SPEED:
+        case MSG_MOVE_SET_RUN_SPEED:
+        case MSG_MOVE_SET_RUN_BACK_SPEED:
+        case MSG_MOVE_SET_SWIM_SPEED:
+        case MSG_MOVE_SET_SWIM_BACK_SPEED:
+        case MSG_MOVE_SET_TURN_RATE:
+        case MSG_MOVE_SET_FLIGHT_SPEED:
+        case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
+        case MSG_MOVE_SET_PITCH_RATE:
+            return WotLKMoveSetSpeed;
+        default:
+            return WotLKDefaultMovement;
+    }
 }
 
 std::span<MovementStep const> getCataMovementDescriptor(uint16_t opcode)
@@ -5311,6 +6946,60 @@ std::span<MovementStep const> getCataMovementDescriptor(uint16_t opcode)
             return CataMSG_MOVE_HEARTBEATDescriptor;
         case CMSG_MOVE_KNOCK_BACK_ACK:
             return CataCMSG_MOVE_KNOCK_BACK_ACKDescriptor;
+        case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_WALK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_RUN_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_SWIM_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACKDescriptor;
+        /*case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+            return CataCMSG_FORCE_TURN_RATE_CHANGE_ACKDescriptor;*/
+        case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_FLIGHT_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+            return CataCMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACKDescriptor;
+        /*case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:
+            return CataCMSG_FORCE_PITCH_RATE_CHANGE_ACKDescriptor;*/
+        case SMSG_FORCE_WALK_SPEED_CHANGE:
+            return CataSMSG_FORCE_WALK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
+            return CataSMSG_FORCE_RUN_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_RUN_BACK_SPEED_CHANGE:
+            return CataSMSG_FORCE_RUN_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_SWIM_SPEED_CHANGE:
+            return CataSMSG_FORCE_SWIM_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_SWIM_BACK_SPEED_CHANGE:
+            return CataSMSG_FORCE_SWIM_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_TURN_RATE_CHANGE:
+            return CataSMSG_FORCE_TURN_RATE_CHANGEDescriptor;
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+            return CataSMSG_FORCE_FLIGHT_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+            return CataSMSG_FORCE_FLIGHT_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_PITCH_RATE_CHANGE:
+            return CataSMSG_FORCE_PITCH_RATE_CHANGEDescriptor;
+        case MSG_MOVE_SET_WALK_SPEED:
+            return CataMSG_MOVE_SET_WALK_SPEEDDescriptor;
+        case MSG_MOVE_SET_RUN_SPEED:
+            return CataMSG_MOVE_SET_RUN_SPEEDDescriptor;
+        case MSG_MOVE_SET_RUN_BACK_SPEED:
+            return CataMSG_MOVE_SET_RUN_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_SWIM_SPEED:
+            return CataMSG_MOVE_SET_SWIM_SPEEDDescriptor;
+        case MSG_MOVE_SET_SWIM_BACK_SPEED:
+            return CataMSG_MOVE_SET_SWIM_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_TURN_RATE:
+            return CataMSG_MOVE_SET_TURN_RATEDescriptor;
+        case MSG_MOVE_SET_FLIGHT_SPEED:
+            return CataMSG_MOVE_SET_FLIGHT_SPEEDDescriptor;
+        case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
+            return CataMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_PITCH_RATE:
+            return CataMSG_MOVE_SET_PITCH_RATEDescriptor;
         case CMSG_MOVE_NOT_ACTIVE_MOVER:
             return CataCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor;
         case CMSG_DISMISS_CONTROLLED_VEHICLE:
@@ -5388,6 +7077,60 @@ std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode)
             return MopMSG_MOVE_HEARTBEATDescriptor;
         case CMSG_MOVE_KNOCK_BACK_ACK:
             return MopCMSG_MOVE_KNOCK_BACK_ACKDescriptor;
+        case CMSG_FORCE_WALK_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_WALK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_RUN_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_RUN_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_RUN_BACK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_SWIM_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_SWIM_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_TURN_RATE_CHANGE_ACK:
+            return MopCMSG_FORCE_TURN_RATE_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_FLIGHT_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK:
+            return MopCMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACKDescriptor;
+        case CMSG_FORCE_PITCH_RATE_CHANGE_ACK:
+            return MopCMSG_FORCE_PITCH_RATE_CHANGE_ACKDescriptor;
+        case SMSG_FORCE_WALK_SPEED_CHANGE:
+            return MopSMSG_FORCE_WALK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_RUN_SPEED_CHANGE:
+            return MopSMSG_FORCE_RUN_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_RUN_BACK_SPEED_CHANGE:
+            return MopSMSG_FORCE_RUN_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_SWIM_SPEED_CHANGE:
+            return MopSMSG_FORCE_SWIM_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_SWIM_BACK_SPEED_CHANGE:
+            return MopSMSG_FORCE_SWIM_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_TURN_RATE_CHANGE:
+            return MopSMSG_FORCE_TURN_RATE_CHANGEDescriptor;
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+            return MopSMSG_FORCE_FLIGHT_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+            return MopSMSG_FORCE_FLIGHT_BACK_SPEED_CHANGEDescriptor;
+        case SMSG_FORCE_PITCH_RATE_CHANGE:
+            return MopSMSG_FORCE_PITCH_RATE_CHANGEDescriptor;
+        case MSG_MOVE_SET_WALK_SPEED:
+            return MopMSG_MOVE_SET_WALK_SPEEDDescriptor;
+        case MSG_MOVE_SET_RUN_SPEED:
+            return MopMSG_MOVE_SET_RUN_SPEEDDescriptor;
+        case MSG_MOVE_SET_RUN_BACK_SPEED:
+            return MopMSG_MOVE_SET_RUN_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_SWIM_SPEED:
+            return MopMSG_MOVE_SET_SWIM_SPEEDDescriptor;
+        case MSG_MOVE_SET_SWIM_BACK_SPEED:
+            return MopMSG_MOVE_SET_SWIM_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_TURN_RATE:
+            return MopMSG_MOVE_SET_TURN_RATEDescriptor;
+        case MSG_MOVE_SET_FLIGHT_SPEED:
+            return MopMSG_MOVE_SET_FLIGHT_SPEEDDescriptor;
+        case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
+            return MopMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor;
+        case MSG_MOVE_SET_PITCH_RATE:
+            return MopMSG_MOVE_SET_PITCH_RATEDescriptor;
         case CMSG_MOVE_NOT_ACTIVE_MOVER:
             return MopCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor;
         case CMSG_DISMISS_CONTROLLED_VEHICLE:

@@ -87,6 +87,7 @@ enum class MovementOp : uint16_t
 
     ForcesCount,
     Count,
+    NewSpeed,
 
     SkipBit,
     SkipUInt32,

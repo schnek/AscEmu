@@ -50,7 +50,7 @@ struct MovementInfo
     uint32_t transport_time = 0;
     uint8_t transport_seat = static_cast<uint8_t>(-1);
     uint32_t transport_time2 = 0;
-    uint32_t transport_time3 = 0;
+    uint32_t transport_time3 = 0;   //vehicle_id
 
     //misc stuff
     uint32_t counter = 0;
@@ -66,7 +66,7 @@ struct MovementInfo
         bool hasSplineElevation = false;
         bool hasTimeStamp = false;
         bool hasTransportTime2 = false;
-        bool hasTransportTime3 = false;
+        bool hasTransportTime3 = false; //hasVehicleId
     };
 
     //todo: move this to status
@@ -74,6 +74,23 @@ struct MovementInfo
     bool hasMovementFlags = false;
     bool hasMovementFlags2 = false;
     bool hasCount = false;
+
+    //todo: investigate further on forced_speed
+    struct ForcedSpeed
+    {
+        float walk = 0.f;
+        float run = 0.f;
+        float runBack = 0.f;
+        float swim = 0.f;
+        float swimBack = 0.f;
+        float turn = 0.f;
+        float fly = 0.f;
+        float flyBack = 0.f;
+        float pitch = 0.f;
+    };
+
+    float newSpeed = 0.f;
+    ForcedSpeed forcedSpeed;
 
     StatusInfo status_info;
     StatusInfo const& getMovementStatusInfo() const { return status_info; }
