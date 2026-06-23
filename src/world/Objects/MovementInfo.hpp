@@ -52,6 +52,10 @@ struct MovementInfo
     uint32_t transport_time2 = 0;
     uint32_t transport_time3 = 0;
 
+    //misc stuff
+    uint32_t counter = 0;
+    uint32_t forcesCount = 0;
+
     struct StatusInfo
     {
         bool hasFallData = false;
@@ -69,6 +73,7 @@ struct MovementInfo
     bool hasTransportData = false;
     bool hasMovementFlags = false;
     bool hasMovementFlags2 = false;
+    bool hasCount = false;
 
     StatusInfo status_info;
     StatusInfo const& getMovementStatusInfo() const { return status_info; }

@@ -167,6 +167,9 @@ enum MovementFlags2
 
 enum MovementFlags
 {
+    // old flag enum for WotLK/TBC/Classic
+    MOVEFLAG_TRANSPORT              = 0x00000000,
+
     MOVEFLAG_NONE                   = 0x00000000,
     MOVEFLAG_MOVE_FORWARD           = 0x00000001,
     MOVEFLAG_MOVE_BACKWARD          = 0x00000002,
