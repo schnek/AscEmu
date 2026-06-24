@@ -220,6 +220,8 @@ enum MovementFlags
     MOVEFLAG_FULL_FALLING_MASK      = 0xE000
 };
 
+#if VERSION_STRING == Cata
+
 enum MovementFlags2 : uint16_t
 {
     MOVEFLAG2_NONE                  = 0x0000,
@@ -238,5 +240,32 @@ enum MovementFlags2 : uint16_t
     MOVEFLAG2_INTERPOLATED_MASK =
         MOVEFLAG2_INTERPOLATED_MOVE | MOVEFLAG2_INTERPOLATED_TURN | MOVEFLAG2_INTERPOLATED_PITCH
 };
+
+#else //Mop
+
+enum MovementFlags2 : uint16_t
+{
+    MOVEFLAG2_NONE                  = 0x0000,
+    MOVEFLAG2_NO_STRAFING           = 0x0001,
+    MOVEFLAG2_NO_JUMPING            = 0x0002,
+    MOVEFLAG2_FULLSPEED_TURNING     = 0x0004,
+    MOVEFLAG2_FULLSPEED_PITCHING    = 0x0008,
+    MOVEFLAG2_ALLOW_PITCHING        = 0x0010,
+    MOVEFLAG2_UNK4                  = 0x0020,
+    MOVEFLAG2_UNK5                  = 0x0040,
+    MOVEFLAG2_UNK6                  = 0x0080,
+    MOVEFLAG2_UNK7                  = 0x0100,
+    MOVEFLAG2_UNK8                  = 0x0200,
+    MOVEFLAG2_UNK9                  = 0x0400,
+    MOVEFLAG2_UNK10                 = 0x0800,
+    MOVEFLAG2_UNK11                 = 0x1000,
+    MOVEFLAG2_INTERPOLATED_MOVE     = 0x2000,
+    MOVEFLAG2_INTERPOLATED_TURN     = 0x4000,
+    MOVEFLAG2_INTERPOLATED_PITCH    = 0x8000,
+    MOVEFLAG2_INTERPOLATED_MASK =
+        MOVEFLAG2_INTERPOLATED_MOVE | MOVEFLAG2_INTERPOLATED_TURN | MOVEFLAG2_INTERPOLATED_PITCH
+};
+
+#endif
 
 #endif

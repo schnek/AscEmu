@@ -470,10 +470,24 @@ void WorldSession::handleMovementOpcodes(WorldPacket& recvData)
 
 void WorldSession::handleAcknowledgementOpcodes(WorldPacket& recvPacket)
 {
-    sLogger.debug("Opcode {} ({}) received. This opcode is not known/implemented right now!",
-        sOpcodeTables.getNameForInternalId(recvPacket.getOpcode()), recvPacket.getOpcode());
+    const auto opcode = sOpcodeTables.getInternalIdForHex(recvPacket.getOpcode());
+    switch (opcode)
+    {
+        case CMSG_MOVE_SET_CAN_FLY_ACK:
+        {
+            MovementInfo movementInfo;
+            recvPacket >> movementInfo;
 
-    recvPacket.rfinish();
+            _player->obj_movement_info.flags = movementInfo.getMovementFlags();
+        } break;
+        default:
+        {
+            sLogger.debug("WorldSession::handleAcknowledgementOpcodes : Opcode {} ({}) received. This opcode is not known/implemented right now!",
+                sOpcodeTables.getNameForInternalId(recvPacket.getOpcode()), recvPacket.getOpcode());
+
+            recvPacket.rfinish();
+        }
+    }
 }
 
 void WorldSession::handleForceSpeedChangeAck(WorldPacket& recvPacket)

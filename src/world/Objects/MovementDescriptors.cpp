@@ -8998,7 +8998,7 @@ namespace
         MovementStep{ MovementOp::GuidBit2 },
         MovementStep{ MovementOp::GuidByte4 },
         MovementStep{ MovementOp::GuidByte2 },
-        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::Count },
         MovementStep{ MovementOp::GuidByte6 },
         MovementStep{ MovementOp::GuidByte3 },
         MovementStep{ MovementOp::GuidByte1 },

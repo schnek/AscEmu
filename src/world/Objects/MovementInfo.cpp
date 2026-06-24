@@ -23,6 +23,11 @@ void MovementInfo::readMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t 
     }
 }
 
+void MovementInfo::read(WorldPacket& packet) 
+{
+    readMovementInfo(packet, packet.getOpcode());
+}
+
 void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t opcode, [[maybe_unused]] bool withGuid/* = true*/) const
 {
     uint16_t extOpcode = sOpcodeTables.getHexValueForVersionId(static_cast<uint32_t>(opcode));
