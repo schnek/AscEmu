@@ -796,13 +796,14 @@ void Player::setPlayerFlags(uint32_t flags)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update player flags also to group
     if (!IsInWorld() || getGroup() == nullptr)
         return;
 
     addGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
+#endif
 }
 
 void Player::addPlayerFlags(uint32_t flags) { setPlayerFlags(getPlayerFlags() | flags); }
@@ -4584,7 +4585,7 @@ void Player::addSkillLine(uint16_t skillLine, uint16_t currentValue, uint16_t ma
     if (!initializeProfession)
         currentValue = currentValue < 1 ? 1U : currentValue;
 
-    const auto onLearnedNewSkill = [&](uint16_t curVal, uint16_t skillStep, bool isPrimaryProfession) -> void
+    const auto onLearnedNewSkill = [&](uint16_t curVal, [[maybe_unused]] uint16_t skillStep, bool isPrimaryProfession) -> void
     {
 #if VERSION_STRING >= Cata
         // Profession skill line
@@ -8398,7 +8399,7 @@ void Player::updatePvPCurrencies()
     this->updateArenaPoints();
 }
 
-bool Player::hasPvPTitle(RankTitles title)
+bool Player::hasPvPTitle([[maybe_unused]] RankTitles title)
 {
 #if VERSION_STRING > Classic
     const auto index = static_cast<uint8_t>(title / 32);
@@ -8409,7 +8410,7 @@ bool Player::hasPvPTitle(RankTitles title)
 #endif
 }
 
-void Player::setKnownPvPTitle(RankTitles title, bool set)
+void Player::setKnownPvPTitle([[maybe_unused]] RankTitles title, [[maybe_unused]] bool set)
 {
 #if VERSION_STRING > Classic
     if (!set && !hasPvPTitle(title))
@@ -9483,7 +9484,7 @@ void Player::sendDestroyObjectPacket(uint64_t destroyedGuid)
     m_session->SendPacket(SmsgDestroyObject(destroyedGuid).serialise().get());
 }
 
-void Player::sendEquipmentSetUseResultPacket(uint8_t result)
+void Player::sendEquipmentSetUseResultPacket([[maybe_unused]] uint8_t result)
 {
 #if VERSION_STRING > TBC
     m_session->SendPacket(SmsgEquipmentSetUseResult(result).serialise().get());
@@ -9624,7 +9625,7 @@ void Player::sendEquipmentSetList()
 #endif
 }
 
-void Player::sendEquipmentSetSaved(uint32_t setId, uint32_t setGuid)
+void Player::sendEquipmentSetSaved([[maybe_unused]] uint32_t setId, [[maybe_unused]] uint32_t setGuid)
 {
 #if VERSION_STRING > TBC
     WorldPacket data(SMSG_EQUIPMENT_SET_SAVED, 12);
@@ -12994,9 +12995,9 @@ void Player::loadFieldsFromString(const char* string, uint16_t /*firstField*/, u
 
 void Player::calcExpertise()
 {
+#if VERSION_STRING != Classic
     int32_t modifier = 0;
 
-#if VERSION_STRING != Classic
     setExpertise(0);
     setOffHandExpertise(0);
 
@@ -15610,7 +15611,7 @@ void Player::updateStats()
         float value = getModCastSpeed() * m_spellHasteRatingBonus / haste; // remove previous mod and apply current
 
         setModCastSpeed(value);
-        m_spellHasteRatingBonus = haste;    // keep value for next run
+        m_spellHasteRatingBonus = haste; // keep value for next run
     }
 
     // Shield Block
@@ -15618,11 +15619,10 @@ void Player::updateStats()
     if (itemShield != nullptr && itemShield->getItemProperties()->InventoryType == INVTYPE_SHIELD)
     {
         float block_multiplier = (100.0f + m_modBlockAbsorbValue) / 100.0f;
-        if (block_multiplier < 1.0f)
-            block_multiplier = 1.0f;
+        block_multiplier = std::max(block_multiplier, 1.0f);
 
-        int32_t blockable_damage = Util::float2int32((itemShield->getItemProperties()->Block + m_modBlockValueFromSpells + getCombatRating(CR_BLOCK) + (str / 2.0f) - 1.0f) * block_multiplier);
 #if VERSION_STRING != Classic
+        int32_t blockable_damage = Util::float2int32((itemShield->getItemProperties()->Block + m_modBlockValueFromSpells + getCombatRating(CR_BLOCK) + (str / 2.0f) - 1.0f) * block_multiplier);
         setShieldBlock(blockable_damage);
 #endif
     }

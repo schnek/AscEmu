@@ -89,6 +89,8 @@ This file is released under the MIT license. See README-MIT for more information
 #include <Server/Packets/SmsgSplineMoveSetUnset.h>
 #include <Server/Packets/SmsgSplineSetSpeed.h>
 
+#include <algorithm>
+
 using namespace AscEmu::Packets;
 
 Unit::Unit() :
@@ -485,7 +487,7 @@ void Unit::setPowerType(uint8_t powerType)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update power type also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -493,6 +495,7 @@ void Unit::setPowerType(uint8_t powerType)
         return;
 
     plr->addGroupUpdateFlag(isPlayer() ? GROUP_UPDATE_FLAG_POWER_TYPE : GROUP_UPDATE_FLAG_PET_POWER_TYPE);
+#endif
 }
 #endif
 //bytes_0 end
@@ -501,15 +504,14 @@ uint32_t Unit::getHealth() const { return unitData()->health; }
 void Unit::setHealth(uint32_t health)
 {
     const auto maxHealth = getMaxHealth();
-    if (health > maxHealth)
-        health = maxHealth;
+    health = std::min(health, maxHealth);
 
     write(unitData()->health, health);
 
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update health also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -517,14 +519,14 @@ void Unit::setHealth(uint32_t health)
         return;
 
     plr->addGroupUpdateFlag(isPlayer() ? GROUP_UPDATE_FLAG_CUR_HP : GROUP_UPDATE_FLAG_PET_CUR_HP);
+#endif
 }
 void Unit::modHealth(int32_t health)
 {
     int32_t newHealth = getHealth();
     newHealth += health;
 
-    if (newHealth < 0)
-        newHealth = 0;
+    newHealth = std::max(newHealth, 0);
 
     setHealth(newHealth);
 }
@@ -563,7 +565,7 @@ uint32_t Unit::getPower(PowerType type) const
     }
 }
 
-void Unit::setPower(PowerType type, uint32_t value, bool sendPacket/* = true*/, bool skipObjectUpdate/* = false*/)
+void Unit::setPower(PowerType type, uint32_t value, [[maybe_unused]] bool sendPacket/* = true*/, bool skipObjectUpdate/* = false*/)
 {
     if (type == POWER_TYPE_HEALTH)
     {
@@ -572,8 +574,7 @@ void Unit::setPower(PowerType type, uint32_t value, bool sendPacket/* = true*/, 
     }
 
     const auto maxPower = getMaxPower(type);
-    if (value > maxPower)
-        value = maxPower;
+    value = std::min(value, maxPower);
 
     if (getPower(type) == value)
         return;
@@ -616,7 +617,7 @@ void Unit::setPower(PowerType type, uint32_t value, bool sendPacket/* = true*/, 
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Send power update to client
     if (sendPacket)
@@ -628,6 +629,7 @@ void Unit::setPower(PowerType type, uint32_t value, bool sendPacket/* = true*/, 
         return;
 
     plr->addGroupUpdateFlag(isPlayer() ? GROUP_UPDATE_FLAG_CUR_POWER : GROUP_UPDATE_FLAG_PET_CUR_POWER);
+#endif
 }
 
 void Unit::modPower(PowerType type, int32_t value)
@@ -635,8 +637,7 @@ void Unit::modPower(PowerType type, int32_t value)
     int32_t newPower = getPower(type);
     newPower += value;
 
-    if (newPower < 0)
-        newPower = 0;
+    newPower = std::max(newPower, 0);
 
     setPower(type, newPower);
 }
@@ -649,7 +650,7 @@ void Unit::setMaxHealth(uint32_t maxHealth)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update health also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -658,14 +659,15 @@ void Unit::setMaxHealth(uint32_t maxHealth)
 
     if (maxHealth < getHealth())
         setHealth(maxHealth);
+#endif
 }
+
 void Unit::modMaxHealth(int32_t maxHealth)
 {
     int32_t newMaxHealth = getMaxHealth();
     newMaxHealth += maxHealth;
 
-    if (newMaxHealth < 0)
-        newMaxHealth = 0;
+    newMaxHealth = std::max(newMaxHealth, 0);
 
     setMaxHealth(newMaxHealth);
 }
@@ -744,7 +746,7 @@ void Unit::setMaxPower(PowerType type, uint32_t value)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update power also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -753,6 +755,7 @@ void Unit::setMaxPower(PowerType type, uint32_t value)
 
     if (value < getPower(type))
         setPower(type, value);
+#endif
 }
 
 void Unit::modMaxPower(PowerType type, int32_t value)
@@ -760,8 +763,7 @@ void Unit::modMaxPower(PowerType type, int32_t value)
     int32_t newValue = getMaxPower(type);
     newValue += value;
 
-    if (newValue < 0)
-        newValue = 0;
+    newValue = std::max(newValue, 0);
 
     setMaxPower(type, newValue);
 }
@@ -962,7 +964,7 @@ void Unit::setLevel(uint32_t level)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update level also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -971,6 +973,7 @@ void Unit::setLevel(uint32_t level)
 
     //\ todo: missing update flag for pet level
     plr->addGroupUpdateFlag(isPlayer() ? GROUP_UPDATE_FLAG_LEVEL : 0);
+#endif
 }
 
 uint32_t Unit::getFactionTemplate() const { return unitData()->faction_template; }
@@ -1234,7 +1237,7 @@ void Unit::setAuraApplication(Aura const* aur)
 
     const uint32_t stackAmount = aur->getSpellInfo()->getMaxstack() > 0 ? aur->getStackCount() : aur->getCharges();
     // Client expects count - 1
-    const uint8_t count = stackAmount <= 255 ? stackAmount - 1 : 255 - 1;
+    const uint8_t count = static_cast<uint8_t>(stackAmount <= 255 ? stackAmount - 1 : 255 - 1);
 
     auto val = getAuraApplication(index);
     val &= ~(0xFF << byte);
@@ -1276,7 +1279,7 @@ void Unit::setDisplayId(uint32_t id)
 #if VERSION_STRING == TBC
     // TODO Fix this later
     return;
-#endif
+#else
 
     // Update display id also to group
     const auto plr = getPlayerOwnerOrSelf();
@@ -1285,6 +1288,7 @@ void Unit::setDisplayId(uint32_t id)
 
     //\ todo: missing update flag for player display id
     plr->addGroupUpdateFlag(isPlayer() ? 0 : GROUP_UPDATE_FLAG_PET_MODEL_ID);
+#endif
 }
 void Unit::resetDisplayId()
 {
@@ -2209,7 +2213,7 @@ void Unit::setMoveSwim(bool set_swim)
     }
 }
 
-void Unit::setMoveDisableGravity(bool disable_gravity)
+void Unit::setMoveDisableGravity([[maybe_unused]] bool disable_gravity)
 {
 #if VERSION_STRING > TBC
     if (isPlayer())
@@ -4519,7 +4523,7 @@ bool Unit::hasAuraWithSpellType(SpellTypes type, uint64_t casterGuid/* = 0*/, ui
     return false;
 }
 
-bool Unit::hasAuraState(AuraState state, SpellInfo const* spellInfo, Unit const* caster) const
+bool Unit::hasAuraState(AuraState state, [[maybe_unused]] SpellInfo const* spellInfo, [[maybe_unused]] Unit const* caster) const
 {
 #if VERSION_STRING >= WotLK
     if (caster != nullptr && spellInfo != nullptr && caster->hasAuraWithAuraEffect(SPELL_AURA_IGNORE_TARGET_AURA_STATE))
@@ -6166,12 +6170,12 @@ uint8_t Unit::getPowerPct(PowerType powerType) const
     return static_cast<uint8_t>(getPower(powerType) * 100 / getMaxPower(powerType));
 }
 
-void Unit::sendPowerUpdate([[maybe_unused]]bool self)
+void Unit::sendPowerUpdate([[maybe_unused]] bool self)
 {
+#if VERSION_STRING >= WotLK
     // Save current power so the same amount is sent to player and everyone else
     const auto powerAmount = getPower(getPowerType());
 
-#if VERSION_STRING >= WotLK
     sendMessageToSet(SmsgPowerUpdate(GetNewGUID(), static_cast<uint8_t>(getPowerType()), powerAmount).serialise().get(), self);
 #endif
 }
@@ -7956,7 +7960,7 @@ void Unit::handleSpellClick(Unit* clicker)
         Unit* caster = (clickPair.castFlags & NPC_CLICK_CAST_CASTER_CLICKER) ? clicker : this;
         Unit* target = (clickPair.castFlags & NPC_CLICK_CAST_TARGET_CLICKER) ? clicker : this;
         auto* const unitOwner = getUnitOwner();
-        uint64_t origCasterGUID = (unitOwner && clickPair.castFlags & NPC_CLICK_CAST_ORIG_CASTER_OWNER) ? unitOwner->getGuid() : clicker->getGuid();
+        [[maybe_unused]] uint64_t origCasterGUID = (unitOwner && clickPair.castFlags & NPC_CLICK_CAST_ORIG_CASTER_OWNER) ? unitOwner->getGuid() : clicker->getGuid();
 
         SpellInfo const* spellEntry = sSpellMgr.getSpellInfo(clickPair.spellId);
 
@@ -7987,7 +7991,7 @@ bool Unit::isMounted() const
 #endif
 }
 
-void Unit::mount(uint32_t mount, uint32_t VehicleId, uint32_t creatureEntry)
+void Unit::mount([[maybe_unused]] uint32_t mount, [[maybe_unused]] uint32_t VehicleId, [[maybe_unused]] uint32_t creatureEntry)
 {
 #if VERSION_STRING == Classic
     // TODO
@@ -8038,7 +8042,7 @@ void Unit::mount(uint32_t mount, uint32_t VehicleId, uint32_t creatureEntry)
 #endif
 }
 
-void Unit::dismount(bool resummonPet/* = true*/)
+void Unit::dismount([[maybe_unused]] bool resummonPet/* = true*/)
 {
     if (!isMounted())
         return;
@@ -8949,10 +8953,10 @@ void Unit::giveGroupXP(Unit* unitVictim, Player* playerInGroup)
     }
 }
 
-void Unit::calculateResistanceReduction(Unit* unitVictim, DamageInfo* damageInfo, SpellInfo const* spellInfoAbility, float armorPctReduce)
+void Unit::calculateResistanceReduction(Unit* unitVictim, DamageInfo* damageInfo, SpellInfo const* spellInfoAbility, [[maybe_unused]] float armorPctReduce)
 {
     float averageResistance = 0.0f;
-    
+
     if ((*damageInfo).schoolMask == SCHOOL_MASK_NORMAL)
     {
         float armorReduction;
@@ -9889,7 +9893,6 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     uint16_t SubClassSkill = SKILL_UNARMED;
 
     bool backAttack = !pVictim->isInFront(this);
-    uint32_t vskill = 0;
     bool disable_dR = false;
 
     if (ability)
@@ -9903,6 +9906,7 @@ DamageInfo Unit::strike(Unit* pVictim, WeaponDamageType weaponType, SpellInfo co
     }
 
 #if VERSION_STRING >= TBC // support classic
+    uint32_t vskill = 0;
     //////////////////////////////////////////////////////////////////////////////////////////
     //Victim Skill Base Calculation
     if (pVictim->isPlayer())
