@@ -609,6 +609,8 @@ public:
     void setMoveWalk(bool set_walk);
     void setFacing(float newo);     //only working if creature is idle
 
+    void sendMoveInfoForPacket(uint16_t opcode, bool withGuid = true);
+
     //////////////////////////////////////////////////////////////////////////////////////////
     // used for handling fall
     float m_zAxisPosition = 0.0f;

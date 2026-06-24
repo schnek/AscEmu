@@ -82,6 +82,7 @@ namespace
         MovementStep{ MovementOp::NewSpeed },
         MovementStep{ MovementOp::End }
     };
+
     static constexpr std::array ClassicMoveSetSpeed
     {
         MovementStep{ MovementOp::Guid },
@@ -111,6 +112,26 @@ namespace
         MovementStep{ MovementOp::JumpXYSpeed, Cond::HasFallData },
 
         MovementStep{ MovementOp::SplineElevation, Cond::HasSplineElevation },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array LegacySplineSetSpeed
+    {
+        MovementStep{ MovementOp::Guid },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array LegacySetUnsetMoveDescriptor
+    {
+        MovementStep{ MovementOp::Guid },
+        MovementStep{ MovementOp::WriteUInt32_0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array LegacySplineSetUnsetMoveDescriptor
+    {
+        MovementStep{ MovementOp::Guid },
         MovementStep{ MovementOp::End }
     };
 
@@ -3752,6 +3773,813 @@ namespace
 
     static constexpr std::array CataMSG_MOVE_SET_PITCH_RATEDescriptor
     {
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_WALK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_RUN_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_RUN_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_SWIM_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_SWIM_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_TURN_RATEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_FLIGHT_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_FLIGHT_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_SET_PITCH_RATEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte4 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_UNSET_CAN_FLYDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_SET_CAN_FLYDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_FORCE_MOVE_ROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_FORCE_MOVE_UNROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_GRAVITY_DISABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_GRAVITY_ENABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_SET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_UNSET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_NORMAL_FALLDescriptor
+    {
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_FEATHER_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_LAND_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_MOVE_WATER_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_WATER_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_LAND_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_FEATHER_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_NORMAL_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_SET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_UNSET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_SET_FLYINGDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_UNSET_FLYINGDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_ROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_UNROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_START_SWIMDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_STOP_SWIMDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_GRAVITY_DISABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_GRAVITY_ENABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_SET_WALK_MODEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array CataSMSG_SPLINE_MOVE_SET_RUN_MODEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
         MovementStep{ MovementOp::End }
     };
 
@@ -7929,6 +8757,813 @@ namespace
         MovementStep{ MovementOp::End }
     };
 
+    static constexpr std::array MopSMSG_SPLINE_SET_WALK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_RUN_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_RUN_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte0 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_SWIM_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_SWIM_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::NewSpeed },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_TURN_RATEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_FLIGHT_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_FLIGHT_BACK_SPEEDDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_SET_PITCH_RATEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::NewSpeed },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_UNSET_CAN_FLYDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_SET_CAN_FLYDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::SkipUInt32 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_FORCE_MOVE_ROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_FORCE_MOVE_UNROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_GRAVITY_DISABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_GRAVITY_ENABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_SET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_UNSET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_NORMAL_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_FEATHER_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_LAND_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_MOVE_WATER_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::Count },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_WATER_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_LAND_WALKDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_FEATHER_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_NORMAL_FALLDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_SET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_UNSET_HOVERDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_SET_FLYINGDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_UNSET_FLYINGDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_ROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_UNROOTDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_START_SWIMDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_STOP_SWIMDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_GRAVITY_DISABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_GRAVITY_ENABLEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_SET_WALK_MODEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::End }
+    };
+
+    static constexpr std::array MopSMSG_SPLINE_MOVE_SET_RUN_MODEDescriptor
+    {
+        MovementStep{ MovementOp::GuidBit5 },
+        MovementStep{ MovementOp::GuidBit6 },
+        MovementStep{ MovementOp::GuidBit2 },
+        MovementStep{ MovementOp::GuidBit4 },
+        MovementStep{ MovementOp::GuidBit7 },
+        MovementStep{ MovementOp::GuidBit1 },
+        MovementStep{ MovementOp::GuidBit3 },
+        MovementStep{ MovementOp::GuidBit0 },
+        MovementStep{ MovementOp::GuidByte5 },
+        MovementStep{ MovementOp::GuidByte1 },
+        MovementStep{ MovementOp::GuidByte4 },
+        MovementStep{ MovementOp::GuidByte0 },
+        MovementStep{ MovementOp::GuidByte7 },
+        MovementStep{ MovementOp::GuidByte3 },
+        MovementStep{ MovementOp::GuidByte6 },
+        MovementStep{ MovementOp::GuidByte2 },
+        MovementStep{ MovementOp::End }
+    };
+
     static constexpr std::array MopCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor
     {
         MovementStep{ MovementOp::PosZ },
@@ -8407,6 +10042,46 @@ std::span<MovementStep const> getClassicMovementDescriptor(uint16_t opcode)
         case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
         case MSG_MOVE_SET_PITCH_RATE:
             return ClassicMoveSetSpeed;
+        case SMSG_SPLINE_SET_WALK_SPEED:
+        case SMSG_SPLINE_SET_RUN_SPEED:
+        case SMSG_SPLINE_SET_RUN_BACK_SPEED:
+        case SMSG_SPLINE_SET_SWIM_SPEED:
+        case SMSG_SPLINE_SET_SWIM_BACK_SPEED:
+        case SMSG_SPLINE_SET_TURN_RATE:
+        case SMSG_SPLINE_SET_FLIGHT_SPEED:
+        case SMSG_SPLINE_SET_FLIGHT_BACK_SPEED:
+        case SMSG_SPLINE_SET_PITCH_RATE:
+            return LegacySplineSetSpeed;
+        case SMSG_MOVE_UNSET_CAN_FLY:
+        case SMSG_MOVE_SET_CAN_FLY:
+        case SMSG_FORCE_MOVE_ROOT:
+        case SMSG_FORCE_MOVE_UNROOT:
+        case SMSG_MOVE_GRAVITY_DISABLE:
+        case SMSG_MOVE_GRAVITY_ENABLE:
+        case SMSG_MOVE_SET_HOVER:
+        case SMSG_MOVE_UNSET_HOVER:
+        case SMSG_MOVE_NORMAL_FALL:
+        case SMSG_MOVE_FEATHER_FALL:
+        case SMSG_MOVE_LAND_WALK:
+        case SMSG_MOVE_WATER_WALK:
+            return LegacySetUnsetMoveDescriptor;
+        case SMSG_SPLINE_MOVE_WATER_WALK:
+        case SMSG_SPLINE_MOVE_LAND_WALK:
+        case SMSG_SPLINE_MOVE_FEATHER_FALL:
+        case SMSG_SPLINE_MOVE_NORMAL_FALL:
+        case SMSG_SPLINE_MOVE_SET_HOVER:
+        case SMSG_SPLINE_MOVE_UNSET_HOVER:
+        case SMSG_SPLINE_MOVE_SET_FLYING:
+        case SMSG_SPLINE_MOVE_UNSET_FLYING:
+        case SMSG_SPLINE_MOVE_ROOT:
+        case SMSG_SPLINE_MOVE_UNROOT:
+        case SMSG_SPLINE_MOVE_START_SWIM:
+        case SMSG_SPLINE_MOVE_STOP_SWIM:
+        case SMSG_SPLINE_MOVE_GRAVITY_DISABLE:
+        case SMSG_SPLINE_MOVE_GRAVITY_ENABLE:
+        case SMSG_SPLINE_MOVE_SET_WALK_MODE:
+        case SMSG_SPLINE_MOVE_SET_RUN_MODE:
+            return LegacySplineSetUnsetMoveDescriptor;
         default:
             return ClassicDefaultMovement;
     }
@@ -8447,6 +10122,46 @@ std::span<MovementStep const> getTbcMovementDescriptor(uint16_t opcode)
         case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
         case MSG_MOVE_SET_PITCH_RATE:
             return TBCMoveSetSpeed;
+        case SMSG_SPLINE_SET_WALK_SPEED:
+        case SMSG_SPLINE_SET_RUN_SPEED:
+        case SMSG_SPLINE_SET_RUN_BACK_SPEED:
+        case SMSG_SPLINE_SET_SWIM_SPEED:
+        case SMSG_SPLINE_SET_SWIM_BACK_SPEED:
+        case SMSG_SPLINE_SET_TURN_RATE:
+        case SMSG_SPLINE_SET_FLIGHT_SPEED:
+        case SMSG_SPLINE_SET_FLIGHT_BACK_SPEED:
+        case SMSG_SPLINE_SET_PITCH_RATE:
+            return LegacySplineSetSpeed;
+        case SMSG_MOVE_UNSET_CAN_FLY:
+        case SMSG_MOVE_SET_CAN_FLY:
+        case SMSG_FORCE_MOVE_ROOT:
+        case SMSG_FORCE_MOVE_UNROOT:
+        case SMSG_MOVE_GRAVITY_DISABLE:
+        case SMSG_MOVE_GRAVITY_ENABLE:
+        case SMSG_MOVE_SET_HOVER:
+        case SMSG_MOVE_UNSET_HOVER:
+        case SMSG_MOVE_NORMAL_FALL:
+        case SMSG_MOVE_FEATHER_FALL:
+        case SMSG_MOVE_LAND_WALK:
+        case SMSG_MOVE_WATER_WALK:
+            return LegacySetUnsetMoveDescriptor;
+        case SMSG_SPLINE_MOVE_WATER_WALK:
+        case SMSG_SPLINE_MOVE_LAND_WALK:
+        case SMSG_SPLINE_MOVE_FEATHER_FALL:
+        case SMSG_SPLINE_MOVE_NORMAL_FALL:
+        case SMSG_SPLINE_MOVE_SET_HOVER:
+        case SMSG_SPLINE_MOVE_UNSET_HOVER:
+        case SMSG_SPLINE_MOVE_SET_FLYING:
+        case SMSG_SPLINE_MOVE_UNSET_FLYING:
+        case SMSG_SPLINE_MOVE_ROOT:
+        case SMSG_SPLINE_MOVE_UNROOT:
+        case SMSG_SPLINE_MOVE_START_SWIM:
+        case SMSG_SPLINE_MOVE_STOP_SWIM:
+        case SMSG_SPLINE_MOVE_GRAVITY_DISABLE:
+        case SMSG_SPLINE_MOVE_GRAVITY_ENABLE:
+        case SMSG_SPLINE_MOVE_SET_WALK_MODE:
+        case SMSG_SPLINE_MOVE_SET_RUN_MODE:
+            return LegacySplineSetUnsetMoveDescriptor;
         default:
             return TBCDefaultMovement;
     }
@@ -8487,6 +10202,46 @@ std::span<MovementStep const> getWotlkMovementDescriptor(uint16_t opcode)
         case MSG_MOVE_SET_FLIGHT_BACK_SPEED:
         case MSG_MOVE_SET_PITCH_RATE:
             return WotLKMoveSetSpeed;
+        case SMSG_SPLINE_SET_WALK_SPEED:
+        case SMSG_SPLINE_SET_RUN_SPEED:
+        case SMSG_SPLINE_SET_RUN_BACK_SPEED:
+        case SMSG_SPLINE_SET_SWIM_SPEED:
+        case SMSG_SPLINE_SET_SWIM_BACK_SPEED:
+        case SMSG_SPLINE_SET_TURN_RATE:
+        case SMSG_SPLINE_SET_FLIGHT_SPEED:
+        case SMSG_SPLINE_SET_FLIGHT_BACK_SPEED:
+        case SMSG_SPLINE_SET_PITCH_RATE:
+            return LegacySplineSetSpeed;
+        case SMSG_MOVE_UNSET_CAN_FLY:
+        case SMSG_MOVE_SET_CAN_FLY:
+        case SMSG_FORCE_MOVE_ROOT:
+        case SMSG_FORCE_MOVE_UNROOT:
+        case SMSG_MOVE_GRAVITY_DISABLE:
+        case SMSG_MOVE_GRAVITY_ENABLE:
+        case SMSG_MOVE_SET_HOVER:
+        case SMSG_MOVE_UNSET_HOVER:
+        case SMSG_MOVE_NORMAL_FALL:
+        case SMSG_MOVE_FEATHER_FALL:
+        case SMSG_MOVE_LAND_WALK:
+        case SMSG_MOVE_WATER_WALK:
+            return LegacySetUnsetMoveDescriptor;
+        case SMSG_SPLINE_MOVE_WATER_WALK:
+        case SMSG_SPLINE_MOVE_LAND_WALK:
+        case SMSG_SPLINE_MOVE_FEATHER_FALL:
+        case SMSG_SPLINE_MOVE_NORMAL_FALL:
+        case SMSG_SPLINE_MOVE_SET_HOVER:
+        case SMSG_SPLINE_MOVE_UNSET_HOVER:
+        case SMSG_SPLINE_MOVE_SET_FLYING:
+        case SMSG_SPLINE_MOVE_UNSET_FLYING:
+        case SMSG_SPLINE_MOVE_ROOT:
+        case SMSG_SPLINE_MOVE_UNROOT:
+        case SMSG_SPLINE_MOVE_START_SWIM:
+        case SMSG_SPLINE_MOVE_STOP_SWIM:
+        case SMSG_SPLINE_MOVE_GRAVITY_DISABLE:
+        case SMSG_SPLINE_MOVE_GRAVITY_ENABLE:
+        case SMSG_SPLINE_MOVE_SET_WALK_MODE:
+        case SMSG_SPLINE_MOVE_SET_RUN_MODE:
+            return LegacySplineSetUnsetMoveDescriptor;
         default:
             return WotLKDefaultMovement;
     }
@@ -8612,6 +10367,80 @@ std::span<MovementStep const> getCataMovementDescriptor(uint16_t opcode)
             return CataMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor;
         /*case MSG_MOVE_SET_PITCH_RATE:
             return CataMSG_MOVE_SET_PITCH_RATEDescriptor;*/
+        case SMSG_SPLINE_SET_WALK_SPEED:
+            return CataSMSG_SPLINE_SET_WALK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_RUN_SPEED:
+            return CataSMSG_SPLINE_SET_RUN_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_RUN_BACK_SPEED:
+            return CataSMSG_SPLINE_SET_RUN_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_SWIM_SPEED:
+            return CataSMSG_SPLINE_SET_SWIM_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_SWIM_BACK_SPEED:
+            return CataSMSG_SPLINE_SET_SWIM_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_TURN_RATE:
+            return CataSMSG_SPLINE_SET_TURN_RATEDescriptor;
+        case SMSG_SPLINE_SET_FLIGHT_SPEED:
+            return CataSMSG_SPLINE_SET_FLIGHT_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_FLIGHT_BACK_SPEED:
+            return CataSMSG_SPLINE_SET_FLIGHT_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_PITCH_RATE:
+            return CataSMSG_SPLINE_SET_PITCH_RATEDescriptor;
+        case SMSG_MOVE_UNSET_CAN_FLY:
+            return CataSMSG_MOVE_UNSET_CAN_FLYDescriptor;
+        case SMSG_MOVE_SET_CAN_FLY:
+            return CataSMSG_MOVE_SET_CAN_FLYDescriptor;
+        case SMSG_FORCE_MOVE_ROOT:
+            return CataSMSG_FORCE_MOVE_ROOTDescriptor;
+        case SMSG_FORCE_MOVE_UNROOT:
+            return CataSMSG_FORCE_MOVE_UNROOTDescriptor;
+        case SMSG_MOVE_GRAVITY_DISABLE:
+            return CataSMSG_MOVE_GRAVITY_DISABLEDescriptor;
+        case SMSG_MOVE_GRAVITY_ENABLE:
+            return CataSMSG_MOVE_GRAVITY_ENABLEDescriptor;
+        case SMSG_MOVE_SET_HOVER:
+            return CataSMSG_MOVE_SET_HOVERDescriptor;
+        case SMSG_MOVE_UNSET_HOVER:
+            return CataSMSG_MOVE_UNSET_HOVERDescriptor;
+        case SMSG_MOVE_NORMAL_FALL:
+            return CataSMSG_MOVE_NORMAL_FALLDescriptor;
+        case SMSG_MOVE_FEATHER_FALL:
+            return CataSMSG_MOVE_FEATHER_FALLDescriptor;
+        case SMSG_MOVE_LAND_WALK:
+            return CataSMSG_MOVE_LAND_WALKDescriptor;
+        case SMSG_MOVE_WATER_WALK:
+            return CataSMSG_MOVE_WATER_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_WATER_WALK:
+            return CataSMSG_SPLINE_MOVE_WATER_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_LAND_WALK:
+            return CataSMSG_SPLINE_MOVE_LAND_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_FEATHER_FALL:
+            return CataSMSG_SPLINE_MOVE_FEATHER_FALLDescriptor;
+        case SMSG_SPLINE_MOVE_NORMAL_FALL:
+            return CataSMSG_SPLINE_MOVE_NORMAL_FALLDescriptor;
+        case SMSG_SPLINE_MOVE_SET_HOVER:
+            return CataSMSG_SPLINE_MOVE_SET_HOVERDescriptor;
+        case SMSG_SPLINE_MOVE_UNSET_HOVER:
+            return CataSMSG_SPLINE_MOVE_UNSET_HOVERDescriptor;
+        case SMSG_SPLINE_MOVE_SET_FLYING:
+            return CataSMSG_SPLINE_MOVE_SET_FLYINGDescriptor;
+        case SMSG_SPLINE_MOVE_UNSET_FLYING:
+            return CataSMSG_SPLINE_MOVE_UNSET_FLYINGDescriptor;
+        case SMSG_SPLINE_MOVE_ROOT:
+            return CataSMSG_SPLINE_MOVE_ROOTDescriptor;
+        case SMSG_SPLINE_MOVE_UNROOT:
+            return CataSMSG_SPLINE_MOVE_UNROOTDescriptor;
+        case SMSG_SPLINE_MOVE_START_SWIM:
+            return CataSMSG_SPLINE_MOVE_START_SWIMDescriptor;
+        case SMSG_SPLINE_MOVE_STOP_SWIM:
+            return CataSMSG_SPLINE_MOVE_STOP_SWIMDescriptor;
+        case SMSG_SPLINE_MOVE_GRAVITY_DISABLE:
+            return CataSMSG_SPLINE_MOVE_GRAVITY_DISABLEDescriptor;
+        case SMSG_SPLINE_MOVE_GRAVITY_ENABLE:
+            return CataSMSG_SPLINE_MOVE_GRAVITY_ENABLEDescriptor;
+        case SMSG_SPLINE_MOVE_SET_WALK_MODE:
+            return CataSMSG_SPLINE_MOVE_SET_WALK_MODEDescriptor;
+        case SMSG_SPLINE_MOVE_SET_RUN_MODE:
+            return CataSMSG_SPLINE_MOVE_SET_RUN_MODEDescriptor;
         case CMSG_MOVE_NOT_ACTIVE_MOVER:
             return CataCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor;
         case CMSG_DISMISS_CONTROLLED_VEHICLE:
@@ -8743,6 +10572,80 @@ std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode)
             return MopMSG_MOVE_SET_FLIGHT_BACK_SPEEDDescriptor;
         case MSG_MOVE_SET_PITCH_RATE:
             return MopMSG_MOVE_SET_PITCH_RATEDescriptor;
+        case SMSG_SPLINE_SET_WALK_SPEED:
+            return MopSMSG_SPLINE_SET_WALK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_RUN_SPEED:
+            return MopSMSG_SPLINE_SET_RUN_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_RUN_BACK_SPEED:
+            return MopSMSG_SPLINE_SET_RUN_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_SWIM_SPEED:
+            return MopSMSG_SPLINE_SET_SWIM_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_SWIM_BACK_SPEED:
+            return MopSMSG_SPLINE_SET_SWIM_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_TURN_RATE:
+            return MopSMSG_SPLINE_SET_TURN_RATEDescriptor;
+        case SMSG_SPLINE_SET_FLIGHT_SPEED:
+            return MopSMSG_SPLINE_SET_FLIGHT_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_FLIGHT_BACK_SPEED:
+            return MopSMSG_SPLINE_SET_FLIGHT_BACK_SPEEDDescriptor;
+        case SMSG_SPLINE_SET_PITCH_RATE:
+            return MopSMSG_SPLINE_SET_PITCH_RATEDescriptor;
+        case SMSG_MOVE_UNSET_CAN_FLY:
+            return MopSMSG_MOVE_UNSET_CAN_FLYDescriptor;
+        case SMSG_MOVE_SET_CAN_FLY:
+            return MopSMSG_MOVE_SET_CAN_FLYDescriptor;
+        case SMSG_FORCE_MOVE_ROOT:
+            return MopSMSG_FORCE_MOVE_ROOTDescriptor;
+        case SMSG_FORCE_MOVE_UNROOT:
+            return MopSMSG_FORCE_MOVE_UNROOTDescriptor;
+        case SMSG_MOVE_GRAVITY_DISABLE:
+            return MopSMSG_MOVE_GRAVITY_DISABLEDescriptor;
+        case SMSG_MOVE_GRAVITY_ENABLE:
+            return MopSMSG_MOVE_GRAVITY_ENABLEDescriptor;
+        case SMSG_MOVE_SET_HOVER:
+            return MopSMSG_MOVE_SET_HOVERDescriptor;
+        case SMSG_MOVE_UNSET_HOVER:
+            return MopSMSG_MOVE_UNSET_HOVERDescriptor;
+        case SMSG_MOVE_NORMAL_FALL:
+            return MopSMSG_MOVE_NORMAL_FALLDescriptor;
+        case SMSG_MOVE_FEATHER_FALL:
+            return MopSMSG_MOVE_FEATHER_FALLDescriptor;
+        case SMSG_MOVE_LAND_WALK:
+            return MopSMSG_MOVE_LAND_WALKDescriptor;
+        case SMSG_MOVE_WATER_WALK:
+            return MopSMSG_MOVE_WATER_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_WATER_WALK:
+            return MopSMSG_SPLINE_MOVE_WATER_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_LAND_WALK:
+            return MopSMSG_SPLINE_MOVE_LAND_WALKDescriptor;
+        case SMSG_SPLINE_MOVE_FEATHER_FALL:
+            return MopSMSG_SPLINE_MOVE_FEATHER_FALLDescriptor;
+        case SMSG_SPLINE_MOVE_NORMAL_FALL:
+            return MopSMSG_SPLINE_MOVE_NORMAL_FALLDescriptor;
+        case SMSG_SPLINE_MOVE_SET_HOVER:
+            return MopSMSG_SPLINE_MOVE_SET_HOVERDescriptor;
+        case SMSG_SPLINE_MOVE_UNSET_HOVER:
+            return MopSMSG_SPLINE_MOVE_UNSET_HOVERDescriptor;
+        case SMSG_SPLINE_MOVE_SET_FLYING:
+            return MopSMSG_SPLINE_MOVE_SET_FLYINGDescriptor;
+        case SMSG_SPLINE_MOVE_UNSET_FLYING:
+            return MopSMSG_SPLINE_MOVE_UNSET_FLYINGDescriptor;
+        case SMSG_SPLINE_MOVE_ROOT:
+            return MopSMSG_SPLINE_MOVE_ROOTDescriptor;
+        case SMSG_SPLINE_MOVE_UNROOT:
+            return MopSMSG_SPLINE_MOVE_UNROOTDescriptor;
+        case SMSG_SPLINE_MOVE_START_SWIM:
+            return MopSMSG_SPLINE_MOVE_START_SWIMDescriptor;
+        case SMSG_SPLINE_MOVE_STOP_SWIM:
+            return MopSMSG_SPLINE_MOVE_STOP_SWIMDescriptor;
+        case SMSG_SPLINE_MOVE_GRAVITY_DISABLE:
+            return MopSMSG_SPLINE_MOVE_GRAVITY_DISABLEDescriptor;
+        case SMSG_SPLINE_MOVE_GRAVITY_ENABLE:
+            return MopSMSG_SPLINE_MOVE_GRAVITY_ENABLEDescriptor;
+        case SMSG_SPLINE_MOVE_SET_WALK_MODE:
+            return MopSMSG_SPLINE_MOVE_SET_WALK_MODEDescriptor;
+        case SMSG_SPLINE_MOVE_SET_RUN_MODE:
+            return MopSMSG_SPLINE_MOVE_SET_RUN_MODEDescriptor;
         case CMSG_MOVE_NOT_ACTIVE_MOVER:
             return MopCMSG_MOVE_NOT_ACTIVE_MOVERDescriptor;
         case CMSG_DISMISS_CONTROLLED_VEHICLE:

@@ -145,6 +145,7 @@ struct MovementInfo
 
     void readMovementInfo(ByteBuffer& data, uint16_t opcode);
     void writeMovementInfo(ByteBuffer& data, uint16_t opcode, bool withGuid = true) const;
+    void write(WorldPacket& packet, bool withGuid = true) const;
 };
 
 inline WorldPacket& operator<< (WorldPacket& buf, MovementInfo const& mi)

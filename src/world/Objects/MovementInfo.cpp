@@ -36,3 +36,8 @@ void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t
         sLogger.failure("Unsupported MovementInfo::Write for 0x{:X} ({})!", extOpcode, opcode);
     }
 }
+
+void MovementInfo::write(WorldPacket& packet, bool withGuid /* = true*/) const
+{
+    writeMovementInfo(packet, packet.getOpcode(), withGuid);
+}

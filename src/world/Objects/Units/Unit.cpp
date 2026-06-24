@@ -85,10 +85,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
 #endif
 
-#include <Server/Packets/SmsgMoveSetUnset.h>
-#include <Server/Packets/SmsgSplineMoveSetUnset.h>
-#include <Server/Packets/SmsgSplineSetSpeed.h>
-
 #include <algorithm>
 
 using namespace AscEmu::Packets;
@@ -2012,96 +2008,114 @@ void Unit::setFacingToObject(Object* object, bool force)
     init.Launch();
 }
 
-void Unit::setMoveWaterWalk()
+static uint16_t resolveMovementOpcodeForReceiver(uint16_t opcode, bool isPlayer)
 {
-    addUnitMovementFlag(MOVEFLAG_WATER_WALK);
+    if (isPlayer)
+        return opcode;
+
+    switch (opcode)
+    {
+        case SMSG_MOVE_WATER_WALK:       return SMSG_SPLINE_MOVE_WATER_WALK;
+        case SMSG_MOVE_LAND_WALK:        return SMSG_SPLINE_MOVE_LAND_WALK;
+        case SMSG_MOVE_FEATHER_FALL:     return SMSG_SPLINE_MOVE_FEATHER_FALL;
+        case SMSG_MOVE_NORMAL_FALL:      return SMSG_SPLINE_MOVE_NORMAL_FALL;
+        case SMSG_MOVE_SET_HOVER:        return SMSG_SPLINE_MOVE_SET_HOVER;
+        case SMSG_MOVE_UNSET_HOVER:      return SMSG_SPLINE_MOVE_UNSET_HOVER;
+        case SMSG_MOVE_SET_CAN_FLY:      return SMSG_SPLINE_MOVE_SET_FLYING;
+        case SMSG_MOVE_UNSET_CAN_FLY:    return SMSG_SPLINE_MOVE_UNSET_FLYING;
+        case SMSG_FORCE_MOVE_ROOT:       return SMSG_SPLINE_MOVE_ROOT;
+        case SMSG_FORCE_MOVE_UNROOT:     return SMSG_SPLINE_MOVE_UNROOT;
+        case SMSG_MOVE_GRAVITY_DISABLE:  return SMSG_SPLINE_MOVE_GRAVITY_DISABLE;
+        case SMSG_MOVE_GRAVITY_ENABLE:   return SMSG_SPLINE_MOVE_GRAVITY_ENABLE;
+        default:                         return opcode;
+    }
+}
+
+void Unit::sendMoveInfoForPacket(uint16_t opcode, bool withGuid /* = true*/)
+{
+    auto resolvedOpcode = resolveMovementOpcodeForReceiver(opcode, isPlayer());
+
+    WorldPacket packet(resolvedOpcode, 0);
+    obj_movement_info.write(packet, withGuid);
 
     if (isPlayer())
     {
-        sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_WATER_WALK).serialise().get(), true);
+#if VERSION_STRING <= WotLK
+
+        sendMessageToSet(&packet, true);
+
+#else   // >= Cata
+        // since Cata we broadcast SMSG_PLAYER_MOVE to all players
+        if (auto* const plr = isPlayer() ? dynamic_cast<Player*>(this) : nullptr)
+        {
+            plr->getSession()->SendPacket(&packet);
+        }
+
+        WorldPacket broadcastPacket(SMSG_PLAYER_MOVE, 0);
+        obj_movement_info.write(broadcastPacket, withGuid);
+        sendMessageToSet(&broadcastPacket, false);
+
+#endif
     }
 
     if (isCreature())
-    {
-        sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_WATER_WALK).serialise().get(), false);
-    }
+        sendMessageToSet(&packet, false);
+}
+
+void Unit::setMoveWaterWalk()
+{
+    if (hasUnitMovementFlag(MOVEFLAG_WATER_WALK))
+        return;
+
+    addUnitMovementFlag(MOVEFLAG_WATER_WALK);
+    sendMoveInfoForPacket(SMSG_MOVE_WATER_WALK);
 }
 
 void Unit::setMoveLandWalk()
 {
+    if (!hasUnitMovementFlag(MOVEFLAG_WATER_WALK))
+        return;
+
     removeUnitMovementFlag(MOVEFLAG_WATER_WALK);
-
-    if (isPlayer())
-    {
-        sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_LAND_WALK).serialise().get(), true);
-    }
-
-    if (isCreature())
-    {
-        sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_LAND_WALK).serialise().get(), false);
-    }
+    sendMoveInfoForPacket(SMSG_MOVE_LAND_WALK);
 }
 
 void Unit::setMoveFeatherFall()
 {
+    if (hasUnitMovementFlag(MOVEFLAG_FEATHER_FALL))
+        return;
+
     addUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
-
-    if (isPlayer())
-    {
-        sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_FEATHER_FALL).serialise().get(), true);
-    }
-
-    if (isCreature())
-    {
-        sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_FEATHER_FALL).serialise().get(), false);
-    }
+    sendMoveInfoForPacket(SMSG_MOVE_FEATHER_FALL);
 }
 
 void Unit::setMoveNormalFall()
 {
+    if (!hasUnitMovementFlag(MOVEFLAG_FEATHER_FALL))
+        return;
+
     removeUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
-
-    if (isPlayer())
-    {
-        sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_NORMAL_FALL).serialise().get(), true);
-    }
-
-    if (isCreature())
-    {
-        sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_NORMAL_FALL).serialise().get(), false);
-    }
+    sendMoveInfoForPacket(SMSG_MOVE_NORMAL_FALL);
 }
 
 void Unit::setMoveHover(bool set_hover)
 {
-    if (isPlayer())
+    if (set_hover == hasUnitMovementFlag(MOVEFLAG_HOVER))
+        return;
+
+    if (set_hover)
     {
-        if (set_hover)
-        {
-            addUnitMovementFlag(MOVEFLAG_HOVER);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_SET_HOVER).serialise().get(), true);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_HOVER);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_UNSET_HOVER).serialise().get(), true);
-        }
+        addUnitMovementFlag(MOVEFLAG_HOVER);
+        sendMoveInfoForPacket(SMSG_MOVE_SET_HOVER);
+    }
+    else
+    {
+        removeUnitMovementFlag(MOVEFLAG_HOVER);
+        sendMoveInfoForPacket(SMSG_MOVE_UNSET_HOVER);
     }
 
-    //\todo spline update
     if (isCreature())
     {
-        if (set_hover)
-        {
-            addUnitMovementFlag(MOVEFLAG_HOVER);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_SET_HOVER).serialise().get(), false);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_HOVER);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_UNSET_HOVER).serialise().get(), false);
-        }
-
 #if VERSION_STRING >= TBC
         if (hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
             setAnimationFlags(ANIMATION_FLAG_FLY);
@@ -2115,84 +2129,42 @@ void Unit::setMoveHover(bool set_hover)
 
 void Unit::setMoveCanFly(bool set_fly)
 {
-    if (isPlayer())
-    {
-        if (set_fly)
-        {
-            addUnitMovementFlag(MOVEFLAG_CAN_FLY);
+    if (set_fly == hasUnitMovementFlag(MOVEFLAG_CAN_FLY))
+        return;
 
-            // Remove falling flag if set
-            removeUnitMovementFlag(MOVEFLAG_FALLING);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_SET_CAN_FLY).serialise().get(), true);
-        }
-        else
-        {
-            // Remove all fly related moveflags
-            removeUnitMovementFlag(MOVEFLAG_CAN_FLY);
-#if VERSION_STRING > TBC
-            removeUnitMovementFlag(MOVEFLAG_DESCENDING);
-#endif
-            removeUnitMovementFlag(MOVEFLAG_ASCENDING);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_UNSET_CAN_FLY).serialise().get(), true);
-        }
+    if (set_fly)
+    {
+        addUnitMovementFlag(MOVEFLAG_CAN_FLY);
+
+        removeUnitMovementFlag(MOVEFLAG_FALLING);
+        sendMoveInfoForPacket(SMSG_MOVE_SET_CAN_FLY);
     }
-
-    if (isCreature())
+    else
     {
-        if (set_fly == hasUnitMovementFlag(MOVEFLAG_CAN_FLY))
-            return;
-
-        if (set_fly)
-        {
-            addUnitMovementFlag(MOVEFLAG_CAN_FLY);
-            removeUnitMovementFlag(MOVEFLAG_FALLING);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_CAN_FLY);
-        }
-
-        if (!movespline->Initialized())
-            return;
-
-        if (set_fly)
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_SET_FLYING).serialise().get(), false);
-        else
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_UNSET_FLYING).serialise().get(), false);
+        removeUnitMovementFlag(MOVEFLAG_CAN_FLY);
+#if VERSION_STRING > TBC
+        removeUnitMovementFlag(MOVEFLAG_DESCENDING);
+#endif
+        removeUnitMovementFlag(MOVEFLAG_ASCENDING);
+        sendMoveInfoForPacket(SMSG_MOVE_UNSET_CAN_FLY);
     }
 }
 
 void Unit::setMoveRoot(bool set_root)
 {
-    if (isPlayer())
-    {
-        if (set_root)
-        {
-            addUnitMovementFlag(MOVEFLAG_ROOTED);
-            stopMoving();
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_FORCE_MOVE_ROOT).serialise().get(), true);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_ROOTED);
-            stopMoving();
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_FORCE_MOVE_UNROOT).serialise().get(), true);
-        }
-    }
+    if (set_root == hasUnitMovementFlag(MOVEFLAG_ROOTED))
+        return;
 
-    if (isCreature())
+    if (set_root)
     {
-        if (set_root)
-        {
-            stopMoving();
-            addUnitMovementFlag(MOVEFLAG_ROOTED);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_ROOT).serialise().get(), true);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_ROOTED);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_UNROOT).serialise().get(), true);
-        }
+        addUnitMovementFlag(MOVEFLAG_ROOTED);
+        stopMoving();
+        sendMoveInfoForPacket(SMSG_FORCE_MOVE_ROOT);
+    }
+    else
+    {
+        removeUnitMovementFlag(MOVEFLAG_ROOTED);
+        sendMoveInfoForPacket(SMSG_FORCE_MOVE_UNROOT);
     }
 }
 
@@ -2200,15 +2172,18 @@ void Unit::setMoveSwim(bool set_swim)
 {
     if (isCreature())
     {
+        if (set_swim == hasUnitMovementFlag(MOVEFLAG_SWIMMING))
+            return;
+
         if (set_swim)
         {
             addUnitMovementFlag(MOVEFLAG_SWIMMING);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_START_SWIM).serialise().get(), false);
+            sendMoveInfoForPacket(SMSG_SPLINE_MOVE_START_SWIM);
         }
         else
         {
             removeUnitMovementFlag(MOVEFLAG_SWIMMING);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_STOP_SWIM).serialise().get(), false);
+            sendMoveInfoForPacket(SMSG_SPLINE_MOVE_STOP_SWIM);
         }
     }
 }
@@ -2216,34 +2191,25 @@ void Unit::setMoveSwim(bool set_swim)
 void Unit::setMoveDisableGravity([[maybe_unused]] bool disable_gravity)
 {
 #if VERSION_STRING > TBC
-    if (isPlayer())
+    
+    if (disable_gravity == hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
+        return;
+
+    if (disable_gravity)
     {
-        if (disable_gravity)
-        {
-            addUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_GRAVITY_DISABLE).serialise().get(), true);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
-            sendMessageToSet(SmsgMoveSetUnset(GetNewGUID(), SMSG_MOVE_GRAVITY_ENABLE).serialise().get(), true);
-        }
+        addUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
+        sendMoveInfoForPacket(SMSG_MOVE_GRAVITY_DISABLE);
+    }
+    else
+    {
+        removeUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
+        sendMoveInfoForPacket(SMSG_MOVE_GRAVITY_ENABLE);
     }
 
     if (isCreature())
     {
-        if (disable_gravity == hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
-            return;
-
         if (disable_gravity)
-        {
-            addUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
             removeUnitMovementFlag(MOVEFLAG_FALLING);
-        }
-        else
-        {
-            removeUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY);
-        }
 
         if (isAlive() && !hasUnitStateFlag(UNIT_STATE_ROOTED))
         {
@@ -2257,11 +2223,6 @@ void Unit::setMoveDisableGravity([[maybe_unused]] bool disable_gravity)
 
         if (!movespline->Initialized())
             return;
-
-        if (disable_gravity)
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_GRAVITY_DISABLE).serialise().get(), false);
-        else
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_GRAVITY_ENABLE).serialise().get(), false);
     }
 #endif
 }
@@ -2272,15 +2233,18 @@ void Unit::setMoveWalk(bool set_walk)
 {
     if (isCreature())
     {
+        if (set_walk == hasUnitMovementFlag(MOVEFLAG_DISABLEGRAVITY))
+            return;
+
         if (set_walk)
         {
             addUnitMovementFlag(MOVEFLAG_WALK);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_SET_WALK_MODE).serialise().get(), false);
+            sendMoveInfoForPacket(SMSG_SPLINE_MOVE_SET_WALK_MODE);
         }
         else
         {
             removeUnitMovementFlag(MOVEFLAG_WALK);
-            sendMessageToSet(SmsgSplineMoveSetUnset(GetNewGUID(), SMSG_SPLINE_MOVE_SET_RUN_MODE).serialise().get(), false);
+            sendMoveInfoForPacket(SMSG_SPLINE_MOVE_SET_RUN_MODE);
         }
     }
 }
@@ -2416,7 +2380,7 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
 
     // Spline packets are for units controlled by AI. "Force speed change" (wrongly named opcodes) and "move set speed" packets are for units controlled by a player.
 
-    static Opcodes const moveTypeToOpcode[MAX_SPEED_TYPE][3] =
+    static uint16_t const moveTypeToOpcode[MAX_SPEED_TYPE][3] =
     {//   ->send to all players              ->send to player                     ->send to all but player
         { SMSG_SPLINE_SET_WALK_SPEED,        SMSG_FORCE_WALK_SPEED_CHANGE,        MSG_MOVE_SET_WALK_SPEED        },
         { SMSG_SPLINE_SET_RUN_SPEED,         SMSG_FORCE_RUN_SPEED_CHANGE,         MSG_MOVE_SET_RUN_SPEED         },
@@ -2446,12 +2410,12 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
             player_mover = dynamic_cast<Player*>(this);
     }
 
+    MovementInfo mi = obj_movement_info;
+    mi.newSpeed = rate;
+    mi.guid = GetNewGUID();
+
     if (player_mover) // unit controlled by a player.
     {
-        MovementInfo mi = obj_movement_info;
-        mi.newSpeed = rate;
-        mi.guid = GetNewGUID();
-
         // note: do not send this packet to the player, otherwise you will stuck in an endless loop
         WorldPacket setPacket(moveTypeToOpcode[mtype][2], 0);
         setPacket << mi;
@@ -2465,8 +2429,11 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
     }
     else // unit controlled by AI
     {
+        WorldPacket unitPacket(moveTypeToOpcode[mtype][0], 0);
+        unitPacket << mi;
+
         // send notification to all clients
-        sendMessageToSet(SmsgSplineSetSpeed(GetNewGUID(), rate, static_cast<uint8_t>(moveTypeToOpcode[mtype][0])).serialise().get(), true);
+        sendMessageToSet(&unitPacket, true);
     }
 }
 
