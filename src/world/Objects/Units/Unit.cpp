@@ -85,15 +85,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
 #endif
 
-#include <Server/Packets/SmsgForceWalkSpeedChange.h>
-#include <Server/Packets/SmsgForceRunSpeedChange.h>
-#include <Server/Packets/SmsgForceRunBackSpeedChange.h>
-#include <Server/Packets/SmsgForceSwimSpeedChange.h>
-#include <Server/Packets/SmsgForceSwimBackSpeedChange.h>
-#include <Server/Packets/SmsgForceTurnRateChange.h>
-#include <Server/Packets/SmsgForceFlightSpeedChange.h>
-#include <Server/Packets/SmsgForceFlightBackSpeedChange.h>
-#include <Server/Packets/SmsgForcePitchRateChange.h>
 #include <Server/Packets/SmsgMoveSetUnset.h>
 #include <Server/Packets/SmsgSplineMoveSetUnset.h>
 #include <Server/Packets/SmsgSplineSetSpeed.h>
@@ -2457,47 +2448,16 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
         mi.newSpeed = rate;
         mi.guid = GetNewGUID();
 
-        //WorldPacket setPacket(moveTypeToOpcode[mtype][2], 100);
-        //setPacket << mi;
+        // note: do not send this packet to the player, otherwise you will stuck in an endless loop
+        WorldPacket setPacket(moveTypeToOpcode[mtype][2], 0);
+        setPacket << mi;
+
+        player_mover->sendMessageToSet(&setPacket, false);
 
         WorldPacket playerPacket(moveTypeToOpcode[mtype][1], 16);
         playerPacket << mi;
 
         player_mover->sendPacket(&playerPacket);
-        //player_mover->sendMessageToSet(&setPacket, false);
-
-        switch (mtype)
-        {
-            case TYPE_WALK:
-                player_mover->sendMessageToSet(SmsgForceWalkSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_RUN:
-                player_mover->sendMessageToSet(SmsgForceRunSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_RUN_BACK:
-                player_mover->sendMessageToSet(SmsgForceRunBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_SWIM:
-                player_mover->sendMessageToSet(SmsgForceSwimSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_SWIM_BACK:
-                player_mover->sendMessageToSet(SmsgForceSwimBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_TURN_RATE:
-                player_mover->sendMessageToSet(SmsgForceTurnRateChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_FLY:
-                player_mover->sendMessageToSet(SmsgForceFlightSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_FLY_BACK:
-                player_mover->sendMessageToSet(SmsgForceFlightBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            case TYPE_PITCH_RATE:
-                player_mover->sendMessageToSet(SmsgForcePitchRateChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
-                break;
-            default:
-                break;
-        }
     }
     else // unit controlled by AI
     {

@@ -449,6 +449,7 @@ private:
             case MovementOp::WriteBit1: data.writeBit(1); break;
             case MovementOp::WriteUInt32_0: data << static_cast<uint32_t>(0); break;
             case MovementOp::WriteUInt8_1:  data << static_cast<uint8_t>(1); break;
+            case MovementOp::FlushBits: data.flushBits(); break;
         }
     }
 

@@ -140,7 +140,7 @@ struct MovementInfo
         transport_position.z = 0.0f;
         transport_position.o = 0.0f;
         transport_time = 0;
-        transport_seat = static_cast<uint8_t>(-1);;
+        transport_seat = static_cast<uint8_t>(-1);
     }
 
     void readMovementInfo(ByteBuffer& data, uint16_t opcode);

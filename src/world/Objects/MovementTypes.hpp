@@ -96,7 +96,9 @@ enum class MovementOp : uint16_t
     WriteBit0,
     WriteBit1,
     WriteUInt32_0,
-    WriteUInt8_1
+    WriteUInt8_1,
+
+    FlushBits
 };
 
 struct MovementStep
