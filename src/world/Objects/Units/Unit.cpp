@@ -84,15 +84,7 @@ This file is released under the MIT license. See README-MIT for more information
 #include "Server/Packets/SmsgUpdateAuraDuration.h"
 #include "Server/Packets/SmsgSetExtraAuraInfo.h"
 #endif
-#include <Server/Packets/MsgMoveSetWalkSpeed.h>
-#include <Server/Packets/MsgMoveSetRunSpeed.h>
-#include <Server/Packets/MsgMoveSetRunBackSpeed.h>
-#include <Server/Packets/MsgMoveSetSwimSpeed.h>
-#include <Server/Packets/MsgMoveSetSwimBackSpeed.h>
-#include <Server/Packets/MsgMoveSetTurnRate.h>
-#include <Server/Packets/MsgMoveSetFlightSpeed.h>
-#include <Server/Packets/MsgMoveSetFlightBackSpeed.h>
-#include <Server/Packets/MsgMoveSetPitchRate.h>
+
 #include <Server/Packets/SmsgForceWalkSpeedChange.h>
 #include <Server/Packets/SmsgForceRunSpeedChange.h>
 #include <Server/Packets/SmsgForceRunBackSpeedChange.h>
@@ -2461,55 +2453,46 @@ void Unit::setSpeedRate(UnitSpeedType mtype, float rate, bool current)
 
     if (player_mover) // unit controlled by a player.
     {
-        /*MovementInfo mi = obj_movement_info;
+        MovementInfo mi = obj_movement_info;
         mi.newSpeed = rate;
         mi.guid = GetNewGUID();
 
-        WorldPacket setPacket(moveTypeToOpcode[mtype][2], 100);
-        setPacket << mi;
+        //WorldPacket setPacket(moveTypeToOpcode[mtype][2], 100);
+        //setPacket << mi;
 
-        WorldPacket playerPacket(moveTypeToOpcode[mtype][1], 100);
+        WorldPacket playerPacket(moveTypeToOpcode[mtype][1], 16);
         playerPacket << mi;
 
         player_mover->sendPacket(&playerPacket);
-        player_mover->sendMessageToSet(&setPacket, false);*/
+        //player_mover->sendMessageToSet(&setPacket, false);
 
         switch (mtype)
         {
             case TYPE_WALK:
-                player_mover->sendPacket(MsgMoveSetWalkSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceWalkSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_RUN:
-                player_mover->sendPacket(MsgMoveSetRunSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceRunSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_RUN_BACK:
-                player_mover->sendPacket(MsgMoveSetRunBackSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceRunBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_SWIM:
-                player_mover->sendPacket(MsgMoveSetSwimSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceSwimSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_SWIM_BACK:
-                player_mover->sendPacket(MsgMoveSetSwimBackSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceSwimBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_TURN_RATE:
-                player_mover->sendPacket(MsgMoveSetTurnRate(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceTurnRateChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_FLY:
-                player_mover->sendPacket(MsgMoveSetFlightSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceFlightSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_FLY_BACK:
-                player_mover->sendPacket(MsgMoveSetFlightBackSpeed(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForceFlightBackSpeedChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             case TYPE_PITCH_RATE:
-                player_mover->sendPacket(MsgMoveSetPitchRate(GetNewGUID(), rate).serialise().get());
                 player_mover->sendMessageToSet(SmsgForcePitchRateChange(GetNewGUID(), rate, obj_movement_info).serialise().get(), false);
                 break;
             default:

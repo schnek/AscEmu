@@ -437,6 +437,7 @@ private:
             case MovementOp::ForcesCount: data.writeBits(0, 22); break;
 
             case MovementOp::Count: data << static_cast<uint32_t>(0); break;
+            case MovementOp::NewSpeed: data << movementInfo.newSpeed; break;
 
             case MovementOp::SkipForcesCountUInt32:
             {
@@ -446,6 +447,8 @@ private:
 
             case MovementOp::WriteBit0: data.writeBit(0); break;
             case MovementOp::WriteBit1: data.writeBit(1); break;
+            case MovementOp::WriteUInt32_0: data << static_cast<uint32_t>(0); break;
+            case MovementOp::WriteUInt8_1:  data << static_cast<uint8_t>(1); break;
         }
     }
 

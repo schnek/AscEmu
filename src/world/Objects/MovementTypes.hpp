@@ -94,7 +94,9 @@ enum class MovementOp : uint16_t
     SkipForcesCountUInt32,
 
     WriteBit0,
-    WriteBit1
+    WriteBit1,
+    WriteUInt32_0,
+    WriteUInt8_1
 };
 
 struct MovementStep
