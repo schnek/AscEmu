@@ -42,7 +42,7 @@ static std::map<std::string, MultiversionFormatTable> dbcFieldDefines =
             "iiinixxxxxissssssssssssssssxiiiiixx"/*BC*/,
             "iiinixxxxxissssssssssssssssxiiiiixxx"/*WotLK*/,
             "niiiiiiiiiisiiiiiffiiiiiii"/*Cata*/,
-            "iiinixxxxxxxisiiiiixxxxxxxxxxx"/*Mop*/
+            "iiinixxxxxxxisiiiiifxxxxxxxxxx"/*Mop*/
         }
     },
     {
@@ -132,7 +132,7 @@ static std::map<std::string, MultiversionFormatTable> dbcFieldDefines =
             "nixssssssssssssssssxxxxxxxxxxxxxxxxxx"/*BC*/,
             "nixssssssssssssssssxxxxxxxxxxxxxxxxxx"/*WotLK*/,
             "iixsx"/*Cata*/,
-            "iixsx"/*Mop*/
+            "nixsx"/*Mop*/
         }
     },
     {

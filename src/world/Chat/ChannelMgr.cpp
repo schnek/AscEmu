@@ -140,12 +140,14 @@ bool ChannelMgr::canPlayerJoinDefaultChannel(Player const* player, WDB::Structur
     if (player == nullptr || channelDbc == nullptr)
         return false;
 
+#if VERSION_STRING < Mop
     // City specific channels
     if (channelDbc->flags & (CHANNEL_DBC_CITY_ONLY_1 | CHANNEL_DBC_CITY_ONLY_2))
     {
         if (areaEntry == nullptr || !(areaEntry->flags & MapManagement::AreaManagement::AREA_CITY_AREA))
             return false;
     }
+#endif
 
     // Channels with zone name
     if (channelDbc->flags & CHANNEL_DBC_HAS_ZONENAME)

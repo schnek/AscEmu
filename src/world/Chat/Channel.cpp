@@ -133,6 +133,65 @@ void Channel::attemptJoin(Player* plr, std::string password, bool skipCheck/* = 
         sendToAll(SmsgChannelNotify(CHANNEL_NOTIFY_FLAG_JOINED, m_channelName, plr->getGuid()).serialise().get(), nullptr);
 
     plr->sendPacket(SmsgChannelNotify(CHANNEL_NOTIFY_FLAG_YOUJOINED, m_channelName, 0, m_channelFlags, m_channelId).serialise().get());
+
+#if VERSION_STRING == Mop
+    WorldPacket data(m_channelId != 0 ? SMSG_USERLIST_ADD : SMSG_USERLIST_UPDATE, 8 + 1 + 1 + 4 + m_channelName.size());
+    WoWGuid guid = plr->getGuid();
+    if (m_channelId != 0)
+    {
+        data << uint32_t(m_channelId);
+        data << uint8_t(m_channelFlags);
+        data << uint8_t(memberFlags);
+        data.writeBit(guid[7]);
+        data.writeBits(m_channelName.size(), 7);
+        data.writeBit(guid[0]);
+        data.writeBit(guid[5]);
+        data.writeBit(guid[4]);
+        data.writeBit(guid[6]);
+        data.writeBit(guid[1]);
+        data.writeBit(guid[3]);
+        data.writeBit(guid[2]);
+
+        data.flushBits();
+        data.writeByteSeq(guid[4]);
+        data.writeByteSeq(guid[5]);
+        data.writeByteSeq(guid[7]);
+        data.writeByteSeq(guid[1]);
+        data.writeByteSeq(guid[2]);
+        data.writeByteSeq(guid[3]);
+        data.writeByteSeq(guid[6]);
+        data.writeByteSeq(guid[0]);
+        data << m_channelName;
+        sendToAll(&data, plr);
+    }
+    else
+    {
+        data.writeBit(guid[2]);
+        data.writeBit(guid[6]);
+        data.writeBit(guid[3]);
+        data.writeBit(guid[7]);
+        data.writeBit(guid[5]);
+        data.writeBit(guid[1]);
+        data.writeBit(guid[0]);
+        data.writeBits(m_channelName.size(), 7);
+        data.writeBit(guid[4]);
+
+        data.flushBits();
+        data.writeByteSeq(guid[0]);
+        data.writeByteSeq(guid[2]);
+        data.writeByteSeq(guid[6]);
+        data.writeByteSeq(guid[5]);
+        data << uint8_t(m_channelFlags);
+        data.writeByteSeq(guid[7]);
+        data.writeByteSeq(guid[3]);
+        data << uint32_t(m_channelId);
+        data << m_channelName;
+        data.writeByteSeq(guid[1]);
+        data.writeByteSeq(guid[4]);
+        data << uint8_t(memberFlags);
+        sendToAll(&data);
+    }
+#endif
 }
 
 void Channel::leaveChannel(Player* plr, bool sendPacket/* = true*/)

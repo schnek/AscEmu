@@ -40,6 +40,7 @@ namespace MapManagement::AreaManagement
         AREA_FLAG_NO_FLY_ZONE        = 0x20000000                 // Marks zones where you cannot fly
     };
 
+    //todo: Zyres: this enum is notchecked or related to dbc -.-
     enum AREATABLE_FLAGS
     {
         AREA_CITY_AREA              = 0x0020,

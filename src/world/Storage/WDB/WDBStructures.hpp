@@ -684,6 +684,7 @@ namespace WDB::Structures
 
     struct AreaTableEntry
     {
+#if VERSION_STRING <= Cata
         uint32_t id;                                                // 0
         uint32_t map_id;                                            // 1
         uint32_t zone;                                              // 2 if 0 then it's zone, else it's zone id of this area
@@ -716,6 +717,19 @@ namespace WDB::Structures
         uint32_t UwAmbience;                                        // 23 4.0.0
         uint32_t World_pvp_ID;                                      // 24
         int32_t PvpCombatWorldStateID;                              // 25- worldStateId4
+#endif
+#else // Mop
+        int32_t id;                                                 // 0
+        uint32_t map_id;                                            // 1
+        uint32_t zone;                                              // 2 if 0 then it's zone, else it's zone id of this area
+        uint32_t explore_flag;                                      // 3, main index
+        uint32_t flags;                                             // 4
+        // 5-11 unused
+        int32_t area_level;                                         // 12
+        char* area_name[NAME_PATTERN];                              // 13
+        uint32_t team;                                              // 14
+        uint32_t liquid_type_override[4];                           // 15-18 liquid override by type
+        float elevation;                                            // 19
 #endif
     };
 
