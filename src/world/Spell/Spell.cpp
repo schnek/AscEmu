@@ -2737,7 +2737,7 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                 if (p_caster == nullptr)
                     break;
 
-                if (p_caster->GetArea() != nullptr && p_caster->GetArea()->flags & MapManagement::AreaManagement::AREA_CITY_AREA)
+                if (p_caster->GetArea() != nullptr && p_caster->GetArea()->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL)
                     return SPELL_FAILED_NO_DUELING;
 
                 if (p_caster->isStealthed())

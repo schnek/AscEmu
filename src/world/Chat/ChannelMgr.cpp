@@ -144,7 +144,7 @@ bool ChannelMgr::canPlayerJoinDefaultChannel(Player const* player, WDB::Structur
     // City specific channels
     if (channelDbc->flags & (CHANNEL_DBC_CITY_ONLY_1 | CHANNEL_DBC_CITY_ONLY_2))
     {
-        if (areaEntry == nullptr || !(areaEntry->flags & MapManagement::AreaManagement::AREA_CITY_AREA))
+        if (areaEntry == nullptr || !(areaEntry->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL))
             return false;
     }
 #endif

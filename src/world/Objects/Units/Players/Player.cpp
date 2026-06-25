@@ -8213,7 +8213,7 @@ void Player::updatePvPArea()
                 }
             }
 
-            if (areaTableEntry->flags & AREA_PVP_ARENA)
+            if (areaTableEntry->flags & AREA_FLAG_ARENA)
             {
                 if (!isPvpFlagSet())
                     setPvpFlag();
