@@ -31,7 +31,7 @@ struct MultiversionOpcodeTable
     uint16_t hexValues[MAX_VERSION_INDEX];
 };
 
-enum Opcodes
+enum Opcodes : uint16_t
 {
 MSG_NULL_ACTION,
 CMSG_BOOTME,
