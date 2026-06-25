@@ -719,7 +719,7 @@ namespace WDB::Structures
         int32_t PvpCombatWorldStateID;                              // 25- worldStateId4
 #endif
 #else // Mop
-        int32_t id;                                                 // 0
+        uint32_t id;                                                // 0
         uint32_t map_id;                                            // 1
         uint32_t zone;                                              // 2 if 0 then it's zone, else it's zone id of this area
         uint32_t explore_flag;                                      // 3, main index

@@ -135,7 +135,7 @@ Channel* ChannelMgr::getChannel(std::string name, uint32_t team) const
     return nullptr;
 }
 
-bool ChannelMgr::canPlayerJoinDefaultChannel(Player const* player, WDB::Structures::AreaTableEntry const* areaEntry, WDB::Structures::ChatChannelsEntry const* channelDbc) const
+bool ChannelMgr::canPlayerJoinDefaultChannel(Player const* player, [[maybe_unused]] WDB::Structures::AreaTableEntry const* areaEntry, WDB::Structures::ChatChannelsEntry const* channelDbc) const
 {
     if (player == nullptr || channelDbc == nullptr)
         return false;

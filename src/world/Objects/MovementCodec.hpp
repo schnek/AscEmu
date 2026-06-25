@@ -13,7 +13,7 @@ template <ClientVersion Version>
 class MovementCodec
 {
 public:
-    static void read(ByteBuffer& buffer, MovementInfo& movementInfo, uint16_t opcode, bool withGuid = false)
+    static void read(ByteBuffer& buffer, MovementInfo& movementInfo, uint16_t opcode)
     {
         unsetState(movementInfo);
 
@@ -52,7 +52,7 @@ public:
             if (!checkWriteCondition(step.cond, movementInfo, withGuid))
                 continue;
 
-            executeWriteStep(data, movementInfo, step.op, opcode);
+            executeWriteStep(data, movementInfo, step.op);
         }
 
         data.flushBits();
@@ -135,7 +135,7 @@ private:
         return false;
     }
 
-    static bool checkReadCondition(Cond cond, MovementInfo const& movementInfo)
+    static bool checkReadCondition(Cond cond, [[maybe_unused]] MovementInfo const& movementInfo)
     {
         switch (cond)
         {
@@ -146,7 +146,7 @@ private:
         return true;
     }
 
-    static bool checkWriteCondition(Cond cond, MovementInfo const& movementInfo, bool withGuid)
+    static bool checkWriteCondition(Cond cond, [[maybe_unused]] MovementInfo const& movementInfo, bool withGuid)
     {
         switch (cond)
         {
@@ -326,7 +326,7 @@ private:
         }
     }
 
-    static void executeWriteStep(ByteBuffer& data, MovementInfo const& movementInfo, MovementOp op, uint16_t opcode)
+    static void executeWriteStep(ByteBuffer& data, MovementInfo const& movementInfo, MovementOp op)
     {
         switch (op)
         {
