@@ -189,7 +189,7 @@ namespace AscEmu::Packets
                 for (auto const& data : enum_data)
                 {
                     WoWGuid guid(static_cast<uint32_t>(data.guid), 0, HIGHGUID_TYPE_PLAYER);
-                    WoWGuid guildGuid(data.guildId, 0, HIGHGUID_TYPE_GUILD);
+                    WoWGuid guildGuid(data.guildId, 0, data.guildId ? HIGHGUID_TYPE_GUILD : 0);
 
                     packet.writeBit(guildGuid[4]);
                     packet.writeBit(guid[0]);

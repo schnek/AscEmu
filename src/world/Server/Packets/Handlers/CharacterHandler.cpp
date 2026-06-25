@@ -712,7 +712,7 @@ void WorldSession::fullLogin(Player* player)
 
     data.initialize(SMSG_HOTFIX_NOTIFY_BLOB);
     data.writeBits(0, 20);
-    data.flushBits();
+    //data.flushBits();
     SendPacket(&data);
 #endif
 

@@ -36,7 +36,14 @@ namespace AscEmu::Packets
 
         bool internalDeserialise(WorldPacket& packet) override
         {
+#if VERSION_STRING <= Cata
             packet >> state;
+#else //Mop
+            uint32_t mopState;
+            packet >> mopState;
+
+            state = static_cast<uint8_t>(mopState);
+#endif
             return true;
         }
     };

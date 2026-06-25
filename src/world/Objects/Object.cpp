@@ -3307,26 +3307,26 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
     WoWGuid Guid = getGuid();
 
     data->writeBit(false);
-    data->writeBit(!!(updateFlags & UPDATEFLAG_ANIM_KITS));        // hasAnimKits
-    data->writeBit(!!(updateFlags & UPDATEFLAG_LIVING));          // hasLiving
+    data->writeBit(false);        // hasAnimKits
+    data->writeBit(updateFlags & UPDATEFLAG_LIVING);          // hasLiving
     data->writeBit(false);
     data->writeBit(false);
     data->writeBits(0, 22);
-    data->writeBit(!!(updateFlags & UPDATEFLAG_VEHICLE));         // hasVehicle
+    data->writeBit(updateFlags & UPDATEFLAG_VEHICLE);         // hasVehicle
     data->writeBit(false);
     data->writeBit(false);
-    data->writeBit(!!(updateFlags & UPDATEFLAG_TRANSPORT));        // hasTransport
-    data->writeBit(!!(updateFlags & UPDATEFLAG_ROTATION));         // hasGobjectRotation
+    data->writeBit(updateFlags & UPDATEFLAG_TRANSPORT);        // hasTransport
+    data->writeBit(updateFlags & UPDATEFLAG_ROTATION);         // hasGobjectRotation
     data->writeBit(false);
-    data->writeBit(!!(updateFlags & UPDATEFLAG_SELF));            // self
-    data->writeBit(!!(updateFlags & UPDATEFLAG_HAS_TARGET));       // hasTarget
+    data->writeBit(updateFlags & UPDATEFLAG_SELF);            // self
+    data->writeBit(updateFlags & UPDATEFLAG_HAS_TARGET);       // hasTarget
     data->writeBit(false);
     data->writeBit(false);
     data->writeBit(false);
     data->writeBit(false);                                          // hasAreaTriggerData (player: false)
-    data->writeBit(!!(updateFlags & UPDATEFLAG_POSITION));          // hasTransportPosition (GO)
+    data->writeBit(updateFlags & UPDATEFLAG_POSITION);          // hasTransportPosition (GO)
     data->writeBit(false);
-    data->writeBit(!!(updateFlags & UPDATEFLAG_HAS_POSITION));      // hasStacionaryPostion
+    data->writeBit(updateFlags & UPDATEFLAG_HAS_POSITION);      // hasStacionaryPostion
 
     bool hasTransport = false;
     bool isSplineEnabled = false;
@@ -3397,7 +3397,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
 
         data->writeBit(G3D::fuzzyEq(GetOrientation(), 0.0f));
 
-        data->writeBit(true);
+        data->writeBit(true);   // movement counter
         data->writeBit(Guid[5]);
         data->writeBits(0, 22);
         data->writeBit(!obj_movement_info.getMovementFlags());
@@ -3416,7 +3416,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
 
         if (isSplineEnabled)
         {
-            MovementMgr::PacketBuilder::WriteCreateData(*unit->movespline, *data);
+            MovementMgr::PacketBuilder::WriteCreateBits(*unit->movespline, *data);
         }
 
         data->writeBit(!obj_movement_info.getMovementFlags2());
@@ -3425,7 +3425,7 @@ void Object::buildMovementUpdate(ByteBuffer* data, uint16_t updateFlags, Player*
             data->writeBit(hasFallDirection);
 
         if (obj_movement_info.getMovementFlags2())
-            data->writeBits(obj_movement_info.getMovementFlags2(), 13);
+            data->writeBits(uint32_t(obj_movement_info.getMovementFlags2()), 13);
     }
 
     if (updateFlags & UPDATEFLAG_POSITION)

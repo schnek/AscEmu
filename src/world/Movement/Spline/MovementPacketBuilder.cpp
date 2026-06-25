@@ -218,7 +218,7 @@ void PacketBuilder::WriteCreate(MoveSpline const& move_spline, ByteBuffer& data)
         data << (move_spline.isCyclic() ? G3D::Vector3::zero() : move_spline.FinalDestination());
     }
 }
-#if VERSION_STRING >= Cata
+#if VERSION_STRING == Cata
 void PacketBuilder::WriteCreateData(MoveSpline const& moveSpline, ByteBuffer& data)
 {
     if (!moveSpline.Finalized())
@@ -313,6 +313,76 @@ void PacketBuilder::WriteCreateBits(MoveSpline const& moveSpline, ByteBuffer& da
     }
 
     data.writeBit((moveSpline.splineflags & MoveSplineFlag::Parabolic) && moveSpline.effect_start_time < moveSpline.Duration());
+    data.writeBits(moveSpline.splineflags.raw(), 25);
+}
+#endif
+
+#if VERSION_STRING == Mop
+void PacketBuilder::WriteCreateData(MoveSpline const& moveSpline, ByteBuffer& data)
+{
+    if (!moveSpline.Finalized())
+    {
+        MoveSplineFlag splineFlags = moveSpline.splineflags;
+        MonsterMoveType type;
+        switch (moveSpline.splineflags & MoveSplineFlag::Mask_Final_Facing)
+        {
+            case MoveSplineFlag::Final_Target:
+                type = MonsterMoveFacingTarget;
+            case MoveSplineFlag::Final_Angle:
+                type = MonsterMoveFacingAngle;
+            case MoveSplineFlag::Final_Point:
+                type = MonsterMoveFacingSpot;
+            default:
+                type = MonsterMoveNormal;
+        }
+
+        data << moveSpline.timePassed();
+        data << float(1.f);                             // splineInfo.duration_mod_next; added in 3.1
+        data << float(1.f);                             // splineInfo.duration_mod; added in 3.1
+
+        uint32_t nodes = static_cast<uint32_t>(moveSpline.getPath().size());
+        for (uint32_t i = 0; i < nodes; ++i)
+        {
+            data << float(moveSpline.getPath()[i].x);
+            data << float(moveSpline.getPath()[i].z);
+            data << float(moveSpline.getPath()[i].y);
+        }
+
+        if ((splineFlags & MoveSplineFlag::Parabolic) && moveSpline.effect_start_time < moveSpline.Duration())
+            data << moveSpline.vertical_acceleration;   // added in 3.1
+
+        data << uint8_t(type);
+
+        if (type == MonsterMoveFacingAngle)
+            data << float(moveSpline.facing.angle);
+
+        if (type == MonsterMoveFacingSpot)
+            data << moveSpline.facing.f.x << moveSpline.facing.f.z << moveSpline.facing.f.y;
+
+        if ((splineFlags & MoveSplineFlag::Parabolic) && moveSpline.effect_start_time < moveSpline.Duration())
+            data << float(moveSpline.vertical_acceleration);   // added in 3.1
+
+        data << moveSpline.Duration();
+    }
+
+    Vector3 destination = moveSpline.isCyclic() ? Vector3::zero() : moveSpline.FinalDestination();
+
+    data << float(destination.x);
+    data << float(destination.z);
+    data << moveSpline.GetId();
+    data << float(destination.y);
+}
+
+void PacketBuilder::WriteCreateBits(MoveSpline const& moveSpline, ByteBuffer& data)
+{
+    if (!data.writeBit(!moveSpline.Finalized()))
+        return;
+
+    data.writeBit(moveSpline.splineflags & (MoveSplineFlag::Parabolic | MoveSplineFlag::Animation));
+    data.writeBit((moveSpline.splineflags & MoveSplineFlag::Parabolic) && moveSpline.effect_start_time < moveSpline.Duration());
+    data.writeBit(0);
+    data.writeBits(moveSpline.getPath().size(), 20);
+    data.writeBits(uint8_t(moveSpline.spline.mode()), 2);
     data.writeBits(moveSpline.splineflags.raw(), 25);
 }
 #endif

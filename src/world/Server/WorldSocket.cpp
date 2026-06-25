@@ -1056,8 +1056,6 @@ void WorldPacketLog::logPacket(uint32_t len, uint16_t opcode, const uint8_t* dat
         case SMSG_EMOTE:
         case SMSG_TIME_SYNC_REQUEST:
         case CMSG_TIME_SYNC_RESPONSE:
-        {
-        } break;
         default:
         {
             sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "[{}]: {} {} (0x{:03X}) of {} bytes.", direction ? "SERVER" : "CLIENT", direction ? "sent" : "received",
