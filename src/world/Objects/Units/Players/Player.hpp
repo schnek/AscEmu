@@ -571,7 +571,8 @@ public:
 
     void handleAuraInterruptForMovementFlags(MovementInfo const& movement_info);
 
-    bool isInCity() const;
+    // Zyres: not used
+    //bool isInCity() const;
 
     void handleBreathing(MovementInfo const& movement_info, WorldSession* session);
     void initialiseNoseLevel();

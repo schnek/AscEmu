@@ -4722,11 +4722,23 @@ void Spell::SpellEffectDuel(uint8_t /*effectIndex*/) // Duel
         sendCastResult(SPELL_FAILED_CANT_DUEL_WHILE_STEALTHED);
         return; // Player is stealth
     }
+
     if (!m_playerTarget || m_playerTarget == p_caster)
         return;
 
+    if (p_caster->GetArea() && p_caster->GetArea()->flags & MapManagement::AreaManagement::AREA_FLAG_ALLOW_DUELS)
+    {
+        sendCastResult(SPELL_FAILED_NO_DUELING);
+        return;
+    }
+
+    if (m_playerTarget->GetArea() && m_playerTarget->GetArea()->flags & MapManagement::AreaManagement::AREA_FLAG_ALLOW_DUELS)
+    {
+        sendCastResult(SPELL_FAILED_NO_DUELING);
+        return;
+    }
+
     /* not implemented yet
-    \todo dueling zones ? (SPELL_FAILED_NO_DUELING)
     if (player->IsInvisible())
     {
     sendCastResult(SPELL_FAILED_CANT_DUEL_WHILE_INVISIBLE);

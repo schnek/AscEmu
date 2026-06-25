@@ -1382,22 +1382,23 @@ void Player::handleAuraInterruptForMovementFlags(MovementInfo const& movementInf
     removeAllAurasByAuraInterruptFlag(auraInterruptFlags);
 }
 
-bool Player::isInCity() const
-{
-    if (const auto at = GetArea())
-    {
-        ::WDB::Structures::AreaTableEntry const* zt = nullptr;
-        if (at->zone)
-            zt = MapManagement::AreaManagement::AreaStorage::GetAreaById(at->zone);
-
-        bool areaIsCity = at->flags & MapManagement::AreaManagement::AREA_CITY_AREA || at->flags & MapManagement::AreaManagement::AREA_CITY;
-        bool zoneIsCity = zt && (zt->flags & MapManagement::AreaManagement::AREA_CITY_AREA || zt->flags & MapManagement::AreaManagement::AREA_CITY);
-
-        return (areaIsCity || zoneIsCity);
-    }
-
-    return false;
-}
+// Zyres: not used
+//bool Player::isInCity() const
+//{
+//    if (const auto at = GetArea())
+//    {
+//        ::WDB::Structures::AreaTableEntry const* zt = nullptr;
+//        if (at->zone)
+//            zt = MapManagement::AreaManagement::AreaStorage::GetAreaById(at->zone);
+//
+//        bool areaIsCity = at->flags & MapManagement::AreaManagement::AREA_CITY_AREA || at->flags & MapManagement::AreaManagement::AREA_CITY;
+//        bool zoneIsCity = zt && (zt->flags & MapManagement::AreaManagement::AREA_CITY_AREA || zt->flags & MapManagement::AreaManagement::AREA_CITY);
+//
+//        return (areaIsCity || zoneIsCity);
+//    }
+//
+//    return false;
+//}
 
 void Player::handleBreathing(MovementInfo const& movementInfo, WorldSession* session)
 {
@@ -1889,7 +1890,7 @@ void Player::zoneUpdate(uint32_t zoneId)
             m_WorldMap->getScript()->OnZoneChange(this, zoneId, oldzone);
 
         auto at = GetArea();
-        if (at && (at->team == AREAC_SANCTUARY || at->flags & AREA_SANCTUARY))
+        if (at && (at->team == AREAC_SANCTUARY || at->flags & AREA_FLAG_SANCTUARY))
         {
             Unit* pUnit = (getTargetGuid() == 0) ? nullptr : (m_WorldMap ? m_WorldMap->getUnit(getTargetGuid()) : nullptr);
             if (pUnit && m_duelPlayer != pUnit)
@@ -2016,7 +2017,7 @@ void Player::eventExploration()
 
         bool rest_on = false;
 
-        if (areaTableEntry->flags & AREA_CITY_AREA || areaTableEntry->flags & AREA_CITY)
+        if (areaTableEntry->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL)
         {
             // check faction
             if (areaTableEntry->team == AREAC_ALLIANCE_TERRITORY && isTeamAlliance() || (areaTableEntry->team == AREAC_HORDE_TERRITORY && isTeamHorde()))
@@ -2030,7 +2031,7 @@ void Player::eventExploration()
             if (areaTableEntry->zone)
             {
                 auto at2 = AreaStorage::GetAreaById(areaTableEntry->zone);
-                if (at2 && (at2->flags & AREA_CITY_AREA || at2->flags & AREA_CITY))
+                if (at2 && (at2->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL))
                 {
                     if (at2->team == AREAC_ALLIANCE_TERRITORY && isTeamAlliance() || (at2->team == AREAC_HORDE_TERRITORY && isTeamHorde()))
                         rest_on = true;
@@ -8139,7 +8140,7 @@ void Player::updatePvPArea()
     }
     else
     {
-        if (areaTableEntry->flags & AREA_CITY_AREA || areaTableEntry->flags & AREA_CITY)
+        if (areaTableEntry->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL)
         {
             if ((areaTableEntry->team == AREAC_ALLIANCE_TERRITORY && isTeamHorde()) || (areaTableEntry->team == AREAC_HORDE_TERRITORY && isTeamAlliance()))
             {
@@ -8163,7 +8164,7 @@ void Player::updatePvPArea()
                     return;
                 }
 
-                if (at2->flags & AREA_CITY_AREA || at2->flags & AREA_CITY)
+                if (at2->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL)
                 {
                     if ((at2->team == AREAC_ALLIANCE_TERRITORY && isTeamHorde()) || (at2->team == AREAC_HORDE_TERRITORY && isTeamAlliance()))
                     {
@@ -8177,7 +8178,7 @@ void Player::updatePvPArea()
             }
         }
 
-        if (areaTableEntry->team == AREAC_SANCTUARY || areaTableEntry->flags & AREA_SANCTUARY)
+        if (areaTableEntry->team == AREAC_SANCTUARY || areaTableEntry->flags & AREA_FLAG_SANCTUARY)
         {
             if (isPvpFlagSet())
                 removePvpFlag();
@@ -8248,7 +8249,7 @@ void Player::togglePvP()
             if (isPvpFlagSet())
             {
                 auto areaTableEntry = this->GetArea();
-                if (areaTableEntry && (areaTableEntry->flags & AREA_CITY_AREA || areaTableEntry->flags & AREA_CITY))
+                if (areaTableEntry && (areaTableEntry->flags & MapManagement::AreaManagement::AREA_FLAG_CAPITAL))
                 {
                     if ((areaTableEntry->team == AREAC_ALLIANCE_TERRITORY && isTeamHorde()) || (areaTableEntry->team == AREAC_HORDE_TERRITORY && isTeamAlliance()))
                     {

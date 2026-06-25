@@ -2021,8 +2021,8 @@ SpellCastResult Spell::canCast(const bool secondCheck, uint32_t* parameter1, uin
                 {
                     if (targetPlayer->getDuelPlayer() != playerOwner && !playerOwner->isFriendlyTo(targetPlayer))
                     {
-                        if ((m_caster->GetArea() != nullptr && m_caster->GetArea()->flags & MapManagement::AreaManagement::AREA_SANCTUARY) ||
-                            (targetPlayer->GetArea() != nullptr && targetPlayer->GetArea()->flags & MapManagement::AreaManagement::AREA_SANCTUARY))
+                        if ((m_caster->GetArea() != nullptr && m_caster->GetArea()->flags & MapManagement::AreaManagement::AREA_FLAG_SANCTUARY) ||
+                            (targetPlayer->GetArea() != nullptr && targetPlayer->GetArea()->flags & MapManagement::AreaManagement::AREA_FLAG_SANCTUARY))
                             return SPELL_FAILED_BAD_TARGETS;
                     }
                 }
