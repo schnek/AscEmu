@@ -23,7 +23,7 @@ namespace AscEmu::Packets
         }
 
         CmsgCreatureQuery(uint32_t entry, uint64_t guid) :
-            ManagedPacket(CMSG_CREATURE_QUERY, 12),
+            ManagedPacket(CMSG_CREATURE_QUERY, 4),
             entry(entry),
             guid(guid)
         {
