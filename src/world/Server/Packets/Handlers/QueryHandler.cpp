@@ -112,7 +112,7 @@ void WorldSession::handleCreatureQueryOpcode(WorldPacket& recvData)
     const auto name = loc ? loc->name : creature_info->Name.c_str();
     const auto subName = loc ? loc->subName : creature_info->SubName.c_str();
 
-    sLogger.debug("Received SMSG_CREATURE_QUERY_RESPONSE for entry: {}", srlPacket.entry);
+    sLogger.debug("Received CMSG_CREATURE_QUERY for entry: {} ({})", srlPacket.entry, name);
     SendPacket(SmsgCreatureQueryResponse(creature_info, srlPacket.entry, name, subName).serialise().get());
 }
 

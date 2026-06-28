@@ -609,11 +609,12 @@ void WorldSession::handleNpcTextQueryOpcode(WorldPacket& recvPacket)
 
     _player->setTargetGuid(srlPacket.guid);
 
-    const auto localesNpcText = (language > 0) ? sMySQLStore.getLocalizedNpcGossipText(srlPacket.text_id, language) : nullptr;
-
     WorldPacket data;
     data.initialize(SMSG_NPC_TEXT_UPDATE);
     data << srlPacket.text_id;
+
+#if VERSION_STRING <= Cata
+    const auto localesNpcText = (language > 0) ? sMySQLStore.getLocalizedNpcGossipText(srlPacket.text_id, language) : nullptr;
 
     if (const auto pGossip = sMySQLStore.getNpcGossipText(srlPacket.text_id))
     {
@@ -671,6 +672,31 @@ void WorldSession::handleNpcTextQueryOpcode(WorldPacket& recvPacket)
             }
         }
     }
+#else // Mop
+    ByteBuffer buffer;
+    /*if (const auto pGossip = sMySQLStore.getNpcGossipText(srlPacket.text_id))
+    {
+    }
+    else*/
+    {
+        buffer << uint32_t(1);  //unk 
+
+        for (uint8_t i = 0; i < 8; ++i)
+            buffer << uint32_t(0);  //probability
+
+        buffer << uint32_t(1);  //unk
+
+        for (uint8_t i = 0; i < 8; ++i)
+            buffer << uint32_t(0);  //broadcast text id
+
+        buffer << std::string("Test AscEmu 1");
+    }
+
+    data << uint32_t(buffer.size());
+    data.append(buffer);
+    data.writeBit(1); //write cache?
+    data.flushBits();
+#endif
 
     SendPacket(&data);
 }

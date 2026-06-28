@@ -141,7 +141,7 @@ namespace AscEmu::Packets
 
                     packet.writeBits(hasSubname ? _subName.length() + 1 : 0, 11);
 
-                    packet.writeBits(7, 22); // max quest items
+                    packet.writeBits(6, 22); // max quest items
 
                     packet.writeBits(0, 11); // unknown string
 
@@ -161,7 +161,7 @@ namespace AscEmu::Packets
                     packet << info->Female_DisplayID2;
                     packet << uint32_t(0); // version
                     packet << info->Type;
-                    packet << uint32_t(0); // hp mod
+                    packet << float(0); // hp mod
                     packet << info->typeFlags;
                     packet << uint32_t(0); // flags 2
                     packet << info->Rank;
@@ -182,7 +182,7 @@ namespace AscEmu::Packets
 
                     packet << info->killcredit[1];
 
-                    packet << uint32_t(0); // mana mod
+                    packet << float(0); // mana mod
 
                     packet << info->Family;
 

@@ -38,9 +38,13 @@ namespace AscEmu::Packets
 
         bool internalDeserialise(WorldPacket& packet) override
         {
+#if VERSION_STRING <= Cata
             uint64_t unpacked_guid;
             packet >> entry >> unpacked_guid;
             guid.init(unpacked_guid);
+#else // Mop
+            packet >> entry;
+#endif
             return true;
         }
     };

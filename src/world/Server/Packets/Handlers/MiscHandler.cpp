@@ -1691,6 +1691,7 @@ void WorldSession::handleRequestHotfix([[maybe_unused]] WorldPacket& recvPacket)
     uint32_t count = recvPacket.readBits(21);
 
     auto guids = std::make_unique<WoWGuid[]>(count);
+    uint32_t entry;
     for (uint32_t i = 0; i < count; ++i)
     {
         guids[i][6] = recvPacket.readBit();
@@ -1701,13 +1702,11 @@ void WorldSession::handleRequestHotfix([[maybe_unused]] WorldPacket& recvPacket)
         guids[i][5] = recvPacket.readBit();
         guids[i][7] = recvPacket.readBit();
         guids[i][2] = recvPacket.readBit();
-    }
-
-    uint32_t entry;
-    for (uint32_t i = 0; i < count; ++i)
-    {
+    
         recvPacket.readByteSeq(guids[i][1]);
+
         recvPacket >> entry;
+
         recvPacket.readByteSeq(guids[i][0]);
         recvPacket.readByteSeq(guids[i][5]);
         recvPacket.readByteSeq(guids[i][6]);

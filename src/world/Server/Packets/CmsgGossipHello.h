@@ -21,7 +21,7 @@ namespace AscEmu::Packets
         }
 
         CmsgGossipHello(uint64_t guid) :
-            ManagedPacket(CMSG_GOSSIP_HELLO, 8),
+            ManagedPacket(CMSG_GOSSIP_HELLO, 0),
             guid(guid)
         {
         }
@@ -29,7 +29,11 @@ namespace AscEmu::Packets
     protected:
         size_t expectedSize() const override
         {
-            return m_minimum_size;
+#if VERSION_STRING <= Cata
+            return 8;
+#else // Mop
+            return 6;
+#endif
         }
 
         bool internalSerialise(WorldPacket& packet) override
