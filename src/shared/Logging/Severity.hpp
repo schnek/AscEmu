@@ -34,7 +34,8 @@ namespace AscEmu::Logging
         LF_AURA_EFF     = 0x100,
         LF_SCRIPT_MGR   = 0x200,
         LF_DB_TABLES    = 0x400,
+        LF_MOVE         = 0x800,
 
-        LF_ALL          = 0x800 - 0x001
+        LF_ALL          = 0x1000 - 0x001
     };
 }

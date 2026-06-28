@@ -143,7 +143,7 @@
 #         1 = Opcodes                    256 = Aura (Effect)
 #         2 = Map Objects                512 = ScriptMgr
 #         4 = MapCell (activity)        1024 = Database
-#         8 = VMap
+#         8 = VMap                      2048 = Movement
 #        16 = MMap
 #        32 = Spell
 #        64 = Aura

@@ -281,7 +281,7 @@ private:
             case MovementOp::ForcesCount:
             {
                 movementInfo.forcesCount = buffer.readBits(22);
-                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "{} : ForcesCount is {}",
+                sLogger.debugFlag(AscEmu::Logging::LF_MOVE, "{} : ForcesCount is {}",
                     sOpcodeTables.getNameForOpcode(opcode), movementInfo.forcesCount);
             } break;
 
@@ -290,7 +290,7 @@ private:
                 uint32_t counter;
                 buffer >> counter;
                 //buffer.readSkip<uint32_t>();
-                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "MovementCodec::executeReadStep: {} : Count is {}",
+                sLogger.debugFlag(AscEmu::Logging::LF_MOVE, "MovementCodec::executeReadStep: {} : Count is {}",
                     sOpcodeTables.getNameForOpcode(opcode), counter);
             } break;
 
@@ -303,7 +303,7 @@ private:
                     uint32_t force;
                     buffer >> force;
                     //buffer.readSkip<uint32_t>();
-                    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "MovementCodec::executeReadStep: {} : SkipForcesCountUInt32 {} is {}",
+                    sLogger.debugFlag(AscEmu::Logging::LF_MOVE, "MovementCodec::executeReadStep: {} : SkipForcesCountUInt32 {} is {}",
                         sOpcodeTables.getNameForOpcode(opcode), i, force);
                 }
             } break;
@@ -311,7 +311,7 @@ private:
             case MovementOp::SkipBit:
             {
                 uint8_t bit = buffer.readBit();
-                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "MovementCodec::executeReadStep: {} : SkipBit is {}",
+                sLogger.debugFlag(AscEmu::Logging::LF_MOVE, "MovementCodec::executeReadStep: {} : SkipBit is {}",
                     sOpcodeTables.getNameForOpcode(opcode), bit);
             } break;
 
@@ -320,7 +320,7 @@ private:
                 uint32_t uint;
                 buffer >> uint;
                 //buffer.readSkip<uint32_t>();
-                sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "MovementCodec::executeReadStep: {} : SkipUInt32 is {}",
+                sLogger.debugFlag(AscEmu::Logging::LF_MOVE, "MovementCodec::executeReadStep: {} : SkipUInt32 is {}",
                     sOpcodeTables.getNameForOpcode(opcode), uint);
             } break;
         }
