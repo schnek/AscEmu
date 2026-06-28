@@ -35,7 +35,9 @@ namespace AscEmu::Packets
 
         bool internalSerialise(WorldPacket& packet) override
         {
-            packet << info.entry << info.type << info.display_id << name << uint8_t(0) << uint8_t(0) << uint8_t(0);
+#if VERSION_STRING <= Cata
+            packet << info.entry;
+            packet << info.type << info.display_id << name << uint8_t(0) << uint8_t(0) << uint8_t(0);
             packet << info.category_name << info.cast_bar_text << info.Unkstr;
             packet << info.raw.parameter_0 << info.raw.parameter_1 << info.raw.parameter_2 << info.raw.parameter_3 << info.raw.parameter_4
                    << info.raw.parameter_5 << info.raw.parameter_6 << info.raw.parameter_7 << info.raw.parameter_8 << info.raw.parameter_9 
@@ -44,9 +46,40 @@ namespace AscEmu::Packets
                    << info.raw.parameter_20 << info.raw.parameter_21 << info.raw.parameter_22 << info.raw.parameter_23;
             packet << float(info.size);
 
-#if VERSION_STRING >= WotLK
+    #if VERSION_STRING >= WotLK
             for (uint8_t i = 0; i < 6; ++i)
                 packet << uint32_t(info.QuestItems[i]);
+    #endif
+
+#else // Mop
+            packet.writeBit(info.entry != 0);
+            packet << info.entry;
+
+            size_t pos = packet.wpos();
+            packet << uint32_t(0);
+
+            if (info.entry)
+            {
+                std::string _name = name;
+                packet << info.type << info.display_id << _name << uint8_t(0) << uint8_t(0) << uint8_t(0);
+                packet << info.category_name << info.cast_bar_text << info.Unkstr;
+
+                packet << info.raw.parameter_0 << info.raw.parameter_1 << info.raw.parameter_2 << info.raw.parameter_3 << info.raw.parameter_4
+                       << info.raw.parameter_5 << info.raw.parameter_6 << info.raw.parameter_7 << info.raw.parameter_8 << info.raw.parameter_9 
+                       << info.raw.parameter_10 << info.raw.parameter_11 << info.raw.parameter_12 << info.raw.parameter_13 << info.raw.parameter_14
+                       << info.raw.parameter_15 << info.raw.parameter_16 << info.raw.parameter_17 << info.raw.parameter_18 << info.raw.parameter_19
+                       << info.raw.parameter_20 << info.raw.parameter_21 << info.raw.parameter_22 << info.raw.parameter_23 << info.raw.parameter_24
+                       << info.raw.parameter_25 << info.raw.parameter_26 << info.raw.parameter_27 << info.raw.parameter_28 << info.raw.parameter_29
+                       << info.raw.parameter_30 << info.raw.parameter_31;
+
+                packet << float(info.size);
+                packet << uint8_t(6);       // quest item count
+                for (uint8_t i = 0; i < 6; ++i)
+                    packet << uint32_t(info.QuestItems[i]);
+
+                packet << info.raw.parameter_32;
+                packet.put(pos, uint32_t(packet.wpos() - (pos + 4)));
+            }
 #endif
             return true;
         }

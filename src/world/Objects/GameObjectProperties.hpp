@@ -15,7 +15,7 @@ struct QuestProperties;
 
 struct GameObjectProperties
 {
-    uint32_t entry;
+    uint32_t entry = 0;
     uint32_t type; // uint8_t
     uint32_t display_id;
     std::string name;
@@ -360,6 +360,15 @@ struct GameObjectProperties
             uint32_t parameter_21;
             uint32_t parameter_22;
             uint32_t parameter_23;
+            uint32_t parameter_24;
+            uint32_t parameter_25;
+            uint32_t parameter_26;
+            uint32_t parameter_27;
+            uint32_t parameter_28;
+            uint32_t parameter_29;
+            uint32_t parameter_30;
+            uint32_t parameter_31;
+            int32_t parameter_32;
         }raw;
     };
     float size;

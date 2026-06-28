@@ -770,7 +770,7 @@ void WorldSession::registerOpcodeHandler()
     registry.registerOpcode(CMSG_NAME_QUERY, &WorldSession::handleNameQueryOpcode, true, true, true, true, true);
     registry.registerOpcode(CMSG_QUERY_TIME, &WorldSession::handleQueryTimeOpcode, false, true, true, true, true);
     registry.registerOpcode(CMSG_CREATURE_QUERY, &WorldSession::handleCreatureQueryOpcode, false, true, true, true, true);
-    registry.registerOpcode(CMSG_GAMEOBJECT_QUERY, &WorldSession::handleGameObjectQueryOpcode, false, true, true, true, false);
+    registry.registerOpcode(CMSG_GAMEOBJECT_QUERY, &WorldSession::handleGameObjectQueryOpcode, false, true, true, true, true);
     registry.registerOpcode(CMSG_PAGE_TEXT_QUERY, &WorldSession::handlePageTextQueryOpcode, false, true, true, false, false);
     registry.registerOpcode(CMSG_ITEM_NAME_QUERY, &WorldSession::handleItemNameQueryOpcode, false, true, true, false, false);
     registry.registerOpcode(CMSG_QUERY_INSPECT_ACHIEVEMENTS, &WorldSession::handleAchievmentQueryOpcode, false, false, true, true, false);
@@ -951,7 +951,7 @@ void WorldSession::registerOpcodeHandler()
     registry.registerOpcode(CMSG_TRAINER_BUY_SPELL, &WorldSession::handleTrainerBuySpellOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_PETITION_SHOWLIST, &WorldSession::handleCharterShowListOpcode, true, true, true, true, false);
     registry.registerOpcode(MSG_AUCTION_HELLO, &WorldSession::handleAuctionHelloOpcode, true, true, true, true, false);
-    registry.registerOpcode(CMSG_GOSSIP_HELLO, &WorldSession::handleGossipHelloOpcode, true, true, true, true, false);
+    registry.registerOpcode(CMSG_GOSSIP_HELLO, &WorldSession::handleGossipHelloOpcode, true, true, true, true, true);
     registry.registerOpcode(CMSG_GOSSIP_SELECT_OPTION, &WorldSession::handleGossipSelectOptionOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_SPIRIT_HEALER_ACTIVATE, &WorldSession::handleSpiritHealerActivateOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_NPC_TEXT_QUERY, &WorldSession::handleNpcTextQueryOpcode, true, true, true, true, false);
@@ -968,7 +968,7 @@ void WorldSession::registerOpcodeHandler()
     registry.registerOpcode(CMSG_SELL_ITEM, &WorldSession::handleSellItemOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_BUY_ITEM_IN_SLOT, &WorldSession::handleBuyItemInSlotOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_BUY_ITEM, &WorldSession::handleBuyItemOpcode, true, true, true, true, false);
-    registry.registerOpcode(CMSG_LIST_INVENTORY, &WorldSession::handleListInventoryOpcode, true, true, true, true, false);
+    registry.registerOpcode(CMSG_LIST_INVENTORY, &WorldSession::handleListInventoryOpcode, true, true, true, true, true);
     registry.registerOpcode(CMSG_AUTOSTORE_BAG_ITEM, &WorldSession::handleAutoStoreBagItemOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_SET_AMMO, &WorldSession::handleAmmoSetOpcode, true, true, true, false, false);
     registry.registerOpcode(CMSG_BUY_BACK_ITEM, &WorldSession::handleBuyBackOpcode, true, true, true, true, false);
@@ -1021,7 +1021,7 @@ void WorldSession::registerOpcodeHandler()
 
     // Quest System
     registry.registerOpcode(CMSG_QUEST_GIVER_STATUS_MULTIPLE_QUERY, &WorldSession::handleInrangeQuestgiverQuery, false, true, true, true, false);
-    registry.registerOpcode(CMSG_QUESTGIVER_STATUS_QUERY, &WorldSession::handleQuestgiverStatusQueryOpcode, true, true, true, true, false);
+    registry.registerOpcode(CMSG_QUESTGIVER_STATUS_QUERY, &WorldSession::handleQuestgiverStatusQueryOpcode, true, true, true, true, true);
     registry.registerOpcode(CMSG_QUESTGIVER_HELLO, &WorldSession::handleQuestgiverHelloOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_QUESTGIVER_ACCEPT_QUEST, &WorldSession::handleQuestgiverAcceptQuestOpcode, true, true, true, true, false);
     registry.registerOpcode(CMSG_QUESTGIVER_CANCEL, &WorldSession::handleQuestgiverCancelOpcode, true, true, true, true, false);

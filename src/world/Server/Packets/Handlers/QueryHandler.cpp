@@ -91,8 +91,7 @@ void WorldSession::handleGameObjectQueryOpcode(WorldPacket& recvData)
     const auto loc = (language > 0) ? sMySQLStore.getLocalizedGameobject(srlPacket.entry, language) : nullptr;
     const auto name = loc ? loc->name : gameobject_info->name.c_str();
 
-
-    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_GAMEOBJECT_QUERY for entry: {}", srlPacket.entry);
+    sLogger.debugFlag(AscEmu::Logging::LF_OPCODE, "Received CMSG_GAMEOBJECT_QUERY for entry: {} name : {}", srlPacket.entry, name);
     SendPacket(SmsgGameobjectQueryResponse(*gameobject_info, name).serialise().get());
 }
 

@@ -16,14 +16,14 @@ namespace AscEmu::Packets
     public:
         uint32_t text_emote;
         uint32_t numEmote;
-        uint64_t guid;
+        WoWGuid guid;
 
         CmsgTextEmote() : CmsgTextEmote(0, 0, 0)
         {
         }
 
         CmsgTextEmote(uint32_t text_emote, uint32_t unk, uint64_t guid) :
-            ManagedPacket(CMSG_TEXT_EMOTE, 16),
+            ManagedPacket(CMSG_TEXT_EMOTE, 0),
             text_emote(text_emote),
             numEmote(unk),
             guid(guid)
@@ -33,44 +33,42 @@ namespace AscEmu::Packets
     protected:
         size_t expectedSize() const override
         {
-            return m_minimum_size;
+#if VERSION_STRING <= Cata
+            return 16;
+#else // Mop
+            return 8;
+#endif
         }
 
-        bool internalSerialise(WorldPacket& packet) override
-        {
-            packet << text_emote << numEmote << guid;
-            return true;
-        }
+        //bool internalSerialise(WorldPacket& packet) override { return false; }
 
         bool internalDeserialise(WorldPacket& packet) override
         {
 #if VERSION_STRING <= Cata
-            packet >> text_emote >> numEmote >> guid;
+            uint64_t rawGuid;
+            packet >> text_emote >> numEmote >> rawGuid;
+            guid.init(rawGuid);
 #else // Mop
-            WoWGuid packedGuid;
-
             packet >> text_emote;
             packet >> numEmote;
 
-            packedGuid[6] = packet.readBit();
-            packedGuid[7] = packet.readBit();
-            packedGuid[3] = packet.readBit();
-            packedGuid[2] = packet.readBit();
-            packedGuid[0] = packet.readBit();
-            packedGuid[5] = packet.readBit();
-            packedGuid[1] = packet.readBit();
-            packedGuid[4] = packet.readBit();
+            guid[6] = packet.readBit();
+            guid[7] = packet.readBit();
+            guid[3] = packet.readBit();
+            guid[2] = packet.readBit();
+            guid[0] = packet.readBit();
+            guid[5] = packet.readBit();
+            guid[1] = packet.readBit();
+            guid[4] = packet.readBit();
 
-            packet.readByteSeq(packedGuid[0]);
-            packet.readByteSeq(packedGuid[5]);
-            packet.readByteSeq(packedGuid[1]);
-            packet.readByteSeq(packedGuid[4]);
-            packet.readByteSeq(packedGuid[2]);
-            packet.readByteSeq(packedGuid[3]);
-            packet.readByteSeq(packedGuid[7]);
-            packet.readByteSeq(packedGuid[6]);
-
-            guid = packedGuid.getRawGuid();
+            packet.readByteSeq(guid[0]);
+            packet.readByteSeq(guid[5]);
+            packet.readByteSeq(guid[1]);
+            packet.readByteSeq(guid[4]);
+            packet.readByteSeq(guid[2]);
+            packet.readByteSeq(guid[3]);
+            packet.readByteSeq(guid[7]);
+            packet.readByteSeq(guid[6]);
 #endif
             return true;
         }

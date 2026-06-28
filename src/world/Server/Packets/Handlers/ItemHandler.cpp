@@ -2300,10 +2300,7 @@ void WorldSession::handleListInventoryOpcode(WorldPacket& recvPacket)
     if (!srlPacket.deserialise(recvPacket))
         return;
 
-    WoWGuid wowGuid;
-    wowGuid.init(srlPacket.guid);
-
-    Creature* unit = _player->getWorldMap()->getCreature(wowGuid.getGuidLowPart());
+    Creature* unit = _player->getWorldMap()->getCreature(srlPacket.guid.getGuidLowPart());
     if (unit == nullptr)
         return;
 
@@ -2399,7 +2396,7 @@ void WorldSession::sendInventoryList(Creature* unit)
                     data << uint32_t(sellItem.extended_cost->costid);
                 else
                     data << uint32_t(0);
-#else
+#elif VERSION_STRING == Cata
                 itemsData << uint32_t(counter + 1);        // client expects counting to start at 1
                 itemsData << uint32_t(curItem->MaxDurability);
                 if (sellItem.extended_cost != nullptr)
@@ -2420,6 +2417,27 @@ void WorldSession::sendInventoryList(Creature* unit)
                 itemsData << uint32_t(curItem->DisplayInfoID);
                 itemsData << int32_t(av_am);
                 itemsData << uint32_t(sellItem.amount);
+#else // Mop
+                itemsData << int32_t(av_am);
+                itemsData << uint32_t(price);
+                itemsData << uint32_t(1);     // 1 is items, 2 is currency
+                itemsData << uint32_t(-1);
+                itemsData << uint32_t(curItem->DisplayInfoID);
+                itemsData << uint32_t(sellItem.amount);
+                itemsData << uint32_t(curItem->ItemId);
+
+                if (sellItem.extended_cost != nullptr)
+                {
+                    enablers.push_back(0);
+                    itemsData << uint32_t(sellItem.extended_cost->costid);
+                }
+                else
+                {
+                    enablers.push_back(1);
+                }
+
+                itemsData << uint32_t(0);
+                itemsData << uint32_t(counter + 1);        // client expects counting to start at 1
 #endif
 
                 ++counter;
@@ -2431,7 +2449,7 @@ void WorldSession::sendInventoryList(Creature* unit)
 
 #if VERSION_STRING < Cata
     data.contents()[8] = static_cast<uint8_t>(counter);
-#else
+#elif VERSION_STRING == Cata
     WoWGuid guid = unit->getGuid();
 
     data.setOpcode(SMSG_LIST_INVENTORY);
@@ -2465,6 +2483,41 @@ void WorldSession::sendInventoryList(Creature* unit)
     data.writeByteSeq(guid[2]);
     data.writeByteSeq(guid[3]);
     data.writeByteSeq(guid[7]);
+#else // Mop
+    WoWGuid guid = unit->getGuid();
+
+    data.setOpcode(SMSG_LIST_INVENTORY);
+    data.writeBit(guid[5]);
+    data.writeBit(guid[7]);
+    data.writeBit(guid[1]);
+    data.writeBit(guid[3]);
+    data.writeBit(guid[6]);
+
+    data.writeBits(counter, 18); // item count
+
+    for (std::vector<bool>::const_iterator itr = enablers.begin(); itr != enablers.end(); ++itr)
+    {
+        data.writeBit(0);
+        data.writeBit(*itr);
+        data.writeBit(1);
+    }
+
+    data.writeBit(guid[4]);
+    data.writeBit(guid[0]);
+    data.writeBit(guid[2]);
+
+    data << uint8_t(counter == 0); // unk byte, item count 0: 1, item count != 0: 0 or some "random" value below 300
+
+    data.append(itemsData);
+
+    data.writeByteSeq(guid[3]);
+    data.writeByteSeq(guid[7]);
+    data.writeByteSeq(guid[0]);
+    data.writeByteSeq(guid[6]);
+    data.writeByteSeq(guid[2]);
+    data.writeByteSeq(guid[1]);
+    data.writeByteSeq(guid[4]);
+    data.writeByteSeq(guid[5]);
 #endif
 
     SendPacket(&data);

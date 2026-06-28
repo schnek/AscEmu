@@ -49,7 +49,34 @@ namespace AscEmu::Packets
 
         bool internalSerialise(WorldPacket& packet) override
         {
+#if VERSION_STRING <= Cata
             packet << questgiverGuid << status;
+#else // Mop
+            WoWGuid guid = questgiverGuid;
+
+            packet.writeBit(guid[1]);
+            packet.writeBit(guid[7]);
+            packet.writeBit(guid[4]);
+            packet.writeBit(guid[2]);
+            packet.writeBit(guid[5]);
+            packet.writeBit(guid[3]);
+            packet.writeBit(guid[6]);
+            packet.writeBit(guid[0]);
+
+            packet.flushBits();
+
+            packet.writeByteSeq(guid[7]);
+
+            packet << status;
+
+            packet.writeByteSeq(guid[4]);
+            packet.writeByteSeq(guid[6]);
+            packet.writeByteSeq(guid[1]);
+            packet.writeByteSeq(guid[5]);
+            packet.writeByteSeq(guid[2]);
+            packet.writeByteSeq(guid[0]);
+            packet.writeByteSeq(guid[3]);
+#endif
             return true;
         }
 

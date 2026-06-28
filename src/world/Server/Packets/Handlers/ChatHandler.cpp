@@ -397,7 +397,9 @@ void WorldSession::handleTextEmoteOpcode(WorldPacket& recvPacket)
     uint32_t nameLength = 1;
     std::string unitName;
 
-    auto unit = _player->getWorldMap()->getUnit(srlPacket.guid);
+    uint64_t rawGuid = srlPacket.guid.getRawGuid();
+
+    auto unit = _player->getWorldMap()->getUnit(rawGuid);
     if (unit)
     {
         targetGuid = unit->getGuid();
@@ -475,7 +477,7 @@ void WorldSession::handleTextEmoteOpcode(WorldPacket& recvPacket)
         _player->getAchievementMgr()->updateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_DO_EMOTE, srlPacket.text_emote, 0, 0);
     #endif
 #endif
-        sQuestMgr.OnPlayerEmote(_player, srlPacket.text_emote, srlPacket.guid);
+        sQuestMgr.OnPlayerEmote(_player, srlPacket.text_emote, rawGuid);
     }
 }
 

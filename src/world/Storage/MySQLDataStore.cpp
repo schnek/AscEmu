@@ -1152,9 +1152,11 @@ void MySQLDataStore::loadGameObjectPropertiesTable()
         "parameter_3, parameter_4, parameter_5, parameter_6, parameter_7, parameter_8, parameter_9, parameter_10, parameter_11, "
         //     19            20            21            22           23            24            25            26
         "parameter_12, parameter_13, parameter_14, parameter_15, parameter_16, parameter_17, parameter_18, parameter_19, "
-        //     27            28            29            30        31        32          33          34         35
-        "parameter_20, parameter_21, parameter_22, parameter_23, size, QuestItem1, QuestItem2, QuestItem3, QuestItem4, "
-        //     36          37
+        //     27            28            29            30           31            32           33             34            35
+        "parameter_20, parameter_21, parameter_22, parameter_23, parameter_24, parameter_25, parameter_26, parameter_27, parameter_28, "
+        //     36            37            38            39       40       41           42         43          44
+        "parameter_29, parameter_30, parameter_31, parameter_32, size, QuestItem1, QuestItem2, QuestItem3, QuestItem4, "
+        //     45         46
         "QuestItem5, QuestItem6 FROM gameobject_properties base "
         "WHERE build=(SELECT MAX(build) FROM gameobject_properties buildspecific WHERE base.entry = buildspecific.entry AND build <= %u)", VERSION_STRING);
 
@@ -1208,12 +1210,21 @@ void MySQLDataStore::loadGameObjectPropertiesTable()
         gameobjecProperties.raw.parameter_21 = fields[28].asUint32();
         gameobjecProperties.raw.parameter_22 = fields[29].asUint32();
         gameobjecProperties.raw.parameter_23 = fields[30].asUint32();
+        gameobjecProperties.raw.parameter_24 = fields[31].asUint32();
+        gameobjecProperties.raw.parameter_25 = fields[32].asUint32();
+        gameobjecProperties.raw.parameter_26 = fields[33].asUint32();
+        gameobjecProperties.raw.parameter_27 = fields[34].asUint32();
+        gameobjecProperties.raw.parameter_28 = fields[35].asUint32();
+        gameobjecProperties.raw.parameter_29 = fields[36].asUint32();
+        gameobjecProperties.raw.parameter_30 = fields[37].asUint32();
+        gameobjecProperties.raw.parameter_31 = fields[38].asUint32();
+        gameobjecProperties.raw.parameter_32 = fields[39].asUint32();
 
-        gameobjecProperties.size = fields[31].asFloat();
+        gameobjecProperties.size = fields[40].asFloat();
 
         for (uint8_t i = 0; i < 6; ++i)
         {
-            uint32_t quest_item_entry = fields[32 + i].asUint32();
+            uint32_t quest_item_entry = fields[41 + i].asUint32();
             if (quest_item_entry != 0)
             {
                 auto quest_item_proto = getItemProperties(quest_item_entry);
