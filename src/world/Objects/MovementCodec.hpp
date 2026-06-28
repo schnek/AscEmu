@@ -17,7 +17,7 @@ public:
     {
         unsetState(movementInfo);
 
-        for (MovementStep const& step : getDescriptor(opcode))
+        for (MovementStep const& step : getDescriptor(opcode, true))
         {
             if (step.op == MovementOp::End)
                 break;
@@ -32,16 +32,16 @@ public:
         }
     }
 
-    static bool hasDescriptor(uint16_t opcode)
+    static bool hasDescriptor(uint16_t opcode, bool read)
     {
-        return !isUnknownDescriptor(getDescriptor(opcode));
+        return !isUnknownDescriptor(getDescriptor(opcode, read));
     }
 
     static void write(ByteBuffer& data, MovementInfo movementInfo, uint16_t opcode, bool withGuid = true)
     {
         setState(movementInfo);
 
-        for (MovementStep const& step : getDescriptor(opcode))
+        for (MovementStep const& step : getDescriptor(opcode, false))
         {
             if (step.op == MovementOp::End)
                 break;
@@ -453,7 +453,7 @@ private:
         }
     }
 
-    static std::span<MovementStep const> getDescriptor(uint16_t opcode)
+    static std::span<MovementStep const> getDescriptor(uint16_t opcode, bool read)
     {
         if constexpr (Version == ClientVersion::_Classic)
             return getClassicMovementDescriptor(opcode);
@@ -464,6 +464,6 @@ private:
         else if constexpr (Version == ClientVersion::_Cata)
             return getCataMovementDescriptor(opcode);
         else
-            return getMopMovementDescriptor(opcode);
+            return getMopMovementDescriptor(opcode, read);
     }
 };

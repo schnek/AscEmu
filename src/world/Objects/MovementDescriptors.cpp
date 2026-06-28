@@ -10456,9 +10456,15 @@ std::span<MovementStep const> getCataMovementDescriptor(uint16_t opcode)
     }
 }
 
-std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode)
+std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode, bool read)
 {
-    switch (sOpcodeTables.getInternalIdForHex(opcode))
+    uint32_t internalId = 0;
+    if (read)
+        internalId = sOpcodeTables.getInternalIdForHex(opcode);
+    else
+        internalId = static_cast<uint32_t>(opcode);
+
+    switch (internalId)
     {
         case CMSG_MOVE_CHNG_TRANSPORT:
             return MopCMSG_MOVE_CHNG_TRANSPORTDescriptor;

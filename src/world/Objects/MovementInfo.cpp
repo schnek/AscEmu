@@ -11,7 +11,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 void MovementInfo::readMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t opcode)
 {
-    if (ActiveMovementCodec::hasDescriptor(opcode))
+    if (ActiveMovementCodec::hasDescriptor(opcode, true))
     {
         ActiveMovementCodec::read(data, *this, opcode);
         return;
@@ -31,9 +31,9 @@ void MovementInfo::read(WorldPacket& packet)
 void MovementInfo::writeMovementInfo(ByteBuffer& data, [[maybe_unused]] uint16_t opcode, [[maybe_unused]] bool withGuid/* = true*/) const
 {
     uint16_t extOpcode = sOpcodeTables.getHexValueForVersionId(static_cast<uint32_t>(opcode));
-    if (ActiveMovementCodec::hasDescriptor(extOpcode))
+    if (ActiveMovementCodec::hasDescriptor(opcode, false))
     {
-        ActiveMovementCodec::write(data, *this, extOpcode, withGuid);
+        ActiveMovementCodec::write(data, *this, opcode, withGuid);
         return;
     }
     else

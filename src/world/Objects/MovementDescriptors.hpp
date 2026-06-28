@@ -14,4 +14,4 @@ std::span<MovementStep const> getClassicMovementDescriptor(uint16_t opcode);
 std::span<MovementStep const> getTbcMovementDescriptor(uint16_t opcode);
 std::span<MovementStep const> getWotlkMovementDescriptor(uint16_t opcode);
 std::span<MovementStep const> getCataMovementDescriptor(uint16_t opcode);
-std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode);
+std::span<MovementStep const> getMopMovementDescriptor(uint16_t opcode, bool read);
