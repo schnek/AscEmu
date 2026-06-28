@@ -34,7 +34,7 @@ namespace AscEmu::Packets
         bool internalDeserialise(WorldPacket& packet) override
         {
             packet >> emote;
-            return false;
+            return true;
         }
     };
 }
