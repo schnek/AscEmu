@@ -159,7 +159,7 @@ public:
         std::string say = "Puny ";
         say += mTarget->getName();
         say += " wanna fight Overlord Mok'Morokk? Me beat you! Me boss here!";
-        Overlord->sendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, say.c_str());
+         Overlord->sendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, say.c_str());
         Overlord->setFaction(72);
         Overlord->getAIInterface()->setMeleeDisabled(false);
         Overlord->getAIInterface()->setAllowedToEnterCombat(true);

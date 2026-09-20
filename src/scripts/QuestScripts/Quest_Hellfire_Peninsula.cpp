@@ -275,7 +275,7 @@ public:
 
         char msg[100];
         sprintf(msg, "Psst, %s, get over here.", pPlayer->getName().c_str());
-        pCreature->sendChatMessage(CHAT_MSG_MONSTER_WHISPER, LANG_UNIVERSAL, msg);    // Changed Player to Creature. I wonder if it was blizzlike
+         pCreature->sendChatMessage(CHAT_MSG_MONSTER_WHISPER, LANG_UNIVERSAL, msg);    // Changed Player to Creature. I wonder if it was blizzlike
     }
 };
 
@@ -290,7 +290,7 @@ public:
 
         char msg[100];
         sprintf(msg, "Psst, %s, get over here.", pPlayer->getName().c_str());
-        pCreature->sendChatMessage(CHAT_MSG_MONSTER_WHISPER, LANG_UNIVERSAL, msg);
+         pCreature->sendChatMessage(CHAT_MSG_MONSTER_WHISPER, LANG_UNIVERSAL, msg);
     }
 };
 

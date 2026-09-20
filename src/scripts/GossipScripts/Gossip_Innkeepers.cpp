@@ -46,7 +46,7 @@ void InnkeeperGossip::onHello(Object* pObject, Player* Plr)
             TextID = Text;
         }
     }
-    GossipMenu menu(pCreature->getGuid(), TextID, 0);
+    GossipMenu menu(pCreature->getGuid(), TextID, 0); // Plr->getSession()->language);
 
     // Halow's End started?
     auto _now = std::chrono::system_clock::now();

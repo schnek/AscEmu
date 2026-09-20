@@ -224,7 +224,7 @@ public:
         {
             char msg[256];
             snprintf((char*)msg, 256, "Get in the Ring of Blood, %s . The fight is about to start!", mTarget->getName().c_str());
-            Qgiver->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
+             Qgiver->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
             mTarget->getWorldMap()->getInterface()->spawnCreature(18398, LocationVector(-704.669f, 7871.08f, 45.0387f, 1.59531f))->Despawn(600000, 0);
         };
     };
@@ -236,7 +236,7 @@ public:
         {
             char msg[256];
             snprintf((char*)msg, 256, "%s is victorious!", mTarget->getName().c_str());
-            Qgiver->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
+             Qgiver->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
         };
 
         Unit* mogor = mTarget->getWorldMap()->getInterface()->getCreatureNearestCoords(mTarget->GetPositionX(), mTarget->GetPositionY(), 0, 18069);
@@ -244,7 +244,7 @@ public:
         {
             char msg[256];
             snprintf((char*)msg, 256, "...");
-            mogor->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
+             mogor->sendChatMessage(CHAT_MSG_MONSTER_YELL, LANG_UNIVERSAL, msg);
         };
     };
 };

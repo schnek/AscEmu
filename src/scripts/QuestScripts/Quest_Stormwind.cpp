@@ -94,7 +94,7 @@ public:
             std::string say = "Now you're gonna get it good, ";
             say += mTarget->getName();
             say += "!";
-            Dashel->sendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, say.c_str());
+              Dashel->sendChatMessage(CHAT_MSG_MONSTER_SAY, LANG_UNIVERSAL, say.c_str());
         }
         Creature* ct1 = mTarget->getWorldMap()->getSpawnManager().spawnCreature(4969, LocationVector(-8686.803711f, 445.267792f, 99.789223f, 5.461184f));
         if (ct1 != nullptr)

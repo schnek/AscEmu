@@ -26,10 +26,6 @@ This file is released under the MIT license. See README-MIT for more information
 #include "WDB/WDBStructures.hpp"
 #include <cstdarg>
 
-#ifdef ASCEMU_USE_AE_DATABASE
-#include "Database/AE/RowView.hpp"
-#endif
-
 SERVER_DECL std::vector<MySQLAdditionalTable> MySQLAdditionalTables;
 
 MySQLDataStore& MySQLDataStore::getInstance()
