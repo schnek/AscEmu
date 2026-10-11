@@ -1,0 +1,79 @@
+name: "👾 Bug Report"
+description: "Report any errors or defects that you encountered while using AscEmu."
+title: "👾 [Bug Report]: "
+labels:
+  - "Issue - Needs retesting"
+
+body:
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description
+      description: |
+        Describe the bug in detail. Include all relevant information:
+        - NPC, quest, item, spell, or spawn ID.
+        - Worldport location (map ID, X, Y, Z).
+        - Example of expected behavior (Wowhead, YouTube, or another reference).
+        - Screenshots alone or general descriptions such as "Missing spawns" or "Instances WotLK broken" are not sufficient.
+      placeholder: Describe the issue and provide relevant IDs and references...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Describe exactly what you did to trigger the issue.
+      placeholder: |
+        1. Log in to the game.
+        2. Go to the specified location.
+        3. Interact with the NPC or object.
+        4. Observe the issue.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: expansion-version
+    attributes:
+      label: Expansion Version
+      description: Specify the WoW client expansion version.
+      options:
+        - "Classic (Patch 1.12.1)"
+        - "The Burning Crusade (Patch 2.4.3)"
+        - "Wrath of the Lich King (Patch 3.3.5)"
+        - "Cataclysm (Patch 4.3.4)"
+        - "Mists of Pandaria (Patch 5.4.8)"
+      multiple: true
+    validations:
+      required: true
+
+  - type: input
+    id: asc-emu-hash
+    attributes:
+      label: AscEmu Hash / Commit
+      description: Specify the AscEmu commit hash.
+      placeholder: "e.g. 1234567 or main branch"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: Operating System
+      options:
+        - Linux
+        - Windows
+        - macOS
+        - Other
+      multiple: false
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add screenshots, logs, videos, or other relevant information.
+      placeholder: Additional information...
+    validations:
+      required: false
