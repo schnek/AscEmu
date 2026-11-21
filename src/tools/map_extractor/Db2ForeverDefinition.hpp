@@ -9,7 +9,7 @@ This file is released under the MIT license. See README-MIT for more information
 
 #include <array>
 
-// The tables the 1.60 line (build 70959) has on top of the 12.x list, both lines share the file data ids.
+// The tables the 1.60 line (build 71037) has on top of the 12.x list, both lines share the file data ids.
 namespace MapExtractor::ForeverDefinition
 {
     inline constexpr std::array<DB2::Db2Entry, 30> DB2_FILES =

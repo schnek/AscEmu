@@ -45,7 +45,7 @@ namespace WoW::Build {
     inline constexpr uint32_t MOP_CLASSIC_BUILD = 70579; //  5.5.4
 
     // WoW Forever (1.60) is a special case, it is a modern client with a legacy major version (1.x) and a build higher than the last MoP build (5.4.8)
-    inline constexpr uint32_t FOREVER_BUILD = 70959; // 1.60.1 (live since 2026-11-17)
+    inline constexpr uint32_t FOREVER_BUILD = 71037; // 1.60.1 (live since 2026-11-21)
 }
 
 namespace WoW {

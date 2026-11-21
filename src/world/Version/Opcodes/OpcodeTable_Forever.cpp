@@ -3,7 +3,7 @@ Copyright (c) 2014-2026 AscEmu Team <http://www.ascemu.org>
 This file is released under the MIT license. See README-MIT for more information.
 */
 
-// Hex values of the internal opcode ids for Forever 1.60.1 clients (build 70959): the 12.x numbering with the groups and
+// Hex values of the internal opcode ids for Forever 1.60.1 clients (build 71037): the 12.x numbering with the groups and
 // indices shifted the way the 1.60 client numbers them. Opcodes without an entry do not exist in this version.
 
 #include "Version/OpcodeTable.hpp"
@@ -1458,6 +1458,8 @@ namespace Version::Tables
         { SMSG_ADVENTURE_JOURNAL_DATA_RESPONSE, 0x47030D },
         { CMSG_PERKS_PROGRAM_STATUS_REQUEST, 0x3E02B2 },
         { CMSG_REQUEST_INSTANCE_ENCOUNTER_EVENT_SYNC, 0x3E0192 },
+        { SMSG_CHARACTER_LIST_STATE, 0x470019 },
+        { SMSG_RECENT_ALLY_DATA_RESPONSE, 0x470364 },
     };
 
     const OpcodeSource foreverOpcodes{ foreverOpcodeEntries, std::size(foreverOpcodeEntries) };

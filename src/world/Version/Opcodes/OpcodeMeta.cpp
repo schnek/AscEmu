@@ -2602,5 +2602,7 @@ namespace Version::Tables
         { "SMSG_REGIONWIDE_CHARACTER_RESTRICTIONS_DATA", OpcodeDevelopmentState::Unchecked },
         { "CMSG_CHECK_CHARACTER_NAME_AVAILABILITY", OpcodeDevelopmentState::Unchecked },
         { "SMSG_CHECK_CHARACTER_NAME_AVAILABILITY_RESULT", OpcodeDevelopmentState::Unchecked },
+        { "SMSG_CHARACTER_LIST_STATE", OpcodeDevelopmentState::Unchecked },
+        { "SMSG_RECENT_ALLY_DATA_RESPONSE", OpcodeDevelopmentState::Unchecked },
     };
 }
