@@ -747,6 +747,7 @@ struct CharEnumData
     uint32_t bytes2;
     std::vector<CharacterCustomizations::ChrCustomizationChoice> customizations;    // 9.x+: the stored choices, empty for a look converted from the bytes
     std::string name;
+    std::string surname;
     float x;
     float y;
     float z;

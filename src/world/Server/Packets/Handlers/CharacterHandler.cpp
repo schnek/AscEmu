@@ -1060,6 +1060,7 @@ void WorldSession::characterEnumProc(QueryResult* result)
             charEnum.loginFlags = fields[16].asUint32();
             charEnum.flags = fields[17].asUint32();
             charEnum.guildId = fields[18].asUint32();
+            charEnum.surname = fields[19].asCString();
 
             if (_side == 255)
                 _side = getSideByRace(charEnum.race);
@@ -1249,7 +1250,7 @@ void WorldSession::handleCharEnumOpcode(WorldPacket& /*recvPacket*/)
         &World::sendCharacterEnumToAccountSession, GetAccountId()));
 
     asyncQuery->addQuery("SELECT guid, level, race, class, gender, bytes, bytes2, name, positionX, positionY, "
-        "positionZ, mapId, zoneId, banned, restState, deathstate, login_flags, player_flags, guild_members.guildId "
+        "positionZ, mapId, zoneId, banned, restState, deathstate, login_flags, player_flags, guild_members.guildId, characters.surname "
         "FROM characters LEFT JOIN guild_members ON characters.guid = guild_members.playerid WHERE acct=%u ORDER BY guid LIMIT 10",
         GetAccountId());
 
