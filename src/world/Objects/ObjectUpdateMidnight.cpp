@@ -1447,6 +1447,7 @@ namespace
         ByteBuffer& data = ctx.data;
         const bool forever = isForever();
         const std::string name = player->getName();
+        const std::string surname = forever ? player->getSurname() : std::string();
         const uint32_t accountId = player->getSession() != nullptr ? player->getSession()->GetAccountId() : 0;
 
         ctx.guid(player->getDuelArbiter());
@@ -1522,13 +1523,15 @@ namespace
 
         data.writeBits(static_cast<uint32_t>(name.size()), 6);
         if (forever)
-            data.writeBits(0, 9);                                           // surname, not stored
+            data.writeBits(static_cast<uint32_t>(surname.size()), 9);       // surname
         if (ctx.partyMember())
             data.writeBit(false);                                           // has a quest session
         data.writeBit(false);                                               // has a level link
         data.writeBit(false);                                               // has declined names
         data.flushBits();
         data.writeString(name);
+        if (forever)
+            data.writeString(surname);
     }
 
     void playerCollect(ChangedFields const& changed, PlayerMask& mask)
