@@ -2732,6 +2732,7 @@ WDB::Structures::ChrRacesEntry const* Player::getDbcRaceEntry() { return m_dbcRa
 WDB::Structures::ChrClassesEntry const* Player::getDbcClassEntry() { return m_dbcClass; };
 
 utf8_string Player::getName() const { return m_name; }
+std::string Player::getSurname() const { return m_surname; }
 void Player::setName(utf8_string name) { m_name = name; }
 
 uint32_t Player::getLoginFlag() const { return m_loginFlag; }
