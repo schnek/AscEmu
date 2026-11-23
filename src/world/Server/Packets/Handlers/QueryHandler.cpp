@@ -69,7 +69,7 @@ void WorldSession::handleNameQueryOpcode(WorldPacket& recvData)
             response.level = static_cast<uint8_t>(info->lastLevel);
 
             response.realmId = sLogonCommHandler.getRealmId();
-            response.accountId = GetAccountId();
+            response.accountId = info->acct;
         }
         else
         {
