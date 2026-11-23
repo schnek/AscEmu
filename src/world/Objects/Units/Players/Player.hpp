@@ -630,6 +630,7 @@ public:
     WDB::Structures::ChrClassesEntry const* getDbcClassEntry();
 
     utf8_string getName() const;
+    std::string getSurname() const;
     void setName(std::string name);
 
     uint32_t getLoginFlag() const;
